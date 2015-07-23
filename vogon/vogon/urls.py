@@ -20,6 +20,7 @@ from annotations import views
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'appellation', views.AppellationViewSet)
+router.register(r'predicate', views.PredicateViewSet)
 router.register(r'relation', views.RelationViewSet)
 router.register(r'session', views.SessionViewSet)
 router.register(r'text', views.TextViewSet)
@@ -27,6 +28,7 @@ router.register(r'repository', views.RepositoryViewSet)
 router.register(r'temporalbounds', views.TemporalBoundsViewSet)
 router.register(r'user', views.UserViewSet)
 router.register(r'concept', views.ConceptViewSet)
+router.register(r'type', views.TypeViewSet)
 
 urlpatterns = [
     url(r'^annotate/', views.annotate),

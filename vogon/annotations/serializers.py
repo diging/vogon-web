@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from models import *
-from concepts.models import Concept
+from concepts.models import Concept, Type
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,11 +27,6 @@ class RelationSerializer(serializers.ModelSerializer):
 class AppellationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appellation
-#
-#    def validate_interpretation(self, value):
-#        print 'asdf'
-#        print value
-#        return super(AppellationSerializer, self).validate_interpretation(value)
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
@@ -47,5 +42,10 @@ class TextSerializer(serializers.ModelSerializer):
 class ConceptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Concept
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'type')
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed', 'description')
 
+
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed', 'description')

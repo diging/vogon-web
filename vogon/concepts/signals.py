@@ -15,11 +15,10 @@ logger.setLevel('DEBUG')
 def concept_post_save_receiver(sender, **kwargs):
     """
     When a :class:`.Concept` is saved, attempt to resolve it using one of the
-    registered :class:`.AuthorityManager` classes if the :class:`.Concept` is 
+    registered :class:`.AuthorityManager` classes if the :class:`.Concept` is
     not already :prop:`.resolved`\.
     """
     instance = kwargs.get('instance', None)
-    print 'post_save Concept', instance.id
     resolve(sender, instance)
 
 @receiver(post_save, sender=Type)
@@ -30,5 +29,4 @@ def type_post_save_receiver(sender, **kwargs):
     not already :prop:`.resolved`\.
     """
     instance = kwargs.get('instance', None)
-    print 'post_save Type', instance.id
     resolve(sender, instance)

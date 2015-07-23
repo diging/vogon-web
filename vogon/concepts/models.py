@@ -5,10 +5,10 @@ optional = { 'blank': True, 'null': True }
 
 class HeritableObject(models.Model):
     """
-    An object that is aware of its "real" type, i.e. the subclass that it 
+    An object that is aware of its "real" type, i.e. the subclass that it
     instantiates.
     """
-    
+
     real_type = models.ForeignKey(ContentType, editable=False)
     label = models.CharField(max_length=255, **optional)
 
@@ -39,6 +39,7 @@ class Concept(HeritableObject):
     typed = models.ForeignKey('Type', related_name='instances', **optional )
     description = models.TextField(**optional)
     authority = models.CharField(max_length=255)
+    pos = models.CharField(max_length=255, **optional)
 
 class Type(Concept):
     pass

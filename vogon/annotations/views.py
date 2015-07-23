@@ -1,7 +1,10 @@
+from itertools import chain
+
 from rest_framework import viewsets
 from serializers import *
 from django.contrib.auth.models import User
 from concepts.models import Concept
+from concepts.authorities import search
 from models import *
 
 
@@ -21,7 +24,12 @@ class SessionViewSet(viewsets.ModelViewSet):
 
 
 class AppellationViewSet(viewsets.ModelViewSet):
-    queryset = Appellation.objects.all()
+    queryset = Appellation.objects.filter(asPredicate=False)
+    serializer_class = AppellationSerializer
+
+
+class PredicateViewSet(viewsets.ModelViewSet):
+    queryset = Appellation.objects.filter(asPredicate=True)
     serializer_class = AppellationSerializer
 
 
@@ -40,15 +48,33 @@ class TextViewSet(viewsets.ModelViewSet):
     serializer_class = TextSerializer
 
 
+class TypeViewSet(viewsets.ModelViewSet):
+    queryset = Type.objects.all()
+    serializer_class = TypeSerializer
+
+
 class ConceptViewSet(viewsets.ModelViewSet):
     queryset = Concept.objects.all()
     serializer_class = ConceptSerializer
 
     def get_queryset(self, *args, **kwargs):
         queryset = super(ConceptViewSet, self).get_queryset(*args, **kwargs)
-        search = self.request.query_params.get('search', None)
-        if search:
-            queryset = queryset.filter(label__contains=search)
+
+        # Limit results to those with ``pos``.
+        pos = self.request.query_params.get('pos', None)
+        if pos:
+            if pos != 'all':
+                queryset = queryset.filter(pos=pos)
+
+        # Search Concept labels for ``search`` param.
+        query = self.request.query_params.get('search', pos)
+        if query:
+            if pos == 'all':
+                pos = None
+            remote = [o.id for o in search(query, pos=pos)]
+            queryset_remote = Concept.objects.filter(pk__in=remote)
+            queryset = queryset.filter(label__contains=query) | queryset_remote
+
         return queryset
 
 
