@@ -1,12 +1,14 @@
 from itertools import chain
 
-from rest_framework import viewsets
+from rest_framework import viewsets, exceptions
 from serializers import *
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from concepts.models import Concept
 from concepts.authorities import search
 from models import *
 
+import hashlib
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -27,6 +29,18 @@ class AppellationViewSet(viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
 
+    def create(self, request):
+        try:
+            user = User.objects.get(pk=request.data.get('createdBy'))
+        except ObjectDoesNotExist:
+            raise exceptions.AuthenticationFailed('Fishy user data!')
+
+        hashable = '|'.join([user.username, user.password])
+        digest = hashlib.sha224(hashable).hexdigest()
+
+        if request.data.get('userdigest') != digest:
+            raise exceptions.AuthenticationFailed('Fishy user data!')
+        return super(AppellationViewSet, self).create(request)
 
 class PredicateViewSet(viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=True)

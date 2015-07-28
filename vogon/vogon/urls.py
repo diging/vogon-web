@@ -15,8 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
+
 from rest_framework import routers
+
 from annotations import views
+import annotate.views as aviews
+
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'appellation', views.AppellationViewSet)
@@ -34,5 +40,6 @@ urlpatterns = [
     url(r'^annotate/', views.annotate),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest/', include(router.urls)),
+    url(r'^text/(?P<textid>[0-9]+)/$', aviews.text),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

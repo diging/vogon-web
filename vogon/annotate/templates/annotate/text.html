@@ -1,0 +1,198 @@
+{% load staticfiles %}
+
+<html ng-app="annotationApp">
+    <head>
+        <link rel="stylesheet" href="{% static "annotate/bower_components/bootstrap/dist/css/bootstrap.min.css" %}" />
+        <link rel="stylesheet" href="{% static "annotate/bower_components/bootstrap/dist/css/bootstrap-theme.min.css" %}" />
+        <script src="{% static "annotate/bower_components/angularjs/angular.min.js" %}"></script>
+        <script src="{% static "annotate/bower_components/angular-resource/angular-resource.min.js" %}"></script>
+        <script src="{% static "annotate/bower_components/angular-sanitize/angular-sanitize.min.js" %}"></script>
+        <script src="{% static "annotate/js/libs/angucomplete-alt.min.js" %}"></script>
+        <script src="{% static "annotate/bower_components/angularjs/ui-bootstrap-tpls-0.13.0.min.js" %}"></script>
+        <script src="{% static "annotate/bower_components/jquery/dist/jquery.min.js" %}"></script>
+        <link rel="stylesheet" href="{% static "annotate/css/main.css" %}" />
+        <script src="{% static "annotate/js/d3.min.js" %}"></script>
+        <script src="{% static "annotate/js/network.js" %}"></script>
+        <script src="{% static "annotate/js/text.js" %}"></script>
+        <script>
+        var TEXTID = {{ textid }};
+        var USERID = {{ userid }};
+        var USERDIGEST = "{{ userdigest }}";
+        </script>
+        <title>{{ title }}</title>
+    </head>
+    <body escape-key>
+        <div id="header">
+            <nav class="navbar navbar-inverse">
+              <div class="container">
+                <div class="navbar-header">
+                  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                  </button>
+                  <a class="navbar-brand" href="#">Vogon Web</a>
+                </div>
+                <div id="navbar" class="collapse navbar-collapse">
+                  <ul class="nav navbar-nav">
+
+                  </ul>
+                </div><!--/.nav-collapse -->
+              </div>
+            </nav>
+
+        </div>
+
+        <div id="main">
+            <div id="left">
+                <div ng-controller="AlertController" id="alerts">
+                    {% verbatim %}
+                    <alert ng-repeat="alert in alerts" type="{{ alert.type }}" close="closeAlert($index)" ng-bind-html="alert.message"></alert>
+                    {% endverbatim %}
+                </div>
+                <div id="text" class="panel">
+                    <div id="textContent" ng-controller="TextController" textid="{{ textid }}">
+                        <div id="textContentInner" ng-bind-html="textContent" bind-text></div>
+                    </div>
+                </div>
+            </div>
+            <div id="right">
+                <div id="rightTools">
+                    <div class="panel panel-default">
+                        <tabset justified="true">
+                            <tab heading="Network" active="true">
+                                <div id="networkVis" class="panel panel-default">
+                                    <div d3-network class="panel-body" id="network"></div>
+                                </div>
+                            </tab>
+                            <tab heading="Appellations">
+                                <div id="annotations" ng-controller="AppellationsController" class="panel-body">
+                                    <div class="list-group">
+                                        <a href="#" ng-repeat="appellation in appellations" class="list-group-item" ng-click="appellationClick(appellation.id)">
+                                            {% verbatim %}
+                                            <span class="quotedText">{{ appellation.stringRep }}</span> ({{ appellationLabels[appellation.id] }})
+                                            {% endverbatim %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </tab>
+                            <tab heading="Relations">
+                                <div id="relations" ng-controller="RelationsController" class="panel-body">
+                                    <div class="list-group">
+                                        <a href="#" ng-repeat="relation in relations" class="list-group-item" ng-click="relationClick(relation)">
+                                            {% verbatim %}
+                                            {{ relationLabels[relation.id].source }} - <span class="quotedText">{{ relationLabels[relation.id].predicate }}</span> - {{ relationLabels[relation.id].target }}
+                                            {% endverbatim %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </tab>
+
+                        </tabset>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {% verbatim %}
+        <div id="modalConcept" ng-controller="ModalConceptControl">
+            <script type="text/ng-template" id="modalConcept.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">{{ title }}</h3>
+                </div>
+                <div class="modal-body">
+                    <p>You selected <span class="quotedText">{{ text.stringRep }}</span></p>
+                    <p>{{ instructions }}</p>
+
+                    <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ placeholder }}" pause="100" selected-object="selectConcept" remote-url="http://localhost:8000/rest/concept?pos={{ pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()" ng-disabled="okDisabled">OK</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+        </div>
+        {% endverbatim %}
+
+        {% verbatim %}
+        <div id="modalTemporalBounds" ng-controller="ModalTemporalBoundsControl">
+            <script type="text/ng-template" id="modalTemporalBounds.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">{{ title }}</h3>
+                </div>
+                <div class="modal-body">
+                    <p>You asserted that <span class="quotedText">{{ contextData.sourceConcept.label }} - {{ contextData.predicateConcept.label }} - {{ contextData.targetConcept.label }}</span></p>
+                    <p>{{ instructions }}</p>
+
+                    <form name="temporalForm">
+                        <table>
+                            <tr>
+                                <td>Started:</td>
+                                <td>
+                                    <input class="temporalInput" ng-model="started.year" type="number" name="startedYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
+                                    <input class="temporalInput" ng-model="started.month" type="number" name="startedMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" ng-model="started.day" type="number" name="startedDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <span class="glyphicon glyphicon-question-sign" popover="The date on which this relationship commenced, or your assertion (above) became true." popover-trigger="mouseenter"></span>
+                                    <div role="alert">
+                                      <span class="error" ng-show="temporalForm.startedYear.$error.minlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.startedYear.$error.maxlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.startedMonth.$error.minlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.startedMonth.$error.maxlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.startedDay.$error.minlength">Enter a one or two-digit day of the month.</span>
+                                      <span class="error" ng-show="temporalForm.startedDay.$error.maxlength">Enter a one or two-digit day of the month.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Ended:</td>
+                                <td>
+                                    <input class="temporalInput" ng-model="ended.year" type="number" name="endedYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
+                                    <input class="temporalInput" ng-model="ended.month" type="number" name="endedMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" ng-model="ended.day" type="number" name="endedDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <span class="glyphicon glyphicon-question-sign" popover="The date on which this relationship ended, or your assertion (above) ceased to be true." popover-trigger="mouseenter"></span>
+                                    <div role="alert">
+                                      <span class="error" ng-show="temporalForm.endedYear.$error.minlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.endedYear.$error.maxlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.endedMonth.$error.minlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.endedMonth.$error.maxlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.endedDay.$error.minlength">Enter a one or two-digit day of the month.</span>
+                                      <span class="error" ng-show="temporalForm.endedDay.$error.maxlength">Enter a one or two-digit day of the month.</span>
+                                    </div>
+                                <td>
+                            </tr>
+                            <tr>
+                                <td>Occurred:</td>
+                                <td>
+                                    <input class="temporalInput" ng-model="occurred.year" type="number" name="occurredYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
+                                    <input class="temporalInput" ng-model="occurred.month" type="number" name="occurredMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" ng-model="occurred.day" type="number" name="occurredDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <span class="glyphicon glyphicon-question-sign" popover="A date on which you know this relationship to have existed (or your assertion (above) to have been true) regardless of when it commenced or ended." popover-trigger="mouseenter"></span>
+                                    <div role="alert">
+                                      <span class="error" ng-show="temporalForm.occurredYear.$error.minlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.occurredYear.$error.maxlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.occurredMonth.$error.minlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.occurredMonth.$error.maxlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.occurredDay.$error.minlength">Enter a one or two-digit day of the month.</span>
+                                      <span class="error" ng-show="temporalForm.occurredDay.$error.maxlength">Enter a one or two-digit day of the month.</span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </table>
+                    </form>
+                </div>
+                {% endverbatim %}
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()">OK</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+        </div>
+    </body>
+
+</html>

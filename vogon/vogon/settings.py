@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'concepts',
     'annotations',
+    'annotate',
     'rest_framework',
     'corsheaders',
 )
