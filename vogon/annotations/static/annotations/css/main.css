@@ -39,27 +39,27 @@ div#actions {
 
     }
 
-div#main {
+#main {
     margin-top: 25px;
 }
 
 #text {
-    height: 500px;
-    overflow: auto;
-}
-
-div#textContent {
-    position: relative;
-
-    line-height: 1.8em;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 
 }
+
+    #textContent {
+        position: relative;
+        overflow: auto;
+        height: 500px;
+        line-height: 1.8em;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+
+    }
 
 div#rightTools {
     /*width: 350px;*/
