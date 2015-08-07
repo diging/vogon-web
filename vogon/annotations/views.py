@@ -4,8 +4,11 @@ from django.template import RequestContext, loader
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from rest_framework import viewsets, exceptions
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from concepts.models import Concept
 from concepts.authorities import search
@@ -65,17 +68,16 @@ def dashboard(request):
     return HttpResponse(template.render(context))
 
 
+@ensure_csrf_cookie
 @login_required
 def text(request, textid):
     template = loader.get_template('annotations/text.html')
-    hashable = '|'.join([request.user.username, request.user.password])
     text = get_object_or_404(Text, pk=textid)
     context = RequestContext(request, {
         'textid': textid,
         'text': text,
         'userid': request.user.id,
 		'title': 'Annotate Text',
-        'userdigest': hashlib.sha224(hashable).hexdigest(),
     })
     return HttpResponse(template.render(context))
 
@@ -98,19 +100,6 @@ class SessionViewSet(viewsets.ModelViewSet):
 class AppellationViewSet(viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
-
-    def create(self, request):
-        try:
-            user = User.objects.get(pk=request.data.get('createdBy'))
-        except ObjectDoesNotExist:
-            raise exceptions.AuthenticationFailed('Fishy user data!')
-
-        hashable = '|'.join([user.username, user.password])
-        digest = hashlib.sha224(hashable).hexdigest()
-
-        if request.data.get('userdigest') != digest:
-            raise exceptions.AuthenticationFailed('Fishy user data!')
-        return super(AppellationViewSet, self).create(request)
 
 class PredicateViewSet(viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=True)

@@ -1,5 +1,10 @@
 var app = angular.module('annotationApp', ['ngResource', 'ngSanitize', 'ui.bootstrap', 'angucomplete-alt', 'd3']);
 
+app.config(function($httpProvider){
+    $httpProvider.defaults.xsrfCookieName = 'csrftoken';
+    $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+});
+
 app.factory('Text', function($resource) {
     return $resource('http://localhost:8000/rest/text/:id/');
 });
@@ -8,7 +13,7 @@ app.factory('Appellation', function($resource) {
     return $resource('http://localhost:8000/rest/appellation/:id/', {}, {
         list: {
             method: 'GET',
-            cache: true
+            cache: true,
         }
     });
 });
@@ -140,7 +145,6 @@ app.factory('selectionService', function(appellationService, messageService, pre
                         tokenIds: modalData.text.tokenIds,
                         occursIn: TEXTID,
                         createdBy: USERID,
-                        userdigest: USERDIGEST,
                         inSession: 1
                     }
                     appellationService
@@ -209,7 +213,6 @@ app.factory('selectionService', function(appellationService, messageService, pre
                         tokenIds: modalData.text.tokenIds,
                         occursIn: TEXTID,
                         createdBy: USERID,
-                        userdigest: USERDIGEST,
                         inSession: 1,
                         asPredicate: true,
                     }
@@ -260,7 +263,6 @@ app.factory('selectionService', function(appellationService, messageService, pre
                                                 bounds: t.id,
                                                 occursIn: TEXTID,
                                                 createdBy: USERID,
-                                                userdigest: USERDIGEST,
                                                 inSession: 1,
                                             }
 
@@ -630,6 +632,7 @@ app.factory('appellationService', ['$rootScope', 'Appellation', function($rootSc
         createAppellation: function(data) {
             var appellation = new Appellation(data);
             var service = this;
+            console.log(data);
             return appellation.$save().then(function(a, rHeaders) {
                 service.appellations.push(a);
                 if(service.appellationHash[a.interpretation] == undefined) {
