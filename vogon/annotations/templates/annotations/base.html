@@ -1,0 +1,27 @@
+{% load staticfiles %}
+
+<html>
+	{% block head %}
+	<head>
+		{% include "annotations/stylesheets.html" %}
+		{% include "annotations/angular.html" %}
+		{% include "annotations/scripts.html" %}
+
+		<title>{{ title }}</title>
+	</head>
+	{% endblock head %}
+
+	{% block body %}
+	<body>
+		{% block header %}
+		{% include "annotations/header.html" %}
+		{% endblock header %}
+
+		{% block main %}
+		<div id="main">
+
+		</div>
+		{% endblock main %}
+	</body>
+	{% endblock body %}
+</html>

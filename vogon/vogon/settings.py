@@ -39,9 +39,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'concepts',
     'annotations',
-    'annotate',
     'rest_framework',
     'corsheaders',
+    'crispy_forms',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -108,4 +108,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = False
+
 APPEND_SLASH = False
+CRISPY_TEMPLATE_PACK = 'bootstrap3'

@@ -1,0 +1,82 @@
+{% load staticfiles %}
+
+<html ng-app="selectionApp">
+    <head>
+        {% include "annotations/stylesheets.html" %}
+        {% include "annotations/angular.html" %}
+        {% include "annotations/scripts.html" %}
+		<title>{{ title }}</title>
+
+		<script>
+var app = angular.module('selectionApp', ['ngResource', 'ngSanitize', 'ui.bootstrap']);
+
+app.factory('Repository', ['$resource', '$http', function($resource, $http) {
+    var Repository = $resource('http://localhost:8003/repositories/:id/', {}, {
+        list: {
+            method: 'GET',
+            cache: true
+        },
+    });
+
+	angular.extend(Repository.prototype, {
+			texts: [],
+			isActive: false,
+			select: function() {
+				// Don't make a request if the user is just closing the repo.
+				if(!this.isActive) {
+					this.getTexts();
+				};
+			},
+            getTexts: function() {
+				rep = this;
+                $http.get('http://localhost:8003/repositories/'+rep.pk+'/browse/').success(function(data, status, headers, config){
+					rep.texts = data;
+				})
+            }
+        });
+
+	return Repository;
+}]);
+
+app.controller('SelectTextController', ['$scope', 'Repository', function($scope, Repository) {
+	$scope.repositories = [];
+
+	Repository.query(function(e) {
+		$scope.repositories = e;
+	});
+}]);
+
+
+
+		</script>
+	</head>
+	<body>
+		{% include "annotations/header.html" %}
+		<div id="main">
+			<div class="col-sm-10 col-sm-offset-1">
+				<div class="panel panel-primary" ng-controller="SelectTextController">
+					<div class="panel-heading">Add a New Text</div>
+					<div class="panel-body">
+						<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+						{% verbatim %}
+						<accordion close-others="true">
+						    <accordion-group class="panel-info" ng-repeat="repository in repositories" is-open="repository.isActive">
+								<accordion-heading>
+									<div ng-click="repository.select()">
+										Repository: {{repository.fields.name}} ({{ repository.fields.manager}})
+									</div>
+								</accordion-heading>
+						    	<div class="list-group">
+									<a href="#" class="list-group-item" ng-repeat="text in repository.texts">{{ text.title }}</a>
+								</div>
+						    </accordion-group>
+						</accordion>
+						</div>
+						{% endverbatim %}
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

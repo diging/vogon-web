@@ -1,0 +1,64 @@
+<div id="recent-texts" class="panel panel-default">
+	<!-- <i class="fa fa-plus fa-lg btn btn-primary pull-right"></i> -->
+	<div class="panel-heading clearfix">
+		Your Texts
+		<span class ="pull-right">
+			<div class="btn-group btn-group-xs">
+				<button type="button" class="btn btn-primary" aria-label="Add Text">
+					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+					Add Text
+				</button>
+			</div>
+		</span>
+	</div>
+	<div class="panel-body">
+		<ul class="list-group">
+			{% for text in texts %}
+			<li class="list-group-item clearfix">
+
+				{{ text.title }} | {{ text.source }}
+				<span class="pull-right">
+					<div class="btn-group btn-group-xs">
+						<a href="/text/{{ text.id }}/" type="button" class="btn btn-primary" aria-label="Annotate Text">
+							<span class="glyphicon glyphicon-edit"></span>
+							Annotate
+						</a>
+						<a href="#textDetails_{{text.id}}" data-toggle="collapse" type="button" class="btn btn-primary" aria-label="Annotate Text" aria-expanded="false" aria-controls="textDetails_{{text.id}}">
+							<span class="glyphicon glyphicon-cog"></span>
+							Details
+						</a>
+					</div>
+				</span>
+
+
+			</li>
+			<div class="collapse" id="textDetails_{{text.id}}">
+				<!-- <div class="well"> -->
+					<table class="table small-text">
+						<tr>
+							<td>Source</td>
+							<td>{{ text.source }}</td>
+						</tr>
+						<tr>
+							<td>URI</td>
+							<td>{{ text.uri }}</td>
+						</tr>
+						<tr>
+							<td>Created</td>
+							<td>{{ text.created }}</td>
+						</tr>
+						<tr>
+							<td>Added</td>
+							<td>{{ text.added }}</td>
+						</tr>
+						<tr>
+							<td>Added By</td>
+							<td>{{ text.addedBy }}</td>
+						</tr>
+					</table>
+				<!-- </div> -->
+			</div>
+			{% endfor %}
+		</ul>
+	</div>
+</div>

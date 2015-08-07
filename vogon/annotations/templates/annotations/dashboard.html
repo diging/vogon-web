@@ -1,0 +1,22 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+{% block main %}
+<div id="main">
+	<div class="col-md-12">
+		<div class="col-md-8">
+			{% include "annotations/user_texts.html" %}
+		</div>
+		<div class="col-md-4">
+			<div id="broadcasts" class="panel panel-default panel-primary">
+				<div class="panel-heading">Broadcasts</div>
+				<div class="panel-body">
+					<ul>
+						<li></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,207 @@
+body {
+
+    margin: 0px;
+    padding: 0px;
+    background-color: rgb(250, 250, 250);
+    min-width: 1000px;
+    min-height: 600px;
+    height: 100%;
+
+}
+
+
+div#header nav {
+    margin-bottom: 0px;
+}
+
+
+div#alerts {
+    /*height: 40px;*/
+    /*width: 500px;*/
+}
+
+div#actions {
+    /*width: 450px;*/
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
+}
+
+    #actions .action {
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 10px;
+        height: 20px;
+        width: 40px;
+    }
+
+    .action .glyphicon {
+
+    }
+
+div#main {
+    margin-top: 25px;
+}
+
+#text {
+    height: 500px;
+    overflow: auto;
+}
+
+div#textContent {
+    position: relative;
+
+    line-height: 1.8em;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+div#rightTools {
+    /*width: 350px;*/
+    height: 400px;
+
+}
+    div#networkVis {
+        height: 400px;
+    }
+
+    div#annotations {
+
+        height: 400px;
+
+    }
+    div#relations {
+
+        height: 400px;
+    }
+    div#network {
+        padding: 0px;
+    }
+
+word {
+    cursor: pointer;
+}
+
+    word.appellation {
+        color: orange;
+    }
+
+    word.selected {
+        color: blue;
+        text-shadow: 0px 0px 20px orange;
+    }
+
+    word.appellation.selected {
+        color: red;
+        text-shadow: 0px 0px 20px green;
+    }
+
+.actionIcons {
+    position: absolute;
+}
+
+    .actionIcons .btn {
+        margin-right: 2px;
+        padding: 5px;
+
+    }
+
+.quotedText {
+    color: orange;
+    font-style: italic;
+}
+# AngularJS compatability.
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+.angucomplete-dropdown {
+    margin-top: 20px;
+}
+
+.angucomplete-row {
+    font-size: 9pt;
+    margin-left: 10px;
+    margin-top: 5px;
+    padding: 5px;
+}
+
+.angucomplete-row:hover {
+    background-color: rgba(255, 165, 0, 0.61);
+    cursor: pointer;
+
+}
+
+.angucomplete-title {
+    display: inline-block;
+}
+
+.angucomplete-description {
+    display: inline-block;
+    color: gray;
+    font-style: italic;
+    margin-left: 15px;
+}
+
+
+.temporalInput {
+    width: 120px;
+}
+
+.help-text {
+    size: 9pt;
+    font-style: italic;
+    color: gray;
+}
+
+
+
+.error {
+    color: red;
+    padding: 5px;
+}
+
+word.appellation.highlight {
+    text-shadow: 0px 0px 20px blue;
+}
+
+.list-group-annotations {
+    overflow: auto;
+    height: 370px;
+    font-size: 8pt;
+}
+
+.nodeLabel {
+    font-size: 8pt;
+}
+.edgeLabel {
+    font-size: 7pt;
+}
+
+circle.node {
+    fill: rgba(0, 0, 100, 0.9);
+}
+
+.nodeSelected circle {
+    fill: rgba(0, 100, 0, 0.9);
+}
+
+.panel.narrow {
+    width: 400px;
+}
+.panel.center {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+}
+
+#userdropdown {
+    margin-top: 5px;
+}
+
+.small-text {
+    font-size: 8pt;
+}

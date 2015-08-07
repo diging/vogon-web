@@ -21,7 +21,6 @@ from django.conf.urls.static import static
 from rest_framework import routers
 
 from annotations import views
-import annotate.views as aviews
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -37,9 +36,12 @@ router.register(r'concept', views.ConceptViewSet)
 router.register(r'type', views.TypeViewSet)
 
 urlpatterns = [
-    url(r'^annotate/', views.annotate),
+    url(r'^accounts/profile/$', views.dashboard),
+    url(r'^accounts/settings/$', views.settings),
+    url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest/', include(router.urls)),
-    url(r'^text/(?P<textid>[0-9]+)/$', aviews.text),
+    url(r'^text/(?P<textid>[0-9]+)/$', views.text),
+    url(r'^text/add/$', views.add_text),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

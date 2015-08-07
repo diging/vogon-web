@@ -46,6 +46,8 @@ class Text(models.Model):
 
     source = models.ForeignKey("Repository", related_name="loadedTexts")
 
+    originalResource = models.URLField(blank=True, null=True)
+
 
 class Repository(models.Model):
     name = models.CharField(max_length=255)

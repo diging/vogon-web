@@ -1,0 +1,32 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% load i18n admin_static %}
+{% load crispy_forms_tags %}
+
+{% block main %}
+<div id="main">
+
+		<div class="col-sm-8 col-sm-offset-2">
+			<form action="#" method="POST">
+				<div id="settings" class="panel panel-default">
+					<div class="panel-heading">Update your profile</div>
+					<div class="panel-body">
+						<!-- <div class="well"> -->
+
+						{% crispy form %}
+
+						<!-- </div> -->
+					</div>
+
+					<div class="panel-footer clearfix">
+						<span class="pull-right">
+							<input type="submit" class="btn btn-primary" value="Submit" />
+						</span>
+					</div>
+
+
+				</div>
+			</form>
+		</div>
+</div>
+{% endblock %}
