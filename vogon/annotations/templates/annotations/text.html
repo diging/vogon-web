@@ -18,7 +18,7 @@
     <body escape-key>
         {% include "annotations/header.html" %}
         <div id="main" class="container">
-            <div class="row">
+            <div class="row col-md-12">
                 <div id="left" class="col-md-6">
                     <div class="row">
                         <div ng-controller="AlertController" id="alerts">
@@ -38,13 +38,21 @@
                         </div>
                     </div>
                 </div>
-                <div id="right" class="col-md-4">
+                <div id="right" class="col-md-6">
                     <div id="rightTools">
                         <div class="panel panel-default">
                             <tabset justified="true">
                                 <tab heading="Network" active="true">
                                     <div id="networkVis" class="panel panel-default">
                                         <div d3-network class="panel-body" id="network"></div>
+                                    </div>
+                                    <div class="panel">
+                                        <div class="panel-body">
+                                            Nodes and edges will be added to the graph as you create new relations.
+                                            Each node corresponds to a single concept; so if several appellations
+                                            share a single interpretation (e.g. if two phrases refer to the same
+                                            person), then they will be represented by a single node.
+                                        </div>
                                     </div>
                                 </tab>
                                 <tab heading="Appellations">
@@ -53,8 +61,19 @@
                                             <a href="#" ng-repeat="appellation in appellations" class="list-group-item" ng-click="appellationClick(appellation.id)">
                                                 {% verbatim %}
                                                 <span class="quotedText">{{ appellation.stringRep }}</span> ({{ appellationLabels[appellation.id] }})
+                                                <span class="btn-group btn-group-xs pull-right">
+                                                    <span class="btn btn-danger" ng-click="deleteAppellation(appellation)">
+                                                        <span class="glyphicon glyphicon-remove"></span>
+                                                        Delete
+                                                    </span>
+                                                </span>
                                                 {% endverbatim %}
                                             </a>
+                                        </div>
+                                    </div>
+                                    <div class="panel">
+                                        <div class="panel-body">
+                                            Appellations will be added to this list as you create them.
                                         </div>
                                     </div>
                                 </tab>
@@ -64,8 +83,19 @@
                                             <a href="#" ng-repeat="relation in relations" class="list-group-item" ng-click="relationClick(relation)">
                                                 {% verbatim %}
                                                 {{ relationLabels[relation.id].source }} - <span class="quotedText">{{ relationLabels[relation.id].predicate }}</span> - {{ relationLabels[relation.id].target }}
+                                                <span class="btn-group btn-group-xs pull-right">
+                                                    <span class="btn btn-danger" ng-click="deleteRelation(relation)">
+                                                        <span class="glyphicon glyphicon-remove"></span>
+                                                        Delete
+                                                    </span>
+                                                </span>
                                                 {% endverbatim %}
                                             </a>
+                                        </div>
+                                    </div>
+                                    <div class="panel">
+                                        <div class="panel-body">
+                                            Relations will be added to this list as you create them.
                                         </div>
                                     </div>
                                 </tab>
@@ -81,14 +111,40 @@
         <div id="modalConcept" ng-controller="ModalConceptControl">
             <script type="text/ng-template" id="modalConcept.html">
                 <div class="modal-header">
-                    <h3 class="modal-title">{{ title }}</h3>
+                    <h3 class="modal-title">{{ data.title }}</h3>
                 </div>
                 <div class="modal-body">
-                    <p>You selected <span class="quotedText">{{ text.stringRep }}</span></p>
-                    <p>{{ instructions }}</p>
+                    <p>You selected <span class="quotedText">{{ data.text.stringRep }}</span></p>
+                    <p>{{ data.instructions }}</p>
 
-                    <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ placeholder }}" pause="100" selected-object="selectConcept" remote-url="http://localhost:8000/rest/concept?pos={{ pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
+                    <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ data.placeholder }}" pause="100" search-str="search" selected-object="selectConcept" remote-url="/rest/concept?pos={{ data.pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
                     </div>
+                    <div class="clearfix">
+                        <div class="btn-group btn-group-sm pull-right">
+                            <button class="btn btn-primary" ng-disabled="createConceptDisabled" ng-click="startCreateConcept()">Create Concept</button>
+                        </div>
+                    </div>
+                    <div class="panel" ng-hide="createConceptHidden">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" ng-model="assertUnique" ng-change="assertUniqueChange()">
+                                I've tried my hardest, but I can't find this concept in any search results.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="panel" ng-hide="createConceptDetailsHidden">
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" name="description" required="true" ng-model="newConcept.description" id="description" placeholder="Describe this concept in as much detail as you can."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="type">Type</label>
+                            <select class="form-control" ng-model="newConcept.typed" required="true" ng-options="t.label for t in data.types">
+                                <option></option>
+                            </select>
+                        </div>
+                    </div>
+
 
                 </div>
                 <div class="modal-footer">
@@ -173,6 +229,45 @@
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
             </script>
+        </div>
+
+        <div ng-controller="deleteConfirmModalController" id="deleteAppellationModal">
+            {% verbatim %}
+            <script type="text/ng-template" id="deleteAppellationModalContent.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">Are you sure?</h3>
+                </div>
+                <div class="modal-body">
+                    <p>
+                    You have selected the appellation <span class="quotedText">{{data.appellation.stringRep}}</span>
+                    for deletion. If you delete this appellation, then all of its associated relations will also be deleted.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+            {% endverbatim %}
+        </div>
+
+        <div ng-controller="deleteConfirmModalController" id="deleteRelationModal">
+            {% verbatim %}
+            <script type="text/ng-template" id="deleteRelationModalContent.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">Are you sure?</h3>
+                </div>
+                <div class="modal-body">
+                    <p>
+                    Are you sure that you want to delete this relation?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+            {% endverbatim %}
         </div>
     </body>
 

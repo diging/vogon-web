@@ -3,8 +3,7 @@ body {
     margin: 0px;
     padding: 0px;
     background-color: rgb(250, 250, 250);
-    min-width: 1000px;
-    min-height: 600px;
+
     height: 100%;
 
 }
@@ -16,12 +15,10 @@ div#header nav {
 
 
 div#alerts {
-    /*height: 40px;*/
-    /*width: 500px;*/
 }
 
 div#actions {
-    /*width: 450px;*/
+
     margin-left: auto;
     margin-right: auto;
     margin-top: 30px;
@@ -32,7 +29,7 @@ div#actions {
         margin-left: 10px;
         margin-right: 10px;
         height: 20px;
-        width: 40px;
+
     }
 
     .action .glyphicon {
@@ -62,7 +59,7 @@ div#actions {
     }
 
 div#rightTools {
-    /*width: 350px;*/
+
     height: 400px;
 
 }
@@ -148,7 +145,7 @@ word {
 
 
 .temporalInput {
-    width: 120px;
+
 }
 
 .help-text {
@@ -174,9 +171,6 @@ word.appellation.highlight {
     font-size: 8pt;
 }
 
-.nodeLabel {
-    font-size: 8pt;
-}
 .edgeLabel {
     font-size: 7pt;
 }
@@ -187,10 +181,19 @@ circle.node {
 
 .nodeSelected circle {
     fill: rgba(0, 100, 0, 0.9);
+
+}
+
+.nodeLabel {
+    font-size: 8pt;
+}
+
+.nodeSelected .nodeLabel {
+    font-size: 13pt;
 }
 
 .panel.narrow {
-    width: 400px;
+
 }
 .panel.center {
     margin-left: auto;
@@ -205,3 +208,7 @@ circle.node {
 .small-text {
     font-size: 8pt;
 }
+
+.accordion-panel .panel-body {
+   padding: 7px;
+ }

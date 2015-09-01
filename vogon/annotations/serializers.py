@@ -6,17 +6,12 @@ from concepts.models import Concept, Type
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ('username', 'email', 'id')
 
 
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Repository
-
-
-class SessionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Session
 
 
 class RelationSerializer(serializers.ModelSerializer):
@@ -27,6 +22,7 @@ class RelationSerializer(serializers.ModelSerializer):
 class AppellationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appellation
+        # fields = ('createdBy', 'interpretation', 'occursIn', 'stringRep', 'tokenIds', 'id')
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
@@ -37,6 +33,11 @@ class TemporalBoundsSerializer(serializers.ModelSerializer):
 class TextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Text
+        fields = ('id', 'uri', 'tokenizedContent', 'title', 'created', 'added', 'addedBy', 'source', 'annotators', 'annotationCount')
+
+class TextCollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TextCollection
 
 
 class ConceptSerializer(serializers.ModelSerializer):

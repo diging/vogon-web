@@ -27,21 +27,29 @@ router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'appellation', views.AppellationViewSet)
 router.register(r'predicate', views.PredicateViewSet)
 router.register(r'relation', views.RelationViewSet)
-router.register(r'session', views.SessionViewSet)
 router.register(r'text', views.TextViewSet)
 router.register(r'repository', views.RepositoryViewSet)
 router.register(r'temporalbounds', views.TemporalBoundsViewSet)
 router.register(r'user', views.UserViewSet)
 router.register(r'concept', views.ConceptViewSet)
 router.register(r'type', views.TypeViewSet)
+router.register(r'textcollection', views.TextCollectionViewSet)
 
 urlpatterns = [
     url(r'^accounts/profile/$', views.dashboard),
-    url(r'^accounts/settings/$', views.settings),
+    url(r'^accounts/settings/$', views.user_settings),
     url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest/', include(router.urls)),
+    url(r'^network/$', views.network),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text),
     url(r'^text/add/$', views.add_text),
+    url(r'^sources/repository/(?P<id>[0-9]+)', views.source_repository),
+    url(r'^sources/repository$', views.source_repositories),
+    url(r'^sources/collection/(?P<id>[0-9]+)', views.source_collection),
+    url(r'^sources/collection$', views.source_collections),
+    url(r'^sources/resource/(?P<id>[0-9]+)', views.source_resource),
+    url(r'^sources/resource$', views.source_resources),
+    url(r'^sources/retrieve/(?P<uri>.+)', views.source_retrieve),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

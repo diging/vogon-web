@@ -1,0 +1,558 @@
+<script>
+var app = angular.module('collectionsApp', ['ngResource', 'ngSanitize', 'ui.bootstrap']);
+
+app.config(['$httpProvider', function($httpProvider){
+	$httpProvider.defaults.xsrfCookieName = 'csrftoken';
+	$httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+
+	$httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+	$httpProvider.defaults.headers.common['Authorization'] = '{{ eratosthenes_token }}';
+}]);
+
+app.factory('Text', ['$resource', function($resource) {
+	return $resource('/rest/text/:id');
+}]);
+
+app.factory('TextCollection', ['$resource', '$http', 'Text', function($resource, $http, Text) {
+	var TextCollection = $resource('/rest/textcollection/:id', {}, {
+		save: {
+			method:'POST',
+			headers: {'Content-Type': 'application/json'}
+		},
+		update_remote: {
+			method:'PUT',
+			headers: {'Content-Type': 'application/json'}
+		}
+	});
+
+	angular.extend(TextCollection.prototype, {
+		isActive: false,
+		textDetails: [],
+		update: function() {
+			var textcollection = this;
+			return Text.query({textcollection:textcollection.id}).$promise.then(function(texts) {
+				textcollection.textDetails = texts;
+				return texts;
+			});
+
+		},
+		select: function() {
+			var textcollection = this;
+			if (!textcollection.isActive) {
+				textcollection.update();
+				textcollection.isActive = true;
+				textcollection.open = true;
+
+			} else {
+				textcollection.isActive = false;
+				textcollection.open = false;
+			}
+		}
+	});
+
+	return TextCollection;
+}]);
+
+
+
+app.factory('Resource', ['$resource', '$http', function($resource, $http) {
+	var Resource = $resource('/sources/resource/:id');
+	return Resource;
+}]);
+
+app.factory('Collection', ['$resource', '$http', function($resource, $http) {
+	var Collection = $resource('/sources/collection/:id');
+	return Collection;
+}]);
+
+app.factory('Repository', ['$resource', 'Collection', '$http', '$q', function($resource, Collection, $http, $q) {
+	var Repository = $resource('/sources/repository/:id', {}, {
+		list: {
+			method: 'GET',
+			cache: true
+		},
+	});
+
+	angular.extend(Repository.prototype, {
+		texts: [],
+		isActive: false,
+		select: function() {
+			return
+		},
+		selectCollection: function(collection) {
+			var repository = this;
+			if(!collection.open || collection.open === undefined) {
+				collection.open = true;
+				var instance = Collection.get({id: collection.id}).$promise;
+				instance.then(function(data) {
+					collection.texts = data.resources;
+				});
+			} else {
+				collection.open = false;
+			}
+		},
+	});
+	return Repository;
+}]);
+
+app.controller('textCollectionsController', ['$scope', 'TextCollection', 'Repository', '$http', '$q', function($scope, TextCollection, Repository, $http, $q) {
+	$scope.textcollections = [];
+	$scope.oneAtATime = false;
+
+	$scope.update = function(tcid) {
+		$scope.textcollections = TextCollection.query().$promise.then(function(textcollections) {
+			$scope.textcollections = textcollections;
+
+			textcollections.forEach(function(textcollection, index) {
+				textcollection.update().then(function(texts) {
+					if (textcollection.id == tcid) {
+						textcollection.open = true;
+						if(!$scope.$$phase) $scope.$apply();
+					}
+					$scope.$watch('textcollections['+index+'].open', function(isOpen){
+						if (isOpen) {
+							textcollection.select();
+						}
+					});
+					if(!$scope.$$phase) $scope.$apply();
+				});
+			});
+		});
+	}
+	$scope.update();
+
+	$scope.addCollection = function() {
+		angular.element($('#addCollectionModal')).scope().open({}, function(data) {
+
+			var textcollection = new TextCollection(data.textcollection);
+			textcollection.$save().then(function(){
+				$scope.textcollections.push(textcollection);
+				textcollection.select();
+				if(!$scope.$$phase) $scope.$apply();
+
+			});
+		});
+	}
+
+	$scope.editCollection = function(textcollection) {
+		var data = {
+			textcollection: textcollection
+		}
+
+		var modalScope = angular.element($('#addCollectionModal')).scope();
+		modalScope.open(data, function(data) {
+			data.textcollection.$update_remote({id: data.textcollection.id}).then(function() {
+				textcollection.select();
+			});
+		});
+	}
+
+	$scope.deleteCollection = function(textcollection) {
+		var data = {
+			textcollection: textcollection
+		};
+		var modalScope = angular.element($('#deleteCollectionModal')).scope();
+		modalScope.open(data, function(data) {
+			data.textcollection.$delete({id:data.textcollection.id});
+			$scope.textcollections.forEach(function(instance, i) {
+				if (instance.id == data.textcollection.id) $scope.textcollections.splice(i, 1);
+			});
+		});
+	}
+
+	$scope.removeText = function(textcollection, text) {
+		console.log(textcollection);
+		console.log(text);
+		textcollection.texts.forEach(function(t, i) {
+			console.log(t);
+			console.log(text.id);
+			if (t == text.id) textcollection.texts.splice(i, 1)
+		});
+
+		textcollection.$update_remote({id: textcollection.id}).then(function() {
+			textcollection.update();
+			textcollection.open = true;
+			textcollection.isActive = true;
+			if(!$scope.$$phase) $scope.$apply();
+
+		})
+	}
+
+	$scope.addText = function(textcollection) {
+
+		var modalScope = angular.element($('#addTextsModal')).scope();
+		modalScope.open({'textcollection': textcollection}, function(data) {
+			addTasks = [];
+			// Kind of hacky, but this drills down to look for texts that
+			//  have been selected.
+
+			data.repositories.forEach(function(repository)  {
+				repository.collections.forEach(function(collection) {
+					if (collection.texts) {
+						collection.texts.forEach(function(text) {
+							if (text.selected) {
+								payload = {
+									'addTo': textcollection,
+									'text': text,
+									'source': repository
+								}
+								addTasks.push($http.post('/text/add/', payload));
+							}
+						});
+					}
+				});
+			});
+
+			data.toAdd.forEach(function(result) {
+				Repository.get({id:result.fields.source}).$promise.then(function(source) {
+					payload = {
+						'addTo': textcollection,
+						'text': {
+							id: result.pk,
+							title: result.fields.title,
+							uri: result.fields.uri,
+						},
+						'source': source,
+					}
+					addTasks.push($http.post('/text/add/', payload));
+				})
+
+			});
+
+			// Add all selected texts, then update the TextCollection.
+			$q.all(addTasks).then(function(r) {
+				$scope.update(textcollection.id);
+			})
+		});
+	}
+}]);
+
+app.controller('ModalInstanceController', function ($scope, $modalInstance, data) {
+	$scope.data = data;
+
+	$scope.ok = function (data) {
+		$modalInstance.close(data);
+	};
+
+	$scope.cancel = function () {
+		$modalInstance.dismiss('cancel');
+	};
+});
+
+app.controller('deleteCollectionModalController', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+	$scope.animationsEnabled = true;
+
+	$scope.open = function(data, callback) {
+		var modalInstance = $modal.open({
+			animation: $scope.animationsEnabled,
+			templateUrl: 'deleteCollectionModalContent.html',
+			controller: 'ModalInstanceController',
+			resolve: {
+                data: function() {
+                    return data;
+                },
+            }
+		});
+
+		modalInstance.result.then(callback, function(data) {
+			console.log();
+		});
+	}
+}]);
+
+app.controller('addCollectionModalController', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+	$scope.animationsEnabled = true;
+
+	$scope.open = function(data, callback) {
+		var modalInstance = $modal.open({
+			animation: $scope.animationsEnabled,
+			templateUrl: 'addCollectionModalContent.html',
+			controller: 'ModalInstanceController',
+			resolve: {
+                data: function() {
+                    return data;
+                },
+            }
+		});
+
+		modalInstance.result.then(callback, function(data) {
+			console.log(data);
+			$log.info('Modal dismissed at: ' + new Date());
+		});
+	}
+}]);
+
+app.controller('addTextsModalController', ['$scope', '$modal', '$log', 'Repository', '$http', function($scope, $modal, $log, Repository, $http) {
+	$scope.animationsEnabled = true;
+	$scope.repositories = [];
+	$scope.toAdd = [];
+
+	$scope.update = function() {
+		Repository.query(function(e) {
+			$scope.repositories = e;
+		});
+	}
+	$scope.update();
+
+	$scope.resolve = function(textcollection, uri) {
+		$http.get('/sources/retrieve/'+uri).then(function(response) {
+			if (response.data.length == 0) {	// Not found.
+
+			} else {	// Found.
+				$scope.toAdd.push(response.data);
+				// paylod = {
+				// 	'addTo': textcollection,
+				// 	'text': text,
+				// 	'source': repository
+				// }
+				// addTasks.push($http.post('/text/add/', paylod));
+			}
+		});
+	}
+
+	$scope.open = function(data, callback) {
+		var modalInstance = $modal.open({
+			animation: $scope.animationsEnabled,
+			templateUrl: 'addTextsModalContent.html',
+			controller: 'ModalInstanceController',
+			scope: $scope,
+			resolve: {
+                data: function() {
+                    return data;
+                },
+            }
+		});
+
+		modalInstance.result.then(callback, function(data) {
+			$log.info('Modal dismissed at: ' + new Date());
+		});
+	}
+}]);
+</script>
+
+<div ng-app="collectionsApp">
+	<div class="panel panel-primary" ng-controller="textCollectionsController">
+		<div class="panel-heading clearfix">
+			My Collections
+			<span class ="pull-right">
+				<div class="btn-group btn-group-xs">
+					<a type="button" class="btn btn-primary" aria-label="Add Collection" ng-click="addCollection()">
+						<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+						Create Collection
+					</a>
+				</div>
+			</span>
+		</div>
+		<div class="panel-body">
+			<p>
+				Use collections to organize your annotation efforts. For
+				example, create a new collection for each of your projects.
+				Once you create a collection, you can start adding texts to it.
+				A text can belong to as many different collections as you like.
+			</p>
+		</div>
+		{% verbatim %}
+		<div class="panel-body">
+			<accordion>
+				<accordion-group ng-repeat="textcollection in textcollections" is-open="textcollection.open">
+					<accordion-heading>
+						{{ textcollection.name }} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': textcollection.open, 'glyphicon-chevron-right': !textcollection.open}"></i>
+					</accordion-heading>
+					<div class="panel-body well">{{ textcollection.description }}
+						<span class="pull-right">
+							<div class="btn-group btn-group-xs">
+								<a type="button" class="btn btn-primary" aria-label="Add Text" ng-click="addText(textcollection)">
+									<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+									Add Text
+								</a>
+								<a type="button" class="btn btn-primary" aria-label="Edit" ng-click="editCollection(textcollection)">
+									<span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+									Edit
+								</a>
+								<a type="button" class="btn btn-danger" aria-label="Delete" ng-click="deleteCollection(textcollection)">
+									<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+									Delete
+								</a>
+							</div>
+						</span>
+					</div>
+
+					<ul class="list-group">
+						<li class="list-group-item clearfix" ng-repeat="text in textcollection.textDetails">
+							{{ text.title }} | {{ text.source }}
+							<span class="pull-right">
+								<div class="btn-group btn-group-xs">
+									<a href="/text/{{ text.id }}/" type="button" class="btn btn-primary" aria-label="Annotate Text">
+										<span class="glyphicon glyphicon-edit"></span>
+										Annotate
+										<!-- <span class="label label-default"> {{ text.annotationCount }}</span> -->
+									</a>
+									<a href="#textDetails_{{ textcollection.id }}_{{text.id}}" data-toggle="collapse" type="button" class="btn btn-primary" aria-label="Annotate Text" aria-expanded="false" aria-controls="textDetails_{{ textcollection.id }}_{{text.id}}">
+										<span class="glyphicon glyphicon-cog"></span>
+										Details
+									</a>
+									<a type="button" class="btn btn-danger" aria-label="Remove" ng-click="removeText(textcollection, text)">
+										<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+										Remove
+									</a>
+								</div>
+							</span>
+							<div class="collapse" id="textDetails_{{ textcollection.id }}_{{text.id}}">
+								<!-- <div class="well"> -->
+								<table class="table small-text">
+									<tr>
+										<td>Source</td>
+										<td>{{ text.source }}</td>
+									</tr>
+									<tr>
+										<td>URI</td>
+										<td>{{ text.uri }}</td>
+									</tr>
+									<tr>
+										<td>Created</td>
+										<td>{{ text.created }}</td>
+									</tr>
+									<tr>
+										<td>Added</td>
+										<td>{{ text.added }}</td>
+									</tr>
+									<tr>
+										<td>Added By</td>
+										<td>{{ text.addedBy }}</td>
+									</tr>
+								</table>
+								<!-- </div> -->
+							</div>
+						</li>
+					</ul>
+				</accordion-group>
+			</accordion>
+			{% endverbatim %}
+		</div>
+	</div>
+
+	<div ng-controller="deleteCollectionModalController" id="deleteCollectionModal">
+		{% verbatim %}
+		<script type="text/ng-template" id="deleteCollectionModalContent.html">
+			<div class="modal-header">
+				<h3 class="modal-title">Are you sure?</h3>
+			</div>
+			<div class="modal-body">
+
+				<p>
+				You have selected collection <strong>"{{ data.textcollection.name }}"</strong> for deletion.
+				This action cannot be reversed!
+				</p>
+
+
+			</div>
+			<div class="modal-footer">
+				<i>(Don't worry, you won't lose any of your annotations)</i>
+				<button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
+				<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+			</div>
+		</script>
+		{% endverbatim %}
+	</div>
+
+	<div ng-controller="addCollectionModalController" id="addCollectionModal">
+		<script type="text/ng-template" id="addCollectionModalContent.html">
+			<div class="modal-header">
+				<h3 class="modal-title">Create a New Collection</h3>
+			</div>
+			<div class="modal-body">
+				<form name="collectionForm" class="form-horizontal">
+					<div class="form-group">
+						<label for="name" class="col-sm-4 control-label">Name:</label>
+						<div class="col-sm-6">
+							<input class="form-control" id="name" ng-model="data.textcollection.name" placeholder="Give your collection a name" ng-required="true" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="description" class="col-sm-4 control-label">Description:</label>
+						<div class="col-sm-6">
+							<input class="form-control" id="description" ng-model="data.textcollection.description" placeholder="Please provide a short description" ng-required="true" />
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-primary" ng-enter="ok(data)" ng-click="ok(data)" ng-disabled="collectionForm.$invalid">OK</button>
+				<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+			</div>
+		</script>
+	</div>
+
+	<div ng-controller="addTextsModalController" id="addTextsModal">
+		<script type="text/ng-template" id="addTextsModalContent.html">
+			<div class="modal-header">
+				<h3 class="modal-title">Add a Text to this Collection</h3>
+			</div>
+			<div class="modal-body">
+				<accordion close-others="true">
+					<accordion-group class="panel panel-primary" heading="Add Text from a Repository" >
+						{% verbatim %}
+						<accordion close-others="true">
+							<accordion-group ng-repeat="repository in repositories" is-open="repository.isActive" class="accordion-panel">
+								<accordion-heading>
+									<div ng-click="repository.select()">
+										Repository: {{repository.name}} ({{ repository.manager}}) <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': repository.isActive, 'glyphicon-chevron-right': !repository.isActive}"></i>
+									</div>
+								</accordion-heading>
+
+								<form name="textRepoForm">
+									<div class="panel panel-success" ng-repeat="collection in repository.collections" is-open="collection.open">
+										<div class="panel-heading" ng-click="repository.selectCollection(collection)">
+											Collection: {{ collection.title }} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': collection.open, 'glyphicon-chevron-right': !collection.open}"></i>
+										</div>
+										<div class="panel-body" ng-hide="!collection.open">
+
+											<ul class="list-group">
+												<li class="list-group-item checkbox" ng-repeat="text in collection.texts">
+													<label>
+														<input type="checkbox" ng-model="text.selected">{{ text.title }}
+													</label>
+												</li>
+
+											</ul>
+										</div>
+									</div>
+								</form>
+							</accordion-group>
+						</accordion>
+						{% endverbatim %}
+					</accordion-group>
+					<accordion-group class="panel panel-primary" heading="Add Text by URI">
+						<div class="panel-body">
+							<p>
+							Enter the URI for the text that you wish to add. Vogon
+							will look for the text in known repositories, and (if
+							not found) will attempt to download the text directly
+							from the internet.
+							</p>
+							<form name="textURIForm" class="form-horizontal">
+								<div class="form-group">
+									<label for="uri" class="control-label">URI:</label>
+									<input type="text" name="uri" class="form-control" ng-model='uri' placeholder="Paste or type a URI for a resource">
+
+									<span class="btn-group btn-group-sm pull-right">
+										<button class="btn btn-primary" ng-click="resolve(textcollection, uri)">Resolve</button>
+									</span>
+								</div>
+							</form>
+						</div>
+					</accordion-group>
+					<accordion-group class="panel panel-primary" heading="Upload Text">
+						<div>
+							<input type="file"></input>
+						</div>
+					</accordion>
+				</accordion>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-primary" ng-click="ok({repositories:repositories, toAdd:toAdd})">Done</button>
+				<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+			</div>
+		</script>
+	</div>
+</div>

@@ -17,9 +17,26 @@ class ConceptpowerAuthority(AuthorityManager, Conceptpower):
     endpoint = 'http://chps.asu.edu/conceptpower/rest/'
     namespace = '{http://www.digitalhps.org/}'
 
+#
+# class VogonAuthority(AuthorityManager):
+#     __name__ = "VogonAuthority"
+#
+#     def search(self, query, pos='noun'):
+#         return Concept.objects.filter(label__contains=query).filter(pos=pos)
+#
+#     def get(self, uri):
+#         return Concept.object.get(uri=uri)
+#
+#     def get_type(self, uri):
+#         return Type.objects.get(uri=uri)
+#
+#     namespace = '{http://vogon.asu.edu/}'
+
+
 # Register AuthorityManagers here.
 authority_managers = (
     ConceptpowerAuthority,
+    # VogonAuthority,
 )
 
 def search(query, pos='noun'):

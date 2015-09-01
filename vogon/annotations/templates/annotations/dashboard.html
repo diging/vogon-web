@@ -3,19 +3,34 @@
 
 {% block main %}
 <div id="main">
-	<div class="col-md-12">
-		<div class="col-md-8">
-			{% include "annotations/user_texts.html" %}
-		</div>
-		<div class="col-md-4">
-			<div id="broadcasts" class="panel panel-default panel-primary">
-				<div class="panel-heading">Broadcasts</div>
+	<div class="row">
+		<div class="col-sm-8 col-sm-offset-2">
+			<div class="panel panel-success">
+				<div class="panel-heading text-center">
+					My Contributions
+				</div>
 				<div class="panel-body">
-					<ul>
-						<li></li>
-					</ul>
+					<div class="row">
+						<div class="col-sm-4 text-center">
+							<h4><span class="text-danger">{{ textCount }}</span> texts</h4>
+						</div>
+						<div class="col-sm-4 text-center">
+							<h4><span class="text-danger">{{ appellationCount }}</span> appellations</h4>
+						</div>
+						<div class="col-sm-4 text-center">
+							<h4><span class="text-danger">{{ relationCount }}</span> relations</h4>
+						</div>
+					</div>
 				</div>
 			</div>
+		</div>
+	</div>
+	<div class="row col-sm-12">
+		<div class="col-sm-6">
+			{% include "annotations/user_collections.html" %}
+		</div>
+		<div class="col-sm-6">
+			{% include "annotations/user_recent_texts.html" %}
 		</div>
 	</div>
 </div>

@@ -31,6 +31,14 @@ class TupleField(models.TextField):
         return self.get_db_prep_value(value)
 
 
+class TextCollection(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+
+    ownedBy = models.ForeignKey(User, related_name='collections')
+    texts = models.ManyToManyField('Text', related_name='partOf', blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+
 class Text(models.Model):
     uri = models.CharField(max_length=255, unique=True)
     """Should be sufficient to retrieve text from repository."""
@@ -48,21 +56,18 @@ class Text(models.Model):
 
     originalResource = models.URLField(blank=True, null=True)
 
+    annotators = models.ManyToManyField(User, related_name="userTexts")
+
+    @property
+    def annotationCount(self):
+        return self.appellation_set.count() + self.relation_set.count()
+
 
 class Repository(models.Model):
     name = models.CharField(max_length=255)
 
     def __unicode__(self):
         return unicode(self.name)
-
-
-class Session(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-    """A session can be (optionally) given a name."""
-
-    created = models.DateTimeField(auto_now_add=True)
-    createdBy = models.ForeignKey(User)
-    updated = models.DateTimeField(auto_now=True)
 
 
 class Annotation(models.Model):
@@ -72,7 +77,6 @@ class Annotation(models.Model):
     occursIn = models.ForeignKey("Text")
     created = models.DateTimeField(auto_now_add=True)
     createdBy = models.ForeignKey(User)
-    inSession = models.ForeignKey("Session")
 
 
 class Interpreted(models.Model):

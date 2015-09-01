@@ -1,6 +1,7 @@
 {% extends "annotations/base.html" %}
 {% load staticfiles %}
 {% load i18n admin_static %}
+{% load addcss %}
 
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/login_.css" %}" />{% endblock %}
 
@@ -14,49 +15,62 @@
 
 {% block main %}
 <div id="main">
-	<div id="login" class="panel panel-default narrow center">
-		<div class="panel-heading">Log In</div>
-		<div class="panel-body">
-			{% if form.errors and not form.non_field_errors %}
-			<p class="errornote">
-				{% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
-			</p>
-			{% endif %}
+	<div class="row col-sm-4 col-sm-offset-4">
+		<div id="login" class="panel panel-default narrow center">
+			<div class="panel-heading">Log In</div>
+			<form action="{{ app_path }}" method="post" id="login-form" class="form-horizontal" style="margin-bottom: 0px;">{% csrf_token %}
 
-			{% if form.non_field_errors %}
-				{% for error in form.non_field_errors %}
-				<p class="errornote">
-				    {{ error }}
-				</p>
-				{% endfor %}
-			{% endif %}
-
-			<div id="content-main">
-				<form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
-					<div class="form-row">
-					{{ form.username.errors }}
-						<label for="id_username" class="required">{{ form.username.label }}:</label> {{ form.username }}
-					</div>
-					<div class="form-row">
-					{{ form.password.errors }}
-						<label for="id_password" class="required">{% trans 'Password:' %}</label> {{ form.password }}
-						<input type="hidden" name="next" value="{{ next }}" />
-					</div>
-					{% url 'admin_password_reset' as password_reset_url %}
-					{% if password_reset_url %}
-					<div class="password-reset-link">
-						<a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
-					</div>
+				<div class="panel-body">
+					{% if form.errors and not form.non_field_errors %}
+					<p class="errornote">
+						{% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
+					</p>
 					{% endif %}
-					<div class="submit-row">
-						<label>&nbsp;</label><input type="submit" value="{% trans 'Log in' %}" />
-					</div>
-				</form>
 
-				<script type="text/javascript">
-				document.getElementById('id_username').focus()
-				</script>
-			</div>
+					{% if form.non_field_errors %}
+						{% for error in form.non_field_errors %}
+						<p class="errornote">
+						    {{ error }}
+						</p>
+						{% endfor %}
+					{% endif %}
+
+					<div id="content-main">
+							<div class="form-group">
+							{{ form.username.errors }}
+								<label for="username" class="required control-label col-sm-4">{{ form.username.label }}:</label>
+								<div class="col-sm-6">
+									{{ form.username | addcss:"form-control" }}
+								</div>
+							</div>
+							<div class="form-group">
+							{{ form.password.errors }}
+								<label for="password" class="required control-label col-sm-4">{% trans 'Password:' %}</label>
+								<div class="col-sm-6">
+									{{ form.password | addcss:"form-control"}}
+								</div>
+								<input type="hidden" name="next" value="{{ next }}" />
+							</div>
+							{% url 'admin_password_reset' as password_reset_url %}
+							{% if password_reset_url %}
+							<div class="password-reset-link">
+								<a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
+							</div>
+							{% endif %}
+
+
+
+						<script type="text/javascript">
+						document.getElementById('id_username').focus()
+						</script>
+					</div>
+				</div>
+				<div class="panel-footer clearfix">
+					<div class="submit-row btn-group btn-group-sm pull-right">
+						<input type="submit" class="btn btn-primary" value="{% trans 'Log in' %}" />
+					</div>
+				</div>
+			</form>
 		</div>
 	</div>
 </div>
