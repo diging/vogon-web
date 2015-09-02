@@ -122,6 +122,6 @@ CORS_ALLOW_CREDENTIALS = False
 APPEND_SLASH = False
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-sys.path.append('/var/wwwnginxvogon')
+sys.path.append('/var/wwwnginx/vogon')
 from secrets import ERATOSTHENES_TOKEN
 ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
