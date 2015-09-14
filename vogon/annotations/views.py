@@ -160,6 +160,7 @@ def user_settings(request):
     context = RequestContext(request, {
         'user': request.user,
         'form': form,
+        'subpath': settings.SUBPATH,
     })
     return HttpResponse(template.render(context))
 
@@ -170,6 +171,7 @@ def dashboard(request):
     texts = user_recent_texts(request.user)
     context = RequestContext(request, {
         'user': request.user,
+        'subpath': settings.SUBPATH,
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),

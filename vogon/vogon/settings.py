@@ -88,8 +88,12 @@ WSGI_APPLICATION = 'vogon.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'vogon',
+        'USER': 'vogon',
+        'PASSWORD': 'vogon',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
