@@ -69,11 +69,14 @@ def update_instance(sender, instance, concept_data, authority):
     #  signals resulting in a crawl up the Type ontology
     #  based on the ``supertype`` property.
     if sender is Concept:
-        type_uri = concept_data['type_uri']
+        if 'type_uri' in concept_data:
+            type_uri = concept_data['type_uri']
+        else:
+            type_uri = None
     elif sender is Type:
-        try:
+        if 'supertype_uri' in concept_data:
             type_uri = concept_data['supertype_uri']
-        except KeyError:
+        else:
             type_uri = None
 
     if type_uri is not None:
