@@ -206,6 +206,7 @@ def network(request):
     template = loader.get_template('annotations/network.html')
     context = {
         'baselocation': basepath(request),
+        'user': request.user,
     }
     return HttpResponse(template.render(context))
 

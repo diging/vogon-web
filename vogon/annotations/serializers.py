@@ -33,7 +33,8 @@ class TemporalBoundsSerializer(serializers.ModelSerializer):
 class TextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Text
-        fields = ('id', 'uri', 'tokenizedContent', 'title', 'created', 'added', 'addedBy', 'source', 'annotators', 'annotationCount')
+        fields = ('id', 'uri', 'tokenizedContent', 'title', 'created', 'added',
+                  'addedBy', 'source', 'annotators', 'annotationCount')
 
 class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:
