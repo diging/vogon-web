@@ -115,7 +115,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/vogonstatic/'
+STATIC_ROOT = '/diging/wwwnginx/vogon/static/'
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False
@@ -123,5 +124,6 @@ CORS_ALLOW_CREDENTIALS = False
 APPEND_SLASH = False
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-ERATOSTHENES_TOKEN = 'b9c088627a34b5792c811c7a7c1320fd6d9a0972'
-ERATOSTHENES_ENDPOINT = 'http://localhost:8003'
+sys.path.append('/diging/wwwnginx/vogon')
+from secrets import ERATOSTHENES_TOKEN
+ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
