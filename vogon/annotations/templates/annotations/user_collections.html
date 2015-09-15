@@ -10,11 +10,11 @@ app.config(['$httpProvider', function($httpProvider){
 }]);
 
 app.factory('Text', ['$resource', function($resource) {
-	return $resource('/rest/text/:id');
+	return $resource(BASELOCATION + '/rest/text/:id');
 }]);
 
 app.factory('TextCollection', ['$resource', '$http', 'Text', function($resource, $http, Text) {
-	var TextCollection = $resource('/rest/textcollection/:id', {}, {
+	var TextCollection = $resource(BASELOCATION + '/rest/textcollection/:id', {}, {
 		save: {
 			method:'POST',
 			headers: {'Content-Type': 'application/json'}
@@ -56,17 +56,17 @@ app.factory('TextCollection', ['$resource', '$http', 'Text', function($resource,
 
 
 app.factory('Resource', ['$resource', '$http', function($resource, $http) {
-	var Resource = $resource('/sources/resource/:id');
+	var Resource = $resource(BASELOCATION + '/sources/resource/:id');
 	return Resource;
 }]);
 
 app.factory('Collection', ['$resource', '$http', function($resource, $http) {
-	var Collection = $resource('/sources/collection/:id');
+	var Collection = $resource(BASELOCATION + '/sources/collection/:id');
 	return Collection;
 }]);
 
 app.factory('Repository', ['$resource', 'Collection', '$http', '$q', function($resource, Collection, $http, $q) {
-	var Repository = $resource('/sources/repository/:id', {}, {
+	var Repository = $resource(BASELOCATION + '/sources/repository/:id', {}, {
 		list: {
 			method: 'GET',
 			cache: true
@@ -196,7 +196,7 @@ app.controller('textCollectionsController', ['$scope', 'TextCollection', 'Reposi
 									'text': text,
 									'source': repository
 								}
-								addTasks.push($http.post('/text/add/', payload));
+								addTasks.push($http.post(BASELOCATION + '/text/add/', payload));
 							}
 						});
 					}
@@ -214,7 +214,7 @@ app.controller('textCollectionsController', ['$scope', 'TextCollection', 'Reposi
 						},
 						'source': source,
 					}
-					addTasks.push($http.post('/text/add/', payload));
+					addTasks.push($http.post(BASELOCATION + '/text/add/', payload));
 				})
 
 			});
@@ -295,7 +295,7 @@ app.controller('addTextsModalController', ['$scope', '$modal', '$log', 'Reposito
 	$scope.update();
 
 	$scope.resolve = function(textcollection, uri) {
-		$http.get('/sources/retrieve/'+uri).then(function(response) {
+		$http.get(BASELOCATION + '/sources/retrieve/'+uri).then(function(response) {
 			if (response.data.length == 0) {	// Not found.
 
 			} else {	// Found.

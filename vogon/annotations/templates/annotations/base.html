@@ -3,10 +3,14 @@
 <html>
 	{% block head %}
 	<head>
+		<script>
+
+		var BASELOCATION = "{{baselocation}}";
+		
+		</script>
 		{% include "annotations/stylesheets.html" %}
 		{% include "annotations/angular.html" %}
 		{% include "annotations/scripts.html" %}
-
 		<title>{{ title }}</title>
 	</head>
 	{% endblock head %}

@@ -6,11 +6,11 @@ app.config(function($httpProvider){
 });
 
 app.factory('Text', function($resource) {
-    return $resource('http://localhost:8000/rest/text/:id/');
+    return $resource(BASELOCATION + '/rest/text/:id/');
 });
 
 app.factory('Appellation', function($resource) {
-    return $resource('/rest/appellation/:id/', {
+    return $resource(BASELOCATION + '/rest/appellation/:id/', {
         text: TEXTID
     }, {
         list: {
@@ -26,23 +26,23 @@ app.factory('Appellation', function($resource) {
 });
 
 app.factory('Relation', function($resource) {
-    return $resource('/rest/relation/:id/', {
+    return $resource(BASELOCATION + '/rest/relation/:id/', {
         text: TEXTID
     });
 });
 
 app.factory('Predicate', function($resource) {
-    return $resource('/rest/predicate/:id/', {
+    return $resource(BASELOCATION + '/rest/predicate/:id/', {
         text: TEXTID
     });
 });
 
 app.factory('TemporalBounds', function($resource) {
-    return $resource('/rest/temporalbounds/:id/');
+    return $resource(BASELOCATION + '/rest/temporalbounds/:id/');
 });
 
 app.factory('Concept', function($resource) {
-    return $resource('/rest/concept/:id/', {}, {
+    return $resource(BASELOCATION + '/rest/concept/:id/', {}, {
         list: {
             method: 'GET',
             cache: true,
@@ -51,7 +51,7 @@ app.factory('Concept', function($resource) {
 });
 
 app.factory('Type', function($resource) {
-    return $resource('/rest/type/:id/', {}, {
+    return $resource(BASELOCATION + '/rest/type/:id/', {}, {
         list: {
             method: 'GET',
             cache: true,

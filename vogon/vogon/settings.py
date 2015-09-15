@@ -27,8 +27,6 @@ SECRET_KEY = 'gtl7=k_#_cx5e9!2(khyq3_#u3=8bh97fi_t0e*p#*u66rwg=&'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-SUBPATH = '/vogon'
-
 
 # Application definition
 
@@ -129,3 +127,11 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 sys.path.append('/diging/wwwnginx/vogon')
 from secrets import ERATOSTHENES_TOKEN
 ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
+
+import socket
+
+try:
+    HOSTNAME = socket.gethostname()
+except:
+    HOSTNAME = 'localhost'
+SUBPATH = '/vogon'

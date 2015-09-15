@@ -167,11 +167,15 @@ def user_settings(request):
 
 @login_required
 def dashboard(request):
+    """
+    Provides the user's personalized dashboard.
+    """
     template = loader.get_template('annotations/dashboard.html')
     texts = user_recent_texts(request.user)
     context = RequestContext(request, {
         'user': request.user,
         'subpath': settings.SUBPATH,
+        'baselocation': settings.HOSTNAME + settings.SUBPATH,
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
