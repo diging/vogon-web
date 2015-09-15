@@ -78,7 +78,7 @@ app.factory('messageService', function($rootScope) {
     return service;
 });
 
-app.factory('selectionService', ["appellationService", "messageService", "predicateService", "conceptService", "temporalBoundsService", "relationService", "errors", "$timeout", "$compile", "Type", "Concept", "$q", function(appellationService, messageService, predicateService, conceptService, temporalBoundsService, relationService, errors, $timeout, $compile, Type, Concept, $q) {
+app.factory('selectionService', ["$rootScope", "appellationService", "messageService", "predicateService", "conceptService", "temporalBoundsService", "relationService", "errors", "$timeout", "$compile", "Type", "Concept", "$q", function($rootScope, appellationService, messageService, predicateService, conceptService, temporalBoundsService, relationService, errors, $timeout, $compile, Type, Concept, $q) {
     var service = {
         ignoreWordClick: false,
         ignoreAppellationClick: false,
@@ -171,7 +171,6 @@ app.factory('selectionService', ["appellationService", "messageService", "predic
                 var getConcept = function() {
                     return $q(function(resolve, reject) {
                         var concept = null;
-                        console.log(modalData);
                         if (modalData.newConcept) {
                             modalData.newConcept.typed = modalData.newConcept.typed.id;
                             concept = new Concept(modalData.newConcept);
@@ -589,6 +588,7 @@ app.factory('selectionService', ["appellationService", "messageService", "predic
         $(window).resize(function() {
             parent.offset(calculatePosition(element));
         });
+        if(!$rootScope.$$phase) $rootScope.$apply();
     }
 
     service.clearActions = function() {
