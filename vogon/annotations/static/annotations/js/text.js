@@ -584,7 +584,6 @@ app.factory('selectionService', ["$rootScope", "appellationService", "messageSer
 
         $('#textContent').append(parent);
 
-
         // Icons should track the element to which they are attached.
         $(window).resize(function() {
             parent.offset(calculatePosition(element));

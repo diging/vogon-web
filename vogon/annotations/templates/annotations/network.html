@@ -16,7 +16,7 @@ app.config(['$httpProvider', function($httpProvider){
 }]);
 
 app.factory('User', function($resource) {
-    return $resource('/rest/user/:id', {}, {
+    return $resource(BASELOCATION + '/rest/user/:id', {}, {
         list: {
             method: 'GET',
             cache: true
@@ -25,7 +25,7 @@ app.factory('User', function($resource) {
 });
 
 app.factory('Text', function($resource) {
-    return $resource('/rest/text/:id', {}, {
+    return $resource(BASELOCATION + '/rest/text/:id', {}, {
         list: {
             method: 'GET',
             cache: true
@@ -34,7 +34,7 @@ app.factory('Text', function($resource) {
 });
 
 app.factory('Appellation', function($resource) {
-    return $resource('/rest/appellation/:id', {}, {
+    return $resource(BASELOCATION + '/rest/appellation/:id', {}, {
         list: {
             method: 'GET',
             cache: true
@@ -43,7 +43,7 @@ app.factory('Appellation', function($resource) {
 });
 
 app.factory('Relation', function($resource) {
-    return $resource('/rest/relation/:id', {}, {
+    return $resource(BASELOCATION + '/rest/relation/:id', {}, {
         list: {
             method: 'GET',
             cache: true
@@ -52,7 +52,7 @@ app.factory('Relation', function($resource) {
 });
 
 app.factory('Concept', function($resource) {
-    return $resource('/rest/concept/:id', {}, {
+    return $resource(BASELOCATION + '/rest/concept/:id', {}, {
         list: {
             method: 'GET',
             cache: true
@@ -61,7 +61,7 @@ app.factory('Concept', function($resource) {
 });
 
 app.factory('Type', function($resource) {
-    return $resource('/rest/type/:id', {}, {
+    return $resource(BASELOCATION + '/rest/type/:id', {}, {
         list: {
             method: 'GET',
             cache: true
@@ -71,7 +71,7 @@ app.factory('Type', function($resource) {
 
 
 app.factory('Predicate', function($resource) {
-    return $resource('/rest/predicate/:id', {}, {
+    return $resource(BASELOCATION + '/rest/predicate/:id', {}, {
         list: {
             method: 'GET',
             cache: true
