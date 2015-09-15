@@ -27,6 +27,7 @@ SECRET_KEY = 'gtl7=k_#_cx5e9!2(khyq3_#u3=8bh97fi_t0e*p#*u66rwg=&'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+SUBPATH = '/vogon'
 
 
 # Application definition
