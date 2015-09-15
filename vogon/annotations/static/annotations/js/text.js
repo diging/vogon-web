@@ -555,8 +555,8 @@ app.factory('selectionService', ["$rootScope", "appellationService", "messageSer
          * Get the appropriate offset for icons, based on the position of
          * element.
          */
+        console.log('calculatePosition');
         var calculatePosition = function(element) {
-
             var position = element.offset();
             position.left += element.width();
             position.top -= 5;
@@ -565,9 +565,11 @@ app.factory('selectionService', ["$rootScope", "appellationService", "messageSer
 
         service.clearActions();
 
-        var parent = $('<div>', {
+        var parent = $('<div>', {   // This will hold all of the icons.
             class: 'actionIcons panel',
         });
+
+        // Add each icon to the parent container.
         icons.forEach(function(icon) {
             var elem = $("<button>", {
                 class: "btn btn-primary btn-xs",
@@ -581,13 +583,14 @@ app.factory('selectionService', ["$rootScope", "appellationService", "messageSer
         });
 
         $('#textContent').append(parent);
-        parent.offset(calculatePosition(element));
 
 
         // Icons should track the element to which they are attached.
         $(window).resize(function() {
             parent.offset(calculatePosition(element));
         });
+
+        parent.offset(calculatePosition(element));
         if(!$rootScope.$$phase) $rootScope.$apply();
     }
 
