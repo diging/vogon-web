@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import sys
+from urlparse import urlparse
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -131,7 +132,9 @@ ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
 import socket
 
 try:
-    HOSTNAME = socket.gethostname()
+    full_hostname = socket.gethostname()
+    parsed_uri = urlparse(full_hostname)
+    HOSTNAME = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 except:
     HOSTNAME = 'localhost'
 SUBPATH = '/vogon'
