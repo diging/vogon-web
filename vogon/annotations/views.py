@@ -200,6 +200,9 @@ def dashboard(request):
 
 
 def network(request):
+    """
+    Provides a network browser view.
+    """
     template = loader.get_template('annotations/network.html')
     return HttpResponse(template.render({}))
 
@@ -207,6 +210,9 @@ def network(request):
 @ensure_csrf_cookie
 @login_required
 def text(request, textid):
+    """
+    Provides the main text annotation view.
+    """
     template = loader.get_template('annotations/text.html')
     text = get_object_or_404(Text, pk=textid)
     context = RequestContext(request, {
