@@ -152,6 +152,7 @@ app.factory('selectionService', ["appellationService", "messageService", "predic
                 text: text,
                 pos: 'noun',
                 placeholder: 'Search for a concept',
+                baselocation: BASELOCATION,
                 types: [],  // Concept types, for creation procedure.
                 newConcept: {
                     pos: 'noun',
@@ -243,6 +244,7 @@ app.factory('selectionService', ["appellationService", "messageService", "predic
                 text: text,
                 pos: 'verb',
                 placeholder: 'Search for a predicate concept',
+                baselocation: BASELOCATION,
                 types: [],  // Concept types, for creation procedure.
                 newConcept: {
                     pos: 'verb',

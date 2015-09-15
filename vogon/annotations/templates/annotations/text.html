@@ -123,7 +123,7 @@
                     <p>You selected <span class="quotedText">{{ data.text.stringRep }}</span></p>
                     <p>{{ data.instructions }}</p>
 
-                    <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ data.placeholder }}" pause="100" search-str="search" selected-object="selectConcept" remote-url="/rest/concept?pos={{ data.pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
+                    <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ data.placeholder }}" pause="100" search-str="search" selected-object="selectConcept" remote-url="{{baselocation}}/rest/concept?pos={{ data.pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
                     </div>
                     <div class="clearfix">
                         <div class="btn-group btn-group-sm pull-right">
