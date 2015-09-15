@@ -131,10 +131,4 @@ ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
 
 import socket
 
-try:
-    full_hostname = socket.gethostname()
-    parsed_uri = urlparse(full_hostname)
-    HOSTNAME = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-except:
-    HOSTNAME = 'localhost'
 SUBPATH = '/vogon'

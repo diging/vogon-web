@@ -37,11 +37,24 @@ sourceManager = EratosthenesManager(settings.ERATOSTHENES_ENDPOINT, settings.ERA
 def user_texts(user):
     return Text.objects.filter(relation__createdBy__pk=user.id).distinct()
 
+
+def basepath(request):
+    """
+    Generate the base path (domain + path) for the site.
+    """
+    if request.is_secure():
+        scheme = 'https://'
+    else:
+        scheme = 'http://'
+    return scheme + request.get_host() + settings.SUBPATH
+
+
 def user_recent_texts(user):
     by_relations = Text.objects.filter(relation__createdBy__pk=user.id)
     by_appellations = Text.objects.filter(appellation__createdBy__pk=user.id)
     result_list = list(set(chain(by_relations, by_appellations)))
     return result_list
+
 
 def json_response(func):
     def decorator(request, *args, **kwargs):
@@ -165,6 +178,8 @@ def user_settings(request):
     return HttpResponse(template.render(context))
 
 
+
+
 @login_required
 def dashboard(request):
     """
@@ -175,7 +190,7 @@ def dashboard(request):
     context = RequestContext(request, {
         'user': request.user,
         'subpath': settings.SUBPATH,
-        'baselocation': settings.HOSTNAME + settings.SUBPATH,
+        'baselocation': basepath(request),
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
@@ -199,6 +214,7 @@ def text(request, textid):
         'text': text,
         'userid': request.user.id,
         'title': 'Annotate Text',
+        'basepath': basepath(request),
     })
     return HttpResponse(template.render(context))
 
