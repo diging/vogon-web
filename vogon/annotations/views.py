@@ -214,7 +214,7 @@ def text(request, textid):
         'text': text,
         'userid': request.user.id,
         'title': 'Annotate Text',
-        'basepath': basepath(request),
+        'baselocation': basepath(request),
     })
     return HttpResponse(template.render(context))
 
