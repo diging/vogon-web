@@ -204,7 +204,10 @@ def network(request):
     Provides a network browser view.
     """
     template = loader.get_template('annotations/network.html')
-    return HttpResponse(template.render({}))
+    context = {
+        'baselocation': basepath(request),
+    }
+    return HttpResponse(template.render(context))
 
 
 @ensure_csrf_cookie
