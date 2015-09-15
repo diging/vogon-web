@@ -262,8 +262,8 @@ app.factory('selectionService', ["$rootScope", "appellationService", "messageSer
                     var getConcept = function() {
                         return $q(function(resolve, reject) {
                             var concept = null;
-                            modalData.newConcept.typed = modalData.newConcept.typed.id;
                             if (modalData.newConcept) {
+                                modalData.newConcept.typed = modalData.newConcept.typed.id;
                                 concept = new Concept(modalData.newConcept);
                                 concept.$save().then(function(c) {
                                     resolve(c);
