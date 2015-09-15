@@ -117,7 +117,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/vogonstatic/'
-STATIC_ROOT = '/diging/wwwnginx/vogon/static/'
+# STATIC_ROOT = '/diging/wwwnginx/vogon/static/'
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False
@@ -135,4 +135,4 @@ ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
 
 import socket
 
-SUBPATH = '/vogon'
+SUBPATH = ''
