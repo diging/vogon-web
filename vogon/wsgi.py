@@ -12,6 +12,7 @@ import os
 from django.core.wsgi import get_wsgi_application
 from dj_static import Cling
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "vogon.heroku_settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "heroku_settings")
 
 application = Cling(get_wsgi_application())
+# application = get_wsgi_application()
