@@ -44,6 +44,8 @@ INSTALLED_APPS = (
     'rest_framework',
     'corsheaders',
     'crispy_forms',
+    'guardian',
+    'djcelery',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -100,6 +102,12 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # default
+    'guardian.backends.ObjectPermissionBackend',
+)
+ANONYMOUS_USER_ID = -1
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -125,13 +133,6 @@ CORS_ALLOW_CREDENTIALS = False
 APPEND_SLASH = False
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-sys.path.append('/diging/wwwnginx/vogon')
-try:
-    from secrets import ERATOSTHENES_TOKEN
-except ImportError:
-    ERATOSTHENES_TOKEN = ''
-
-ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
 
 import socket
 

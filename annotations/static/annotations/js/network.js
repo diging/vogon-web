@@ -10,7 +10,10 @@ d3module.factory('d3Service', ['$document', '$q', '$rootScope',
 		var scriptTag = $document[0].createElement('script');
 		scriptTag.type = 'text/javascript';
 		scriptTag.async = true;
-		scriptTag.src = '/vogonstatic/annotations/js/d3.min.js';
+
+		// TODO: this should not be hard-coded.
+		scriptTag.src = '/static/annotations/js/d3.min.js';
+		
 		scriptTag.onreadystatechange = function () {
 			if (this.readyState == 'complete') onScriptLoad();
 		}
