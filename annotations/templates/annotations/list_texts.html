@@ -13,20 +13,28 @@
             {% endfor %}
             </ul>
 
-            <div class="pagination">
-                <span class="step-links">
+            <div>
+                <ul class="pagination pagination-sm">
                     {% if texts.has_previous %}
-                        <a href="?page={{ texts.previous_page_number }}">previous</a>
+                    <li>
+                        <a href="?page={{ texts.previous_page_number }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </lu>
                     {% endif %}
-
-                    <span class="current">
-                        Page {{ texts.number }} of {{ texts.paginator.num_pages }}.
-                    </span>
-
+                    {% for p in texts.paginator.page_range %}
+                    <li{% if p == texts.number %} class="active"{% endif %}>
+                        <a href="?page={{p}}">{{p}}</a>
+                    </li>
+                    {% endfor %}
                     {% if texts.has_next %}
-                        <a href="?page={{ texts.next_page_number }}">next</a>
+                    <li>
+                        <a href="?page={{ texts.next_page_number }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </lu>
                     {% endif %}
-                </span>
+                </ul>
             </div>
             {% else %}
             <p>No texts to display.</p>
