@@ -405,7 +405,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         pos = self.request.query_params.get('pos', None)
         if pos:
             if pos != 'all':
-                queryset = queryset.filter(pos=pos)
+                queryset = queryset.filter(pos__in=[pos.upper(), pos.lower()])
 
         # Search Concept labels for ``search`` param.
         query = self.request.query_params.get('search', pos)
