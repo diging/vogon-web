@@ -19,6 +19,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from rest_framework import routers
+from rest_framework_nested import routers as nrouters
 
 from annotations import views
 
@@ -35,21 +36,23 @@ router.register(r'concept', views.ConceptViewSet)
 router.register(r'type', views.TypeViewSet)
 router.register(r'textcollection', views.TextCollectionViewSet)
 
+repository_router = nrouters.NestedSimpleRouter(router, r'repository', lookup='repository')
+repository_router.register('collection', views.RemoteCollectionViewSet, base_name='repository')
+
+remotecollection_router = nrouters.NestedSimpleRouter(repository_router, r'collection', lookup='collection')
+remotecollection_router.register('resource', views.RemoteResourceViewSet, base_name='collection')
+
 urlpatterns = [
-    url(r'^accounts/profile/$', views.dashboard),
+    url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
     url(r'^accounts/settings/$', views.user_settings),
     url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest/', include(router.urls)),
+    url(r'^rest/', include(repository_router.urls)),
+    url(r'^rest/', include(remotecollection_router.urls)),
     url(r'^network/$', views.network),
-    url(r'^text/(?P<textid>[0-9]+)/$', views.text),
-    url(r'^text/add/$', views.add_text),
-    url(r'^sources/repository/(?P<id>[0-9]+)', views.source_repository),
-    url(r'^sources/repository$', views.source_repositories),
-    url(r'^sources/collection/(?P<id>[0-9]+)', views.source_collection),
-    url(r'^sources/collection$', views.source_collections),
-    url(r'^sources/resource/(?P<id>[0-9]+)', views.source_resource),
-    url(r'^sources/resource$', views.source_resources),
-    url(r'^sources/retrieve/(?P<uri>.+)', views.source_retrieve),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^text/$', views.list_texts),
+    url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^$', views.home)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

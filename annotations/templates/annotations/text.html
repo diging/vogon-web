@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load app_filters %}
 
 <html ng-app="annotationApp">
     <head>
@@ -38,8 +39,8 @@
                             <div id="textTitle" class="panel-heading">
                                 <h3>{{ text.title }}</h3>
                             </div>
-                            <div id="textContent" class="panel-body" ng-controller="TextController" textid="{{ textid }}">
-                                <div id="textContentInner" ng-bind-html="textContent" bind-text></div>
+                            <div id="textContent" class="panel-body" textid="{{ textid }}" ng-controller="TextController">
+                                <div id="textContentInner" bind-text>{{ text.tokenizedContent|safe_text }}</div>
                             </div>
                         </div>
                     </div>

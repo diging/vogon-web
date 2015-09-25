@@ -13,7 +13,8 @@ app.factory('Text', ['$resource', function($resource) {
 	return $resource(BASELOCATION + '/rest/text/:id');
 }]);
 
-app.factory('TextCollection', ['$resource', '$http', 'Text', function($resource, $http, Text) {
+app.factory('TextCollection', ['$resource', '$http', 'Text',
+							   function($resource, $http, Text) {
 	var TextCollection = $resource(BASELOCATION + '/rest/textcollection/:id', {}, {
 		save: {
 			method:'POST',
@@ -54,48 +55,9 @@ app.factory('TextCollection', ['$resource', '$http', 'Text', function($resource,
 }]);
 
 
-
-app.factory('Resource', ['$resource', '$http', function($resource, $http) {
-	var Resource = $resource(BASELOCATION + '/sources/resource/:id');
-	return Resource;
-}]);
-
-app.factory('Collection', ['$resource', '$http', function($resource, $http) {
-	var Collection = $resource(BASELOCATION + '/sources/collection/:id');
-	return Collection;
-}]);
-
-app.factory('Repository', ['$resource', 'Collection', '$http', '$q', function($resource, Collection, $http, $q) {
-	var Repository = $resource(BASELOCATION + '/sources/repository/:id', {}, {
-		list: {
-			method: 'GET',
-			cache: true
-		},
-	});
-
-	angular.extend(Repository.prototype, {
-		texts: [],
-		isActive: false,
-		select: function() {
-			return
-		},
-		selectCollection: function(collection) {
-			var repository = this;
-			if(!collection.open || collection.open === undefined) {
-				collection.open = true;
-				var instance = Collection.get({id: collection.id}).$promise;
-				instance.then(function(data) {
-					collection.texts = data.resources;
-				});
-			} else {
-				collection.open = false;
-			}
-		},
-	});
-	return Repository;
-}]);
-
-app.controller('textCollectionsController', ['$scope', 'TextCollection', 'Repository', '$http', '$q', function($scope, TextCollection, Repository, $http, $q) {
+app.controller('textCollectionsController',
+			   ['$scope', 'TextCollection', '$http', '$q',
+			   	function($scope, TextCollection, $http, $q) {
 	$scope.textcollections = [];
 	$scope.oneAtATime = false;
 
@@ -179,50 +141,10 @@ app.controller('textCollectionsController', ['$scope', 'TextCollection', 'Reposi
 	}
 
 	$scope.addText = function(textcollection) {
-
 		var modalScope = angular.element($('#addTextsModal')).scope();
 		modalScope.open({'textcollection': textcollection}, function(data) {
-			addTasks = [];
-			// Kind of hacky, but this drills down to look for texts that
-			//  have been selected.
+			// TODO: implement this!
 
-			data.repositories.forEach(function(repository)  {
-				repository.collections.forEach(function(collection) {
-					if (collection.texts) {
-						collection.texts.forEach(function(text) {
-							if (text.selected) {
-								payload = {
-									'addTo': textcollection,
-									'text': text,
-									'source': repository
-								}
-								addTasks.push($http.post(BASELOCATION + '/text/add/', payload));
-							}
-						});
-					}
-				});
-			});
-
-			data.toAdd.forEach(function(result) {
-				Repository.get({id:result.fields.source}).$promise.then(function(source) {
-					payload = {
-						'addTo': textcollection,
-						'text': {
-							id: result.pk,
-							title: result.fields.title,
-							uri: result.fields.uri,
-						},
-						'source': source,
-					}
-					addTasks.push($http.post(BASELOCATION + '/text/add/', payload));
-				})
-
-			});
-
-			// Add all selected texts, then update the TextCollection.
-			$q.all(addTasks).then(function(r) {
-				$scope.update(textcollection.id);
-			})
 		});
 	}
 }]);
@@ -282,33 +204,11 @@ app.controller('addCollectionModalController', ['$scope', '$modal', '$log', func
 	}
 }]);
 
-app.controller('addTextsModalController', ['$scope', '$modal', '$log', 'Repository', '$http', function($scope, $modal, $log, Repository, $http) {
+app.controller('addTextsModalController', ['$scope', '$modal', '$log', '$http', function($scope, $modal, $log, $http) {
 	$scope.animationsEnabled = true;
 	$scope.repositories = [];
 	$scope.toAdd = [];
 
-	$scope.update = function() {
-		Repository.query(function(e) {
-			$scope.repositories = e;
-		});
-	}
-	$scope.update();
-
-	$scope.resolve = function(textcollection, uri) {
-		$http.get(BASELOCATION + '/sources/retrieve/'+uri).then(function(response) {
-			if (response.data.length == 0) {	// Not found.
-
-			} else {	// Found.
-				$scope.toAdd.push(response.data);
-				// paylod = {
-				// 	'addTo': textcollection,
-				// 	'text': text,
-				// 	'source': repository
-				// }
-				// addTasks.push($http.post('/text/add/', paylod));
-			}
-		});
-	}
 
 	$scope.open = function(data, callback) {
 		var modalInstance = $modal.open({
@@ -489,68 +389,11 @@ app.controller('addTextsModalController', ['$scope', '$modal', '$log', 'Reposito
 				<h3 class="modal-title">Add a Text to this Collection</h3>
 			</div>
 			<div class="modal-body">
-				<accordion close-others="true">
-					<accordion-group class="panel panel-primary" heading="Add Text from a Repository" >
-						{% verbatim %}
-						<accordion close-others="true">
-							<accordion-group ng-repeat="repository in repositories" is-open="repository.isActive" class="accordion-panel">
-								<accordion-heading>
-									<div ng-click="repository.select()">
-										Repository: {{repository.name}} ({{ repository.manager}}) <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': repository.isActive, 'glyphicon-chevron-right': !repository.isActive}"></i>
-									</div>
-								</accordion-heading>
-
-								<form name="textRepoForm">
-									<div class="panel panel-success" ng-repeat="collection in repository.collections" is-open="collection.open">
-										<div class="panel-heading" ng-click="repository.selectCollection(collection)">
-											Collection: {{ collection.title }} <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': collection.open, 'glyphicon-chevron-right': !collection.open}"></i>
-										</div>
-										<div class="panel-body" ng-hide="!collection.open">
-
-											<ul class="list-group">
-												<li class="list-group-item checkbox" ng-repeat="text in collection.texts">
-													<label>
-														<input type="checkbox" ng-model="text.selected">{{ text.title }}
-													</label>
-												</li>
-
-											</ul>
-										</div>
-									</div>
-								</form>
-							</accordion-group>
-						</accordion>
-						{% endverbatim %}
-					</accordion-group>
-					<accordion-group class="panel panel-primary" heading="Add Text by URI">
-						<div class="panel-body">
-							<p>
-							Enter the URI for the text that you wish to add. Vogon
-							will look for the text in known repositories, and (if
-							not found) will attempt to download the text directly
-							from the internet.
-							</p>
-							<form name="textURIForm" class="form-horizontal">
-								<div class="form-group">
-									<label for="uri" class="control-label">URI:</label>
-									<input type="text" name="uri" class="form-control" ng-model='uri' placeholder="Paste or type a URI for a resource">
-
-									<span class="btn-group btn-group-sm pull-right">
-										<button class="btn btn-primary" ng-click="resolve(textcollection, uri)">Resolve</button>
-									</span>
-								</div>
-							</form>
-						</div>
-					</accordion-group>
-					<accordion-group class="panel panel-primary" heading="Upload Text">
-						<div>
-							<input type="file"></input>
-						</div>
-					</accordion>
-				</accordion>
+				<!-- TODO: Implement this! -->
+				Not yet implemented.
 			</div>
 			<div class="modal-footer">
-				<button class="btn btn-primary" ng-click="ok({repositories:repositories, toAdd:toAdd})">Done</button>
+				<button class="btn btn-primary" ng-click="ok()">Done</button>
 				<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
 			</div>
 		</script>

@@ -17,7 +17,6 @@ from urlparse import urlparse
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -43,6 +42,8 @@ INSTALLED_APPS = (
     'rest_framework',
     'corsheaders',
     'crispy_forms',
+    'guardian',
+    'djcelery',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -104,6 +105,11 @@ DATABASES = {
     }
 }
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # default
+    'guardian.backends.ObjectPermissionBackend',
+)
+ANONYMOUS_USER_ID = -1
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -142,3 +148,5 @@ ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
 import socket
 
 SUBPATH = ''
+
+JARS_KEY = '050814a54ac5c81b990140c3c43278031d391676'

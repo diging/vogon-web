@@ -23,7 +23,7 @@
 }(window, function (angular) {
 
   angular.module('angucomplete-alt', [] )
-    .directive('angucompleteAlt', ['$q', '$parse', '$http', '$sce', '$timeout', '$templateCache', '$interpolate', function ($q, $parse, $http, $sce, $timeout, $templateCache, $interpolate) {
+    .directive('angucompleteAlt', ['$q', '$parse', '$http', '$sce', '$timeout', '$templateCache', '$interpolate', '$interval', function ($q, $parse, $http, $sce, $timeout, $templateCache, $interpolate, $interval) {
     // keyboard events
     var KEY_DW  = 40;
     var KEY_RT  = 39;
@@ -39,6 +39,7 @@
     var MAX_LENGTH = 524288;  // the default max length per the html maxlength attribute
     var PAUSE = 500;
     var BLUR_TIMEOUT = 200;
+    var UPDATE_INTERVAL = 500;
 
     // string constants
     var REQUIRED_CLASS = 'autocomplete-required';
@@ -70,6 +71,7 @@
     function link(scope, elem, attrs, ctrl) {
       var inputField = elem.find('input');
       var minlength = MIN_LENGTH;
+      var update_interval = UPDATE_INTERVAL;
       var searchTimer = null;
       var hideTimer;
       var requiredClassName = REQUIRED_CLASS;
@@ -97,11 +99,34 @@
 
       scope.currentIndex = null;
       scope.searching = false;
+
+      var ticks;
+      scope.tick = function() {
+          searchTimerComplete(scope.searchStr);
+      }
+
+      scope.startTicks = function() {
+
+          if ( angular.isDefined(ticks) ) return;
+
+          ticks = $interval(function() {
+              scope.tick();
+          }, update_interval);
+      }
+      scope.stopTicks = function() {
+
+          if (angular.isDefined(ticks)) {
+                $interval.cancel(ticks);
+                ticks = undefined;
+          }
+      }
+
+
+
       unbindInitialValue = scope.$watch('initialValue', function(newval, oldval) {
 
         if (newval) {
           unbindInitialValue();
-
           if (typeof newval === 'object') {
             scope.searchStr = extractTitle(newval);
             callOrAssign({originalObject: newval});
@@ -212,6 +237,7 @@
       }
 
       function handleRequired(valid) {
+
         scope.notEmpty = valid;
         validState = scope.searchStr;
         if (scope.fieldRequired && ctrl) {
@@ -244,6 +270,9 @@
           });
         }
         else {
+
+            scope.startTicks();
+
           if (minlength === 0 && !scope.searchStr) {
             return;
           }
@@ -599,6 +628,7 @@
       };
 
       scope.hideResults = function(event) {
+          scope.stopTicks();
         if (mousedownOn &&
             (mousedownOn === scope.id + '_dropdown' ||
              mousedownOn.indexOf('angucomplete') >= 0)) {
@@ -677,6 +707,11 @@
       // check min length
       if (scope.minlength && scope.minlength !== '') {
         minlength = parseInt(scope.minlength, 10);
+      }
+
+      // check interval time
+      if (scope.updateinterval && scope.updateinterval !== '') {
+          update_interval = parseInt(scope.updateinterval, UPDATE_INTERVAL);
       }
 
       // check pause time

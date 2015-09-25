@@ -3,6 +3,7 @@ from django.dispatch import receiver
 
 from .authorities import resolve
 from .models import Concept, Type
+from concepts.tasks import resolve_concept
 
 import logging
 logging.basicConfig()
@@ -19,7 +20,7 @@ def concept_post_save_receiver(sender, **kwargs):
     not already :prop:`.resolved`\.
     """
     instance = kwargs.get('instance', None)
-    resolve(sender, instance)
+    resolve_concept.delay(sender, instance)
 
 @receiver(post_save, sender=Type)
 def type_post_save_receiver(sender, **kwargs):
@@ -29,4 +30,4 @@ def type_post_save_receiver(sender, **kwargs):
     not already :prop:`.resolved`\.
     """
     instance = kwargs.get('instance', None)
-    resolve(sender, instance)
+    resolve_concept.delay(sender, instance)

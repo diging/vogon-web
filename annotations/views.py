@@ -1,26 +1,32 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template import RequestContext, loader
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.conf import settings
 from django.core.serializers import serialize
 from django.db.models import Q
+from django.utils.safestring import mark_safe
+from guardian.shortcuts import get_objects_for_user
 
 from rest_framework import viewsets, exceptions, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.decorators import detail_route, list_route
 
 from concepts.models import Concept
 from concepts.authorities import search
+from concepts.tasks import search_concept
+
 from models import *
 from forms import CrispyUserChangeForm
 from serializers import *
-from tasks import tokenize
-from sources import EratosthenesManager
+from tasks import tokenize, get_manager
 
 import hashlib
 from itertools import chain
@@ -32,7 +38,12 @@ import uuid
 
 import json
 
-sourceManager = EratosthenesManager(settings.ERATOSTHENES_ENDPOINT, settings.ERATOSTHENES_TOKEN)
+
+def home(request):
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('dashboard'))
+    return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
+
 
 def user_texts(user):
     return Text.objects.filter(relation__createdBy__pk=user.id).distinct()
@@ -72,88 +83,6 @@ def json_response(func):
 
 
 @login_required
-@json_response
-def source_repositories(request):
-    return sourceManager.repositories()
-
-
-@login_required
-@json_response
-def source_repository(request, id):
-    return sourceManager.repository(id)
-
-
-@login_required
-@json_response
-def source_collections(request):
-    return sourceManager.collections()
-
-
-@login_required
-@json_response
-def source_collection(request, id):
-    return sourceManager.collection(id)
-
-
-@login_required
-@json_response
-def source_resources(request):
-    return sourceManager.resources()
-
-
-@login_required
-@json_response
-def source_resource(request, id):
-    return sourceManager.resource(id)
-
-
-@login_required
-@json_response
-def source_retrieve(request, uri):
-    # TODO: Sanitize the URI?
-    return sourceManager.retrieve(uri)
-
-
-@login_required
-@csrf_protect
-def add_text(request):
-    """
-    Adds a remote Resource as a Text to a TextCollection.
-    """
-
-    if request.method == 'POST':
-        """
-        Retrieve text content from source.
-        """
-
-        data = json.loads(request.body)
-
-        source, created = Repository.objects.get_or_create(name=data['source']['name'])
-        text, created = Text.objects.get_or_create(
-            uri = data['text']['uri'],
-            defaults = {
-                'title': data['text']['title'],
-                'source': source,
-                'addedBy': request.user,
-            }
-        )
-        try:
-            if created or len(text.tokenizedContent) == 0:
-                cdata = tokenize(sourceManager.resourceContent(data['text']['uri']))
-                text.tokenizedContent = cdata
-        except Exception as E:
-            print E
-            raise E
-        text.save()
-
-        # Add to TextCollection.
-        collection = TextCollection.objects.get(pk=data['addTo']['id'])
-        collection.texts.add(text)
-        collection.save()
-
-        return HttpResponse(text.id)
-
-@login_required
 def user_settings(request):
     """ User profile settings"""
 
@@ -176,8 +105,6 @@ def user_settings(request):
         'subpath': settings.SUBPATH,
     })
     return HttpResponse(template.render(context))
-
-
 
 
 @login_required
@@ -211,6 +138,35 @@ def network(request):
     return HttpResponse(template.render(context))
 
 
+@login_required
+def list_texts(request):
+    """
+    List all of the texts that the user can see, with links to annotate them.
+    """
+    template = loader.get_template('annotations/list_texts.html')
+
+    text_list = get_objects_for_user(request.user, 'annotations.view_text')
+
+    # text_list = Text.objects.all()
+    paginator = Paginator(text_list, 25)
+
+    page = request.GET.get('page')
+    try:
+        texts = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        texts = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        texts = paginator.page(paginator.num_pages)
+
+    context = {
+        'texts': texts,
+        'user': request.user,
+    }
+    return HttpResponse(template.render(context))
+
+
 @ensure_csrf_cookie
 @login_required
 def text(request, textid):
@@ -219,6 +175,13 @@ def text(request, textid):
     """
     template = loader.get_template('annotations/text.html')
     text = get_object_or_404(Text, pk=textid)
+
+    # If a text is restricted, then the user needs explicit permission to
+    #  access it.
+    if not text.public and not request.user.has_perm('annotations.view_text'):
+        # TODO: return a pretty templated response.
+        return HttpResponseForbidden("Sorry, this text is restricted.")
+
     context = RequestContext(request, {
         'textid': textid,
         'text': text,
@@ -227,6 +190,9 @@ def text(request, textid):
         'baselocation': basepath(request),
     })
     return HttpResponse(template.render(context))
+
+
+### REST API class-based views.
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -241,47 +207,63 @@ class RepositoryViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, )
 
 
-class AppellationViewSet(viewsets.ModelViewSet):
+class RemoteCollectionViewSet(viewsets.ViewSet):
+    def list(self, request, repository_pk=None):
+        repository = Repository.objects.get(pk=repository_pk)
+        manager = get_manager(repository.manager)(repository.endpoint)
+        return Response(manager.collections())
+
+    def retrieve(self, request, pk=None, repository_pk=None):
+        repository = Repository.objects.get(pk=repository_pk)
+        manager = get_manager(repository.manager)(repository.endpoint)
+        return Response(manager.collection(pk))
+
+
+class RemoteResourceViewSet(viewsets.ViewSet):
+    def list(self, request, collection_pk=None, repository_pk=None):
+        repository = Repository.objects.get(pk=repository_pk)
+        manager = get_manager(repository.manager)(repository.endpoint)
+        return Response(manager.collection(collection_pk))
+
+    def retrieve(self, request, pk=None, collection_pk=None, repository_pk=None):
+        repository = Repository.objects.get(pk=repository_pk)
+        manager = get_manager(repository.manager)(repository.endpoint)
+        return Response(manager.resource(pk))
+
+
+
+class AnnotationFilterMixin(object):
+    """
+    Mixin for :class:`viewsets.ModelViewSet` that provides filtering by
+    :class:`.Text` and :class:`.User`\.
+    """
+    def get_queryset(self, *args, **kwargs):
+        print 'get queryset'
+        queryset = super(AnnotationFilterMixin, self).get_queryset(*args, **kwargs)
+
+        textid = self.request.query_params.get('text', None)
+        userid = self.request.query_params.get('user', None)
+        print self.request.user
+        if textid:
+            queryset = queryset.filter(occursIn=int(textid))
+        if userid:
+            queryset = queryset.filter(createdBy__pk=userid)
+        else:
+
+            queryset = queryset.filter(createdBy__pk=self.request.user.id)
+        return queryset
+
+
+class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticated, )
 
-    def get_queryset(self, *args, **kwargs):
-        """
-        """
 
-        queryset = super(AppellationViewSet, self).get_queryset(*args, **kwargs)
-
-        textid = self.request.query_params.get('text', None)
-        userid = self.request.query_params.get('user', None)
-        if textid:
-            queryset = queryset.filter(occursIn=int(textid))
-        if userid:
-            queryset = queryset.filter(createdBy__pk=userid)
-        else:
-            queryset = queryset.filter(createdBy__pk=self.request.user.id)
-        return queryset
-
-
-class PredicateViewSet(viewsets.ModelViewSet):
+class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=True)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticated, )
-
-    def get_queryset(self, *args, **kwargs):
-        """
-        """
-
-        queryset = super(PredicateViewSet, self).get_queryset(*args, **kwargs)
-        textid = self.request.query_params.get('text', None)
-        userid = self.request.query_params.get('user', None)
-        if textid:
-            queryset = queryset.filter(occursIn=int(textid))
-        if userid:
-            queryset = queryset.filter(createdBy__pk=userid)
-        else:
-            queryset = queryset.filter(createdBy__pk=self.request.user.id)
-        return queryset
 
 
 class RelationViewSet(viewsets.ModelViewSet):
@@ -291,6 +273,8 @@ class RelationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         """
+        Supports filtering by :class:`.Text`\, :class:`.User`\, node concept
+        type, and predicate concept type.
         """
 
         queryset = super(RelationViewSet, self).get_queryset(*args, **kwargs)
@@ -302,6 +286,7 @@ class RelationViewSet(viewsets.ModelViewSet):
         # Refers to the predicate's interpretation, not the predicate itself.
         predicate_conceptid = self.request.query_params.getlist('predicate')
 
+        # TODO: clean this up.
         if len(textid) > 0:
             queryset = queryset.filter(occursIn__in=[int(t) for t in textid])
         if len(typeid) > 0:
@@ -318,25 +303,10 @@ class RelationViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class TemporalBoundsViewSet(viewsets.ModelViewSet):
+class TemporalBoundsViewSet(viewsets.ModelViewSet, AnnotationFilterMixin):
     queryset = TemporalBounds.objects.all()
     serializer_class = TemporalBoundsSerializer
     permission_classes = (IsAuthenticated, )
-
-    def get_queryset(self, *args, **kwargs):
-        """
-        """
-
-        queryset = super(TemporalBoundsViewSet, self).get_queryset(*args, **kwargs)
-        textid = self.request.query_params.get('text', None)
-        userid = self.request.query_params.get('user', None)
-        if textid:
-            queryset = queryset.filter(occursIn=int(textid))
-        if userid:
-            queryset = queryset.filter(createdBy__pk=userid)
-        else:
-            queryset = queryset.filter(createdBy__pk=self.request.user.id)
-        return queryset
 
 
 class TextViewSet(viewsets.ModelViewSet):
@@ -371,15 +341,12 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
         """
         queryset = super(TextCollectionViewSet, self).get_queryset(*args, **kwargs)
 
-
         userid = self.request.query_params.get('user', None)
         if userid:
             queryset = queryset.filter(ownedBy__pk=self.userid)
         else:
             queryset = queryset.filter(ownedBy__pk=self.request.user.id)
-
         return queryset
-
 
     def create(self, request, *args, **kwargs):
 
@@ -393,9 +360,9 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
 
         self.perform_create(serializer)
         headers = self.get_success_headers(data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
+        return Response(serializer.data,
+                        status=status.HTTP_201_CREATED,
+                        headers=headers)
 
 
 class TypeViewSet(viewsets.ModelViewSet):
@@ -429,6 +396,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self, *args, **kwargs):
+        """
+        Filter by part of speach (``pos``).
+        """
         queryset = super(ConceptViewSet, self).get_queryset(*args, **kwargs)
 
         # Limit results to those with ``pos``.
@@ -442,8 +412,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
         if query:
             if pos == 'all':
                 pos = None
-            remote = [o.id for o in search(query, pos=pos)]
-            queryset_remote = Concept.objects.filter(pk__in=remote)
-            queryset = queryset.filter(label__contains=query) | queryset_remote
+
+            search_concept.delay(query, pos=pos)
+            # remote = [o.id for o in search(query, pos=pos)]
+            # queryset_remote = Concept.objects.filter(pk__in=remote)
+            queryset = queryset.filter(label__contains=query)# | queryset_remote
 
         return queryset

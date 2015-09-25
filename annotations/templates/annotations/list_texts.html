@@ -1,0 +1,38 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+
+{% block main %}
+<div id="main">
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+            {% if texts|length > 0 %}
+            <ul class="list-group">
+            {% for text in texts %}
+                <a href="{% url "text" text.id %}" class="list-group-item">{{ text.title }} <span class="pull-right badge" data-toggle="tooltip" data-placement="top" title="{{ text.relationCount }} relations have been created for this text">{{ text.relationCount }}</span></a>
+
+            {% endfor %}
+            </ul>
+
+            <div class="pagination">
+                <span class="step-links">
+                    {% if texts.has_previous %}
+                        <a href="?page={{ texts.previous_page_number }}">previous</a>
+                    {% endif %}
+
+                    <span class="current">
+                        Page {{ texts.number }} of {{ texts.paginator.num_pages }}.
+                    </span>
+
+                    {% if texts.has_next %}
+                        <a href="?page={{ texts.next_page_number }}">next</a>
+                    {% endif %}
+                </span>
+            </div>
+            {% else %}
+            <p>No texts to display.</p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock main %}

@@ -3,10 +3,23 @@ from django.contrib.auth.models import User
 from models import *
 from concepts.models import Concept, Type
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'id')
+
+
+class RemoteCollectionSerializer(serializers.Serializer):
+    source = serializers.IntegerField()
+    id_or_uri = serializers.CharField(max_length=255)
+    name = serializers.CharField(max_length=255)
+
+
+class RemoteResourceSerializer(serializers.Serializer):
+    source = serializers.IntegerField()
+    id_or_uri = serializers.CharField(max_length=255)
+    title = serializers.CharField(max_length=255)
 
 
 class RepositorySerializer(serializers.ModelSerializer):
@@ -35,6 +48,19 @@ class TextSerializer(serializers.ModelSerializer):
         model = Text
         fields = ('id', 'uri', 'tokenizedContent', 'title', 'created', 'added',
                   'addedBy', 'source', 'annotators', 'annotationCount')
+
+    def create(self, validated_data):
+        repository = Repository.objects.get(pk=validated_data['source'])
+        # TODO: Make retrieval/tokenization/other processing asynchronous.
+        tokenizedContent = tokenize(retrieve(repository, validated_data['uri']))
+
+        text = Text(uri=validated_data['uri'],
+                    title=validated_data['title'],
+                    source=repository,
+                    addedBy=self.context['request'].user,
+                    tokenizedContent=tokenizedContent)
+        text.save()
+        return HttpResponse(text.id)
 
 class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:

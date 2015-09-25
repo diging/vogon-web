@@ -1,3 +1,6 @@
+/**
+  * This app provides the text annotation interface in the text view.
+  */
 var app = angular.module('annotationApp',
                          ['ngResource', 'ngSanitize', 'ui.bootstrap',
                           'angucomplete-alt', 'd3']);
@@ -9,17 +12,13 @@ app.config(function($httpProvider){
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
 });
 
-/** Resources
+/**                        ***** Resources *****
   *
   * These Resources provide access to the underlying Django data model via the
   * REST API.
   *
   **/
 
-
-app.factory('Text', function($resource) {
-    return $resource(BASELOCATION + '/rest/text/:id/');
-});
 
 
 app.factory('Appellation', function($resource) {
@@ -96,8 +95,10 @@ app.factory('messageService', function($rootScope) {
     return service;
 });
 
+
+
 /**
-  * The selectionService is responsible for handling 
+  * The selectionService is responsible for handling
   *
   **/
 app.factory('selectionService',
@@ -580,19 +581,19 @@ app.factory('selectionService',
      * Display a set of icons next to DOM element.
      */
     service.displayActions = function(element, icons) {
+        service.clearActions();
+
         /**
          * Get the appropriate offset for icons, based on the position of
          * element.
          */
-        console.log('calculatePosition');
         var calculatePosition = function(element) {
             var position = element.offset();
             position.left += element.width();
             position.top -= 5;
+            console.log(position);
             return position;
         }
-
-        service.clearActions();
 
         var parent = $('<div>', {   // This will hold all of the icons.
             class: 'actionIcons panel',
@@ -611,19 +612,25 @@ app.factory('selectionService',
             parent.append(elem);
         });
 
-        $('#textContent').append(parent);
+        var textScope = angular.element($('#textContent')).scope();
+        textScope.addElement(parent, function(parent) {
+            // Icons should track the element to which they are attached.
+            $(window).resize(function() {
+                parent.offset(calculatePosition(element));
+            });
 
-        // Icons should track the element to which they are attached.
-        $(window).resize(function() {
-            parent.offset(calculatePosition(element));
+            // The initial position must take into account the distance that the
+            // user has scrolled in #textContent. 
+            var pos = calculatePosition(element);
+            pos.top += $('#textContent').scrollTop();
+            parent.offset(pos);
         });
-
-        parent.offset(calculatePosition(element));
-        if(!$rootScope.$$phase) $rootScope.$apply();
+        // $('#textContent').append(parent);
     }
 
     service.clearActions = function() {
         $('.actionIcons').remove();  // Remove any displayed icons.
+        $(window).off("resize");
     }
 
     return service;
@@ -823,6 +830,15 @@ app.factory('appellationService', ['$rootScope', 'Appellation', function($rootSc
 
 app.controller('ActionsController', function($scope, $position) {
 
+});
+
+app.controller('TextController', function($scope) {
+    $scope.addElement = function(element, callback) {
+        $scope.$apply(function() {
+            angular.element($('#textContent')).append(element);
+            callback(element);
+        });
+    }
 });
 
 app.controller('AlertController', function ($scope, $sce) {
@@ -1089,15 +1105,10 @@ app.controller('ModalInstanceController', function ($scope, $modalInstance, sett
     };
 });
 
-app.controller('TextController', function($scope, $element, $sce, Text) {
-    var textid = $($element).attr('textid');
-    var text = Text.get({id:textid}, function() {    // TODO: not hardcoded!!
-        $scope.textContent = $sce.trustAsHtml(text.tokenizedContent);
-    });
 
-
-});
-
+/**
+  *  Pressing the escape key deselects the current selection.
+  */
 app.directive('escapeKey', function (selectionService) {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
@@ -1108,6 +1119,7 @@ app.directive('escapeKey', function (selectionService) {
         });
     };
 });
+
 
 app.directive('ngEnter', function($document) {
     return {
@@ -1129,7 +1141,13 @@ app.directive('ngEnter', function($document) {
 });
 
 
-app.directive('bindText', function($rootScope, appellationService, selectionService, Appellation) {
+
+app.directive('bindText', function($rootScope, appellationService,
+                                   selectionService, Appellation) {
+
+    /**
+     *  Binds click behaviors to <word></word> tokens.
+     */
     var bindText = function() {
         $('word').on('click', function(e) {
             var target = $(e.target);
@@ -1147,6 +1165,9 @@ app.directive('bindText', function($rootScope, appellationService, selectionServ
         });
     }
 
+    /**
+      * Highlight appellations.
+      */
     var highlight = function(a) {
         a.tokenIds.split(',').forEach(function(wordId) {
             var word = $('word#'+wordId);
@@ -1157,6 +1178,9 @@ app.directive('bindText', function($rootScope, appellationService, selectionServ
         });
     }
 
+    /**
+      * Remove highlighting from appellations.
+      */
     var unHighlight = function(a) {
         a.tokenIds.split(',').forEach(function(wordId) {
             var word = $('word#' + wordId);
@@ -1168,6 +1192,7 @@ app.directive('bindText', function($rootScope, appellationService, selectionServ
     };
 
     return function(scope, element, attrs) {
+        // TODO: this should happen after the page loads.
         scope.$watch("textContent", function(value) {
             bindText();     // TODO: make more angular.
 
@@ -1177,17 +1202,28 @@ app.directive('bindText', function($rootScope, appellationService, selectionServ
             });
         });
 
+        /**
+          *  When an appellation is created, clear all selections and highlight
+          *  the appellated token in the text.
+          */
         $rootScope.$on('newAppellation', function(event, a) {
             highlight(a);   // Highlight word(s).
             selectionService.deSelectAll();
             selectionService.clearActions();
         });
 
+        /**
+          * When a predicate is created, clear all selections.
+          */
         $rootScope.$on('newPredicate', function(event, a) {
             selectionService.deSelectAll();
             selectionService.clearActions();
         });
 
+        /**
+          * When an appellation is deleted, remove highlight from its tokens and
+          * clear all selections.
+          */
         $rootScope.$on('deleteAppellation', function(event, a) {
             unHighlight(a);
             selectionService.deSelectAll();
@@ -1196,21 +1232,34 @@ app.directive('bindText', function($rootScope, appellationService, selectionServ
     }
 });
 
+
+/**
+  * Error handling.
+  *
+  * TODO: revisit whether this approach makes sense.
+  */
 app.factory("errors", function($rootScope, messageService, $timeout){
     return {
         catch: function(message){
-            // return function(reason) {
             messageService.newMessage(message, 'danger');
             $timeout(messageService.reset, 3000);
-            // var alertScope = angular.element($('#alerts')).scope();
-            // alertScope.addAlert('danger', message);
+
             return;
-            // };
         }
     };
 });
 
-app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 'relationService', 'conceptService', 'selectionService', '$q', 'messageService', function(d3Service, $rootScope, appellationService, relationService, conceptService, selectionService, $q, messageService) {
+
+/**
+  * Injects a D3 network visualization that depicts user annotations as a graph
+  *  of Concepts.
+  */
+app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService',
+                            'relationService', 'conceptService',
+                            'selectionService', '$q', 'messageService',
+                            function(d3Service, $rootScope, appellationService,
+                                     relationService, conceptService,
+                                     selectionService, $q, messageService) {
     return {
         scope: {
             'graph': '='
@@ -1219,8 +1268,10 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
         link: function(scope, element, attrs) {
 
             d3Service.d3().then(function(d3) {
+                // Tuning parameters.
                 var linkDistance = 100;
                 var height = 398;
+                var charge = -200;
                 var margin = {top: 0, right: 1, bottom: 0, left: 1}
                     , width = parseInt(d3.select('#networkVis').style('width'), 10)
                     , width = width - margin.left - margin.right
@@ -1228,17 +1279,19 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
 
                 d3.select(window).on('resize', resize);
 
+                /**
+                  * Update size of visualization as the parent element resizes.
+                  */
                 function resize() {
-                    // Update size of visualization as parent element resizes.
-
                     width = parseInt(d3.select('#networkVis').style('width'), 10);
                     width = width - margin.left - margin.right;
                     svg.attr('height', (height + margin.top + margin.bottom) + 'px')
                         .attr('width', (width + margin.left + margin.right) + 'px');
                 }
 
+                // Applies a force-directed layout.
             	var force = d3.layout.force()
-            	    .charge(-200)
+            	    .charge(charge)
             	    .linkDistance(linkDistance)
             	    .size([width, height]);
 
@@ -1249,6 +1302,9 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                 scope.nodes = [];
                 scope.edges = [];
 
+                /**
+                  * Retrieve a loaded node by its ID.
+                  */
                 scope.findNode = function (id) {
                     for (var i=0; i < scope.nodes.length; i++) {
                         if (scope.nodes[i].id === id)
@@ -1256,6 +1312,9 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                     };
                 }
 
+                /**
+                  * Get the index of a node in the loaded node set.
+                  */
                 scope.findNodeIndex = function (id) {
                     for (var i=0; i < scope.nodes.length; i++) {
                         if (scope.nodes[i].id === id)
@@ -1263,6 +1322,9 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                     };
                 }
 
+                /**
+                  * Get the index of an edge in the loaded edge set.
+                  */
                 scope.findEdgeIndex = function(sourceId, targetId) {
                     for (var i=0; i < scope.edges.length; i++) {
                         if ((scope.edges[i].source.id === sourceId) && (scope.edges[i].target.id === targetId)) {
@@ -1271,6 +1333,9 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                     }
                 }
 
+                /**
+                  * Drop a node from the visualization.
+                  */
                 scope.removeNode = function (id) {
                     var i = 0;
                     var n = scope.findNode(id);
@@ -1285,6 +1350,9 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                     }
                 }
 
+                /**
+                  * Drop an edge from the visualization.
+                  */
                 scope.removeEdge = function(sourceId, targetId) {
                     var edgeId = scope.findEdgeIndex(sourceId, targetId);
                     if (edgeId !== undefined) {
@@ -1293,6 +1361,9 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                     scope.update();
                 }
 
+                /**
+                  * Add a new node to the visualization.
+                  */
                 scope.addNode = function(appellation) {
                     // scope.nodes.push(node);
                     conceptService
@@ -1300,10 +1371,14 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                         .then(function(concept) {
                             var n = scope.findNode(concept.id);
                             if (n == undefined) scope.nodes.push(concept);
+                            scope.update();
                         });
-                    scope.update();
+
                 }
 
+                /**
+                  * Add a new edge to the visualization.
+                  */
                 scope.addEdge = function (relation) {
                     $q.all([
                         appellationService.getAppellation(relation.source),
@@ -1323,10 +1398,18 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                     });
                 }
 
+                /**
+                  * When a user clicks on a node, it is highlighted.
+                  */
                 scope.highlightNode = function(node) {
                     d3.select('#node_' + node.id).classed("nodeSelected", true);
                 }
 
+                /**
+                  * Selecting a node clears the current text selections, and
+                  *  highlights appellations that correspond to the node
+                  *  concept.
+                  */
                 scope.selectNode = function(node) {
                     scope.highlightNode(node);
                     selectionService.deHighlightAll();
@@ -1338,10 +1421,17 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                         selectionService.highlight($('[appellation='+appellation.id+']'));
                     });
                 }
+
+                /**
+                  * Clears all node selections.
+                  */
                 scope.unselectNodes = function() {
                     d3.select('.nodeSelected').classed("nodeSelected", false);
                 }
 
+                /**
+                  * Clears the visualization and re-initializes it.
+                  */
                 scope.update = function() {
                     svg.selectAll('*').remove();
 
@@ -1457,7 +1547,6 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService', 're
                               .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
                               .attr('fill', '#ccc')
                               .attr('stroke','#ccc');
-
 
                 }
 

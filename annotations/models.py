@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from concepts.models import Concept
 import ast
 
+from annotations.managers import repositoryManagers
+
 
 class TupleField(models.TextField):
     __metaclass__ = models.SubfieldBase
@@ -36,8 +38,10 @@ class TextCollection(models.Model):
     description = models.TextField()
 
     ownedBy = models.ForeignKey(User, related_name='collections')
-    texts = models.ManyToManyField('Text', related_name='partOf', blank=True, null=True)
+    texts = models.ManyToManyField('Text', related_name='partOf',
+                                   blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
+
 
 class Text(models.Model):
     uri = models.CharField(max_length=255, unique=True)
@@ -48,26 +52,47 @@ class Text(models.Model):
 
     title = models.CharField(max_length=255)
     created = models.DateField(blank=True, null=True)
-
     added = models.DateTimeField(auto_now_add=True)
     addedBy = models.ForeignKey(User, related_name="addedTexts")
-
-    source = models.ForeignKey("Repository", related_name="loadedTexts")
-
+    source = models.ForeignKey("Repository", blank=True, related_name="loadedTexts")
     originalResource = models.URLField(blank=True, null=True)
-
     annotators = models.ManyToManyField(User, related_name="userTexts")
+    public = models.BooleanField(default=True)
 
     @property
     def annotationCount(self):
         return self.appellation_set.count() + self.relation_set.count()
 
+    @property
+    def relationCount(self):
+        return self.relation_set.count()
+
+    class Meta:
+        permissions = (
+            ('view_text', 'View text'),
+        )
+
 
 class Repository(models.Model):
     name = models.CharField(max_length=255)
+    manager = models.CharField(max_length=255, choices=repositoryManagers)
+    endpoint = models.CharField(max_length=255)
+
+    oauth_client_id = models.CharField(max_length=255)
+    oauth_secret_key = models.CharField(max_length=255)
 
     def __unicode__(self):
         return unicode(self.name)
+
+
+class Authorization(models.Model):
+    repository = models.ForeignKey('Repository')
+    user = models.ForeignKey(User, related_name='authorizations')
+
+    access_token = models.CharField(max_length=255)
+    token_type = models.CharField(max_length=255)
+    lifetime = models.IntegerField(default=0)
+    refresh_token = models.CharField(max_length=255, blank=True)
 
 
 class Annotation(models.Model):
