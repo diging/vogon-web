@@ -157,3 +157,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+JARS_KEY = '050814a54ac5c81b990140c3c43278031d391676'
