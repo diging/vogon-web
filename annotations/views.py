@@ -238,12 +238,10 @@ class AnnotationFilterMixin(object):
     :class:`.Text` and :class:`.User`\.
     """
     def get_queryset(self, *args, **kwargs):
-        print 'get queryset'
         queryset = super(AnnotationFilterMixin, self).get_queryset(*args, **kwargs)
 
         textid = self.request.query_params.get('text', None)
         userid = self.request.query_params.get('user', None)
-        print self.request.user
         if textid:
             queryset = queryset.filter(occursIn=int(textid))
         if userid:
@@ -353,7 +351,6 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
         data = request.data
         if 'ownedBy' not in data:
             data['ownedBy'] = request.user.id
-        print data
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)

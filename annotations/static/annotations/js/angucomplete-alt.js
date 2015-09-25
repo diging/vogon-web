@@ -476,8 +476,7 @@
           params.withCredentials = true;
         }
         if (scope.remote) params.params.remote = true;
-        console.log(scope.remote);
-        console.log(params.params.remote);
+        
         cancelHttpRequest();
         httpCanceller = $q.defer();
         params.timeout = httpCanceller.promise;
