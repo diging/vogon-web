@@ -1,10 +1,12 @@
 language: python
 python:
   - "2.7"
+services:
+  - redis-server
 env:
   global:
     - DJANGO_SETTINGS_MODULE=vogon.local_settings
     - REDIS_URL=redis://
-    - CELERY_TASK_SERIALIZER=json 
+    - CELERY_TASK_SERIALIZER=json
 script:
   - python manage.py test
