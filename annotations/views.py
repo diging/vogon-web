@@ -408,12 +408,14 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(pos__in=[pos.upper(), pos.lower()])
 
         # Search Concept labels for ``search`` param.
-        query = self.request.query_params.get('search', pos)
+        query = self.request.query_params.get('search', None)
+        remote = self.request.query_params.get('remote', False)
         if query:
             if pos == 'all':
                 pos = None
 
-            search_concept.delay(query, pos=pos)
+            if remote:  # Spawn asynchronous calls to authority services.
+                search_concept.delay(query, pos=pos)
             # remote = [o.id for o in search(query, pos=pos)]
             # queryset_remote = Concept.objects.filter(pk__in=remote)
             queryset = queryset.filter(label__contains=query)# | queryset_remote

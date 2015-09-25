@@ -101,7 +101,9 @@
       scope.searching = false;
 
       var ticks;
+      scope.remote = true;
       scope.tick = function() {
+          if (scope.remote) scope.remote = undefined;
           searchTimerComplete(scope.searchStr);
       }
 
@@ -118,6 +120,7 @@
           if (angular.isDefined(ticks)) {
                 $interval.cancel(ticks);
                 ticks = undefined;
+                scope.remote = true;
           }
       }
 
@@ -289,7 +292,9 @@
             scope.searching = true;
 
             searchTimer = $timeout(function() {
+                scope.remote = true;
               searchTimerComplete(scope.searchStr);
+              // add remote=true get param
             }, scope.pause);
           }
 
@@ -461,6 +466,8 @@
       function getRemoteResults(str) {
         var params = {},
             url = scope.remoteUrl + encodeURIComponent(str);
+        params.params = {};
+
         if (scope.remoteUrlRequestFormatter) {
           params = {params: scope.remoteUrlRequestFormatter(str)};
           url = scope.remoteUrl;
@@ -468,6 +475,9 @@
         if (!!scope.remoteUrlRequestWithCredentials) {
           params.withCredentials = true;
         }
+        if (scope.remote) params.params.remote = true;
+        console.log(scope.remote);
+        console.log(params.params.remote);
         cancelHttpRequest();
         httpCanceller = $q.defer();
         params.timeout = httpCanceller.promise;

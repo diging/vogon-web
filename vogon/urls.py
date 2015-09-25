@@ -50,8 +50,8 @@ urlpatterns = [
     url(r'^rest/', include(router.urls)),
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
-    url(r'^network/$', views.network),
-    url(r'^text/$', views.list_texts),
+    url(r'^network/$', views.network, name="network"),
+    url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^$', views.home)

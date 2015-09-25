@@ -212,3 +212,31 @@ circle.node {
 .accordion-panel .panel-body {
    padding: 7px;
  }
+
+
+/* make navbar taller */
+.navbar-brand,
+.navbar-nav li a {
+    line-height: 75px;
+    height: 75px;
+    padding-top: 0;
+}
+
+#userdropdown {
+    line-height: 75px;
+    height: 75px;
+    padding-top: 15px;
+}
+
+
+.navbar-brand {
+    font-size: 1.8em;
+    font-family: cursive;
+}
+.navbar-brand img {
+    padding-top: 10px;
+}
+
+.navbar-nav {
+    font-size: 1.6em;
+}
