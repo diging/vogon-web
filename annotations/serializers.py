@@ -46,7 +46,7 @@ class TemporalBoundsSerializer(serializers.ModelSerializer):
 class TextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Text
-        fields = ('id', 'uri', 'tokenizedContent', 'title', 'created', 'added',
+        fields = ('id', 'uri', 'title', 'created', 'added',
                   'addedBy', 'source', 'annotators', 'annotationCount')
 
     def create(self, validated_data):

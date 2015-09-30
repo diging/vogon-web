@@ -148,7 +148,6 @@ app.controller('ConceptController', ['$scope', '$rootScope', '$q', 'Type', 'Text
         $scope.relations = [];
         Relation.query({concept:selected.id}).$promise.then(function(relations) {
             relations.forEach(function(relation) {
-                console.log(relation);
                 $q.all([
                     Appellation.get({id:relation.source}).$promise,
                     Predicate.get({id:relation.predicate}).$promise,
@@ -416,9 +415,7 @@ app.directive('d3Network', ['d3Service', 'Appellation', 'Relation', 'Concept', '
                                 var interpretation = concepts[2];
                                 if((source !== undefined) && (target !== undefined)) {
                                     var found = false;
-                                    console.log(source);
                                     scope.edges.forEach(function(edge) {
-                                        console.log(edge);
                                         if (edge.source.id == concepts[0].id & edge.target.id == concepts[1].id | edge.source.id == concepts[1].id & edge.target.id == concepts[0].id) {
                                             edge.relation.push(relation);
                                             found = true;
