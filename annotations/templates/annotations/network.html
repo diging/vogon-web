@@ -85,16 +85,16 @@ app.controller('FilterController', ['$scope', 'User', 'Text', 'Type', 'Predicate
     $scope.selected_texts = [];
     $scope.selected_types = [];
 
-
     $scope.users = User.query().$promise.then(function(users) {
         $scope.users = users;
         return users;
     });
 
-    $scope.texts = Text.query().$promise.then(function(texts) {
-        $scope.texts = texts;
-        return texts;
-    });
+	$scope.texts = [];
+    // $scope.texts = Text.query().$promise.then(function(texts) {
+    //     $scope.texts = texts;
+    //     return texts;
+    // });
 
     $scope.types = Type.query().$promise.then(function(types) {
         $scope.types = types;
