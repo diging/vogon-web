@@ -15,7 +15,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from rest_framework import viewsets, exceptions, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 
@@ -198,7 +198,7 @@ def text(request, textid):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 class RepositoryViewSet(viewsets.ModelViewSet):
@@ -231,7 +231,6 @@ class RemoteResourceViewSet(viewsets.ViewSet):
         return Response(manager.resource(pk))
 
 
-
 class AnnotationFilterMixin(object):
     """
     Mixin for :class:`viewsets.ModelViewSet` that provides filtering by
@@ -246,8 +245,7 @@ class AnnotationFilterMixin(object):
             queryset = queryset.filter(occursIn=int(textid))
         if userid:
             queryset = queryset.filter(createdBy__pk=userid)
-        else:
-
+        elif userid is not None:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
         return queryset
 
@@ -255,19 +253,19 @@ class AnnotationFilterMixin(object):
 class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=True)
     serializer_class = AppellationSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 class RelationViewSet(viewsets.ModelViewSet):
     queryset = Relation.objects.all()
     serializer_class = RelationSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def get_queryset(self, *args, **kwargs):
         """
@@ -295,7 +293,7 @@ class RelationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in conceptid]) | Q(object__interpretation__id__in=[int(c) for c in conceptid]))
         if len(userid) > 0:
             queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
-        else:
+        elif userid is not None and type(userid) is not list:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
 
         return queryset
@@ -304,13 +302,13 @@ class RelationViewSet(viewsets.ModelViewSet):
 class TemporalBoundsViewSet(viewsets.ModelViewSet, AnnotationFilterMixin):
     queryset = TemporalBounds.objects.all()
     serializer_class = TemporalBoundsSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 class TextViewSet(viewsets.ModelViewSet):
     queryset = Text.objects.all()
     serializer_class = TextSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def get_queryset(self, *args, **kwargs):
         """
@@ -365,13 +363,13 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
 class TypeViewSet(viewsets.ModelViewSet):
     queryset = Type.objects.all()
     serializer_class = TypeSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 class ConceptViewSet(viewsets.ModelViewSet):
     queryset = Concept.objects.all()
     serializer_class = ConceptSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
 
