@@ -18,6 +18,7 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 
 from concepts.models import Concept
 from concepts.authorities import search
@@ -305,10 +306,17 @@ class TemporalBoundsViewSet(viewsets.ModelViewSet, AnnotationFilterMixin):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+
 class TextViewSet(viewsets.ModelViewSet):
     queryset = Text.objects.all()
     serializer_class = TextSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self, *args, **kwargs):
         """
