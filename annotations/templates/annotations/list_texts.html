@@ -5,6 +5,7 @@
 <div id="main">
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
+            {% include "annotations/upload_file.html" %}
             {% if texts|length > 0 %}
             <ul class="list-group">
             {% for text in texts %}
