@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.serializers import serialize
 from django.db.models import Q
 from django.utils.safestring import mark_safe
+from django.core.files import File
 from guardian.shortcuts import get_objects_for_user
 
 from rest_framework import viewsets, exceptions, status
@@ -24,7 +25,7 @@ from concepts.authorities import search
 from concepts.tasks import search_concept
 
 from models import *
-from forms import CrispyUserChangeForm
+from forms import CrispyUserChangeForm, UploadFileForm
 from serializers import *
 from tasks import tokenize, get_manager
 
@@ -418,3 +419,21 @@ class ConceptViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(label__contains=query)# | queryset_remote
 
         return queryset
+
+@login_required
+def upload_file(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            value = request.FILES['filetoupload']
+            print value
+    else:
+        form = UploadFileForm()
+
+    template = loader.get_template('annotations/upload_file.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'form': form,
+        'subpath': settings.SUBPATH,
+    })
+    return HttpResponse(template.render(context))

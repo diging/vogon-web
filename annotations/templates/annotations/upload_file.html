@@ -1,3 +1,35 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+
+{% block main %}
+<div id="main">
+    <div class="row">
+        <div class="col-sm-4 col-sm-offset-4">
+          <div id="upload" class="panel panel-default narrow center">
+            <div class="panel-heading">Upload File</div>
+            <form action="{{ app_path }}" enctype="multipart/form-data" method="post" id="upload-form" class="form-horizontal" style="margin-bottom: 5px;">
+                {% csrf_token %}
+                <br>
+                <div class="form-group">
+                  <div class="col-sm-10 col-sm-offset-1">
+                    {{ form.filetoupload | addcss:"form-control" }}
+                  </div>
+                </div>
+                <label for="filetoupload" class="required control-label col-sm-offset-3">{{ form.filetoupload.label }}</label>
+                <div class="panel-footer clearfix">
+                  <div class="submit-row btn-group btn-group-sm">
+                    <input type="submit" class="btn btn-primary" value="Upload" />
+                  </div>
+                </div>
+            </form>
+          </div>
+        </div>
+    </di>
+</div>
+{% endblock main %}
+
+<!--
 <style type="text/css">
   .btn-file {
     position: relative;
@@ -39,3 +71,4 @@
       $('#uploadbutton').toggle();
   });
 </script>
+-->

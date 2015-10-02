@@ -1,5 +1,6 @@
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import User
+from django import forms
 
 from crispy_forms.helper import FormHelper
 
@@ -16,3 +17,6 @@ class CrispyUserChangeForm(UserChangeForm):
 	def __init__(self, *args, **kwargs):
 		super(CrispyUserChangeForm, self).__init__(*args, **kwargs)
 		self.helper = FormHelper(self)
+
+class UploadFileForm(forms.Form):
+    filetoupload = forms.FileField(label='Files can be of type TXT, PDF.', required=True)
