@@ -20,7 +20,7 @@ from django.conf.urls.static import static
 
 from rest_framework import routers
 from rest_framework_nested import routers as nrouters
-
+from annotations.views import *
 from annotations import views
 
 
@@ -54,5 +54,7 @@ urlpatterns = [
     url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^register/$', register),
+    url(r'^register/success/$', register_success),
     url(r'^$', views.home)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
