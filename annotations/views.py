@@ -27,7 +27,7 @@ from concepts.tasks import search_concept
 from models import *
 from forms import CrispyUserChangeForm, UploadFileForm
 from serializers import *
-from tasks import tokenize, get_manager
+from tasks import tokenize, get_manager, extract_text_file, extract_pdf_file
 
 import hashlib
 from itertools import chain
@@ -425,8 +425,8 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            value = request.FILES['filetoupload']
-            print value
+            uploaded_file = request.FILES['filetoupload']
+            handle_file_upload(uploaded_file)
     else:
         form = UploadFileForm()
 
@@ -437,3 +437,9 @@ def upload_file(request):
         'subpath': settings.SUBPATH,
     })
     return HttpResponse(template.render(context))
+
+def handle_file_upload(uploaded_file):
+    if uploaded_file.content_type == 'text/plain':
+        extract_text_file(uploaded_file)
+    elif uploaded_file.content_type == 'application/pdf':
+        extract_pdf_file(uploaded_file)

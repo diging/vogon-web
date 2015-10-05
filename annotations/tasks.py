@@ -73,3 +73,12 @@ def scrape(url):
         'content-type': response.headers['content-type'],
     }
     return textData
+
+def extract_text_file(text_file):
+    for line in text_file:
+        print line
+
+def extract_pdf_file(pdf_file):
+    # TODO: Use slate library
+    for line in pdf_file:
+        print line
