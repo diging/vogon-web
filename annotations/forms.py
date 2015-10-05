@@ -1,5 +1,6 @@
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django import forms
 
 from crispy_forms.helper import FormHelper
@@ -18,5 +19,11 @@ class CrispyUserChangeForm(UserChangeForm):
 		super(CrispyUserChangeForm, self).__init__(*args, **kwargs)
 		self.helper = FormHelper(self)
 
+def validatefiletype(file):
+    if file.content_type != 'application/pdf' and file.content_type != 'text/plain':
+        raise ValidationError('Please choose a plain text file or PDF file')
+
 class UploadFileForm(forms.Form):
-    filetoupload = forms.FileField(label='Files can be of type TXT, PDF.', required=True)
+    filetoupload = forms.FileField(label='Files can be of type TXT, PDF.',
+				required=True,
+				validators=[validatefiletype])
