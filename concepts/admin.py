@@ -11,8 +11,9 @@ resolve.verbose_name = 'resolve selected concepts'
 class ConceptAdmin(admin.ModelAdmin):
     model = Concept
     search_fields = (   'label',    )
-    list_display = (    'label', 'resolved'  )
+    list_display = (    'label', 'resolved','concept_state'  )
     actions = ( resolve,    )
+    list_filter=('concept_state',)
 
 class TypeAdmin(admin.ModelAdmin):
     model = Type
