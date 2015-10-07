@@ -80,5 +80,4 @@ def extract_text_file(text_file):
 
 def extract_pdf_file(pdf_file):
     # TODO: Use slate library
-    for line in pdf_file:
-        print line
+    pass

@@ -426,7 +426,10 @@ def upload_file(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES['filetoupload']
-            handle_file_upload(uploaded_file)
+            title = form.cleaned_data['title']
+            datecreated = form.cleaned_data['datecreated']
+            ispublic = form.cleaned_data['ispublic']
+            handle_file_upload(uploaded_file, title, datecreated, ispublic)
     else:
         form = UploadFileForm()
 
@@ -438,7 +441,7 @@ def upload_file(request):
     })
     return HttpResponse(template.render(context))
 
-def handle_file_upload(uploaded_file):
+def handle_file_upload(uploaded_file, title, datecreated, ispublic):
     if uploaded_file.content_type == 'text/plain':
         extract_text_file(uploaded_file)
     elif uploaded_file.content_type == 'application/pdf':

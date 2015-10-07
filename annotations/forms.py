@@ -24,6 +24,7 @@ def validatefiletype(file):
         raise ValidationError('Please choose a plain text file or PDF file')
 
 class UploadFileForm(forms.Form):
-    filetoupload = forms.FileField(label='Choose either a plain text (TXT) file or a PDF file.',
-				required=True,
-				validators=[validatefiletype])
+	title = forms.CharField(label='Title:', max_length=255, required=True)
+	ispublic = forms.BooleanField(label='Is this public:', required=False, help_text='By choosing this option you agree...')
+	filetoupload = forms.FileField(label='Choose a file (plain text or PDF):', required=True, validators=[validatefiletype])
+	datecreated = forms.DateField(label='Date created:', required=False, widget=forms.TextInput(attrs={'class':'datepicker'}))
