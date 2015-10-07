@@ -40,6 +40,18 @@ class Concept(HeritableObject):
     description = models.TextField(**optional)
     authority = models.CharField(max_length=255)
     pos = models.CharField(max_length=255, **optional)
+    created='created'
+    pending='pending'
+    rejected='rejected'
+    approved='approved'
+    resolved='resolved'
+    concept_state_choices=  ((created,'created'),
+        (pending,'pending'),
+        (rejected,'rejected'),
+        (approved,'approved'),
+        (resolved,'resolved'),
+    )
+    concept_state=models.CharField(max_length=10)
 
 class Type(Concept):
     pass
