@@ -1,5 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
+from models import Text
+import uuid
 
 from . import managers
 
@@ -74,10 +76,27 @@ def scrape(url):
     }
     return textData
 
-def extract_text_file(text_file):
-    for line in text_file:
-        print line
+def extract_text_file(request, form):
+    uploaded_file = request.FILES['filetoupload']
+    texttitle = form.cleaned_data['title']
+    datecreated = form.cleaned_data['datecreated']
+    ispublic = form.cleaned_data['ispublic']
+    user = request.user
+    uniqueuri = 'http://vogonweb.net/' + str(uuid.uuid1())
 
-def extract_pdf_file(pdf_file):
+    filecontent = ''
+    for line in uploaded_file:
+        filecontent += line
+    tokenizedcontent = tokenize(filecontent)
+
+    text = Text(tokenizedContent=tokenizedcontent,
+            title=texttitle,
+            created=datecreated,
+            public=ispublic,
+            addedBy=user,
+            uri=uniqueuri)
+    text.save()
+
+def extract_pdf_file(request):
     # TODO: Use slate library
     pass
