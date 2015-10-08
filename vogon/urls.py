@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^network/$', views.network, name="network"),
     url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/add/upload/$', views.upload_file),
+    url(r'^text/uploadsuccess/$', views.list_texts),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^$', views.home)

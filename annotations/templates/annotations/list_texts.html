@@ -5,6 +5,21 @@
 <div id="main">
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
+          <div>
+            {% if requestpath == "/text/uploadsuccess/" %}
+            <div class="alert alert-success alert-dismissable">
+              <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                &times;
+              </button>
+              Your file has been successfully uploaded.
+            </div>
+            {% endif %}
+            <div class="pull-right">
+              <a href="/text/add/upload/" class="btn btn-primary">Upload File</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-8 col-sm-offset-2">
             {% if texts|length > 0 %}
             <ul class="list-group">
             {% for text in texts %}
