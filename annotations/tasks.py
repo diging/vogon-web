@@ -76,17 +76,26 @@ def scrape(url):
     }
     return textData
 
-def extract_text_file(request, form):
-    uploaded_file = request.FILES['filetoupload']
+def extract_text_file(uploaded_file, form, user):
+    """
+    Extract the text file, create text instance and save it
+
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting file upload form
+    form : Form
+        The form with uploaded content
+    """
     texttitle = form.cleaned_data['title']
     datecreated = form.cleaned_data['datecreated']
     ispublic = form.cleaned_data['ispublic']
-    user = request.user
+
     uniqueuri = 'http://vogonweb.net/' + str(uuid.uuid1())
 
     filecontent = ''
     for line in uploaded_file:
-        filecontent += line
+        filecontent += line + ' '
     tokenizedcontent = tokenize(filecontent)
 
     text = Text(tokenizedContent=tokenizedcontent,
@@ -97,6 +106,6 @@ def extract_text_file(request, form):
             uri=uniqueuri)
     text.save()
 
-def extract_pdf_file(request):
+def extract_pdf_file(uploaded_file):
     # TODO: Use slate library
     pass

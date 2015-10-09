@@ -19,12 +19,32 @@ class CrispyUserChangeForm(UserChangeForm):
 		super(CrispyUserChangeForm, self).__init__(*args, **kwargs)
 		self.helper = FormHelper(self)
 
+
 def validatefiletype(file):
-    if file.content_type != 'application/pdf' and file.content_type != 'text/plain':
-        raise ValidationError('Please choose a plain text file or PDF file')
+	"""
+	Validates type of uploaded file.
+
+	Parameters
+	----------
+	file : file
+		The file that is uploaded.
+
+	Raises
+	------
+	ValidationError
+		Raises this exception if uploaded file is neither plain text nor PDF
+	"""
+	if file.content_type != 'application/pdf' and file.content_type != 'text/plain':
+		raise ValidationError('Please choose a plain text file or PDF file')
 
 class UploadFileForm(forms.Form):
 	title = forms.CharField(label='Title:', max_length=255, required=True)
-	ispublic = forms.BooleanField(label='Is this public:', required=False, help_text='By choosing this option you agree...')
-	filetoupload = forms.FileField(label='Choose a file (plain text or PDF):', required=True, validators=[validatefiletype])
-	datecreated = forms.DateField(label='Date created:', required=False, widget=forms.TextInput(attrs={'class':'datepicker'}))
+	ispublic = forms.BooleanField(label='Is this public:',
+				required=False,
+				help_text='By choosing this option you agree...')
+	filetoupload = forms.FileField(label='Choose a file (plain text or PDF):',
+				required=True,
+				validators=[validatefiletype])
+	datecreated = forms.DateField(label='Date created:',
+				required=False,
+				widget=forms.TextInput(attrs={'class':'datepicker'}))

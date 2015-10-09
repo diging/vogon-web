@@ -429,8 +429,11 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_file_upload(request, form)
-            return HttpResponseRedirect('/text/uploadsuccess/')
+            try:
+                handle_file_upload(request, form)
+                return HttpResponseRedirect(reverse('list_texts'))
+            except:
+                form = UploadFileForm()
     else:
         form = UploadFileForm()
 
@@ -446,8 +449,9 @@ def handle_file_upload(request, form):
     """
     Handle the uploaded file and route it to corresponding handlers
     """
-    content_type = request.FILES['filetoupload'].content_type
-    if content_type == 'text/plain':
-        extract_text_file(request, form)
-    elif content_type == 'application/pdf':
-        extract_pdf_file(request)
+    uploaded_file = request.FILES['filetoupload']
+    user = request.user
+    if uploaded_file.content_type == 'text/plain':
+        extract_text_file(uploaded_file, form, user)
+    elif uploaded_file.content_type == 'application/pdf':
+        extract_pdf_file(uploaded_file)
