@@ -164,7 +164,6 @@ def list_texts(request):
     context = {
         'texts': texts,
         'user': request.user,
-        'requestpath': request.path
     }
     return HttpResponse(template.render(context))
 
@@ -425,6 +424,11 @@ class ConceptViewSet(viewsets.ModelViewSet):
 def upload_file(request):
     """
     Upload a file and save the text instance.
+
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting file upload form
     """
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -448,6 +452,13 @@ def upload_file(request):
 def handle_file_upload(request, form):
     """
     Handle the uploaded file and route it to corresponding handlers
+
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting file upload form
+    form : Form
+        The form with uploaded content
     """
     uploaded_file = request.FILES['filetoupload']
     user = request.user
