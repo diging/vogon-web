@@ -125,22 +125,22 @@ def resolve(sender, instance):
             for manager_class in managers:
                 if instance.resolved: break # ...until success.
 
-                # try:
-                manager = manager_class()
-                method = getattr(manager, get_method)
-                concept_data = method(instance.uri)
-                concept_data['label'] = concept_data[label_field]
-                instance.authority = manager.__name__
+                try:
+                    manager = manager_class()
+                    method = getattr(manager, get_method)
+                    concept_data = method(instance.uri)
+                    concept_data['label'] = concept_data[label_field]
+                    instance.authority = manager.__name__
 
-                logger.debug(
-                    'Trying AuthorityManager {0}.'.format(manager.__name__))
+                    logger.debug(
+                        'Trying AuthorityManager {0}.'.format(manager.__name__))
 
-                instance.resolved = True
-                update_instance(sender, instance, concept_data, manager.__name__)
+                    instance.resolved = True
+                    update_instance(sender, instance, concept_data, manager.__name__)
 
-                # except Exception as E:
-                #     logger.error('Encountered Exception {0}.'.format(E))
-                #     continue
+                except Exception as E:
+                    logger.error('Encountered Exception {0}.'.format(E))
+                    continue
 
 def get_namespace(uri):
     """
