@@ -380,15 +380,12 @@ class ConceptViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
-
         data = request.data
         if data['uri'] == 'generate':
-            data['uri'] = 'http://vogon.asu.edu/{0}'.format(uuid.uuid4())
-            data['resolved'] = True
+            data['uri'] = 'http://vogonweb.net/{0}'.format(uuid.uuid4())
 
         if 'lemma' not in data:
             data['lemma'] = data['label'].lower()
-
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -419,8 +416,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
             if remote:  # Spawn asynchronous calls to authority services.
                 search_concept.delay(query, pos=pos)
-            # remote = [o.id for o in search(query, pos=pos)]
-            # queryset_remote = Concept.objects.filter(pk__in=remote)
-            queryset = queryset.filter(label__contains=query)# | queryset_remote
+            queryset = queryset.filter(label__contains=query)
 
         return queryset

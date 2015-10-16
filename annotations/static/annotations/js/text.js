@@ -187,7 +187,8 @@ app.factory('selectionService',
                 newConcept: {
                     pos: 'noun',
                     uri: 'generate',
-                    authority: 'Vogon'
+                    authority: 'Vogon',
+                    resolved: true
                 }
             }
             Type.query().$promise.then(function(results) {
@@ -385,7 +386,6 @@ app.factory('selectionService',
                             })
                             .catch(function(error) {
                                 service.reset();
-                                console.log(error);
                                 errors.catch("Could not create predicate!");
                             });
                     });
@@ -591,7 +591,6 @@ app.factory('selectionService',
             var position = element.offset();
             position.left += element.width();
             position.top -= 5;
-            console.log(position);
             return position;
         }
 
@@ -620,7 +619,7 @@ app.factory('selectionService',
             });
 
             // The initial position must take into account the distance that the
-            // user has scrolled in #textContent. 
+            // user has scrolled in #textContent.
             var pos = calculatePosition(element);
             pos.top += $('#textContent').scrollTop();
             parent.offset(pos);

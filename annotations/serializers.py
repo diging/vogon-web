@@ -70,7 +70,8 @@ class TextCollectionSerializer(serializers.ModelSerializer):
 class ConceptSerializer(serializers.ModelSerializer):
     class Meta:
         model = Concept
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed', 'description')
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+                  'description', 'pos', 'resolved')
 
 
 class TypeSerializer(serializers.ModelSerializer):
