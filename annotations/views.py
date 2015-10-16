@@ -71,7 +71,7 @@ def register(request):
             password=form.cleaned_data['password1'],
             email=form.cleaned_data['email']
             )
-            return HttpResponseRedirect('/accounts/register/success/')
+            return HttpResponseRedirect(reverse('dashboard'))
     else:
         form = RegistrationForm()
     variables = RequestContext(request, {
@@ -82,7 +82,7 @@ def register(request):
     'registration/register.html',
     {'form': form},
     )
-    
+
 def user_recent_texts(user):
     by_relations = Text.objects.filter(relation__createdBy__pk=user.id)
     by_appellations = Text.objects.filter(appellation__createdBy__pk=user.id)
