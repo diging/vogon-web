@@ -25,7 +25,7 @@ from concepts.authorities import search
 from concepts.tasks import search_concept
 
 from models import *
-from forms import CrispyUserChangeForm
+from forms import CrispyUserChangeForm, RegistrationForm
 from serializers import *
 from tasks import tokenize, get_manager
 
@@ -39,10 +39,9 @@ import uuid
 
 import json
 
-from annotations.forms import *
-from django.shortcuts import render_to_response
-
+from django.shortcuts import render
 def home(request):
+    print "home called"
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('dashboard'))
     return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
@@ -72,20 +71,20 @@ def register(request):
             password=form.cleaned_data['password1'],
             email=form.cleaned_data['email']
             )
-            return HttpResponseRedirect('/register/success/')
+            return HttpResponseRedirect('/accounts/register/success/')
     else:
         form = RegistrationForm()
     variables = RequestContext(request, {
     'form': form
     })
 
-    return render_to_response(
+    return render(request,
     'registration/register.html',
-    variables,
+    {'form': form},
     )
 
 def register_success(request):
-    return render_to_response(
+    return render(request,
     'registration/success.html',
     )
 

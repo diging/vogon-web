@@ -45,6 +45,8 @@ remotecollection_router.register('resource', views.RemoteResourceViewSet, base_n
 urlpatterns = [
     url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
     url(r'^accounts/settings/$', views.user_settings),
+    url(r'^accounts/register/$', views.register),
+    url(r'^accounts/register/success/$', views.register_success),
     url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest/', include(router.urls)),
@@ -54,7 +56,5 @@ urlpatterns = [
     url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^register/$', register),
-    url(r'^register/success/$', register_success),
     url(r'^$', views.home)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
