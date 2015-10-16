@@ -76,36 +76,48 @@ def scrape(url):
     }
     return textData
 
-def extract_text_file(uploaded_file, form, user):
+def extract_text_file(uploaded_file):
     """
     Extract the text file, create text instance and save it
 
     Parameters
     ----------
-    request : HTTPRequest
-        The request after submitting file upload form
-    form : Form
-        The form with uploaded content
+    uploaded_file : InMemoryUploadedFile
+        The uploaded text file
     """
-    texttitle = form.cleaned_data['title']
-    datecreated = form.cleaned_data['datecreated']
-    ispublic = form.cleaned_data['ispublic']
-
-    uniqueuri = 'http://vogonweb.net/' + str(uuid.uuid1())
-
+    if uploaded_file.content_type != 'text/plain':
+        raise ValueError('uploaded_file file should be a plain text file')
     filecontent = ''
     for line in uploaded_file:
         filecontent += line + ' '
-    tokenizedcontent = tokenize(filecontent)
-
-    text = Text(tokenizedContent=tokenizedcontent,
-            title=texttitle,
-            created=datecreated,
-            public=ispublic,
-            addedBy=user,
-            uri=uniqueuri)
-    text.save()
+    return filecontent
 
 def extract_pdf_file(uploaded_file):
     # TODO: Use slate library
     pass
+
+def save_text_instance(tokenized_content, text_title, date_created, is_public, user):
+    """
+    This method creates and saves the text instance based on the parameters passed
+
+    Parameters
+    ----------
+    tokenized_content : String
+        The tokenized text
+    text_title : String
+        The title of the text instance
+    date_created : Date
+        The date to be associated with text instance
+    is_public : Boolean
+        Whether the text content is public or not
+    user : User
+        The user who saved the text content
+    """
+    uniqueuri = 'http://vogonweb.net/' + str(uuid.uuid1())
+    text = Text(tokenizedContent=tokenized_content,
+            title=text_title,
+            created=date_created,
+            public=is_public,
+            addedBy=user,
+            uri=uniqueuri)
+    text.save()

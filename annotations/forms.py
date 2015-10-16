@@ -41,7 +41,8 @@ class UploadFileForm(forms.Form):
 	title = forms.CharField(label='Title:', max_length=255, required=True)
 	ispublic = forms.BooleanField(label='Is this public:',
 				required=False,
-				help_text='By choosing this option you agree...')
+				help_text='By checking this box you affirm that you have the\n'+
+						  'right to make this file publicly available.')
 	filetoupload = forms.FileField(label='Choose a file (plain text or PDF):',
 				required=True,
 				validators=[validatefiletype])

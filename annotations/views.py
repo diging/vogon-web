@@ -27,7 +27,7 @@ from concepts.tasks import search_concept
 from models import *
 from forms import CrispyUserChangeForm, UploadFileForm
 from serializers import *
-from tasks import tokenize, get_manager, extract_text_file, extract_pdf_file
+from tasks import *
 
 import hashlib
 from itertools import chain
@@ -436,7 +436,8 @@ def upload_file(request):
             try:
                 handle_file_upload(request, form)
                 return HttpResponseRedirect(reverse('list_texts'))
-            except:
+            except Exception as detail:
+                print detail
                 form = UploadFileForm()
     else:
         form = UploadFileForm()
@@ -461,8 +462,13 @@ def handle_file_upload(request, form):
         The form with uploaded content
     """
     uploaded_file = request.FILES['filetoupload']
+    text_title = form.cleaned_data['title']
+    date_created = form.cleaned_data['datecreated']
+    is_public = form.cleaned_data['ispublic']
     user = request.user
     if uploaded_file.content_type == 'text/plain':
-        extract_text_file(uploaded_file, form, user)
+        file_content = extract_text_file(uploaded_file)
+        tokenized_content = tokenize(file_content)
+        save_text_instance(tokenized_content, text_title, date_created, is_public, user)
     elif uploaded_file.content_type == 'application/pdf':
         extract_pdf_file(uploaded_file)

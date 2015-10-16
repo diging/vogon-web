@@ -5,7 +5,6 @@ from tasks import extract_text_file
 from django.core.files import File
 from django.core.exceptions import ValidationError
 
-
 class TestUploadFileType(unittest.TestCase):
     """
     This class tests the validator (to test proper file type - TXT or PDF)
@@ -41,3 +40,20 @@ class TestUploadFileType(unittest.TestCase):
         f.content_type = 'invalid'
         with self.assertRaises(ValidationError):
             validatefiletype(f)
+
+
+class TestTextFileExtract(unittest.TestCase):
+    """
+    This class tests the text file extraction method after the upload file
+    form is submitted.
+    """
+
+    def test_not_a_txt_file(self):
+        """
+        This method tests if validation error is raised when a non-text file is
+        uploaded
+        """
+        f = File('invalid')
+        f.content_type = 'invalid'
+        with self.assertRaises(ValueError):
+            extract_text_file(f)
