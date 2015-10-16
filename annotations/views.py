@@ -82,12 +82,7 @@ def register(request):
     'registration/register.html',
     {'form': form},
     )
-
-def register_success(request):
-    return render(request,
-    'registration/success.html',
-    )
-
+    
 def user_recent_texts(user):
     by_relations = Text.objects.filter(relation__createdBy__pk=user.id)
     by_appellations = Text.objects.filter(appellation__createdBy__pk=user.id)
