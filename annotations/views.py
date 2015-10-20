@@ -26,7 +26,7 @@ from concepts.authorities import search
 from concepts.tasks import search_concept
 
 from models import *
-from forms import CrispyUserChangeForm, UploadFileForm
+from forms import CrispyUserChangeForm, UploadFileForm, RegistrationForm
 from serializers import *
 from tasks import *
 
@@ -40,7 +40,7 @@ import uuid
 
 import json
 
-
+from django.shortcuts import render
 def home(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('dashboard'))
@@ -61,6 +61,39 @@ def basepath(request):
         scheme = 'http://'
     return scheme + request.get_host() + settings.SUBPATH
 
+@csrf_protect
+def register(request):
+    """
+    Provide registration view and stores a user on receiving user detail from registration form.
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting registration form.
+    Returns
+    ----------
+    :template:
+        Renders registration form for get request. Redirects to dashboard
+        for post request.
+    """
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+            username=form.cleaned_data['username'],
+            password=form.cleaned_data['password1'],
+            email=form.cleaned_data['email']
+            )
+            return HttpResponseRedirect(reverse('dashboard'))
+    else:
+        form = RegistrationForm()
+    variables = RequestContext(request, {
+    'form': form
+    })
+
+    return render(request,
+    'registration/register.html',
+    {'form': form},
+    )
 
 def user_recent_texts(user):
     by_relations = Text.objects.filter(relation__createdBy__pk=user.id)
