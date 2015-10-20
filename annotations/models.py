@@ -54,7 +54,7 @@ class Text(models.Model):
     created = models.DateField(blank=True, null=True)
     added = models.DateTimeField(auto_now_add=True)
     addedBy = models.ForeignKey(User, related_name="addedTexts")
-    source = models.ForeignKey("Repository", blank=True, related_name="loadedTexts")
+    source = models.ForeignKey("Repository", blank=True, null=True, related_name="loadedTexts")
     originalResource = models.URLField(blank=True, null=True)
     annotators = models.ManyToManyField(User, related_name="userTexts")
     public = models.BooleanField(default=True)

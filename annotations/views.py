@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.serializers import serialize
 from django.db.models import Q
 from django.utils.safestring import mark_safe
+from django.core.files import File
 from guardian.shortcuts import get_objects_for_user
 
 from rest_framework import viewsets, exceptions, status
@@ -25,9 +26,9 @@ from concepts.authorities import search
 from concepts.tasks import search_concept
 
 from models import *
-from forms import CrispyUserChangeForm
+from forms import CrispyUserChangeForm, UploadFileForm
 from serializers import *
-from tasks import tokenize, get_manager
+from tasks import *
 
 import hashlib
 from itertools import chain
@@ -424,3 +425,56 @@ class ConceptViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(label__contains=query)# | queryset_remote
 
         return queryset
+
+@login_required
+def upload_file(request):
+    """
+    Upload a file and save the text instance.
+
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting file upload form
+    """
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                handle_file_upload(request, form)
+                return HttpResponseRedirect(reverse('list_texts'))
+            except Exception as detail:
+                print detail
+                form = UploadFileForm()
+    else:
+        form = UploadFileForm()
+
+    template = loader.get_template('annotations/upload_file.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'form': form,
+        'subpath': settings.SUBPATH,
+    })
+    return HttpResponse(template.render(context))
+
+def handle_file_upload(request, form):
+    """
+    Handle the uploaded file and route it to corresponding handlers
+
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting file upload form
+    form : Form
+        The form with uploaded content
+    """
+    uploaded_file = request.FILES['filetoupload']
+    text_title = form.cleaned_data['title']
+    date_created = form.cleaned_data['datecreated']
+    is_public = form.cleaned_data['ispublic']
+    user = request.user
+    if uploaded_file.content_type == 'text/plain':
+        file_content = extract_text_file(uploaded_file)
+        tokenized_content = tokenize(file_content)
+        save_text_instance(tokenized_content, text_title, date_created, is_public, user)
+    elif uploaded_file.content_type == 'application/pdf':
+        extract_pdf_file(uploaded_file)
