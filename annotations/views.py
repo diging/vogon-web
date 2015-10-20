@@ -42,7 +42,6 @@ import json
 
 from django.shortcuts import render
 def home(request):
-    print "home called"
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('dashboard'))
     return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
@@ -64,6 +63,18 @@ def basepath(request):
 
 @csrf_protect
 def register(request):
+    """
+    Provide registration view and stores a user on receiving user detail from registration form.
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting registration form.
+    Returns
+    ----------
+    :template:
+        Renders registration form for get request. Redirects to dashboard
+        for post request.
+    """
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
