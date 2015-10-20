@@ -25,7 +25,7 @@ from concepts.authorities import search
 from concepts.tasks import search_concept
 
 from models import *
-from forms import CrispyUserChangeForm
+from forms import CrispyUserChangeForm, RegistrationForm
 from serializers import *
 from tasks import tokenize, get_manager
 
@@ -39,8 +39,9 @@ import uuid
 
 import json
 
-
+from django.shortcuts import render
 def home(request):
+    print "home called"
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('dashboard'))
     return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
@@ -60,6 +61,27 @@ def basepath(request):
         scheme = 'http://'
     return scheme + request.get_host() + settings.SUBPATH
 
+@csrf_protect
+def register(request):
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+            username=form.cleaned_data['username'],
+            password=form.cleaned_data['password1'],
+            email=form.cleaned_data['email']
+            )
+            return HttpResponseRedirect(reverse('dashboard'))
+    else:
+        form = RegistrationForm()
+    variables = RequestContext(request, {
+    'form': form
+    })
+
+    return render(request,
+    'registration/register.html',
+    {'form': form},
+    )
 
 def user_recent_texts(user):
     by_relations = Text.objects.filter(relation__createdBy__pk=user.id)

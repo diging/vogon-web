@@ -20,7 +20,6 @@ from django.conf.urls.static import static
 
 from rest_framework import routers
 from rest_framework_nested import routers as nrouters
-
 from annotations import views
 
 
@@ -45,6 +44,7 @@ remotecollection_router.register('resource', views.RemoteResourceViewSet, base_n
 urlpatterns = [
     url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
     url(r'^accounts/settings/$', views.user_settings),
+    url(r'^accounts/register/$', views.register),
     url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest/', include(router.urls)),
