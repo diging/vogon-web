@@ -47,13 +47,15 @@
     var TEXT_NORESULTS = 'No results found';
     var TEMPLATE_URL = '/angucomplete-alt/index.html';
 
+    var MAX_TICKS = 5;
+
     // Set the default template for this directive
     $templateCache.put(TEMPLATE_URL,
         '<div class="angucomplete-holder" ng-class="{\'angucomplete-dropdown-visible\': showDropdown}">' +
         '  <input id="{{id}}_value" name="{{inputName}}" ng-class="{\'angucomplete-input-not-empty\': notEmpty}" ng-model="searchStr" ng-disabled="disableInput" type="{{inputType}}" placeholder="{{placeholder}}" maxlength="{{maxlength}}" ng-focus="onFocusHandler()" class="{{inputClass}}" ng-focus="resetHideResults()" ng-blur="hideResults($event)" autocapitalize="off" autocorrect="off" autocomplete="off" ng-change="inputChangeHandler(searchStr)"/>' +
         '  <div id="{{id}}_dropdown" class="angucomplete-dropdown" ng-show="showDropdown">' +
-        '    <div class="angucomplete-searching" ng-show="searching" ng-bind="textSearching"></div>' +
-        '    <div class="angucomplete-searching" ng-show="!searching && (!results || results.length == 0)" ng-bind="textNoResults"></div>' +
+        '    <div class="angucomplete-searching" ng-show="searching || current_tick <= max_ticks" ng-bind="textSearching"></div>' +
+        '    <div class="angucomplete-searching" ng-show="!searching && (!results || results.length == 0) && current_tick > max_ticks" ng-bind="textNoResults"></div>' +
         '    <div class="angucomplete-row" ng-repeat="result in results" ng-click="selectResult(result)" ng-mouseenter="hoverRow($index)" ng-class="{\'angucomplete-selected-row\': $index == currentIndex}">' +
         '      <div ng-if="imageField" class="angucomplete-image-holder">' +
         '        <img ng-if="result.image && result.image != \'\'" ng-src="{{result.image}}" class="angucomplete-image"/>' +
@@ -101,16 +103,20 @@
       scope.searching = false;
 
       var ticks;
+      scope.max_ticks = MAX_TICKS;
+      scope.current_tick = 0;
       scope.remote = true;
       scope.tick = function() {
+          if (scope.current_tick > MAX_TICKS) scope.stopTicks();
           if (scope.remote) scope.remote = undefined;
+          scope.current_tick += 1;
           searchTimerComplete(scope.searchStr);
       }
 
       scope.startTicks = function() {
 
           if ( angular.isDefined(ticks) ) return;
-
+          scope.current_tick = 0;
           ticks = $interval(function() {
               scope.tick();
           }, update_interval);
@@ -123,8 +129,6 @@
                 scope.remote = true;
           }
       }
-
-
 
       unbindInitialValue = scope.$watch('initialValue', function(newval, oldval) {
 
@@ -249,6 +253,7 @@
       }
 
       function keyupHandler(event) {
+
         var which = ie8EventNormalizer(event);
         if (which === KEY_LF || which === KEY_RT) {
           // do nothing
@@ -271,9 +276,10 @@
           scope.$apply(function() {
             inputField.val(scope.searchStr);
           });
+
         }
         else {
-
+            scope.current_tick = 0;
             scope.startTicks();
 
           if (minlength === 0 && !scope.searchStr) {
@@ -476,7 +482,7 @@
           params.withCredentials = true;
         }
         if (scope.remote) params.params.remote = true;
-        
+
         cancelHttpRequest();
         httpCanceller = $q.defer();
         params.timeout = httpCanceller.promise;

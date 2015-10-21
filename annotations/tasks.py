@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 from models import Text
+from guardian.shortcuts import assign_perm
 import uuid
-
 from . import managers
 
 def get_manager(name):
@@ -121,3 +121,4 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
             addedBy=user,
             uri=uniqueuri)
     text.save()
+    assign_perm('annotations.view_text', user, text)
