@@ -35,7 +35,6 @@ class RelationSerializer(serializers.ModelSerializer):
 class AppellationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appellation
-        # fields = ('createdBy', 'interpretation', 'occursIn', 'stringRep', 'tokenIds', 'id')
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
@@ -62,6 +61,7 @@ class TextSerializer(serializers.ModelSerializer):
         text.save()
         return HttpResponse(text.id)
 
+
 class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextCollection
@@ -77,4 +77,5 @@ class ConceptSerializer(serializers.ModelSerializer):
 class TypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Type
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed', 'description')
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+                  'description')

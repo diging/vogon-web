@@ -135,10 +135,6 @@ app.factory('selectionService',
         service.deHighlightAll();
         service.clearActions();
 
-        // var alertScope = angular.element($('#alerts')).scope();
-        // alertScope.defaultAlert();
-        // if(!alertScope.$$phase) alertScope.$apply();
-
     }
 
     var getStringRep = function(selector, delim) {
@@ -270,7 +266,8 @@ app.factory('selectionService',
                 tokenIds: tokenIds.join(',')
             };
             var settings = {
-                title: 'How are these concepts related?',
+                source_interpretation: null,
+                target_interpretation: null,
                 instructions: 'Select a predicate that best characterizes the relationship between the two concepts that you selected, based on your interpretation of the text. Most predicates are directional, so your first selection will be the subject of the relation and your second selection will be the object of the relation.',
                 text: text,
                 pos: 'verb',
@@ -281,19 +278,29 @@ app.factory('selectionService',
                     pos: 'verb',
                     uri: 'generate',
                     authority: 'Vogon'
-                }
+                },
+                controlling_verb: ''
             }
 
             Type.query().$promise.then(function(results) {
                 settings.types = results;
             })
-            angular.element($('#modalConcept')).scope().open(settings, function (modalData) {
-                // var annotationScope = angular.element(document.getElementById('annotations')).scope();
+
+            Concept.get({id:service.source.interpretation}).$promise.then(function(result) {
+                settings.source_interpretation = result;
+            });
+            Concept.get({id:service.target.interpretation}).$promise.then(function(result) {
+                settings.target_interpretation = result;
+            });
+            angular.element($('#modalPredicate')).scope().open(settings, function (modalData) {
 
                     var getConcept = function() {
                         return $q(function(resolve, reject) {
                             var concept = null;
                             if (modalData.newConcept) {
+                                // The user elected to create a brand-new
+                                //  concept, rather than using one already in
+                                //  the database.
                                 modalData.newConcept.typed = modalData.newConcept.typed.id;
                                 concept = new Concept(modalData.newConcept);
                                 concept.$save().then(function(c) {
@@ -309,7 +316,7 @@ app.factory('selectionService',
 
                     var promise = getConcept();
                     promise.then(function(c) {
-
+                        console.log(modalData.controlling_verb);
                         var data = {    // Predicate creation payload.
                             interpretation: c.id,
                             stringRep: modalData.data.text.stringRep,
@@ -318,6 +325,7 @@ app.factory('selectionService',
                             createdBy: USERID,
                             inSession: 1,
                             asPredicate: true,
+                            controlling_verb: modalData.controlling_verb,
                         }
 
                         predicateService
@@ -1064,6 +1072,30 @@ app.controller('ModalConceptControl', function ($scope, $modal, $log) {
     };
 });
 
+app.controller('ModalPredicateControl', function ($scope, $modal, $log) {
+    $scope.animationsEnabled = true;
+    $scope.open = function (settings, callback) {
+        var modalInstance = $modal.open({
+            animation: $scope.animationsEnabled,
+            templateUrl: 'modalPredicate.html',
+            controller: 'ModalInstanceController',
+            resolve: {
+                settings: function() {
+                    return settings;
+                },
+            }
+        });
+
+        modalInstance.result.then(callback, function () {
+            $log.info('Modal dismissed at: ' + new Date());
+        });
+    };
+
+    $scope.toggleAnimation = function () {
+        $scope.animationsEnabled = !$scope.animationsEnabled;
+    };
+});
+
 app.controller('ModalInstanceController', function ($scope, $modalInstance, settings) {
     $scope.okDisabled = false;
     $scope.createConceptDisabled = true;
@@ -1085,6 +1117,7 @@ app.controller('ModalInstanceController', function ($scope, $modalInstance, sett
     $scope.startCreateConcept = function() {
         $scope.createConceptHidden = false;
         $scope.newConcept = settings.newConcept;
+        $scope.newConcept.pos = $scope.data.pos;
         $scope.newConcept.label = $scope.search;
         $scope.assertUnique = false;
     }
@@ -1094,6 +1127,17 @@ app.controller('ModalInstanceController', function ($scope, $modalInstance, sett
         $scope.okDisabled = false;
     };
     $scope.data = settings;
+
+    if (settings.controlling_verb) {}
+        $scope.controlling_verb = settings.controlling_verb;
+
+        $scope.$watch('controlling_verb', function(newValue, oldValue) {
+            if (newValue != '') {
+                $scope.data.pos = 'noun';
+            } else {
+                $scope.data.pos = 'verb';
+            }
+        });
 
     $scope.ok = function () {
         $modalInstance.close($scope);

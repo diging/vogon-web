@@ -119,6 +119,18 @@ class Appellation(Annotation, Interpreted):
 
     asPredicate = models.BooleanField(default=False)
 
+    IS = 'is'
+    HAS = 'has'
+    NONE = None
+    VCHOICES = (
+        (NONE, ''),
+        (IS, 'is/was'),
+        (HAS, 'has/had'),
+    )
+    controlling_verb = models.CharField(max_length=4, choices=VCHOICES,
+                                        null=True, blank=True, help_text="""
+    Applies only if the Appellation is a predicate.""")
+
 
 class Relation(Annotation):
     source = models.ForeignKey("Appellation", related_name="relationsFrom")

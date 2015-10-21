@@ -163,6 +163,68 @@
         {% endverbatim %}
 
         {% verbatim %}
+        <div id="modalPredicate" ng-controller="ModalPredicateControl">
+            <script type="text/ng-template" id="modalPredicate.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">How is {{ data.source_interpretation.label }} related to {{ data.target_interpretation.label }}?</h3>
+                </div>
+                <div class="modal-body">
+                    <p>You selected the text<span class="quotedText">{{ data.text.stringRep }}</span></p>
+                    <p>{{ data.instructions }}</p>
+
+                    <label>
+                        First, select the controlling verb for this relation. For example,
+                        if {{ data.source_interpretation.label }} <em>was</em> the
+                        mother of {{ data.target_interpretation.label }}, then you should
+                        select the controlling verb 'is/was' and the concept 'mother'. But
+                        if {{ data.source_interpretation.label }} <em>employed</em>
+                        {{ data.target_interpretation.label }}, leave this field blank and
+                        select the concept 'employ'.
+                    </label>
+                    <select ng-model="controlling_verb" class="form-control">
+                        <option value=''></option>
+                        <option value='is'>is/was ... of/for/to</option>
+                        <option value='has'>has/had ... that is/was</option>
+                    </select>
+                    <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ data.placeholder }}" pause="100" search-str="search" selected-object="selectConcept" remote-url="{{data.baselocation}}/rest/concept?pos={{ data.pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
+                    </div>
+                    <div class="clearfix">
+                        <div class="btn-group btn-group-sm pull-right">
+                            <button class="btn btn-primary" ng-disabled="createConceptDisabled" ng-click="startCreateConcept()">Create Concept</button>
+                        </div>
+                    </div>
+                    <div class="panel" ng-hide="createConceptHidden">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" ng-model="assertUnique" ng-change="assertUniqueChange()">
+                                I've tried my hardest, but I can't find this concept in any search results.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="panel" ng-hide="createConceptDetailsHidden">
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" name="description" required="true" ng-model="newConcept.description" id="description" placeholder="Describe this concept in as much detail as you can."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="type">Type</label>
+                            <select class="form-control" ng-model="newConcept.typed" required="true" ng-options="t.label for t in data.types">
+                                <option></option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()" ng-disabled="okDisabled">OK</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+        </div>
+        {% endverbatim %}
+
+        {% verbatim %}
         <div id="modalTemporalBounds" ng-controller="ModalTemporalBoundsControl">
             <script type="text/ng-template" id="modalTemporalBounds.html">
                 <div class="modal-header">
