@@ -481,8 +481,8 @@ def upload_file(request):
                 handle_file_upload(request, form)
                 return HttpResponseRedirect(reverse('list_texts'))
             except Exception as detail:
-                print detail
                 form = UploadFileForm()
+                form.add_error(None, detail)
     else:
         form = UploadFileForm()
 
