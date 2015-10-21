@@ -130,8 +130,6 @@
           }
       }
 
-
-
       unbindInitialValue = scope.$watch('initialValue', function(newval, oldval) {
 
         if (newval) {

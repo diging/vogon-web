@@ -158,6 +158,7 @@
                     <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()" ng-disabled="okDisabled">OK</button>
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
+                bindHelpPopover();
             </script>
         </div>
         {% endverbatim %}
@@ -169,24 +170,59 @@
                     <h3 class="modal-title">How is {{ data.source_interpretation.label }} related to {{ data.target_interpretation.label }}?</h3>
                 </div>
                 <div class="modal-body">
-                    <p>You selected the text<span class="quotedText">{{ data.text.stringRep }}</span></p>
+                    <p>You selected the text <span class="quotedText">{{ data.text.stringRep }}</span></p>
                     <p>{{ data.instructions }}</p>
 
-                    <label>
-                        First, select the controlling verb for this relation. For example,
-                        if {{ data.source_interpretation.label }} <em>was</em> the
-                        mother of {{ data.target_interpretation.label }}, then you should
-                        select the controlling verb 'is/was' and the concept 'mother'. But
-                        if {{ data.source_interpretation.label }} <em>employed</em>
-                        {{ data.target_interpretation.label }}, leave this field blank and
-                        select the concept 'employ'.
-                    </label>
-                    <select ng-model="controlling_verb" class="form-control">
-                        <option value=''></option>
-                        <option value='is'>is/was ... of/for/to</option>
-                        <option value='has'>has/had ... that is/was</option>
-                    </select>
-                    <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ data.placeholder }}" pause="100" search-str="search" selected-object="selectConcept" remote-url="{{data.baselocation}}/rest/concept?pos={{ data.pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
+                    <div style="margin-top: 15px;" ng-init="bindHelpPopover()">
+                        <label>Controlling verb
+                            <span
+                                class="glyphicon glyphicon-question-sign help-popover"
+                                data-toggle="popover"
+                                data-placement="right"
+                                data-content="For example, if {{ data.source_interpretation.label }} was the
+                                              mother of {{ data.target_interpretation.label }}, then you should
+                                              select the controlling verb 'is/was' and the concept 'mother'. But
+                                              if {{ data.source_interpretation.label }} <em>employed</em>
+                                              {{ data.target_interpretation.label }}, leave this field blank and
+                                              select the concept 'employ'."
+                                data-template='<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content small-text"></div></div>'
+                                title="First, select the controlling verb for this relation.">
+                            </span>
+                        </label>
+                        <select ng-model="controlling_verb" class="form-control">
+                            <option value=''></option>
+                            <option value='is'>is/was ... of/for/to</option>
+                            <option value='has'>has/had ... that is/was</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label>Concept
+                            <span
+                                class="glyphicon glyphicon-question-sign help-popover"
+                                data-toggle="popover"
+                                data-placement="right"
+                                data-content="Start typing the name of a concept, and Vogon will attempt to find
+                                              existing concepts with that name. If you cannot find an existing
+                                              concept that captures the relationship between
+                                              {{ data.source_interpretation.label }} and
+                                              {{ data.target_interpretation.label }}, then create a new concept."
+                                data-template='<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content small-text"></div></div>'
+                                title="Select the concept for this predicate.">
+                            </span>
+                        </label>
+                        <div angucomplete-alt
+                            field-required="true"
+                            id="concepts"
+                            placeholder="{{ data.placeholder }}"
+                            pause="100"
+                            search-str="search"
+                            selected-object="selectConcept"
+                            remote-url="{{data.baselocation}}/rest/concept?pos={{ data.pos }}&search="
+                            remote-url-data-field=""
+                            title-field="label"
+                            description-field="description"
+                            input-class="form-control form-control-small">
+                        </div>
                     </div>
                     <div class="clearfix">
                         <div class="btn-group btn-group-sm pull-right">
@@ -297,6 +333,7 @@
                     <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()">OK</button>
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
+                bindHelpPopover();
             </script>
         </div>
 
@@ -316,6 +353,7 @@
                     <button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
+                bindHelpPopover();
             </script>
             {% endverbatim %}
         </div>
@@ -335,9 +373,13 @@
                     <button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
+                bindHelpPopover();
             </script>
             {% endverbatim %}
         </div>
+        <script>
+
+        </script>
     </body>
 
 </html>

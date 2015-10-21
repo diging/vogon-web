@@ -268,7 +268,7 @@ app.factory('selectionService',
             var settings = {
                 source_interpretation: null,
                 target_interpretation: null,
-                instructions: 'Select a predicate that best characterizes the relationship between the two concepts that you selected, based on your interpretation of the text. Most predicates are directional, so your first selection will be the subject of the relation and your second selection will be the object of the relation.',
+                instructions: 'Select a predicate that best characterizes the relationship between the two concepts that you selected, based on your interpretation of the text.',
                 text: text,
                 pos: 'verb',
                 placeholder: 'Search for a predicate concept',
@@ -316,7 +316,6 @@ app.factory('selectionService',
 
                     var promise = getConcept();
                     promise.then(function(c) {
-                        console.log(modalData.controlling_verb);
                         var data = {    // Predicate creation payload.
                             interpretation: c.id,
                             stringRep: modalData.data.text.stringRep,
@@ -1086,11 +1085,11 @@ app.controller('ModalPredicateControl', function ($scope, $modal, $log) {
             }
         });
 
+
         modalInstance.result.then(callback, function () {
             $log.info('Modal dismissed at: ' + new Date());
         });
     };
-
     $scope.toggleAnimation = function () {
         $scope.animationsEnabled = !$scope.animationsEnabled;
     };
@@ -1101,13 +1100,14 @@ app.controller('ModalInstanceController', function ($scope, $modalInstance, sett
     $scope.createConceptDisabled = true;
     $scope.createConceptHidden = true;
     $scope.createConceptDetailsHidden = true;
-
+    $scope.bindHelpPopover = bindHelpPopover;
     $scope.$watch('search', function(newVal, oldVal) {
         if (newVal !== undefined) {
             if (newVal.length > 2) $scope.createConceptDisabled = false;
             else $scope.createConceptDisabled = true;
         }
     }, true);
+
 
     $scope.assertUniqueChange = function () {
         if ($scope.assertUnique) $scope.createConceptDetailsHidden = false;
@@ -1146,6 +1146,7 @@ app.controller('ModalInstanceController', function ($scope, $modalInstance, sett
     $scope.cancel = function () {
         $modalInstance.dismiss('cancel');
     };
+
 });
 
 
@@ -1632,3 +1633,16 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService',
         },
     }
 }]);
+
+
+var bindHelpPopover = function() {
+    console.log('yikes');
+    $('.help-popover').hover(
+        function(){
+            $(this).popover('show');
+        },
+        function() {
+            $(this).popover('hide');
+        }
+    );
+}
