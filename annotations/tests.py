@@ -1,7 +1,7 @@
 from django.test import TestCase
 import unittest
 from forms import validatefiletype
-from tasks import extract_text_file
+from tasks import extract_text_file, extract_pdf_file
 from django.core.files import File
 from django.core.exceptions import ValidationError
 
@@ -41,6 +41,33 @@ class TestUploadFileType(unittest.TestCase):
         with self.assertRaises(ValidationError):
             validatefiletype(f)
 
+class TestPDFFileExtract(unittest.TestCase):
+    """
+    This class tests the PDF file extraction method after upload file form
+    is submitted.
+    """
+
+    def test_not_a_pdf_file(self):
+        """
+        This method tests if validation error is raised when a non-PDF file is
+        uploaded
+        """
+        f = File('invalid')
+        f.content_type = 'invalid'
+        with self.assertRaises(ValueError):
+            extract_pdf_file(f)
+
+    def test_pdf_file(self):
+        """
+        This method tests if contents of the PDF file are extracted when a PDF
+        file is uploaded.
+        """
+        # TODO: Content file for PDF file
+        # f = ContentFile('This is a sample content', name='test.pdf')
+        # f.content_type = 'application/pdf'
+        # content = extract_pdf_file(f)
+        # self.assertEquals(content.strip(), 'This is a sample content')
+        pass
 
 class TestTextFileExtract(unittest.TestCase):
     """
