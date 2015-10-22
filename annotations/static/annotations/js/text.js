@@ -135,10 +135,6 @@ app.factory('selectionService',
         service.deHighlightAll();
         service.clearActions();
 
-        // var alertScope = angular.element($('#alerts')).scope();
-        // alertScope.defaultAlert();
-        // if(!alertScope.$$phase) alertScope.$apply();
-
     }
 
     var getStringRep = function(selector, delim) {
@@ -187,7 +183,8 @@ app.factory('selectionService',
                 newConcept: {
                     pos: 'noun',
                     uri: 'generate',
-                    authority: 'Vogon'
+                    authority: 'Vogon',
+                    resolved: true
                 }
             }
             Type.query().$promise.then(function(results) {
@@ -269,8 +266,9 @@ app.factory('selectionService',
                 tokenIds: tokenIds.join(',')
             };
             var settings = {
-                title: 'How are these concepts related?',
-                instructions: 'Select a predicate that best characterizes the relationship between the two concepts that you selected, based on your interpretation of the text. Most predicates are directional, so your first selection will be the subject of the relation and your second selection will be the object of the relation.',
+                source_interpretation: null,
+                target_interpretation: null,
+                instructions: 'Select a predicate that best characterizes the relationship between the two concepts that you selected, based on your interpretation of the text.',
                 text: text,
                 pos: 'verb',
                 placeholder: 'Search for a predicate concept',
@@ -280,19 +278,29 @@ app.factory('selectionService',
                     pos: 'verb',
                     uri: 'generate',
                     authority: 'Vogon'
-                }
+                },
+                controlling_verb: ''
             }
 
             Type.query().$promise.then(function(results) {
                 settings.types = results;
             })
-            angular.element($('#modalConcept')).scope().open(settings, function (modalData) {
-                // var annotationScope = angular.element(document.getElementById('annotations')).scope();
+
+            Concept.get({id:service.source.interpretation}).$promise.then(function(result) {
+                settings.source_interpretation = result;
+            });
+            Concept.get({id:service.target.interpretation}).$promise.then(function(result) {
+                settings.target_interpretation = result;
+            });
+            angular.element($('#modalPredicate')).scope().open(settings, function (modalData) {
 
                     var getConcept = function() {
                         return $q(function(resolve, reject) {
                             var concept = null;
                             if (modalData.newConcept) {
+                                // The user elected to create a brand-new
+                                //  concept, rather than using one already in
+                                //  the database.
                                 modalData.newConcept.typed = modalData.newConcept.typed.id;
                                 concept = new Concept(modalData.newConcept);
                                 concept.$save().then(function(c) {
@@ -308,7 +316,6 @@ app.factory('selectionService',
 
                     var promise = getConcept();
                     promise.then(function(c) {
-
                         var data = {    // Predicate creation payload.
                             interpretation: c.id,
                             stringRep: modalData.data.text.stringRep,
@@ -317,6 +324,7 @@ app.factory('selectionService',
                             createdBy: USERID,
                             inSession: 1,
                             asPredicate: true,
+                            controlling_verb: modalData.controlling_verb,
                         }
 
                         predicateService
@@ -385,7 +393,6 @@ app.factory('selectionService',
                             })
                             .catch(function(error) {
                                 service.reset();
-                                console.log(error);
                                 errors.catch("Could not create predicate!");
                             });
                     });
@@ -591,7 +598,6 @@ app.factory('selectionService',
             var position = element.offset();
             position.left += element.width();
             position.top -= 5;
-            console.log(position);
             return position;
         }
 
@@ -620,7 +626,7 @@ app.factory('selectionService',
             });
 
             // The initial position must take into account the distance that the
-            // user has scrolled in #textContent. 
+            // user has scrolled in #textContent.
             var pos = calculatePosition(element);
             pos.top += $('#textContent').scrollTop();
             parent.offset(pos);
@@ -1065,18 +1071,43 @@ app.controller('ModalConceptControl', function ($scope, $modal, $log) {
     };
 });
 
+app.controller('ModalPredicateControl', function ($scope, $modal, $log) {
+    $scope.animationsEnabled = true;
+    $scope.open = function (settings, callback) {
+        var modalInstance = $modal.open({
+            animation: $scope.animationsEnabled,
+            templateUrl: 'modalPredicate.html',
+            controller: 'ModalInstanceController',
+            resolve: {
+                settings: function() {
+                    return settings;
+                },
+            }
+        });
+
+
+        modalInstance.result.then(callback, function () {
+            $log.info('Modal dismissed at: ' + new Date());
+        });
+    };
+    $scope.toggleAnimation = function () {
+        $scope.animationsEnabled = !$scope.animationsEnabled;
+    };
+});
+
 app.controller('ModalInstanceController', function ($scope, $modalInstance, settings) {
     $scope.okDisabled = false;
     $scope.createConceptDisabled = true;
     $scope.createConceptHidden = true;
     $scope.createConceptDetailsHidden = true;
-
+    $scope.bindHelpPopover = bindHelpPopover;
     $scope.$watch('search', function(newVal, oldVal) {
         if (newVal !== undefined) {
             if (newVal.length > 2) $scope.createConceptDisabled = false;
             else $scope.createConceptDisabled = true;
         }
     }, true);
+
 
     $scope.assertUniqueChange = function () {
         if ($scope.assertUnique) $scope.createConceptDetailsHidden = false;
@@ -1086,6 +1117,7 @@ app.controller('ModalInstanceController', function ($scope, $modalInstance, sett
     $scope.startCreateConcept = function() {
         $scope.createConceptHidden = false;
         $scope.newConcept = settings.newConcept;
+        $scope.newConcept.pos = $scope.data.pos;
         $scope.newConcept.label = $scope.search;
         $scope.assertUnique = false;
     }
@@ -1096,6 +1128,17 @@ app.controller('ModalInstanceController', function ($scope, $modalInstance, sett
     };
     $scope.data = settings;
 
+    if (settings.controlling_verb) {}
+        $scope.controlling_verb = settings.controlling_verb;
+
+        $scope.$watch('controlling_verb', function(newValue, oldValue) {
+            if (newValue != '') {
+                $scope.data.pos = 'noun';
+            } else {
+                $scope.data.pos = 'verb';
+            }
+        });
+
     $scope.ok = function () {
         $modalInstance.close($scope);
     };
@@ -1103,6 +1146,7 @@ app.controller('ModalInstanceController', function ($scope, $modalInstance, sett
     $scope.cancel = function () {
         $modalInstance.dismiss('cancel');
     };
+
 });
 
 
@@ -1589,3 +1633,16 @@ app.directive('d3Network', ['d3Service', '$rootScope', 'appellationService',
         },
     }
 }]);
+
+
+var bindHelpPopover = function() {
+    console.log('yikes');
+    $('.help-popover').hover(
+        function(){
+            $(this).popover('show');
+        },
+        function() {
+            $(this).popover('hide');
+        }
+    );
+}
