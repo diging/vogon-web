@@ -33,16 +33,19 @@
 					<li><a href="/accounts/logout/">Log Out</a></li>
 				</ul>
 				{% else %}
-				<a href="/accounts/register/">
-					<button class="btn btn-primary" type="button" id="registerButton">
-						Register
-					</button>
-				</a>
-				<a href="/accounts/login/">
-					<button class="btn btn-primary" type="button" id="loginButton">
-						Log In
-					</button>
-				</a>
+				<div class="btn-group" role="group" aria-label="usermgmt">
+					<a href="/accounts/register/" class="btn">
+						<button class="btn btn-primary" type="button" id="registerButton">Register</button>
+					</a>
+					<a href="/accounts/login/" class="btn">
+						<button class="btn btn-primary" type="button" id="loginButton">Log In</button>
+					</a>
+				</div>
+
+
+
+
+
 				{% endif %}
 			</div>
 		</div><!--/.nav-collapse -->
