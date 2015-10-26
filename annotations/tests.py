@@ -63,12 +63,11 @@ class TestPDFFileExtract(unittest.TestCase):
         This method tests if contents of the PDF file are extracted when a PDF
         file is uploaded.
         """
-        # TODO: Content file for PDF file
-        # f = ContentFile('This is a sample content', name='test.pdf')
-        # f.content_type = 'application/pdf'
-        # content = extract_pdf_file(f)
-        # self.assertEquals(content.strip(), 'This is a sample content')
-        pass
+        with open('annotations/tests/data/test.pdf', 'r') as f:
+            pdf = File(f)
+            pdf.content_type = 'application/pdf'
+            content = extract_pdf_file(pdf)
+            self.assertEquals(content.strip(), 'This is a sample test file.')
 
 class TestTextFileExtract(unittest.TestCase):
     """

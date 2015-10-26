@@ -86,6 +86,10 @@ def extract_text_file(uploaded_file):
     ----------
     uploaded_file : InMemoryUploadedFile
         The uploaded text file
+
+    Returns
+    -------
+    Content of the text file as a string
     """
     if uploaded_file.content_type != 'text/plain':
         raise ValueError('uploaded_file file should be a plain text file')
@@ -102,13 +106,17 @@ def extract_pdf_file(uploaded_file):
     ----------
     uploaded_file : InMemoryUploadedFile
         The uploaded PDF file
+
+    Returns
+    -------
+    Content of the PDF file as a string
     """
     if uploaded_file.content_type != 'application/pdf':
         raise ValueError('uploaded_file file should be a PDF file')
     doc = slate.PDF(uploaded_file)
     filecontent = ''
     for content in doc:
-        filecontent += content.decode('utf-8') + ' '
+        filecontent += content.decode('utf-8') + '\n\n'
     return filecontent
 
 def save_text_instance(tokenized_content, text_title, date_created, is_public, user):
