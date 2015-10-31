@@ -5,6 +5,11 @@
 <div id="main">
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
+            <div class="pull-right">
+              <a href="{% url 'file_upload' %}" class="btn btn-primary">Upload File</a>
+            </div>
+        </div>
+        <div class="col-sm-8 col-sm-offset-2">
             {% if texts|length > 0 %}
             <ul class="list-group">
             {% for text in texts %}

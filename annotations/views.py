@@ -6,11 +6,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login,authenticate
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.conf import settings
 from django.core.serializers import serialize
 from django.db.models import Q
 from django.utils.safestring import mark_safe
+from django.core.files import File
 from guardian.shortcuts import get_objects_for_user
 
 from rest_framework import viewsets, exceptions, status
@@ -25,9 +27,9 @@ from concepts.authorities import search
 from concepts.tasks import search_concept
 
 from models import *
-from forms import CrispyUserChangeForm
+from forms import CrispyUserChangeForm, UploadFileForm, RegistrationForm
 from serializers import *
-from tasks import tokenize, get_manager
+from tasks import *
 
 import hashlib
 from itertools import chain
@@ -39,7 +41,7 @@ import uuid
 
 import json
 
-
+from django.shortcuts import render
 def home(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('dashboard'))
@@ -60,6 +62,43 @@ def basepath(request):
         scheme = 'http://'
     return scheme + request.get_host() + settings.SUBPATH
 
+@csrf_protect
+def register(request):
+    """
+    Provide registration view and stores a user on receiving user detail from registration form.
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting registration form.
+    Returns
+    ----------
+    :template:
+        Renders registration form for get request. Redirects to dashboard
+        for post request.
+    """
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+            username=form.cleaned_data['username'],
+            password=form.cleaned_data['password1'],
+            email=form.cleaned_data['email']
+            )
+            new_user = authenticate(username=form.cleaned_data['username'],
+                                    password=form.cleaned_data['password1'])
+            # Logs in new user
+            login(request, new_user)
+            return HttpResponseRedirect(reverse('dashboard'))
+    else:
+        form = RegistrationForm()
+    variables = RequestContext(request, {
+    'form': form
+    })
+
+    return render(request,
+    'registration/register.html',
+    {'form': form},
+    )
 
 def user_recent_texts(user):
     by_relations = Text.objects.filter(relation__createdBy__pk=user.id)
@@ -380,15 +419,12 @@ class ConceptViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
-
         data = request.data
         if data['uri'] == 'generate':
-            data['uri'] = 'http://vogon.asu.edu/{0}'.format(uuid.uuid4())
-            data['resolved'] = True
+            data['uri'] = 'http://vogonweb.net/{0}'.format(uuid.uuid4())
 
         if 'lemma' not in data:
             data['lemma'] = data['label'].lower()
-
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -419,8 +455,63 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
             if remote:  # Spawn asynchronous calls to authority services.
                 search_concept.delay(query, pos=pos)
-            # remote = [o.id for o in search(query, pos=pos)]
-            # queryset_remote = Concept.objects.filter(pk__in=remote)
-            queryset = queryset.filter(label__contains=query)# | queryset_remote
+            queryset = queryset.filter(label__contains=query)
 
         return queryset
+
+@login_required
+def upload_file(request):
+    """
+    Upload a file and save the text instance.
+
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting file upload form
+    """
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                handle_file_upload(request, form)
+                return HttpResponseRedirect(reverse('list_texts'))
+            except Exception as detail:
+                form = UploadFileForm()
+                form.add_error(None, detail)
+    else:
+        form = UploadFileForm()
+
+    template = loader.get_template('annotations/upload_file.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'form': form,
+        'subpath': settings.SUBPATH,
+    })
+    return HttpResponse(template.render(context))
+
+def handle_file_upload(request, form):
+    """
+    Handle the uploaded file and route it to corresponding handlers
+
+    Parameters
+    ----------
+    request : HTTPRequest
+        The request after submitting file upload form
+    form : Form
+        The form with uploaded content
+    """
+    uploaded_file = request.FILES['filetoupload']
+    text_title = form.cleaned_data['title']
+    date_created = form.cleaned_data['datecreated']
+    is_public = form.cleaned_data['ispublic']
+    user = request.user
+    file_content = None
+    if uploaded_file.content_type == 'text/plain':
+        file_content = extract_text_file(uploaded_file)
+    elif uploaded_file.content_type == 'application/pdf':
+        file_content = extract_pdf_file(uploaded_file)
+
+    # Save the content if the above extractors extracted something
+    if file_content != None:
+        tokenized_content = tokenize(file_content)
+        save_text_instance(tokenized_content, text_title, date_created, is_public, user)

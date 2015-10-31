@@ -54,7 +54,7 @@ class Text(models.Model):
     created = models.DateField(blank=True, null=True)
     added = models.DateTimeField(auto_now_add=True)
     addedBy = models.ForeignKey(User, related_name="addedTexts")
-    source = models.ForeignKey("Repository", blank=True, related_name="loadedTexts")
+    source = models.ForeignKey("Repository", blank=True, null=True, related_name="loadedTexts")
     originalResource = models.URLField(blank=True, null=True)
     annotators = models.ManyToManyField(User, related_name="userTexts")
     public = models.BooleanField(default=True)
@@ -118,6 +118,18 @@ class Appellation(Annotation, Interpreted):
     endPos = models.IntegerField(blank=True, null=True)
 
     asPredicate = models.BooleanField(default=False)
+
+    IS = 'is'
+    HAS = 'has'
+    NONE = None
+    VCHOICES = (
+        (NONE, ''),
+        (IS, 'is/was'),
+        (HAS, 'has/had'),
+    )
+    controlling_verb = models.CharField(max_length=4, choices=VCHOICES,
+                                        null=True, blank=True, help_text="""
+    Applies only if the Appellation is a predicate.""")
 
 
 class Relation(Annotation):
