@@ -87,7 +87,7 @@
 									<creation_place>http://www.digitalhps.org/concepts/WID-08769645-N-??-berlin</creation_place>
 									<source_reference>http://www.digitalhps.org/concepts/CONda66ba9a-04d4-4f26-ae58-22132212bf66</source_reference>
 									<interpretation>URI1</interpretation>
-						<normalized_representation>URI2</normalized_representation>
+									<normalized_representation>URI2</normalized_representation>
 									<printed_representation>
 										<id></id>
 										<creator>http://www.digitalhps.org/concepts/CON49f66a30-6e3c-44fc-9557-d87a2936e950</creator>
