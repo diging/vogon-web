@@ -94,11 +94,11 @@ def create_relation(rel):
 
 	object = ET.SubElement(relation, "object")
 	object_obj = Appellation.objects.filter(id = rel.object_id)
-	#object.text = object_obj[0].stringRep
+	object.text = object_obj[0].stringRep
 
 	predicate = ET.SubElement(relation, "predicate")
 	predicate_obj = Appellation.objects.filter(id = rel.predicate_id)
-	#predicate.text = predicate_obj[0].stringRep
+	predicate.text = predicate_obj[0].stringRep
 
 	indent(root)
 	quadruple = ET.dump(root)
