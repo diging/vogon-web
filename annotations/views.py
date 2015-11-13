@@ -455,7 +455,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
             if remote:  # Spawn asynchronous calls to authority services.
                 search_concept.delay(query, pos=pos)
-            queryset = queryset.filter(label__contains=query)
+            queryset = queryset.filter(label__icontains=query)
 
         return queryset
 

@@ -6,6 +6,7 @@ from django.core.files import File
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 
+
 class TestUploadFileType(unittest.TestCase):
     """
     This class tests the validator (to test proper file type - TXT or PDF)
@@ -42,6 +43,7 @@ class TestUploadFileType(unittest.TestCase):
         with self.assertRaises(ValidationError):
             validatefiletype(f)
 
+
 class TestPDFFileExtract(unittest.TestCase):
     """
     This class tests the PDF file extraction method after upload file form
@@ -68,6 +70,7 @@ class TestPDFFileExtract(unittest.TestCase):
             pdf.content_type = 'application/pdf'
             content = extract_pdf_file(pdf)
             self.assertEquals(content.strip(), 'This is a sample test file.')
+
 
 class TestTextFileExtract(unittest.TestCase):
     """
