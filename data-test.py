@@ -33,10 +33,10 @@ for obj in print_obj:
 		print k, "	: ", v
 		#print type(elem)
 	print "---"
+
 '''
 
 #------------- XML BUILD LOGIC -------------------
-
 def indent(elem, level=0):
     i = "\n" + level*"  "
     if len(elem):
@@ -56,11 +56,8 @@ def indent(elem, level=0):
 
 import xml.etree.ElementTree as ET
 
-rel = Relation.objects.all()[0]
-appln = Appellation.objects.filter(id = rel.createdBy_id)[0]
-
 def create_relation(rel):
-	import xml.etree.ElementTree as ET
+	#import xml.etree.ElementTree as ET
 	root = ET.Element("relation_event")
 	id = ET.SubElement(root, "id")
 	creator = ET.SubElement(root, "creator")
@@ -84,25 +81,27 @@ def create_relation(rel):
 
 	creation_date = ET.SubElement(relation, "creation_date")
 
+	
 	subject = ET.SubElement(relation, "subject")
-	subject_obj = Appellation.objects.filter(id = rel.source_id)
+	subject_obj = Appellation.objects.filter(id = rel.source_id)[0]
+	subject.append(create_appellation(subject_obj))
 
-	#subject.append(create_appellation(subject_obj, 'subject'))
-	# = ET.SubElement(relation, "subject", create_appellation(subject_obj))
-
-	subject.text = subject_obj[0].stringRep
+	#subject.text = subject_obj[0].stringRep
 
 	object = ET.SubElement(relation, "object")
-	object_obj = Appellation.objects.filter(id = rel.object_id)
+	object_obj = Appellation.objects.filter(id = rel.object_id)[0]
+	object.append(create_appellation(object_obj))
 	#object.text = object_obj[0].stringRep
 
 	predicate = ET.SubElement(relation, "predicate")
-	predicate_obj = Appellation.objects.filter(id = rel.predicate_id)
-	predicate.text = predicate_obj[0].stringRep
+	predicate_obj = Appellation.objects.filter(id = rel.predicate_id)[0]
+	predicate.append(create_appellation(predicate_obj))
+	#predicate.text = predicate_obj[0].stringRep
 
-	indent(root)
-	quadruple = ET.dump(root)
-	return quadruple
+	#indent(root)
+	#quadruple = ET.dump(root)
+	#return quadruple
+	return root
 
 
 def create_appellation(appln, parent = None):
@@ -167,9 +166,11 @@ def create_appellation(appln, parent = None):
 	t_formatted_pointer = ET.SubElement(t_term_part, "formatted_pointer")
 	t_format = ET.SubElement(t_term_part, "format")
 
-	indent(root)
-	quadruple = ET.dump(root)
-	return quadruple
+	return root
+	#indent(root)
+	#quadruple = ET.dump(root)
+	#return quadruple
+
 #<term>
 #	<id />
 #	<creator>http://www.digitalhps.org/concepts/CON49f66a30-6e3c-44fc-9557-d87a2936e950</creator>
@@ -200,6 +201,15 @@ def create_appellation(appln, parent = None):
 #	<referenced_terms>
 ###	</printed_representation>
 
+rel = Relation.objects.all()[0]
+appln = Appellation.objects.filter(id = rel.createdBy_id)[0]
 
-print create_relation(rel)
-print create_appellation(appln)
+#print rel.__dict__
+#print appln.__dict__
+
+xml = create_relation(rel)
+indent(xml)
+quad = ET.dump(xml)
+
+
+#print create_appellation(appln)
