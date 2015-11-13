@@ -1,0 +1,58 @@
+createdBy_id 	:  1
+obj.objects.all().filter(id = 1)
+
+User.objects.all().filter(id = obj['createdBy_id'])
+
+
+
+obj.Objects.all()
+
+User.objects.all().filter(id = obj[''])
+
+
+
+
+createdBy_id 	:  1		: User.objects.all().filter(id = obj['createdBy_id'])
+created 	:  2015-10-16 18:35:16.154000+00:00
+_state 		:  <django.db.models.base.ModelState object at 0x7fa1d19f3050> :  
+object_id 	:  2		: Appellation.objects.filter(id = 2)
+predicate_id 	:  3		: Appellation.objects.filter(id = 3)
+bounds_id 	:  1		: TemporalBounds.objects.all().filter(id = 1)
+source_id 	:  1		: Appellation.objects.filter(id = 1)
+id 		:  1		: <id> </id>
+occursIn_id 	:  1		: TemporalBounds.objects.all().filter(id = 1)
+
+
+--------------------------------------------final-------------------------------------------------
+
+<relation_event>
+	<id></id>
+	<creator>http://www.digitalhps.org/concepts/CON49f66a30-6e3c-44fc-9557-d87a2936e950</creator>
+	<creation_date>2002-05-30T09:00:00</creation_date>
+	<creation_place>User.objects.all().filter(id = obj['createdBy_id'])</creation_place>
+	<source_reference>http://www.digitalhps.org/concepts/CONda66ba9a-04d4-4f26-ae58-22132212bf66</source_reference>
+	<interpretation_creator>http://www.digitalhps.org/concepts/CON49f66a30-6e3c-44fc-9557-d87a2936e950</interpretation_creator>
+	<relation_creator>http://www.digitalhps.org/concepts/CON49f66a30-6e3c-44fc-9557-d87a2936e950</relation_creator>
+
+	<relation>
+		<id></id>
+		<creator>http://www.digitalhps.org/concepts/CON49f66a30-6e3c-44fc-9557-d87a2936e950</creator>
+		<creation_date>2002-05-30T09:00:00</creation_date>
+		<subject>
+		
+		</subject>
+	<object>
+		
+	</object>
+	<predicate>
+		
+	</predicate>
+</relation>
+
+
+
+
+notes :
+
+element tree - python for creating xml structure
+
