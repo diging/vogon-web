@@ -642,9 +642,9 @@ def network_data(request):
             max_relation = relations[key]['weight']
 
     for key, relation in relations.items():
-        relation['size'] = relation['weight']/max_relation
+        relation['size'] = 3. * relation['weight']/max_relation
     for key, node in nodes.items():
-        node['size'] = node['weight']/max_node
+        node['size'] = 3. * node['weight']/max_node
 
     graph = igraph.Graph()
     graph.add_vertices(len(nodes))
