@@ -29,3 +29,4 @@ wheel==0.24.0
 slate==0.3
 pdfminer==20110515
 bleach
+python-igraph
