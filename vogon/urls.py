@@ -53,9 +53,14 @@ urlpatterns = [
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
     url(r'^network/$', views.network, name="network"),
+    url(r'^network/data/$', views.network_data, name="network-data"),
     url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/add/upload/$', views.upload_file, name="file_upload"),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
+    url(r'^collection/$', views.list_collections, name="collection_list"),
+    url(r'^collection/(?P<collectionid>[0-9]+)/$', views.collection_texts, name="collection_texts"),
+    url(r'^collection/text/add/$', views.add_text_to_collection, name="collection_addtext"),
+    url(r'^user/(?P<userid>[0-9]+)/$', views.user_details, name="user_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^$', views.home)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

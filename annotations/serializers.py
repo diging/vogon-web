@@ -1,13 +1,14 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
+from annotations.models import VogonUser
 from models import *
 from concepts.models import Concept, Type
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ('username', 'email', 'id')
+        model = VogonUser
+        fields = ('username', 'email', 'id', 'affiliation', 'location',
+                  'full_name', 'link')
 
 
 class RemoteCollectionSerializer(serializers.Serializer):

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group
 import requests
 from bs4 import BeautifulSoup
 from models import Text
@@ -145,3 +146,7 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
             uri=uniqueuri)
     text.save()
     assign_perm('annotations.view_text', user, text)
+    if is_public:
+        group = Group.objects.get_or_create(name='Public')[0]
+        assign_perm('annotations.view_text', group, text)
+    return text

@@ -1,0 +1,666 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+{% block main %}
+<script src="{% static "annotations/js/network.js" %}"></script>
+<script>
+var app = angular.module('networkApp', ['ngResource', 'ngSanitize', 'ui.bootstrap', 'd3',  'isteven-multi-select']);
+// var app = angular.module('annotationApp', ['ngResource', 'ngSanitize', 'ui.bootstrap', 'angucomplete-alt', 'd3']);
+
+app.config(['$httpProvider', function($httpProvider){
+	$httpProvider.defaults.xsrfCookieName = 'csrftoken';
+	$httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+
+	$httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+	$httpProvider.defaults.headers.common['Authorization'] = '{{ eratosthenes_token }}';
+}]);
+
+app.factory('User', function($resource) {
+    return $resource(BASELOCATION + '/rest/user/:id', {}, {
+        list: {
+            method: 'GET',
+            cache: true
+        },
+    });
+});
+
+app.factory('Text', function($resource) {
+    return $resource(BASELOCATION + '/rest/text/:id', {}, {
+        list: {
+            method: 'GET',
+            cache: true
+        },
+    });
+});
+
+app.factory('Appellation', function($resource) {
+    return $resource(BASELOCATION + '/rest/appellation/:id', {}, {
+        list: {
+            method: 'GET',
+            cache: true
+        },
+    });
+});
+
+app.factory('Relation', function($resource) {
+    return $resource(BASELOCATION + '/rest/relation/:id', {}, {
+        list: {
+            method: 'GET',
+            cache: true
+        },
+    });
+});
+
+app.factory('Concept', function($resource) {
+    return $resource(BASELOCATION + '/rest/concept/:id', {}, {
+        list: {
+            method: 'GET',
+            cache: true
+        },
+    });
+});
+
+app.factory('Type', function($resource) {
+    return $resource(BASELOCATION + '/rest/type/:id', {}, {
+        list: {
+            method: 'GET',
+            cache: true
+        },
+    });
+});
+
+
+app.factory('Predicate', function($resource) {
+    return $resource(BASELOCATION + '/rest/predicate/:id', {}, {
+        list: {
+            method: 'GET',
+            cache: true
+        },
+    });
+});
+
+app.controller('FilterController', ['$scope', 'User', 'Text', 'Type', 'Predicate', 'Concept', function($scope, User, Text, Type, Predicate, Concept) {
+
+    $scope.selected_users = [];
+    $scope.selected_texts = [];
+    $scope.selected_types = [];
+
+    $scope.users = User.query().$promise.then(function(users) {
+        $scope.users = users;
+        return users;
+    });
+
+	$scope.texts = [];
+    // $scope.texts = Text.query().$promise.then(function(texts) {
+    //     $scope.texts = texts;
+    //     return texts;
+    // });
+
+    $scope.types = Type.query().$promise.then(function(types) {
+        $scope.types = types;
+        return types;
+    });
+
+    $scope.predicates = [];
+    Predicate.query().$promise.then(function(predicates) {
+        predicates.forEach(function(predicate) {
+            Concept.get({id:predicate.interpretation}).$promise.then(function(concept) {
+                var found = false;
+                $scope.predicates.forEach(function(predicateConcept) {
+                    if (predicateConcept.id == concept.id) {
+                        found = true;
+                    }
+                });
+                if (!found) $scope.predicates.push(concept);
+            });
+        });
+
+    });
+
+}]);
+
+app.controller('ConceptController', ['$scope', '$rootScope', '$q', 'Type', 'Text', 'Relation', 'Appellation', 'Concept', 'Predicate', function($scope, $rootScope, $q, Type, Text, Relation, Appellation, Concept, Predicate) {
+    $scope.concept = {};
+    $rootScope.$on('nodeSelected', function(event, selected) {
+        $scope.concept = selected;
+
+        // Get the concept Type.
+        if (selected.typed == undefined) {      // Don't bother asking for the
+            $scope.concept_type = {label: ''};  // Type if no type is specified.
+        } else {    // Ok to ask for the Type.
+            $scope.concept_type = Type.get({id:selected.typed}, null,
+                function(response) {    // Fail quietly.
+                    $scope.concept_type = {label:''};
+                }).$promise.then(function(type) {
+                    $scope.concept_type = type;
+                    return type;
+                });
+        }
+
+        // Get all Texts in which this Concept occurs.
+        $scope.texts = Text.query({concept:selected.id}).$promise.then(function(texts) {
+            $scope.texts = texts;
+            return texts;
+        });
+        if (!$scope.$$phase) $scope.$apply();
+
+        // Get all Relations about this Concept.
+        $scope.relations = [];
+        Relation.query({concept:selected.id}).$promise.then(function(relations) {
+            relations.forEach(function(relation) {
+                $q.all([
+                    Appellation.get({id:relation.source}).$promise,
+                    Predicate.get({id:relation.predicate}).$promise,
+                    Appellation.get({id:relation.object}).$promise
+                ]).then(function(appellations) {
+                    $q.all([
+                        Concept.get({id:appellations[0].interpretation}).$promise,
+                        Concept.get({id:appellations[1].interpretation}).$promise,
+                        Concept.get({id:appellations[2].interpretation}).$promise
+                    ]).then(function(concepts) {
+
+                        $scope.relations.push({
+                            source: concepts[0].label,
+                            source_string: appellations[0].stringRep,
+                            predicate: concepts[1].label,
+                            predicate_string: appellations[1].stringRep,
+                            object: concepts[2].label,
+                            object_string: appellations[2].stringRep
+                        });
+                    });
+                })
+
+            });
+        });
+
+    });
+}]);
+
+app.directive('d3Network', ['d3Service', 'Appellation', 'Relation', 'Concept', 'Predicate', '$q', '$rootScope', function(d3Service, Appellation, Relation, Concept, Predicate, $q, $rootScope) {
+    return {
+        scope: {
+            'graph': '=',
+        },
+        restrict: 'EA',
+        link: function(scope, element, attrs) {
+            d3Service.d3().then(function(d3) {
+                scope.nodes = [];
+                scope.edges = [];
+                scope.params = {};
+                scope.selected = null;
+
+                scope.relationLabels = {};
+
+                var linkDistance = 100;
+                var height = 600;
+                var margin = {top: 0, right: 1, bottom: 0, left: 1}
+                    , width = parseInt(d3.select('#networkVis').style('width'), 10)
+                    , width = width - margin.left - margin.right
+                    , percent = d3.format('%');
+
+                d3.select(window).on('resize', resize);
+
+                function resize() {
+                    // Update size of visualization as parent element resizes.
+
+                    width = parseInt(d3.select('#networkVis').style('width'), 10);
+                    width = width - margin.left - margin.right;
+                    svg.attr('height', (height + margin.top + margin.bottom) + 'px')
+                        .attr('width', (width + margin.left + margin.right) + 'px');
+                }
+
+                var zoom = d3.behavior.zoom()
+                    .scaleExtent([1, 10])
+                    .on("zoom", zoomed);
+
+                var drag = d3.behavior.drag()
+                    .origin(function(d) { return d; })
+                    .on("dragstart", dragstarted)
+                    .on("drag", dragged)
+                    .on("dragend", dragended);
+
+            	var force = d3.layout.force()
+            	    .charge(-50)
+            	    .linkDistance(linkDistance)
+            	    .size([width, height]);
+
+            	var svg = d3.select(element[0]).append("svg")
+            	    .attr("width", width)
+            	    .attr("height", height)
+                    .call(zoom);
+
+                var container = svg.append("g");
+
+                function zoomed() {
+                  container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                }
+                function dragstarted(d) {
+                  d3.event.sourceEvent.stopPropagation();
+                  d3.select(this).classed("dragging", true);
+                }
+
+                function dragged(d) {
+                  d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+                }
+
+                function dragended(d) {
+                  d3.select(this).classed("dragging", false);
+                }
+
+                scope.highlightNode = function(node) {
+                    d3.select('#node_' + node.id).classed("nodeSelected", true);
+                }
+
+                scope.selectNode = function(node) {
+                    scope.highlightNode(node);
+                    scope.selected = node;
+                    d3.selectAll('g.node circle').attr('r', 8);
+                    d3.select('g.nodeSelected circle').attr('r', 16);
+
+                    $rootScope.$broadcast('nodeSelected', node);
+
+                }
+                scope.unselectNodes = function() {
+                    d3.select('.nodeSelected').classed("nodeSelected", false);
+                    scope.selected = null;
+                }
+
+                scope.update = function() {
+                    container.selectAll('*').remove();
+
+                    var edge = container.selectAll(".edge")
+                        .data(scope.edges)
+                        .enter().append("line")
+                        .attr("class", "edge")
+                        // .attr('marker-end','url(#arrowhead)')
+                        .style("stroke", "black")
+                        .style("stroke-width", function(d) { return Math.sqrt(d.relation.length); });
+
+                    rScope = angular.element($('#relations')).scope();
+
+                    var node = container.selectAll(".node")
+                        .data(scope.nodes)
+                        .enter().append("g")
+                            .attr("class", "node")
+                            .attr("id", function(d) { return 'node_'+d.id; })
+                            .call(force.drag);
+
+                    node.append("circle")
+                        .attr("r", 8)
+                        .attr("class", "node");
+
+                    node.append("text")
+                        .attr('dx', 12)
+                        .attr('dy', "0.35em")
+                        .attr("class", "nodeLabel")
+                        .text(function(d) { return d.label; });
+
+                    node.on("click", function(n) {
+                        scope.unselectNodes();
+                        scope.selectNode(n);
+                    });
+
+                    force
+                        .nodes(scope.nodes)
+                        .links(scope.edges)
+                        .start();
+
+                    force.on("tick", function() {
+                        edge.attr("x1", function(d) { return d.source.x; })
+                            .attr("y1", function(d) { return d.source.y; })
+                            .attr("x2", function(d) { return d.target.x; })
+                            .attr("y2", function(d) { return d.target.y; });
+                        node.attr("transform", function(d) {
+                            return "translate(" + d.x + "," + d.y + ")";
+                        });
+
+                        edgepaths.attr('d', function(d) {
+                            return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;
+                        });
+
+                        // edgelabels.attr('transform',function(d,i){
+                        //     if (d.target.x<d.source.x) {
+                        //         bbox = this.getBBox();
+                        //         rx = bbox.x+bbox.width/2;
+                        //         ry = bbox.y+bbox.height/2;
+                        //         return 'rotate(180 '+rx+' '+ry+')';
+                        //     } else {
+                        //         return 'rotate(0)';
+                        //     }
+                        // });
+                    });
+
+                    var edgepaths = container.selectAll(".edgepath")
+                        .data(scope.edges)
+                        .enter()
+                        .append("path")
+                        .attr({
+                            "d": function(d) {
+                                    return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;
+                                },
+                            'class':'edgepath',
+                             'fill-opacity':0,
+                             'stroke-opacity':0,
+                             'fill':'blue',
+                             'stroke':'red',
+                             'id':function(d,i) {return 'edgepath'+i; }
+                         })
+                          .style("pointer-events", "none");
+
+                    // var edgelabels = container.selectAll(".edgelabel")
+                    //   .data(scope.edges)
+                    //   .enter()
+                    //   .append('text')
+                    //   .style("pointer-events", "none")
+                    //   .attr({'class':'edgelabel',
+                    //          'id':function(d,i){return 'edgelabel'+i},
+                    //          'dx': linkDistance/4,
+                    //          'dy':0,
+                    //          'font-size':10,
+                    //          'fill':'#aaa'});
+                    //
+                    // edgelabels.append('textPath')
+                    //   .attr('xlink:href',function(d,i) {return '#edgepath'+i})
+                    //   .style("pointer-events", "none")
+                    //   .text(function(d) {
+                    //       return scope.relationLabels[d.relation.id];
+                    //   });
+
+                  container.append('defs').append('marker')
+                          .attr({'id':'arrowhead',
+                                 'viewBox':'-0 -5 10 10',
+                                 'refX':15,
+                                 'refY':0,
+                                 //'markerUnits':'strokeWidth',
+                                 'orient':'auto',
+                                 'markerWidth':10,
+                                 'markerHeight':10,
+                                 'xoverflow':'visible'})
+                          .append('svg:path')
+                              .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+                              .attr('fill', '#ccc')
+                              .attr('stroke','#ccc');
+                }
+
+                scope.addNode = function(appellation) {
+                    // scope.nodes.push(node);
+                    var concept = Concept.get({id:appellation.interpretation}).$promise.then(function(c) {
+                        concept = c;
+                        var node = scope.findNode(concept);
+                        if (node == undefined) scope.nodes.push(concept);
+                        return concept;
+                    });
+                    scope.update();
+                    return concept;
+                }
+
+                scope.addEdge = function (relation) {
+                    $q.all([
+                        Appellation.get({id:relation.source}).$promise,
+                        Appellation.get({id:relation.object}).$promise,
+                        Predicate.get({id:relation.predicate}).$promise
+                    ]).then(function(appellations) {
+                        $q.all([
+                            scope.addNode(appellations[0]),
+                            scope.addNode(appellations[1])
+                        ]).then(function(nodes) {
+                            $q.all([
+                                Concept.get({id:appellations[0].interpretation}).$promise,
+                                Concept.get({id:appellations[1].interpretation}).$promise,
+                                Concept.get({id:appellations[2].interpretation}).$promise
+                            ]).then(function(concepts){
+
+                                var source = scope.findNodeIndex(concepts[0]);
+                                var target = scope.findNodeIndex(concepts[1]);
+                                var interpretation = concepts[2];
+                                if((source !== undefined) && (target !== undefined)) {
+                                    var found = false;
+                                    scope.edges.forEach(function(edge) {
+                                        if (edge.source.id == concepts[0].id & edge.target.id == concepts[1].id | edge.source.id == concepts[1].id & edge.target.id == concepts[0].id) {
+                                            edge.relation.push(relation);
+                                            found = true;
+                                        }
+                                    });
+                                    if (!found) scope.edges.push({"source": source, "target": target, "relation": [relation]});
+                                    scope.relationLabels[relation.id] = interpretation.label;
+                                    scope.update();
+                                }
+                            });
+                        });
+
+                    });
+                }
+
+                scope.findNode = function(concept) {
+                    for (var i=0; i < scope.nodes.length; i++) {
+                        if (scope.nodes[i].id === concept.id) return scope.nodes[i];
+                    };
+                }
+
+                scope.findNodeIndex = function (concept) {
+                    for (var i=0; i < scope.nodes.length; i++) {
+                        if (scope.nodes[i].id === concept.id) return i;
+                    };
+                }
+
+                scope.findEdgeIndex = function(sourceId, targetId) {
+                    for (var i=0; i < scope.edges.length; i++) {
+                        if ((scope.edges[i].source.id === sourceId) && (scope.edges[i].target.id === targetId)) {
+                            return i;
+                        }
+                    }
+                }
+
+                scope.updateData = function() {
+
+                    scope.nodes = [];
+                    scope.edges = [];
+                    Relation.query(scope.filterParams).$promise.then(function(relations) {
+
+                        relations.forEach(scope.addEdge);
+                    });
+                    scope.update();
+                }
+                scope.updateData();
+
+                scope.filterParams = {
+                    user: [],
+                    text: [],
+                    type: [],
+                    predicate: [],
+                };
+                // Watch for changes in filtering criteria.
+                var filterScope = angular.element($('#filter')).scope();
+                filterScope.$watch('selected_users', function(new_selected, old_selected){
+                    scope.filterParams.user = [];
+                    new_selected.forEach(function(user) {
+                        scope.filterParams.user.push(user.id);
+                    });
+
+                    scope.updateData();
+                }, true);
+
+                filterScope.$watch('selected_texts', function(new_selected, old_selected){
+                    scope.filterParams.text = [];
+                    new_selected.forEach(function(text) {
+                        scope.filterParams.text.push(text.id);
+                    });
+
+                    scope.updateData();
+                }, true);
+
+                filterScope.$watch('selected_types', function(new_selected, old_selected){
+                    scope.filterParams.type = [];
+                    new_selected.forEach(function(type) {
+                        scope.filterParams.type.push(type.id);
+                    });
+                    scope.updateData();
+                }, true);
+
+                filterScope.$watch('selected_predicates', function(new_selected, old_selected){
+                    scope.filterParams.predicate = [];
+                    new_selected.forEach(function(predicate) {
+                        scope.filterParams.predicate.push(predicate.id);
+                    });
+                    scope.updateData();
+                }, true);
+
+
+            });
+        },
+    }
+}]);
+
+</script>
+
+<div id="main" ng-app="networkApp">
+    {% verbatim %}
+
+    <div class="row col-sm-12" ng-controller="FilterController">
+            <accordion class="col-sm-12">
+                <accordion-group is-open="filters.open">
+                    <accordion-heading>
+                        Filters
+                        <span class="text-muted small" ng-if="selected_users.length > 0">| Users: </span><span class="text-muted small" ng-repeat="user in selected_users | limitTo: 3">{{user.username | limitTo: 10}}... </span>
+                        <span class="text-muted small" ng-if="selected_texts.length > 0">| Texts: </span><span class="text-muted small" ng-repeat="text in selected_texts | limitTo: 3">{{text.title | limitTo: 10}}... </span>
+                        <span class="text-muted small" ng-if="selected_types.length > 0">| Nodes: </span><span class="text-muted small" ng-repeat="type in selected_types | limitTo: 3">{{type.label | limitTo: 10}}... </span>
+                        <span class="text-muted small" ng-if="selected_predicates.length > 0">| Relations: </span><span class="text-muted small" ng-repeat="predicate in selected_predicates | limitTo: 3">{{predicate.label | limitTo: 10}}... </span>
+                        <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': filters.open, 'glyphicon-chevron-right': !filters.open}"></i>
+                    </accordion-heading>
+
+                    <div class="row panel-body" id="filter">
+                        <div class="row">
+                            <div class="form-group col-sm-3">
+                                <label for="users" class="control-label">Users:</label>
+
+                                <div
+                                    isteven-multi-select
+                                    input-model="users"
+                                    output-model="selected_users"
+                                    button-label="username"
+                                    item-label="username"
+                                    tick-property="ticked"
+                                    max-labels="1"
+                                    max-height="250px"
+                                    max-width="300px"
+                                    helper-elements="all none filter"
+                                    search-property="username">
+                                </div>
+
+                            </div>
+
+                            <div class="form-group col-sm-3">
+                                <label for="texts" class="control-label">Texts:</label>
+                                <div
+                                    isteven-multi-select
+                                    input-model="texts"
+                                    output-model="selected_texts"
+                                    button-label="title"
+                                    item-label="title"
+                                    tick-property="ticked"
+                                    max-labels="1"
+                                    max-height="250px"
+                                    max-width="300px"
+                                    helper-elements="all none filter"
+                                    search-property="title">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-sm-3">
+                                <label for="types" class="control-label">Node Types:</label>
+                                <div
+                                    isteven-multi-select
+                                    input-model="types"
+                                    output-model="selected_types"
+                                    button-label="label"
+                                    item-label="label description"
+                                    tick-property="ticked"
+                                    max-labels="1"
+                                    max-height="250px"
+                                    max-width="300px"
+                                    helper-elements="all none filter"
+                                    search-property="label">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-sm-3">
+                                <label for="predicates" class="control-label">Relationship Types:</label>
+                                <div
+                                    isteven-multi-select
+                                    input-model="predicates"
+                                    output-model="selected_predicates"
+                                    button-label="label"
+                                    item-label="label description"
+                                    tick-property="ticked"
+                                    max-labels="1"
+                                    max-height="250px"
+                                    max-width="300px"
+                                    helper-elements="all none filter"
+                                    search-property="label">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </accordion-group>
+            </accordion>
+
+    </div>
+    <div class="row col-sm-12">
+        <div class="col-sm-8">
+            <div id="networkVis" class="panel" style="min-height:600px; max-height: 600px;">
+
+                <div d3-network id="network" class="panel-body"></div>
+            </div>
+        </div>
+
+        <div class="col-sm-4" id="networkDetail" ng-controller="ConceptController">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    Concept Details
+                </div>
+                <div style="min-height: 50px;" class="panel-body">
+                    <h4>{{ concept.label }}</h4>
+                    <h5 class="text-muted">{{ concept_type.label }}</h5>
+                    <p class="text-info">{{ concept.description }}</p>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    Texts
+                </div>
+                <div style="min-height: 50px; max-height: 225px; overflow: auto;">
+                    <table class="table table-striped">
+                        <tr ng-repeat="text in texts">
+                            <td><span class="small">{{ text.title }}</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">Annotations</div>
+                <div style="min-height: 50px; max-height: 225px; overflow: auto;">
+                    <table class="table">
+                        <tbody ng-repeat="relation in relations">
+                            <tr>
+                                <td class="small text-primary">{{relation.source}}</td>
+                                <td class="small text-danger">{{relation.predicate}}</td>
+                                <td class="small text-primary">{{relation.object}}</td>
+                            </tr>
+                            <tr class="bg-warning">
+                                <td colspan="3"><em class="small text-warning">"{{relation.source_string}} ... {{relation.predicate_string}} ... {{relation.object_string}}"</em></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+
+
+
+        </div>
+    </div>
+    {% endverbatim %}
+</div>
+{% endblock %}

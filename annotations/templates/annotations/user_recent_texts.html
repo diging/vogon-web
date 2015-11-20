@@ -1,5 +1,9 @@
+<script>
+
+</script>
+
 <div>
-	<div class="panel panel-primary">
+	<div class="panel panel-primary" ng-controller="textController">
 		<div class="panel-heading clearfix">
 			My Recent Texts
         </div>
@@ -9,9 +13,13 @@
             {% for text in texts %}
 
                 <li class="list-group-item">
-                    {{text.title}}
+                    {{ text.title }}
                     <span class="pull-right">
                         <div class="btn-group btn-group-xs">
+							<span type="button" class="btn btn-danger" aria-label="Collection" ng-click="addTextToCollection({{ text.id }})">
+								<span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
+								Add to Collection
+							</span>
                             <a href="{{baselocation}}/text/{{ text.id }}/" type="button" class="btn btn-primary" aria-label="Annotate Text">
                                 <span class="glyphicon glyphicon-edit"></span>
                                 Annotate
@@ -21,6 +29,7 @@
                                 <span class="glyphicon glyphicon-cog"></span>
                                 Details
                             </a>
+
                         </div>
                     </span>
                 </li>
@@ -54,4 +63,23 @@
             </ul>
         </div>
     </div>
+	{% verbatim %}
+	<div ng-controller="addTextsModalController" id="addTextsModal">
+		<script type="text/ng-template" id="addTextsModalContent.html">
+			<div class="modal-header">
+				<h3 class="modal-title">Add this Text to a Collection</h3>
+			</div>
+			<div class="modal-body">
+				<ul class="list-group">
+					<a ng-repeat="textcollection in textcollections" class="list-group-item" ng-click="setValue(textcollection)">{{ textcollection.name }}</a>
+				</ul>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-primary" ng-click="ok()">Done</button>
+				<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+			</div>
+		</script>
+	</div>
+	{% endverbatim %}
+
 </div>

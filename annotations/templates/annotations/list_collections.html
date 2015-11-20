@@ -9,10 +9,7 @@
         <div class="col-sm-8 col-sm-offset-2">
             {% block title %}
             <div>
-                <span class="h2">All Texts</span>
-                <span class="btn-group pull-right">
-                    <a href="{% url 'file_upload' %}" class="btn btn-primary">Upload Text</a>
-                </span>
+                <span class="h2">All Collections</span>
             </div>
             <hr></hr>
             {% endblock %}
@@ -20,31 +17,31 @@
     </div>
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
-            {% if texts|length > 0 %}
+            {% if collections|length > 0 %}
             <ul class="list-group">
-            {% for text in texts %}
-                <a href="{% url "text" text.id %}" class="list-group-item">{{ text.title }} <span class="pull-right badge" data-toggle="tooltip" data-placement="top" title="{{ text.relationCount }} relations have been created for this text">{{ text.relationCount }}</span></a>
+            {% for collection in collections %}
+                <a href="{% url "collection_texts" collection.id %}" class="list-group-item">{{ collection.name }} <span class="pull-right badge" data-toggle="tooltip" data-placement="top" title="{{ collection.texts.count }} texts in this collection">{{ collection.texts.count }}</span></a>
 
             {% endfor %}
             </ul>
 
             <div>
                 <ul class="pagination pagination-sm">
-                    {% if texts.has_previous %}
+                    {% if collections.has_previous %}
                     <li>
-                        <a href="?page={{ texts.previous_page_number }}">
+                        <a href="?page={{ collections.previous_page_number }}">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
                     </lu>
                     {% endif %}
-                    {% for p in texts.paginator.page_range %}
-                    <li{% if p == texts.number %} class="active"{% endif %}>
+                    {% for p in collections.paginator.page_range %}
+                    <li{% if p == collections.number %} class="active"{% endif %}>
                         <a href="?page={{p}}">{{p}}</a>
                     </li>
                     {% endfor %}
-                    {% if texts.has_next %}
+                    {% if collections.has_next %}
                     <li>
-                        <a href="?page={{ texts.next_page_number }}">
+                        <a href="?page={{ collections.next_page_number }}">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
                     </lu>
@@ -52,7 +49,7 @@
                 </ul>
             </div>
             {% else %}
-            <p>No texts to display.</p>
+            <p>No collections to display.</p>
             {% endif %}
 
         </div>

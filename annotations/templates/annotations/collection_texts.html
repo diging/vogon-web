@@ -1,0 +1,16 @@
+{% extends "annotations/list_texts.html" %}
+{% load app_filters %}
+
+
+{% block title %}
+<div>
+    <span class="h2">Texts in Collection <span class="text text-info">{{ collection.name }}</span></span>
+    <span class="btn-group pull-right">
+        <a href="{% url 'file_upload' %}" class="btn btn-primary">Upload Text</a>
+    </span>
+</div>
+<div class="text text-muted text-small">
+    This collection was created by <a href="{% url "user_details" collection.ownedBy.id %}">{{ collection.ownedBy }}</a>.
+</div>
+<hr></hr>
+{% endblock %}

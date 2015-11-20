@@ -3,6 +3,7 @@
 
 <html ng-app="annotationApp">
     <head>
+        <script type="text/javascript" src="https://diging.atlassian.net/s/feb56a6b15dfe1c4dce860c5ec0d0c12-T/en_USugtsph-ren-off/70107/dd3ed69607618acd4f2d9e33519d4b21/2.0.7/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=da09a5cd"></script>
         <script>
 
         var BASELOCATION = "{{baselocation}}";
@@ -37,7 +38,13 @@
                     <div class="row">
                         <div id="text" class="panel panel-primary">
                             <div id="textTitle" class="panel-heading">
-                                <h3>{{ text.title }}</h3>
+                                <span class="h3">{{ text.title }}</span>
+
+                                {% if text.originalResource %}
+                                <a href="{{ text.originalResource }}" type="button" class="btn btn-primary pull-right">
+                                    <span class="glyphicon glyphicon-new-window "></span>
+                                </a>
+                                {% endif %}
                             </div>
                             <div id="textContent" class="panel-body" textid="{{ textid }}" ng-controller="TextController">
                                 <div id="textContentInner" bind-text>{{ text.tokenizedContent|safe_text }}</div>
@@ -126,7 +133,7 @@
 
                     <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ data.placeholder }}" pause="100" search-str="search" selected-object="selectConcept" remote-url="{{data.baselocation}}/rest/concept?pos={{ data.pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
                     </div>
-                    <div class="clearfix">
+                    <div class="clearfix" style="margin-top: 5px;">
                         <div class="btn-group btn-group-sm pull-right">
                             <button class="btn btn-primary" ng-disabled="createConceptDisabled" ng-click="startCreateConcept()">Create Concept</button>
                         </div>
@@ -158,7 +165,7 @@
                     <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()" ng-disabled="okDisabled">OK</button>
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
-                bindHelpPopover();
+
             </script>
         </div>
         {% endverbatim %}
@@ -267,7 +274,8 @@
                     <h3 class="modal-title">{{ title }}</h3>
                 </div>
                 <div class="modal-body">
-                    <p>You asserted that <span class="quotedText">{{ sourceConcept.label }} - {{ predicateConcept.label }} - {{ targetConcept.label }}</span></p>
+                {{ contextData}}
+                    <p>You asserted that <span class="quotedText">{{ contextData.sourceConcept.label }} - {{ contextData.predicateConcept.label }} - {{ contextData.targetConcept.label }}</span></p>
                     <p>{{ instructions }}</p>
 
                     <form name="temporalForm">
@@ -276,8 +284,8 @@
                                 <td>Started:</td>
                                 <td>
                                     <input class="temporalInput" ng-model="started.year" type="number" name="startedYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
-                                    <input class="temporalInput" ng-model="started.month" type="number" name="startedMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
-                                    <input class="temporalInput" ng-model="started.day" type="number" name="startedDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <input class="temporalInput" style="width: 70px;" ng-model="started.month" type="number" name="startedMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" style="width: 50px;" ng-model="started.day" type="number" name="startedDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
                                     <span class="glyphicon glyphicon-question-sign" popover="The date on which this relationship commenced, or your assertion (above) became true." popover-trigger="mouseenter"></span>
                                     <div role="alert">
                                       <span class="error" ng-show="temporalForm.startedYear.$error.minlength">Enter a four-digit year.</span>
@@ -293,8 +301,8 @@
                                 <td>Ended:</td>
                                 <td>
                                     <input class="temporalInput" ng-model="ended.year" type="number" name="endedYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
-                                    <input class="temporalInput" ng-model="ended.month" type="number" name="endedMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
-                                    <input class="temporalInput" ng-model="ended.day" type="number" name="endedDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <input class="temporalInput" style="width: 70px;" ng-model="ended.month" type="number" name="endedMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" style="width: 50px;" ng-model="ended.day" type="number" name="endedDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
                                     <span class="glyphicon glyphicon-question-sign" popover="The date on which this relationship ended, or your assertion (above) ceased to be true." popover-trigger="mouseenter"></span>
                                     <div role="alert">
                                       <span class="error" ng-show="temporalForm.endedYear.$error.minlength">Enter a four-digit year.</span>
@@ -310,8 +318,8 @@
                                 <td>Occurred:</td>
                                 <td>
                                     <input class="temporalInput" ng-model="occurred.year" type="number" name="occurredYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
-                                    <input class="temporalInput" ng-model="occurred.month" type="number" name="occurredMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
-                                    <input class="temporalInput" ng-model="occurred.day" type="number" name="occurredDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <input class="temporalInput" style="width: 70px;" ng-model="occurred.month" type="number" name="occurredMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" style="width: 50px;" ng-model="occurred.day" type="number" name="occurredDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
                                     <span class="glyphicon glyphicon-question-sign" popover="A date on which you know this relationship to have existed (or your assertion (above) to have been true) regardless of when it commenced or ended." popover-trigger="mouseenter"></span>
                                     <div role="alert">
                                       <span class="error" ng-show="temporalForm.occurredYear.$error.minlength">Enter a four-digit year.</span>
@@ -333,7 +341,6 @@
                     <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()">OK</button>
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
-                bindHelpPopover();
             </script>
         </div>
 
@@ -353,7 +360,7 @@
                     <button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
-                bindHelpPopover();
+
             </script>
             {% endverbatim %}
         </div>
@@ -373,7 +380,7 @@
                     <button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
                     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
                 </div>
-                bindHelpPopover();
+
             </script>
             {% endverbatim %}
         </div>
