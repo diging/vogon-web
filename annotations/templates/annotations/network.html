@@ -167,7 +167,7 @@ var displayTexts = function(texts) {
     console.log(texts);
     texts.forEach(function(text) {
         $('#text-list')
-            .append('<tr><td class="text-small"><a href="">' + text.title + '</a></td></tr>');
+            .append('<tr><td class="text-small"><a href="/text/' + text.id + '/">' + text.title + '</a></td></tr>');
     });
 }
 
