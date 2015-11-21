@@ -621,7 +621,6 @@ def network_data(request):
                     'concept_id': node.id,
                     'label': node.label,
                     'weight': 1.,
-                    'size': 0.
                 }
             else:
                 nodes[node.id]['weight'] += 1.
@@ -636,7 +635,6 @@ def network_data(request):
                 'target': nodes[target.id],
                 'id': relation.id,
                 'weight': 1.,
-                'size': 0.
             }
         if relations[key]['weight'] > max_relation:
             max_relation = relations[key]['weight']
@@ -704,4 +702,44 @@ def list_collections(request, *args, **kwargs):
         'user': request.user,
         'collections': collections
     })
+    return HttpResponse(template.render(context))
+
+
+def relation_details(request, concept_a_id, concept_b_id):
+    concept_a = get_object_or_404(Concept, pk=concept_a_id)
+    concept_b = get_object_or_404(Concept, pk=concept_b_id)
+
+    queryset = Relation.objects.filter(
+        Q(source__interpretation__id__in=[concept_a_id, concept_b_id]) \
+        & Q(object__interpretation__id__in=[concept_a_id, concept_b_id]))
+
+
+    template = loader.get_template('annotations/relations.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'relations': queryset,
+    })
+    return HttpResponse(template.render(context))
+
+
+def concept_details(request, conceptid):
+    concept = get_object_or_404(Concept, pk=conceptid)
+    appellations = Appellation.objects.filter(interpretation_id=conceptid)
+    texts = set()
+    appellations_by_text = OrderedDict()
+    for appellation in appellations:
+        text = appellation.occursIn
+        texts.add(text)
+        if text.id not in appellations_by_text:
+            appellations_by_text[text.id] = []
+        appellations_by_text[text.id].append(appellation)
+
+    template = loader.get_template('annotations/concept_details.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'concept': concept,
+        'appellations': appellations_by_text,
+        'texts': texts,
+    })
+
     return HttpResponse(template.render(context))

@@ -26,7 +26,7 @@
                                 <h4>Selection</h4>
                             </div>
                             <div class="panel-body" id="concept-details">
-                                <div id="concept-label" class="text-primary h4"></div>
+                                <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
                                 <div id="concept-uri" class="text text-muted text-tiny"></div>
                                 <div id="concept-description" class="text"></div>
                                 <div id="concept-occurrence" class="text"></div>
@@ -151,12 +151,14 @@ var getAppellationsForConcept = function(text_id, concept_id, callback) {
 }
 
 var displayConcept = function(concept) {
+    $('#concept-href').attr('href', '/concept/' + concept.id + '/');
     $('#concept-label').text(concept.label);
     $('#concept-uri').text(concept.uri);
     $('#concept-description').text(concept.description);
 }
 
 var displayRelation = function(concept_a, concept_b) {
+    $('#concept-href').attr('href', '/relations/' + concept_a.concept_id + '/' + concept_b.concept_id + '/');
     $('#concept-label').text(concept_a.label + ' & ' + concept_b.label);
     $('#concept-uri').text('');
     $('#concept-description').text('');

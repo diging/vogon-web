@@ -1,3 +1,8 @@
+"""
+We should probably write some documentation.
+"""
+
+
 from django.contrib.auth.models import Group
 import requests
 from bs4 import BeautifulSoup

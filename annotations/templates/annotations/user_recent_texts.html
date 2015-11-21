@@ -18,16 +18,13 @@
                         <div class="btn-group btn-group-xs">
 							<span type="button" class="btn btn-danger" aria-label="Collection" ng-click="addTextToCollection({{ text.id }})">
 								<span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
-								Add to Collection
 							</span>
                             <a href="{{baselocation}}/text/{{ text.id }}/" type="button" class="btn btn-primary" aria-label="Annotate Text">
                                 <span class="glyphicon glyphicon-edit"></span>
-                                Annotate
                                 <!-- <span class="label label-default"> {{ text.annotationCount }}</span> -->
                             </a>
                             <a href="#textDetails_{{ textcollection.id }}_{{text.id}}" data-toggle="collapse" type="button" class="btn btn-primary" aria-label="Annotate Text" aria-expanded="false" aria-controls="textDetails_{{ textcollection.id }}_{{text.id}}">
                                 <span class="glyphicon glyphicon-cog"></span>
-                                Details
                             </a>
 
                         </div>
