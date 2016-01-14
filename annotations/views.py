@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, JsonResponse
 from django.template import RequestContext, loader
-from django.contrib.auth.models import User
+from annotations.models import VogonUser
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -14,6 +14,10 @@ from django.db.models import Q
 from django.utils.safestring import mark_safe
 from django.core.files import File
 from guardian.shortcuts import get_objects_for_user
+from django.contrib.auth.models import Group
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.settings import api_settings
 
 from rest_framework import viewsets, exceptions, status
 from rest_framework.authentication import SessionAuthentication
@@ -27,17 +31,19 @@ from concepts.authorities import search
 from concepts.tasks import search_concept
 
 from models import *
-from forms import CrispyUserChangeForm, UploadFileForm, RegistrationForm
+from forms import *
 from serializers import *
 from tasks import *
 
 import hashlib
 from itertools import chain
+from collections import OrderedDict
 import requests
 import re
 from urlnorm import norm
 from itertools import chain
 import uuid
+import igraph
 
 import json
 
@@ -79,11 +85,15 @@ def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            user = User.objects.create_user(
-            username=form.cleaned_data['username'],
+            user = VogonUser.objects.create_user(
+            form.cleaned_data['username'],
+            form.cleaned_data['email'],
             password=form.cleaned_data['password1'],
-            email=form.cleaned_data['email']
             )
+
+            g = Group.objects.get_or_create(name='Public')[0]
+            user.groups.add(g)
+            user.save()
             new_user = authenticate(username=form.cleaned_data['username'],
                                     password=form.cleaned_data['password1'])
             # Logs in new user
@@ -127,7 +137,7 @@ def user_settings(request):
     """ User profile settings"""
 
     if request.method == 'POST':
-        form = CrispyUserChangeForm(request.POST)
+        form = UserChangeForm(request.POST)
         if form.is_valid():
             for field in ['first_name', 'last_name', 'email']:
                 value = request.POST.get(field, None)
@@ -136,7 +146,7 @@ def user_settings(request):
             request.user.save()
             return HttpResponseRedirect('/accounts/profile/')
     else:
-        form = CrispyUserChangeForm(instance=request.user)
+        form = UserChangeForm(instance=request.user)
 
     template = loader.get_template('annotations/settings.html')
     context = RequestContext(request, {
@@ -207,6 +217,37 @@ def list_texts(request):
     return HttpResponse(template.render(context))
 
 
+@login_required
+def collection_texts(request, collectionid):
+    """
+    List all of the texts that the user can see, with links to annotate them.
+    """
+    template = loader.get_template('annotations/collection_texts.html')
+
+    text_list = get_objects_for_user(request.user, 'annotations.view_text')
+    text_list = text_list.filter(partOf=collectionid)
+
+    # text_list = Text.objects.all()
+    paginator = Paginator(text_list, 25)
+
+    page = request.GET.get('page')
+    try:
+        texts = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        texts = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        texts = paginator.page(paginator.num_pages)
+
+    context = {
+        'texts': texts,
+        'user': request.user,
+        'collection': TextCollection.objects.get(pk=collectionid)
+    }
+    return HttpResponse(template.render(context))
+
+
 @ensure_csrf_cookie
 @login_required
 def text(request, textid):
@@ -236,7 +277,7 @@ def text(request, textid):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = VogonUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
@@ -295,6 +336,26 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
+    def create(self, request, *args, **kwargs):
+        data = request.data
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(AppellationViewSet, self).get_queryset(*args, **kwargs)
+
+        concept = self.request.query_params.get('concept', None)
+        text = self.request.query_params.get('text', None)
+        if concept:
+            queryset = queryset.filter(interpretation_id=concept)
+        if text:
+            queryset = queryset.filter(occursIn_id=text)
+        return queryset
+
 
 class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=True)
@@ -319,6 +380,8 @@ class RelationViewSet(viewsets.ModelViewSet):
         userid = self.request.query_params.getlist('user')
         typeid = self.request.query_params.getlist('type')
         conceptid = self.request.query_params.getlist('concept')
+        related_concepts = self.request.query_params.getlist('related_concepts')
+
         # Refers to the predicate's interpretation, not the predicate itself.
         predicate_conceptid = self.request.query_params.getlist('predicate')
 
@@ -331,6 +394,9 @@ class RelationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(predicate__interpretation__pk__in=[int(t) for t in predicate_conceptid])
         if len(conceptid) > 0:  # Source or target concept in `concept`.
             queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in conceptid]) | Q(object__interpretation__id__in=[int(c) for c in conceptid]))
+        if len(related_concepts) > 0:  # Source or target concept in `concept`.
+            queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in related_concepts]) & Q(object__interpretation__id__in=[int(c) for c in related_concepts]))
+            print queryset
         if len(userid) > 0:
             queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
         elif userid is not None and type(userid) is not list:
@@ -355,7 +421,7 @@ class TextViewSet(viewsets.ModelViewSet):
     queryset = Text.objects.all()
     serializer_class = TextSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
-    pagination_class = StandardResultsSetPagination
+    # pagination_class = StandardResultsSetPagination
 
     def get_queryset(self, *args, **kwargs):
         """
@@ -365,11 +431,15 @@ class TextViewSet(viewsets.ModelViewSet):
         queryset = super(TextViewSet, self).get_queryset(*args, **kwargs)
 
         textcollectionid = self.request.query_params.get('textcollection', None)
-        conceptid = self.request.query_params.getlist('concept', None)
+        conceptid = self.request.query_params.getlist('concept')
+        related_concepts = self.request.query_params.getlist('related_concepts')
+
         if textcollectionid:
             queryset = queryset.filter(partOf=int(textcollectionid))
-        if conceptid:
+        if len(conceptid) > 0:
             queryset = queryset.filter(appellation__interpretation__pk__in=[int(c) for c in conceptid])
+        if len(related_concepts) > 1:
+            queryset = queryset.filter(appellation__interpretation_id=int(related_concepts[0])).filter(appellation__interpretation_id=int(related_concepts[1]))
 
         return queryset.distinct()
 
@@ -396,15 +466,19 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
         data = request.data
         if 'ownedBy' not in data:
             data['ownedBy'] = request.user.id
+        if 'participants' not in data:
+            data['participants'] = []
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
 
         self.perform_create(serializer)
         headers = self.get_success_headers(data)
+
         return Response(serializer.data,
                         status=status.HTTP_201_CREATED,
                         headers=headers)
+
 
 
 class TypeViewSet(viewsets.ModelViewSet):
@@ -472,12 +546,10 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            try:
-                handle_file_upload(request, form)
-                return HttpResponseRedirect(reverse('list_texts'))
-            except Exception as detail:
-                form = UploadFileForm()
-                form.add_error(None, detail)
+
+            text = handle_file_upload(request, form)
+            return HttpResponseRedirect(reverse('text', args=[text.id]))
+
     else:
         form = UploadFileForm()
 
@@ -488,6 +560,7 @@ def upload_file(request):
         'subpath': settings.SUBPATH,
     })
     return HttpResponse(template.render(context))
+
 
 def handle_file_upload(request, form):
     """
@@ -514,4 +587,159 @@ def handle_file_upload(request, form):
     # Save the content if the above extractors extracted something
     if file_content != None:
         tokenized_content = tokenize(file_content)
-        save_text_instance(tokenized_content, text_title, date_created, is_public, user)
+        return save_text_instance(tokenized_content, text_title, date_created, is_public, user)
+
+
+def network_data(request):
+    project = request.GET.get('project', None)
+    user = request.GET.get('user', None)
+    text = request.GET.get('text', None)
+
+    queryset = Relation.objects.all()
+    if project:
+        queryset = queryset.filter(occursIn__partOf_id=project)
+    if user:
+        queryset = queryset.filter(createdBy_id=user)
+    if text:
+        queryset = queryset.filter(occursIn_id=text)
+
+
+    nodes = OrderedDict()
+    relations = OrderedDict()
+    N = queryset.count()
+    max_relation = 0.
+    max_node = 0.
+    for relation in queryset:
+        source = relation.source.interpretation
+        target = relation.object.interpretation
+        key = tuple(sorted([source.id, target.id]))
+        ids = {}
+        for node in [source, target]:
+            if node.id not in nodes:
+                nodes[node.id] = {
+                    'id': len(nodes),
+                    'concept_id': node.id,
+                    'label': node.label,
+                    'weight': 1.,
+                }
+            else:
+                nodes[node.id]['weight'] += 1.
+            if nodes[node.id]['weight'] > max_node:
+                max_node = nodes[node.id]['weight']
+
+        if key in relations:
+            relations[key]['weight'] += 1.
+        else:
+            relations[key] = {
+                'source': nodes[source.id],
+                'target': nodes[target.id],
+                'id': relation.id,
+                'weight': 1.,
+            }
+        if relations[key]['weight'] > max_relation:
+            max_relation = relations[key]['weight']
+
+    for key, relation in relations.items():
+        relation['size'] = 3. * relation['weight']/max_relation
+    for key, node in nodes.items():
+        node['size'] = 3. * node['weight']/max_node
+
+    graph = igraph.Graph()
+    graph.add_vertices(len(nodes))
+    graph.add_edges([(relation['source']['id'], relation['target']['id']) for relation in relations.values()])
+    layout = graph.layout_fruchterman_reingold()
+    for i, coords in enumerate(layout._coords):
+        nodes.values()[i]['x'] = coords[0] * 25
+        nodes.values()[i]['y'] = coords[1] * 25
+
+
+    return JsonResponse({'nodes': nodes.values(), 'edges': relations.values()})
+
+
+@login_required
+def add_text_to_collection(request, *args, **kwargs):
+    # TODO: add exception handling.
+
+    # if request.method == 'POST':
+    text_id = request.GET.get('text', None)
+    collection_id  = request.GET.get('collection', None)
+    if text_id and collection_id:
+        text = Text.objects.get(pk=text_id)
+        collection = TextCollection.objects.get(pk=collection_id)
+        collection.texts.add(text)
+        collection.save()
+
+    return JsonResponse({})
+
+
+@login_required
+def user_details(request, userid, *args, **kwargs):
+    user = get_object_or_404(VogonUser, pk=userid)
+    template = loader.get_template('annotations/user_details.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'detail_user': user,
+    })
+    return HttpResponse(template.render(context))
+
+
+def list_collections(request, *args, **kwargs):
+    queryset = TextCollection.objects.all()
+    paginator = Paginator(queryset, 25)
+
+    page = request.GET.get('page')
+    try:
+        collections = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        collections = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        collections = paginator.page(paginator.num_pages)
+
+    template = loader.get_template('annotations/list_collections.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'collections': collections
+    })
+    return HttpResponse(template.render(context))
+
+
+def relation_details(request, concept_a_id, concept_b_id):
+    concept_a = get_object_or_404(Concept, pk=concept_a_id)
+    concept_b = get_object_or_404(Concept, pk=concept_b_id)
+
+    queryset = Relation.objects.filter(
+        Q(source__interpretation__id__in=[concept_a_id, concept_b_id]) \
+        & Q(object__interpretation__id__in=[concept_a_id, concept_b_id]))
+
+
+    template = loader.get_template('annotations/relations.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'relations': queryset,
+    })
+    return HttpResponse(template.render(context))
+
+
+def concept_details(request, conceptid):
+    concept = get_object_or_404(Concept, pk=conceptid)
+    appellations = Appellation.objects.filter(interpretation_id=conceptid)
+    texts = set()
+    appellations_by_text = OrderedDict()
+    for appellation in appellations:
+        text = appellation.occursIn
+        texts.add(text)
+        if text.id not in appellations_by_text:
+            appellations_by_text[text.id] = []
+        appellations_by_text[text.id].append(appellation)
+
+    template = loader.get_template('annotations/concept_details.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'concept': concept,
+        'appellations': appellations_by_text,
+        'texts': texts,
+    })
+
+    return HttpResponse(template.render(context))

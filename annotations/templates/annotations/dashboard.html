@@ -2,7 +2,336 @@
 {% load staticfiles %}
 
 {% block main %}
-<div id="main">
+<script>
+var app = angular.module('collectionsApp', ['ngResource', 'ngSanitize', 'ui.bootstrap']);
+
+app.config(['$httpProvider', function($httpProvider){
+	$httpProvider.defaults.xsrfCookieName = 'csrftoken';
+	$httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+
+	$httpProvider.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+	$httpProvider.defaults.headers.common['Authorization'] = '{{ eratosthenes_token }}';
+}]);
+
+app.factory('Text', ['$resource', function($resource) {
+	return $resource(BASELOCATION + '/rest/text/:id');
+}]);
+
+app.factory('TextCollection', ['$resource', '$http', 'Text',
+							   function($resource, $http, Text) {
+	var TextCollection = $resource(BASELOCATION + '/rest/textcollection/:id', {}, {
+		save: {
+			method:'POST',
+			headers: {'Content-Type': 'application/json'}
+		},
+		update_remote: {
+			method:'PUT',
+			headers: {'Content-Type': 'application/json'}
+		}
+	});
+
+	angular.extend(TextCollection.prototype, {
+		isActive: false,
+		textDetails: [],
+		update: function() {
+			var textcollection = this;
+			return Text.query({textcollection:textcollection.id}).$promise.then(function(texts) {
+				textcollection.textDetails = texts;
+				return texts;
+			});
+
+		},
+		select: function() {
+			var textcollection = this;
+			if (!textcollection.isActive) {
+				textcollection.update();
+				textcollection.isActive = true;
+				textcollection.open = true;
+
+			} else {
+				textcollection.isActive = false;
+				textcollection.open = false;
+			}
+		}
+	});
+
+	return TextCollection;
+}]);
+
+app.controller('textCollectionsController',
+			   ['$scope', 'TextCollection', '$http', '$q',
+			   	function($scope, TextCollection, $http, $q) {
+	$scope.textcollections = [];
+	$scope.oneAtATime = false;
+
+	$scope.update = function(tcid) {
+		$scope.textcollections = TextCollection.query().$promise.then(function(textcollections) {
+			$scope.textcollections = textcollections;
+
+			textcollections.forEach(function(textcollection, index) {
+				textcollection.update().then(function(texts) {
+					if (textcollection.id == tcid) {
+						textcollection.open = true;
+						if(!$scope.$$phase) $scope.$apply();
+					}
+					$scope.$watch('textcollections['+index+'].open', function(isOpen){
+						if (isOpen) {
+							textcollection.select();
+						}
+					});
+					if(!$scope.$$phase) $scope.$apply();
+				});
+			});
+		});
+	}
+	$scope.update();
+
+	$scope.addCollection = function() {
+		angular.element($('#addCollectionModal')).scope().open({}, function(data) {
+
+			var textcollection = new TextCollection(data.textcollection);
+			textcollection.$save().then(function(){
+				$scope.textcollections.push(textcollection);
+				textcollection.select();
+				if(!$scope.$$phase) $scope.$apply();
+
+			});
+		});
+	}
+
+	$scope.editCollection = function(textcollection) {
+		var data = {
+			textcollection: textcollection
+		}
+
+		var modalScope = angular.element($('#addCollectionModal')).scope();
+		modalScope.open(data, function(data) {
+			data.textcollection.$update_remote({id: data.textcollection.id}).then(function() {
+				textcollection.select();
+			});
+		});
+	}
+
+	$scope.deleteCollection = function(textcollection) {
+		var data = {
+			textcollection: textcollection
+		};
+		var modalScope = angular.element($('#deleteCollectionModal')).scope();
+		modalScope.open(data, function(data) {
+			data.textcollection.$delete({id:data.textcollection.id});
+			$scope.textcollections.forEach(function(instance, i) {
+				if (instance.id == data.textcollection.id) $scope.textcollections.splice(i, 1);
+			});
+		});
+	}
+
+	$scope.removeText = function(textcollection, text) {
+		console.log(textcollection);
+		console.log(text);
+		textcollection.texts.forEach(function(t, i) {
+			console.log(t);
+			console.log(text.id);
+			if (t == text.id) textcollection.texts.splice(i, 1)
+		});
+
+		textcollection.$update_remote({id: textcollection.id}).then(function() {
+			textcollection.update();
+			textcollection.open = true;
+			textcollection.isActive = true;
+			if(!$scope.$$phase) $scope.$apply();
+
+		})
+	}
+
+	$scope.addText = function(textcollection) {
+		var modalScope = angular.element($('#addTextsModal')).scope();
+		modalScope.open({'textcollection': textcollection}, function(data) {
+			// TODO: implement this!
+
+		});
+	}
+}]);
+
+app.controller('ModalInstanceController', function ($scope, $modalInstance, data) {
+	$scope.data = data;
+
+	$scope.ok = function (data) {
+		$modalInstance.close(data);
+	};
+
+	$scope.cancel = function () {
+		$modalInstance.dismiss('cancel');
+	};
+});
+
+app.controller('deleteCollectionModalController', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+	$scope.animationsEnabled = true;
+
+	$scope.open = function(data, callback) {
+		var modalInstance = $modal.open({
+			animation: $scope.animationsEnabled,
+			templateUrl: 'deleteCollectionModalContent.html',
+			controller: 'ModalInstanceController',
+			resolve: {
+                data: function() {
+                    return data;
+                },
+            }
+		});
+
+		modalInstance.result.then(callback, function(data) {
+			console.log();
+		});
+	}
+}]);
+
+app.controller('addCollectionModalController', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+	$scope.animationsEnabled = true;
+
+	$scope.open = function(data, callback) {
+		var modalInstance = $modal.open({
+			animation: $scope.animationsEnabled,
+			templateUrl: 'addCollectionModalContent.html',
+			controller: 'ModalInstanceController',
+			resolve: {
+                data: function() {
+                    return data;
+                },
+            }
+		});
+
+		modalInstance.result.then(callback, function(data) {
+			console.log(data);
+			$log.info('Modal dismissed at: ' + new Date());
+		});
+	}
+}]);
+
+
+app.factory('TextCollection', ['$resource', '$http', 'Text',
+							   function($resource, $http, Text) {
+	var TextCollection = $resource(BASELOCATION + '/rest/textcollection/:id', {}, {
+		save: {
+			method:'POST',
+			headers: {'Content-Type': 'application/json'}
+		},
+		update_remote: {
+			method:'PUT',
+			headers: {'Content-Type': 'application/json'}
+		}
+	});
+
+	angular.extend(TextCollection.prototype, {
+		isActive: false,
+		textDetails: [],
+		update: function() {
+			var textcollection = this;
+			return Text.query({textcollection:textcollection.id}).$promise.then(function(texts) {
+				textcollection.textDetails = texts;
+				return texts;
+			});
+
+		},
+		select: function() {
+			var textcollection = this;
+			if (!textcollection.isActive) {
+				textcollection.update();
+				textcollection.isActive = true;
+				textcollection.open = true;
+
+			} else {
+				textcollection.isActive = false;
+				textcollection.open = false;
+			}
+		}
+	});
+
+	return TextCollection;
+}]);
+
+app.controller('textController',
+			   ['$scope', 'TextCollection', '$http', '$q',
+			   	function($scope, TextCollection, $http, $q) {
+
+
+	console.log('asdf');
+	$scope.addTextToCollection = function(text) {
+		console.log(text);
+		var data = {
+			text: text
+		}
+		var modalScope = angular.element($('#addTextsModal')).scope();
+		modalScope.open(data, function(data) {
+			$.ajax({
+				type: "GET",
+				contentType: "application/json; charset=utf-8",
+				url: '/collection/text/add/',
+				dataType: 'json',
+				data: {
+					text: data.text,
+					collection: modalScope.textcollection.id
+				},
+				async: true,
+				success: function (data) {
+					console.log(data);
+				},
+				error: function (result) {
+					console.log(result);
+				}
+
+
+			});
+		});
+	}
+	return $scope;
+}]);
+
+app.controller('addTextsModalController', ['$scope', '$modal', '$log', '$http', 'TextCollection', function($scope, $modal, $log, $http, TextCollection) {
+	$scope.animationsEnabled = true;
+	$scope.repositories = [];
+	$scope.toAdd = [];
+
+	$scope.textcollections = TextCollection.query().$promise.then(function(textcollections) {
+		$scope.textcollections = textcollections;
+	});
+
+	$scope.open = function(data, callback) {
+		var modalInstance = $modal.open({
+			animation: $scope.animationsEnabled,
+			templateUrl: 'addTextsModalContent.html',
+			controller: 'ModalInstanceController',
+			scope: $scope,
+			resolve: {
+                data: function() {
+                    return data;
+                },
+            }
+		});
+		$scope.ok = function (data) {
+			modalInstance.close(data);
+		};
+
+		$scope.setValue = function(textcollection) {
+			console.log(textcollection);
+			$scope.textcollection = textcollection;
+			$scope.ok(data);
+		}
+
+		modalInstance.result.then(callback, function(data) {
+			$log.info('Modal dismissed at: ' + new Date());
+		});
+	}
+
+
+
+
+}]);
+
+
+
+</script>
+
+<div id="main" ng-app="collectionsApp">
 	<!-- <div class="row">
 		<div class="col-sm-8 col-sm-offset-2">
 			<div class="panel panel-success">

@@ -8,6 +8,13 @@ body {
 
 }
 
+.text-small {
+    font-size: 9pt;
+}
+
+.text-tiny {
+    font-size: 7pt;
+}
 
 div#header nav {
     margin-bottom: 0px;
@@ -154,8 +161,6 @@ word {
     color: gray;
 }
 
-
-
 .error {
     color: red;
     padding: 5px;
@@ -175,21 +180,32 @@ word.appellation.highlight {
     font-size: 7pt;
 }
 
+.edgeSelected {
+
+}
+
 circle.node {
-    fill: rgba(0, 0, 100, 0.9);
+    fill: rgba(46, 109, 164, 1.0);
 }
 
 .nodeSelected circle {
-    fill: rgba(0, 100, 0, 0.9);
-
+    fill: rgba(0, 100, 0, 1.0);
 }
+
+.nodeHover circle {
+    border: 2px solid red;
+}
+
 
 .nodeLabel {
     font-size: 8pt;
+    visibility: hidden;
 }
+
 
 .nodeSelected .nodeLabel {
     font-size: 13pt;
+    visibility: visible;
 }
 
 .panel.narrow {
@@ -220,6 +236,7 @@ circle.node {
     line-height: 75px;
     height: 75px;
     padding-top: 0;
+    font-family: Arial;
 }
 
 #userdropdown {
@@ -231,12 +248,12 @@ circle.node {
 
 .navbar-brand {
     font-size: 1.8em;
-    font-family: cursive;
+    font-family: Arial Black;
 }
 .navbar-brand img {
     padding-top: 10px;
 }
 
 .navbar-nav {
-    font-size: 1.6em;
+    font-size: 1.2em;
 }

@@ -1,14 +1,24 @@
 {% extends "annotations/base.html" %}
 {% load app_filters %}
 
+
+
 {% block main %}
-<div id="main">
-    <div class="row">
+<div id="main" class="container-fluid">
+    <div class="row" style="margin-bottom: 10px;">
         <div class="col-sm-8 col-sm-offset-2">
-            <div class="pull-right">
-              <a href="{% url 'file_upload' %}" class="btn btn-primary">Upload File</a>
+            {% block title %}
+            <div>
+                <span class="h2">All Texts</span>
+                <span class="btn-group pull-right">
+                    <a href="{% url 'file_upload' %}" class="btn btn-primary">Upload Text</a>
+                </span>
             </div>
+            <hr></hr>
+            {% endblock %}
         </div>
+    </div>
+    <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
             {% if texts|length > 0 %}
             <ul class="list-group">
