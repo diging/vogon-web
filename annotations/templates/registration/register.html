@@ -35,13 +35,41 @@
 					{% endif %}
 
 					<div id="content-main">
-	          <div class="form-group">
-	            <div class="col-sm-6">
-	              <table border="0" >
-	                  {{ form.as_table }}
-	              </table>
-	            </div>
-						</div>
+							<div class="form-group">
+							{{ form.username.errors }}
+								<label for="username" class="required control-label col-sm-4">{{ form.username.label }}:</label>
+								<div class="col-sm-6">
+									{{ form.username | addcss:"form-control" }}
+								</div>
+							</div>
+							<div class="form-group">
+							{{ form.email.errors }}
+								<label for="email" class="required control-label col-sm-4">{% trans 'Email:' %}</label>
+								<div class="col-sm-6">
+									{{ form.email | addcss:"form-control"}}
+								</div>
+								<input type="hidden" name="next" value="{{ next }}" />
+							</div>
+							<div class="form-group">
+							{{ form.password1.errors }}
+								<label for="password1" class="required control-label col-sm-4">{% trans 'Password:' %}</label>
+								<div class="col-sm-6">
+									{{ form.password1 | addcss:"form-control"}}
+								</div>
+								<input type="hidden" name="next" value="{{ next }}" />
+							</div>
+							<div class="form-group">
+							{{ form.password2.errors }}
+								<label for="password1" class="required control-label col-sm-4">{% trans 'Password (again):' %}</label>
+								<div class="col-sm-6">
+									{{ form.password2 | addcss:"form-control"}}
+								</div>
+								<input type="hidden" name="next" value="{{ next }}" />
+							</div>
+
+						<script type="text/javascript">
+						document.getElementById('id_username').focus()
+						</script>
 					</div>
 				</div>
 				<div class="panel-footer clearfix">

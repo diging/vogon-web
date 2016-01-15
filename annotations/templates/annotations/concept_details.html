@@ -1,0 +1,39 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+
+
+
+{% block main %}
+<div id="main" class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <span class="h2">{{ concept.label }}</span>
+                    <span class="text pull-right">{{ concept.typed }}</span>
+                </div>
+                <div class="panel-body">
+                    <div class="text text-muted text-small">{{ concept.uri }}</div>
+                    <div class="h4">Description</div>
+                    <div class="text">{{ concept.description }}</div>
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <span class="h2">Occurs in the following texts...</span>
+                </div>
+                <div class="list-group" id="accordion" role="tablist" aria-multiselectable="true">
+                    {% for text in texts %}
+                    <div class="list-group-item">
+                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#{{ text.id }}_appellations" aria-expanded="false" aria-controls="appellations">{{ text.title }}</a>
+                        <div id="{{ text.id }}_appellations" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                            test
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

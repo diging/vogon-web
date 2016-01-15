@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'gtl7=k_#_cx5e9!2(khyq3_#u3=8bh97fi_t0e*p#*u66rwg=&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -159,3 +159,4 @@ STATICFILES_DIRS = (
 )
 
 JARS_KEY = '050814a54ac5c81b990140c3c43278031d391676'
+AUTH_USER_MODEL = 'annotations.VogonUser'
