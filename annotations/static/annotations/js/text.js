@@ -23,7 +23,8 @@ app.config(function($httpProvider){
 
 app.factory('Appellation', function($resource) {
     return $resource(BASELOCATION + '/rest/appellation/:id/', {
-        text: TEXTID
+        text: TEXTID,
+        thisuser: true
     }, {
         list: {
             method: 'GET',

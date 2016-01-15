@@ -48,6 +48,8 @@ import igraph
 import json
 
 from django.shortcuts import render
+
+
 def home(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('dashboard'))
@@ -350,6 +352,9 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
 
         concept = self.request.query_params.get('concept', None)
         text = self.request.query_params.get('text', None)
+        thisuser = self.request.query_params.get('thisuser', False)
+        if thisuser:
+            queryset = queryset.filter(createdBy_id=self.request.user.id)
         if concept:
             queryset = queryset.filter(interpretation_id=concept)
         if text:
