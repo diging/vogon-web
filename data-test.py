@@ -81,7 +81,7 @@ def create_relation(rel):
 
 	creation_date = ET.SubElement(relation, "creation_date")
 
-	
+
 	subject = ET.SubElement(relation, "subject")
 	subject_obj = Appellation.objects.filter(id = rel.source_id)[0]
 	subject.append(create_appellation(subject_obj))
@@ -107,9 +107,9 @@ def create_relation(rel):
 def create_appellation(appln, parent = None):
 	#appln = Appellation.objects.filter(id = appln_id)
 	if parent == None :
-		root = ET.Element("Appellation_event")
+		root = ET.Element("appellation_event")
 	else:
-		root = ET.Element(parent, "Appellation_event")
+		root = ET.Element(parent, "appellation_event")
 	id = ET.SubElement(root, "id")
 	creator = ET.SubElement(root, "creator")
 	creator.text = appln.createdBy.username
