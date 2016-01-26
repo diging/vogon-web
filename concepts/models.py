@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 
 optional = { 'blank': True, 'null': True }
 
+
 class HeritableObject(models.Model):
     """
     An object that is aware of its "real" type, i.e. the subclass that it
@@ -33,6 +34,7 @@ class HeritableObject(models.Model):
     class Meta:
         abstract = True
 
+
 class Concept(HeritableObject):
     uri = models.CharField(max_length=255, unique=True)
     resolved = models.BooleanField(default=False)
@@ -51,6 +53,7 @@ class Concept(HeritableObject):
         (RESOLVED,'Resolved'),
     )
     concept_state=models.CharField(max_length=10,choices=concept_state_choices, default='Pending')
+
 
 class Type(Concept):
     pass

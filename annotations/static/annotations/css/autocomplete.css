@@ -1,0 +1,9 @@
+.ui-autocomplete {
+    background-color: white;
+    opacity: 1;
+    max-width: 300px;
+    max-height: 300px;
+    overflow-y: scroll;
+    border: 1px solid #ccc;
+    font-size: 9pt;
+}

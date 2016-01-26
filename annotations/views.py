@@ -1,20 +1,27 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, JsonResponse
 from django.template import RequestContext, loader
-from annotations.models import VogonUser
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login,authenticate
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
-from django.conf import settings
+from django.core.files import File
 from django.core.serializers import serialize
+
+from django.contrib.auth import login,authenticate
+from django.contrib.auth.models import Group
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.generic.edit import FormView
+
+from django.conf import settings
+
 from django.db.models import Q
 from django.utils.safestring import mark_safe
-from django.core.files import File
-from guardian.shortcuts import get_objects_for_user
-from django.contrib.auth.models import Group
+
+from django.forms import formset_factory
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
@@ -25,6 +32,8 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
+
+from guardian.shortcuts import get_objects_for_user
 
 from concepts.models import Concept
 from concepts.authorities import search
@@ -44,6 +53,7 @@ from urlnorm import norm
 from itertools import chain
 import uuid
 import igraph
+import copy
 
 import json
 
@@ -748,3 +758,88 @@ def concept_details(request, conceptid):
     })
 
     return HttpResponse(template.render(context))
+
+
+@staff_member_required
+def relation_template(request):
+    formset = formset_factory(RelationTemplatePartForm)
+    form_class = RelationTemplateForm
+
+    context = {}
+    error = None
+    if request.POST:
+        print request.POST.get('form-0-object_relationtemplate_internal_id')
+
+        relationtemplatepart_formset = formset(request.POST)
+        context['formset'] = relationtemplatepart_formset
+        relationtemplate_form = form_class(request.POST)
+
+        if relationtemplatepart_formset.is_valid() and relationtemplate_form.is_valid():
+
+            relationTemplate = relationtemplate_form.save()
+            relationTemplateParts = {}
+            dependency_order = {}
+            dependencies = {}
+            for form in relationtemplatepart_formset:
+                print form.cleaned_data
+                relationTemplatePart = RelationTemplatePart()
+                relationTemplatePart.part_of = relationTemplate
+                relationTemplatePart.internal_id = form.cleaned_data['internal_id']
+
+                for part in ['source', 'predicate', 'object']:
+                    setattr(relationTemplatePart, part + '_node_type', form.cleaned_data[part + '_node_type'])
+                    setattr(relationTemplatePart, part + '_prompt_text', form.cleaned_data[part + '_prompt_text'])
+
+                    if form.cleaned_data[part + '_node_type'] == 'TP':
+                        setattr(relationTemplatePart, part + '_type', form.cleaned_data[part + '_type'])
+                        setattr(relationTemplatePart, part + '_description', form.cleaned_data[part + '_description'])
+                    elif form.cleaned_data[part + '_node_type'] == 'CO':
+                        setattr(relationTemplatePart, part + '_concept', form.cleaned_data[part + '_concept'])
+                    elif part in ['source', 'object']:
+                        if form.cleaned_data[part + '_node_type'] == 'RE':
+                            setattr(relationTemplatePart, part + '_relationtemplate_internal_id', form.cleaned_data[part + '_relationtemplate_internal_id'])
+                            if form.cleaned_data[part + '_relationtemplate_internal_id'] > -1:
+                                dependency_order[relationTemplatePart.internal_id] = form.cleaned_data[part + '_relationtemplate_internal_id']
+
+
+                # Index so that we can fill FK references among RTPs.
+                relationTemplateParts[form.cleaned_data['internal_id']] = relationTemplatePart
+
+            # Find the relation template furthest downstream.
+            start_rtp = copy.deepcopy(dependency_order.keys()[0])
+            this_rtp = copy.deepcopy(start_rtp)
+            save_order = [this_rtp]
+            iteration = 0
+            while True:
+                this_rtp = copy.deepcopy(dependency_order[this_rtp])
+                if this_rtp not in save_order:
+                    save_order.insert(0, copy.deepcopy(this_rtp))
+                if this_rtp in dependency_order:
+                    iteration += 1
+                else:   # Found the downstream relation template.
+                    break
+
+                # Make sure that we're not in an endless loop.
+                if iteration > 0 and this_rtp == start_rtp:
+                    error = 'Endless loop'
+                    break
+
+            if not error:
+                for i in save_order:
+                    for part in ['source', 'object']:
+                        dep = getattr(relationTemplateParts[i], part + '_relationtemplate_internal_id')
+                        if dep > -1:
+                            setattr(relationTemplateParts[i], part + '_relationtemplate', relationTemplateParts[dep])
+                    if not relationTemplateParts[i].id:
+                        relationTemplateParts[i].save()
+
+                return HttpResponseRedirect(reverse('dashboard'))
+
+            else:
+                context['error'] = error
+                print error
+    else:
+        context['formset'] = formset()
+
+
+    return render(request, 'annotations/relationtemplate.html', context)

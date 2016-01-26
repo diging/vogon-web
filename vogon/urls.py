@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
     url(r'^network/$', views.network, name="network"),
+    url(r'^relationtemplate/$', views.relation_template, name="relationtemplate"),
     url(r'^network/data/$', views.network_data, name="network-data"),
     url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/add/upload/$', views.upload_file, name="file_upload"),
@@ -64,5 +65,6 @@ urlpatterns = [
     url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
     url(r'^relations/(?P<concept_a_id>[0-9]+)/(?P<concept_b_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+     url(r'^autocomplete/', include('autocomplete_light.urls')),
     url(r'^$', views.home)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

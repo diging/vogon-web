@@ -34,11 +34,10 @@ class VogonUserAdmin(UserAdmin):
 
 
 admin.site.register(VogonUser, VogonUserAdmin)
-
-
-
 admin.site.register(Appellation)
 admin.site.register(Text)
 admin.site.register(TextCollection)
 admin.site.register(Repository)
 admin.site.register(Relation)
+admin.site.register(RelationTemplate)
+admin.site.register(RelationTemplatePart)
