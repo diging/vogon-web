@@ -788,30 +788,47 @@ def relation_template(request):
             relationTemplateParts = {}
             dependency_order = {}    # Source RTP index -> target RTP index.
             for form in relationtemplatepart_formset:
-                print form.cleaned_data
                 relationTemplatePart = RelationTemplatePart()
                 relationTemplatePart.part_of = relationTemplate
                 relationTemplatePart.internal_id = form.cleaned_data['internal_id']
 
+                # Since many field names are shared for source, predicate, and
+                #  object, this approach should cut down on a lot of repetitive
+                #  code.
                 for part in ['source', 'predicate', 'object']:
-                    setattr(relationTemplatePart, part + '_node_type', form.cleaned_data[part + '_node_type'])
-                    setattr(relationTemplatePart, part + '_prompt_text', form.cleaned_data[part + '_prompt_text'])
+                    setattr(relationTemplatePart, part + '_node_type',
+                            form.cleaned_data[part + '_node_type'])
+                    setattr(relationTemplatePart, part + '_prompt_text',
+                            form.cleaned_data[part + '_prompt_text'])
 
+                    # Node is a concept Type. e.g. ``E20 Person``.
                     if form.cleaned_data[part + '_node_type'] == 'TP':
-                        setattr(relationTemplatePart, part + '_type', form.cleaned_data[part + '_type'])
-                        setattr(relationTemplatePart, part + '_description', form.cleaned_data[part + '_description'])
+                        setattr(relationTemplatePart, part + '_type',
+                                form.cleaned_data[part + '_type'])
+                        setattr(relationTemplatePart, part + '_description',
+                                form.cleaned_data[part + '_description'])
+
+                    # Node is a specific Concept, e.g. ``employ``.
                     elif form.cleaned_data[part + '_node_type'] == 'CO':
-                        setattr(relationTemplatePart, part + '_concept', form.cleaned_data[part + '_concept'])
-                    elif part in ['source', 'object']:
-                        if form.cleaned_data[part + '_node_type'] == 'RE':
-                            setattr(relationTemplatePart, part + '_relationtemplate_internal_id', form.cleaned_data[part + '_relationtemplate_internal_id'])
-                            if form.cleaned_data[part + '_relationtemplate_internal_id'] > -1:
-                                dependency_order[relationTemplatePart.internal_id] = form.cleaned_data[part + '_relationtemplate_internal_id']
+                        setattr(relationTemplatePart, part + '_concept',
+                                form.cleaned_data[part + '_concept'])
+
+                    # Node is another RelationTemplatePart.
+                    elif form.cleaned_data[part + '_node_type'] == 'RE':
+                        target_id = form.cleaned_data[part + '_relationtemplate_internal_id']
+                        setattr(relationTemplatePart,
+                                part + '_relationtemplate_internal_id',
+                                target_id)
+                        if target_id > -1:
+                            # This will help us to figure out the order in
+                            #  which to save RTPs.
+                            dependency_order[relationTemplatePart.internal_id] = target_id
 
                 # Index so that we can fill FK references among RTPs.
-                relationTemplateParts[form.cleaned_data['internal_id']] = relationTemplatePart
+                relationTemplateParts[relationTemplatePart.internal_id] = relationTemplatePart
 
             # Find the relation template furthest downstream.
+            # TODO: is this really better than hitting the database twice?
             start_rtp = copy.deepcopy(dependency_order.keys()[0])
             this_rtp = copy.deepcopy(start_rtp)
             save_order = [this_rtp]
@@ -826,26 +843,37 @@ def relation_template(request):
                     break
 
                 # Make sure that we're not in an endless loop.
+                # TODO: This is kind of a hacky way to handle the situation.
+                #  Maybe we should move this logic to the validation phase,
+                #  so that we can handle errors in a Django-esque fashion.
                 if iteration > 0 and this_rtp == start_rtp:
                     error = 'Endless loop'
                     break
 
             if not error:
+                # Resolve internal ids for RTP references into instance pks,
+                #  and populate the RTP _relationtemplate fields.
                 for i in save_order:
                     for part in ['source', 'object']:
-                        dep = getattr(relationTemplateParts[i], part + '_relationtemplate_internal_id')
+                        dep = getattr(relationTemplateParts[i],
+                                      part + '_relationtemplate_internal_id')
                         if dep > -1:
-                            setattr(relationTemplateParts[i], part + '_relationtemplate', relationTemplateParts[dep])
+                            setattr(relationTemplateParts[i],
+                                    part + '_relationtemplate',
+                                    relationTemplateParts[dep])
                     if not relationTemplateParts[i].id:
                         relationTemplateParts[i].save()
 
+                # TODO: when the list view for RTs is implemented, we should
+                #  direct the user there.
                 return HttpResponseRedirect(reverse('dashboard'))
 
             else:
+                # For now, we can render this view-wide error separately. But
+                #  we should probably make this part of the normal validation
+                #  process in the future. See comments above.
                 context['error'] = error
-                print error
-    else:
+    else:   # No data, start with a fresh formset.
         context['formset'] = formset()
-
 
     return render(request, 'annotations/relationtemplate.html', context)
