@@ -762,24 +762,31 @@ def concept_details(request, conceptid):
 
 @staff_member_required
 def relation_template(request):
+    """
+    Staff can use this view to create :class:`.RelationTemplate`\s.
+    """
+
+    # Each RelationTemplatePart is a "triple", the subject or object of which
+    #  might be another RelationTemplatePart.
     formset = formset_factory(RelationTemplatePartForm)
-    form_class = RelationTemplateForm
+    form_class = RelationTemplateForm   # e.g. Name, Description.
 
     context = {}
-    error = None
+    error = None    # TODO: <-- make this less hacky.
     if request.POST:
-        print request.POST.get('form-0-object_relationtemplate_internal_id')
-
+        # Instatiate both form(set)s with data.
         relationtemplatepart_formset = formset(request.POST)
         context['formset'] = relationtemplatepart_formset
         relationtemplate_form = form_class(request.POST)
 
         if relationtemplatepart_formset.is_valid() and relationtemplate_form.is_valid():
-
+            # We commit the RelationTemplate to the database first, so that we
+            #  can use it in the FK relation ``RelationTemplatePart.part_of``.
             relationTemplate = relationtemplate_form.save()
+
+            # We index RTPs so that we can fill FK references among them.
             relationTemplateParts = {}
-            dependency_order = {}
-            dependencies = {}
+            dependency_order = {}    # Source RTP index -> target RTP index.
             for form in relationtemplatepart_formset:
                 print form.cleaned_data
                 relationTemplatePart = RelationTemplatePart()
@@ -800,7 +807,6 @@ def relation_template(request):
                             setattr(relationTemplatePart, part + '_relationtemplate_internal_id', form.cleaned_data[part + '_relationtemplate_internal_id'])
                             if form.cleaned_data[part + '_relationtemplate_internal_id'] > -1:
                                 dependency_order[relationTemplatePart.internal_id] = form.cleaned_data[part + '_relationtemplate_internal_id']
-
 
                 # Index so that we can fill FK references among RTPs.
                 relationTemplateParts[form.cleaned_data['internal_id']] = relationTemplatePart

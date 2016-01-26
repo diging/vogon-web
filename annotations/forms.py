@@ -202,6 +202,10 @@ class RelationTemplateForm(forms.ModelForm):
 
 
 class RelationTemplatePartForm(forms.ModelForm):
+	"""
+
+	TODO: make sure that there are no self-loops in inter-part references.
+	"""
 	source_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
 	source_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'source_concept'}), required=False)
 
