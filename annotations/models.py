@@ -132,7 +132,11 @@ class TupleField(models.TextField):
         if isinstance(value, tuple):
             return value
 
-        return ast.literal_eval(value)
+        try:
+            value = ast.literal_eval(value)
+        except ValueError:
+            pass
+        return value
 
     def get_prep_value(self, value):
         if value is None:
