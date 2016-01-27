@@ -1,22 +1,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.contrib.contenttypes.models import ContentType
 from django.db import models, migrations
-
+from django.db.models.signals import post_migrate
 
 def populate_relation_generic_fields(apps, schema_editor):
-    print 'POPULATE'
+    # def do_populate(*args, **kwargs):
+
     Relation = apps.get_model("annotations", "Relation")
+    Appellation = apps.get_model("annotations", "Relation")
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+    appellationType = ContentType.objects.get_for_model(Appellation)
+
     for relation in Relation.objects.all():
-        appellationType = ContentType.objects.get(app_label='annotations', model='appellation')
+
+         #(app_label='annotations', model='appellation')
+        print appellationType, type(appellationType)
         relation.source_content_type = appellationType
         relation.object_content_type = appellationType
         relation.source_object_id = relation.source.id
         relation.object_object_id = relation.object.id
         relation.save()
-        # relation.source_content_object = relation.source
-        # relation.object_content_object = relation.object
-
+    # post_migrate.connect(do_populate)
 
 
 def populate_relation_generic_fields_reverse(apps, schema_editor):
@@ -94,13 +98,13 @@ class Migration(migrations.Migration):
             populate_relation_generic_fields,
             populate_relation_generic_fields_reverse
         ),
-        migrations.RemoveField(
-            model_name='relation',
-            name='object',
-        ),
-        migrations.RemoveField(
-            model_name='relation',
-            name='source',
-        ),
+        # migrations.RemoveField(
+        #     model_name='relation',
+        #     name='object',
+        # ),
+        # migrations.RemoveField(
+        #     model_name='relation',
+        #     name='source',
+        # ),
 
     ]
