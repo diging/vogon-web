@@ -290,15 +290,15 @@ class Relation(Annotation):
     """
 
     # source = models.ForeignKey("Appellation", related_name="relationsFrom")
-    source_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='as_source_in_relation')
-    source_object_id = models.PositiveIntegerField()
+    source_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='as_source_in_relation', null=True, blank=True)
+    source_object_id = models.PositiveIntegerField(null=True, blank=True)
     source_content_object = GenericForeignKey('source_content_type', 'source_object_id')
 
     predicate = models.ForeignKey("Appellation", related_name="relationsAs")
 
     # object = models.ForeignKey("Appellation", related_name="relationsTo")
-    object_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='as_object_in_relation')
-    object_object_id = models.PositiveIntegerField()
+    object_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='as_object_in_relation', null=True, blank=True)
+    object_object_id = models.PositiveIntegerField(null=True, blank=True)
     object_content_object = GenericForeignKey('object_content_type', 'object_object_id')
 
     # This should be replaced with more Relations.
@@ -342,7 +342,7 @@ class RelationTemplatePart(models.Model):
 
     internal_id = models.IntegerField(default=-1)
 
-    source_node_type = models.CharField(choices=NODE_CHOICES, max_length=2)
+    source_node_type = models.CharField(choices=NODE_CHOICES, max_length=2, null=True, blank=True)
     source_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_source')
     source_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_source')
     source_relationtemplate = models.ForeignKey('RelationTemplatePart',  blank=True, null=True, related_name='used_as_source')
@@ -352,14 +352,14 @@ class RelationTemplatePart(models.Model):
     """Indicates whether the user should be asked for evidence for source."""
     source_description = models.TextField(blank=True, null=True)
 
-    predicate_node_type = models.CharField(choices=PRED_CHOICES, max_length=2)
+    predicate_node_type = models.CharField(choices=PRED_CHOICES, max_length=2, null=True, blank=True)
     predicate_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_predicate')
     predicate_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_predicate')
     predicate_prompt_text = models.BooleanField(default=True)
     """Indicates whether the user should be asked for evidence for predicate."""
     predicate_description = models.TextField(blank=True, null=True)
 
-    object_node_type = models.CharField(choices=NODE_CHOICES, max_length=2)
+    object_node_type = models.CharField(choices=NODE_CHOICES, max_length=2, null=True, blank=True)
     object_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_object')
     object_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_object')
     object_relationtemplate = models.ForeignKey('RelationTemplatePart',  blank=True, null=True, related_name='used_as_object')
