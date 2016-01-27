@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.db import models, migrations
-from django.db.models.signals import post_migrate
+
 
 def populate_relation_generic_fields(apps, schema_editor):
-    # def do_populate(*args, **kwargs):
+    """
+    Move old references to Appellations in Relation.source and Relation.object
+    to new GenericForeignKey fields on Relation.
+    """
 
     Relation = apps.get_model("annotations", "Relation")
     Appellation = apps.get_model("annotations", "Relation")
@@ -12,15 +15,11 @@ def populate_relation_generic_fields(apps, schema_editor):
     appellationType = ContentType.objects.get_for_model(Appellation)
 
     for relation in Relation.objects.all():
-
-         #(app_label='annotations', model='appellation')
-        print appellationType, type(appellationType)
         relation.source_content_type = appellationType
         relation.object_content_type = appellationType
         relation.source_object_id = relation.source.id
         relation.object_object_id = relation.object.id
         relation.save()
-    # post_migrate.connect(do_populate)
 
 
 def populate_relation_generic_fields_reverse(apps, schema_editor):
@@ -29,6 +28,7 @@ def populate_relation_generic_fields_reverse(apps, schema_editor):
         relation.source = relation.source_content_object
         relation.object = relation.object_content_object
         relation.save()
+
 
 class Migration(migrations.Migration):
 
@@ -98,13 +98,4 @@ class Migration(migrations.Migration):
             populate_relation_generic_fields,
             populate_relation_generic_fields_reverse
         ),
-        # migrations.RemoveField(
-        #     model_name='relation',
-        #     name='object',
-        # ),
-        # migrations.RemoveField(
-        #     model_name='relation',
-        #     name='source',
-        # ),
-
     ]
