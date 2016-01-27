@@ -1,8 +1,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, migrations
 
+
+def populate_relation_generic_fields(apps, schema_editor):
+    Relation = apps.get_model("annotations", "Relation")
+    for relation in Relation.objects.all():
+        relation.source_content_object = relation.source
+        relation.object_content_object = relation.object
+        print relation
+        relation.save()
+
+def populate_relation_generic_fields_reverse(apps, schema_editor):
+    Relation = apps.get_model("annotations", "Relation")
+    for relation in Relation.objects.all():
+        relation.source = relation.source_content_object
+        relation.object = relation.object_content_object
+        relation.save()
 
 class Migration(migrations.Migration):
 
@@ -48,14 +63,6 @@ class Migration(migrations.Migration):
                 ('source_type', models.ForeignKey(related_name='used_as_type_for_source', blank=True, to='concepts.Type', null=True)),
             ],
         ),
-        migrations.RemoveField(
-            model_name='relation',
-            name='object',
-        ),
-        migrations.RemoveField(
-            model_name='relation',
-            name='source',
-        ),
         migrations.AddField(
             model_name='relation',
             name='object_content_type',
@@ -76,4 +83,17 @@ class Migration(migrations.Migration):
             name='source_object_id',
             field=models.PositiveIntegerField(null=True, blank=True),
         ),
+        migrations.RunPython(
+            populate_relation_generic_fields,
+            populate_relation_generic_fields_reverse
+        ),
+        migrations.RemoveField(
+            model_name='relation',
+            name='object',
+        ),
+        migrations.RemoveField(
+            model_name='relation',
+            name='source',
+        ),
+
     ]
