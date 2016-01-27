@@ -5,12 +5,19 @@ from django.db import models, migrations
 
 
 def populate_relation_generic_fields(apps, schema_editor):
+    print 'POPULATE'
     Relation = apps.get_model("annotations", "Relation")
     for relation in Relation.objects.all():
-        relation.source_content_object = relation.source
-        relation.object_content_object = relation.object
-        print relation
+        appellationType = ContentType.objects.get(app_label='annotations', model='appellation')
+        relation.source_content_type = appellationType
+        relation.object_content_type = appellationType
+        relation.source_object_id = relation.source.id
+        relation.object_object_id = relation.object.id
         relation.save()
+        # relation.source_content_object = relation.source
+        # relation.object_content_object = relation.object
+
+
 
 def populate_relation_generic_fields_reverse(apps, schema_editor):
     Relation = apps.get_model("annotations", "Relation")
