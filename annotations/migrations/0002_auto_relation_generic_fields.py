@@ -15,6 +15,8 @@ def populate_relation_generic_fields(apps, schema_editor):
     appellationType = ContentType.objects.get_for_model(Appellation)
 
     for relation in Relation.objects.all():
+        # Need to look at the controlling_verb, and if set create nested
+        #  Relations accordingly.
         relation.source_content_type = appellationType
         relation.object_content_type = appellationType
         relation.source_object_id = relation.source.id
