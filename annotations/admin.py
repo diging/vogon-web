@@ -36,13 +36,8 @@ class VogonUserAdmin(UserAdmin):
 class TextAdmin(admin.ModelAdmin):
     list_display = ('uri', 'title', 'created')
 
-    class Meta:
-        model = Text
 
 admin.site.register(VogonUser, VogonUserAdmin)
-
-
-
 admin.site.register(Appellation)
 admin.site.register(Text, TextAdmin)
 admin.site.register(TextCollection)
