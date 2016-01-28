@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import requests
+
 from concepts.authorities import resolve, search
 
 # This will make sure the app is always imported when
@@ -8,8 +10,14 @@ from celery import shared_task
 
 @shared_task
 def resolve_concept(sender, instance):
-    resolve(sender, instance)
+    try:
+        resolve(sender, instance)
+    except requests.exceptions.ConnectionError:
+        pass
 
 @shared_task
 def search_concept(query, pos='noun'):
-    search(query, pos)
+    try:
+        search(query, pos)
+    except requests.exceptions.ConnectionError:
+        pass
