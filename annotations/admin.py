@@ -33,12 +33,13 @@ class VogonUserAdmin(UserAdmin):
     filter_horizontal = ()
 
 
+class TextAdmin(admin.ModelAdmin):
+    list_display = ('uri', 'title', 'created')
+
+
 admin.site.register(VogonUser, VogonUserAdmin)
-
-
-
 admin.site.register(Appellation)
-admin.site.register(Text)
+admin.site.register(Text, TextAdmin)
 admin.site.register(TextCollection)
 admin.site.register(Repository)
 admin.site.register(Relation)
