@@ -4,7 +4,7 @@ from django.db import models, migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('annotations', '0002_auto_relation_generic_fields'),
+        ('annotations', '0003_auto_relation_generic_fields'),
     ]
     operations = [
         migrations.RemoveField(
