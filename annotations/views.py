@@ -158,6 +158,14 @@ def user_settings(request):
     })
     return HttpResponse(template.render(context))
 
+@login_required
+def about(request):
+    """
+    Provides the information about Vogon-Web
+    """
+    template = loader.get_template('annotations/about.html')
+    context = RequestContext(request)
+    return HttpResponse(template.render(context))
 
 @login_required
 def dashboard(request):

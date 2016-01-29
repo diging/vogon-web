@@ -25,7 +25,7 @@
 						<li><a href="{% url "list_texts" %}">Texts</a></li>
 						<li><a href="{% url "collection_list" %}">Collection</a></li>
 						<li><a href="{% url "network" %}">Network</a></li>
-						<li><a href="#">About</a></li>
+						<li><a href="{% url "about" %}">About</a></li>
 					</ul>
 					<div class="dropdown pull-right" id="userdropdown">
 						{% if user.is_authenticated %}
