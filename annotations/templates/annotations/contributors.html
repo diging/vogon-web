@@ -1,0 +1,57 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+{% block main %}
+
+<div id="main" class="container-fluid">
+    <div class="row" style="margin-bottom: 10px;">
+        <div class="col-sm-8 col-sm-offset-2">
+            {% block title %}
+            <div>
+                <span class="h2">All Users</span>
+            </div>
+            <hr></hr>
+            {% endblock %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+            {% if texts|length > 0 %}
+            <ul class="list-group">
+            {% for text in texts %}
+                <a href="{% url "text" text.id %}" class="list-group-item">{{ text.title }} <span class="pull-right badge" data-toggle="tooltip" data-placement="top" title="{{ text.relationCount }} relations have been created for this text">{{ text.relationCount }}</span></a>
+
+            {% endfor %}
+            </ul>
+
+            <div>
+                <ul class="pagination pagination-sm">
+                    {% if texts.has_previous %}
+                    <li>
+                        <a href="?page={{ texts.previous_page_number }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </lu>
+                    {% endif %}
+                    {% for p in texts.paginator.page_range %}
+                    <li{% if p == texts.number %} class="active"{% endif %}>
+                        <a href="?page={{p}}">{{p}}</a>
+                    </li>
+                    {% endfor %}
+                    {% if texts.has_next %}
+                    <li>
+                        <a href="?page={{ texts.next_page_number }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </lu>
+                    {% endif %}
+                </ul>
+            </div>
+            {% else %}
+            <p>No texts to display.</p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock main %}
