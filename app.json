@@ -1,0 +1,15 @@
+{
+  "name": "vogonweb",
+  "description": "",
+  "scripts": {
+  },
+  "env": {
+    "DJANGO_SETTINGS_MODULE": {
+      "required": true
+    }
+  },
+  "addons": [
+    "heroku-postgresql",
+    "heroku-redis"
+  ]
+}
