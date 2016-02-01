@@ -18,9 +18,8 @@
         <div class="col-sm-8 col-sm-offset-2">
             {% if texts|length > 0 %}
             <ul class="list-group">
-            {% for text in texts %}
-                <a href="{% url "text" text.id %}" class="list-group-item">{{ text.title }} <span class="pull-right badge" data-toggle="tooltip" data-placement="top" title="{{ text.relationCount }} relations have been created for this text">{{ text.relationCount }}</span></a>
-
+            {% for user in user_list %}
+                <a href="{% url "user" user.id %}" class="list-group-item">{{ user.full_name }}</a>
             {% endfor %}
             </ul>
 
@@ -28,19 +27,19 @@
                 <ul class="pagination pagination-sm">
                     {% if texts.has_previous %}
                     <li>
-                        <a href="?page={{ texts.previous_page_number }}">
+                        <a href="?page={{ user_list.previous_page_number }}">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
                     </lu>
                     {% endif %}
-                    {% for p in texts.paginator.page_range %}
-                    <li{% if p == texts.number %} class="active"{% endif %}>
+                    {% for p in user_list.paginator.page_range %}
+                    <li{% if p == user_list.number %} class="active"{% endif %}>
                         <a href="?page={{p}}">{{p}}</a>
                     </li>
                     {% endfor %}
-                    {% if texts.has_next %}
+                    {% if user_list.has_next %}
                     <li>
-                        <a href="?page={{ texts.next_page_number }}">
+                        <a href="?page={{ user_list.next_page_number }}">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
                     </lu>
@@ -48,7 +47,7 @@
                 </ul>
             </div>
             {% else %}
-            <p>No texts to display.</p>
+            <p>No users to display.</p>
             {% endif %}
 
         </div>
