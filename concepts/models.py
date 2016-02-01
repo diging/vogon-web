@@ -14,7 +14,7 @@ class HeritableObject(models.Model):
     label = models.CharField(max_length=255, **optional)
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.id or not self.real_type:
             self.real_type = self._get_real_type()
         super(HeritableObject, self).save(*args, **kwargs)
 

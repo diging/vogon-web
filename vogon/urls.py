@@ -54,6 +54,7 @@ urlpatterns = [
     url(r'^rest/', include(remotecollection_router.urls)),
     url(r'^network/$', views.network, name="network"),
     url(r'^relationtemplate/$', views.relation_template, name="relationtemplate"),
+    url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.get_relationtemplate, name="get_relationtemplate"),
     url(r'^network/data/$', views.network_data, name="network-data"),
     url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/add/upload/$', views.upload_file, name="file_upload"),

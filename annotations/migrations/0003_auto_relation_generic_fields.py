@@ -10,18 +10,86 @@ def populate_relation_generic_fields(apps, schema_editor):
     """
 
     Relation = apps.get_model("annotations", "Relation")
-    Appellation = apps.get_model("annotations", "Relation")
+    Appellation = apps.get_model("annotations", "Appellation")
+    Concept = apps.get_model("concepts", "Concept")
     ContentType = apps.get_model('contenttypes', 'ContentType')
+    conceptType = ContentType.objects.get_for_model(Concept)
+    have = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9")#[0]#, defaults={'real_type_id': conceptType.id})[0]
+    be = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")#[0]#, defaults={'real_type_id': conceptType.id})[0]
+
     appellationType = ContentType.objects.get_for_model(Appellation)
+    relationType = ContentType.objects.get_for_model(Relation)
 
     for relation in Relation.objects.all():
         # Need to look at the controlling_verb, and if set create nested
         #  Relations accordingly.
-        relation.source_content_type = appellationType
-        relation.object_content_type = appellationType
-        relation.source_object_id = relation.source.id
-        relation.object_object_id = relation.object.id
+        if relation.predicate.controlling_verb:
+            # Create baseless appellations for have and be.
+            haveAppellation = Appellation(
+                occursIn = relation.occursIn,
+                createdBy_id = 1,
+                # interpretation = have
+            )
+
+            haveAppellation.interpretation = have
+            haveAppellation.save()
+            beAppellation = Appellation(
+                occursIn = relation.occursIn,
+                createdBy_id = 1,
+                # interpretation = be
+            )
+            beAppellation.interpretation = be
+            beAppellation.save()
+
+            if relation.predicate.controlling_verb == 'has':
+                downRelation = Relation(
+                    source_content_type = appellationType,
+                    source_object_id = relation.predicate.id,
+                    source = relation.predicate,
+                    predicate = beAppellation,
+                    object_content_type = appellationType,
+                    object_object_id = relation.object.id,
+                    object = relation.object,
+                    createdBy_id = 1,
+                    occursIn = relation.occursIn
+                )
+                downRelation.save()
+
+                relation.source_content_type = appellationType
+                relation.source_object_id = relation.source.id
+                relation.predicate = haveAppellation
+                relation.object_content_type  = relationType
+                relation.object_object_id = downRelation.id
+            elif relation.predicate.controlling_verb == 'is':
+                upRelation = Relation(
+                    source_content_type = appellationType,
+                    source_object_id = relation.object.id,
+                    source = relation.object,
+                    predicate = haveAppellation,
+                    object_content_type = relationType,
+                    object_object_id = relation.id,
+                    object = relation.object,
+                    occursIn = relation.occursIn,
+                    createdBy_id = 1
+                )
+                upRelation.save()
+
+                relation.source_content_type = appellationType
+                relation.source_object_id = relation.predicate.id
+                relation.predicate = beAppellation
+                relation.object_content_type = appellationType
+                relation.object_object_id = relation.source.id
+
+        else:   # No nesting, just migrate source/object data to new fields.
+            relation.source_content_type = appellationType
+            relation.object_content_type = appellationType
+            relation.source_object_id = relation.source.id
+            relation.object_object_id = relation.object.id
+            relation.save()
+
         relation.save()
+
+
 
 
 def populate_relation_generic_fields_reverse(apps, schema_editor):

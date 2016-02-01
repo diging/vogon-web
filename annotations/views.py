@@ -827,43 +827,49 @@ def relation_template(request):
                 # Index so that we can fill FK references among RTPs.
                 relationTemplateParts[relationTemplatePart.internal_id] = relationTemplatePart
 
-            # Find the relation template furthest downstream.
-            # TODO: is this really better than hitting the database twice?
-            start_rtp = copy.deepcopy(dependency_order.keys()[0])
-            this_rtp = copy.deepcopy(start_rtp)
-            save_order = [this_rtp]
-            iteration = 0
-            while True:
-                this_rtp = copy.deepcopy(dependency_order[this_rtp])
-                if this_rtp not in save_order:
-                    save_order.insert(0, copy.deepcopy(this_rtp))
-                if this_rtp in dependency_order:
-                    iteration += 1
-                else:   # Found the downstream relation template.
-                    break
+            if len(dependency_order) > 0:
+                # Find the relation template furthest downstream.
+                # TODO: is this really better than hitting the database twice?
+                start_rtp = copy.deepcopy(dependency_order.keys()[0])
+                this_rtp = copy.deepcopy(start_rtp)
+                save_order = [this_rtp]
+                iteration = 0
+                while True:
+                    this_rtp = copy.deepcopy(dependency_order[this_rtp])
+                    if this_rtp not in save_order:
+                        save_order.insert(0, copy.deepcopy(this_rtp))
+                    if this_rtp in dependency_order:
+                        iteration += 1
+                    else:   # Found the downstream relation template.
+                        break
 
-                # Make sure that we're not in an endless loop.
-                # TODO: This is kind of a hacky way to handle the situation.
-                #  Maybe we should move this logic to the validation phase,
-                #  so that we can handle errors in a Django-esque fashion.
-                if iteration > 0 and this_rtp == start_rtp:
-                    error = 'Endless loop'
-                    break
+                    # Make sure that we're not in an endless loop.
+                    # TODO: This is kind of a hacky way to handle the situation.
+                    #  Maybe we should move this logic to the validation phase,
+                    #  so that we can handle errors in a Django-esque fashion.
+                    if iteration > 0 and this_rtp == start_rtp:
+                        error = 'Endless loop'
+                        break
+                if not error:
+                    # Resolve internal ids for RTP references into instance pks,
+                    #  and populate the RTP _relationtemplate fields.
+                    for i in save_order:
+                        for part in ['source', 'object']:
+                            dep = getattr(relationTemplateParts[i],
+                                          part + '_relationtemplate_internal_id')
+                            if dep > -1:
+                                setattr(relationTemplateParts[i],
+                                        part + '_relationtemplate',
+                                        relationTemplateParts[dep])
+                        if not relationTemplateParts[i].id:
+                            relationTemplateParts[i].save()
+
+
+
+            else:
+                relationTemplateParts.values()[0].save()
 
             if not error:
-                # Resolve internal ids for RTP references into instance pks,
-                #  and populate the RTP _relationtemplate fields.
-                for i in save_order:
-                    for part in ['source', 'object']:
-                        dep = getattr(relationTemplateParts[i],
-                                      part + '_relationtemplate_internal_id')
-                        if dep > -1:
-                            setattr(relationTemplateParts[i],
-                                    part + '_relationtemplate',
-                                    relationTemplateParts[dep])
-                    if not relationTemplateParts[i].id:
-                        relationTemplateParts[i].save()
-
                 # TODO: when the list view for RTs is implemented, we should
                 #  direct the user there.
                 return HttpResponseRedirect(reverse('dashboard'))
@@ -877,3 +883,29 @@ def relation_template(request):
         context['formset'] = formset()
 
     return render(request, 'annotations/relationtemplate.html', context)
+
+
+def list_relationtemplates(request):
+    pass
+
+
+def get_relationtemplate(request, template_id):
+    template = get_object_or_404(RelationTemplate, pk=template_id)
+
+    type_fields = []
+    for templatepart in template.template_parts.all():
+        for field in ['source', 'predicate', 'object']:
+            if getattr(templatepart, '%s_node_type' % field) == RelationTemplatePart.TYPE:
+                type_fields.append((
+                    getattr(templatepart, '%s_type' % field).id,
+                    getattr(templatepart, '%s_type' % field).label,
+                    getattr(templatepart, '%s_prompt_text' % field),
+                    getattr(templatepart, '%s_description' % field),
+                ))
+    data = {
+        'fields': type_fields,
+        'name': template.name,
+        'description': template.description,
+        'id': template_id,
+    }
+    return JsonResponse(data)
