@@ -9,7 +9,7 @@
     }
   },
   "addons": [
-    "heroku-postgresql",
-    "heroku-redis"
+    "heroku-postgresql:hobby-dev",
+    "heroku-redis:hobby-dev"
   ]
 }
