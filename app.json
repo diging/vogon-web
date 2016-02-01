@@ -1,0 +1,16 @@
+{
+  "name": "vogonweb",
+  "description": "",
+  "scripts": {
+      "postdeploy": "python manage.py migrate contenttypes; python manage.py migrate"
+  },
+  "env": {
+    "DJANGO_SETTINGS_MODULE": {
+      "required": true
+    }
+  },
+  "addons": [
+    "heroku-postgresql:hobby-dev",
+    "heroku-redis:hobby-dev"
+  ]
+}
