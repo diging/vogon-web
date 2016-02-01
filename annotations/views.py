@@ -190,7 +190,6 @@ def network(request):
     return HttpResponse(template.render(context))
 
 
-@login_required
 def list_texts(request):
     """
     List all of the texts that the user can see, with links to annotate them.
@@ -251,28 +250,35 @@ def collection_texts(request, collectionid):
 
 
 @ensure_csrf_cookie
-@login_required
 def text(request, textid):
     """
-    Provides the main text annotation view.
+    Provides the main text annotation view for logged-in users.
+    Provides summary of the text for non-logged-in users.
     """
-    template = loader.get_template('annotations/text.html')
+    text_dict = dict()
     text = get_object_or_404(Text, pk=textid)
+    text_dict['text'] = text
+    text_dict['textid'] = textid
+    text_dict['title'] = 'Annotate Text'
+    text_dict['baselocation'] = basepath(request)
 
-    # If a text is restricted, then the user needs explicit permission to
-    #  access it.
-    if not text.public and not request.user.has_perm('annotations.view_text'):
-        # TODO: return a pretty templated response.
-        return HttpResponseForbidden("Sorry, this text is restricted.")
+    if request.user.is_authenticated():
+        template = loader.get_template('annotations/text.html')
 
-    context = RequestContext(request, {
-        'textid': textid,
-        'text': text,
-        'userid': request.user.id,
-        'title': 'Annotate Text',
-        'baselocation': basepath(request),
-    })
-    return HttpResponse(template.render(context))
+        # If a text is restricted, then the user needs explicit permission to
+        #  access it.
+        if not text.public and not request.user.has_perm('annotations.view_text'):
+            # TODO: return a pretty templated response.
+            return HttpResponseForbidden("Sorry, this text is restricted.")
+
+        text_dict['userid'] = request.user.id
+
+        context = RequestContext(request, text_dict)
+        return HttpResponse(template.render(context))
+    else:
+        template = loader.get_template('annotations/anonymous_text.html')
+        context = RequestContext(request, text_dict)
+        return HttpResponse(template.render(context))
 
 
 ### REST API class-based views.
