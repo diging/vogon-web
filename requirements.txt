@@ -17,7 +17,7 @@ django-toolbelt==0.0.1
 djangorestframework==3.1.3
 drf-nested-routers==0.10.0
 gunicorn==19.3.0
-kombu==3.0.26
+kombu==3.0.30
 psycopg2==2.6.1
 pytz==2015.6
 redis==2.10.3
