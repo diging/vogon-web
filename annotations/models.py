@@ -129,7 +129,11 @@ class TupleField(models.TextField):
         if isinstance(value, tuple):
             return value
 
-        return ast.literal_eval(value)
+        try:
+            value = ast.literal_eval(value)
+        except ValueError:
+            pass
+        return value
 
     def get_prep_value(self, value):
         if value is None:
@@ -160,7 +164,7 @@ class Text(models.Model):
     tokenizedContent = models.TextField()
     """Text should already be tagged, with <word> elements delimiting tokens."""
 
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=1000)
     created = models.DateField(blank=True, null=True)
     added = models.DateTimeField(auto_now_add=True)
     addedBy = models.ForeignKey(VogonUser, related_name="addedTexts")
