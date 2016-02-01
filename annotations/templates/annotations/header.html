@@ -28,7 +28,7 @@
 						<li><a href="{% url "about" %}">About</a></li>
 					</ul>
 					<div class="dropdown pull-right" id="userdropdown">
-						{% if user.is_authenticated %}
+						{% if user.is_authenticated  %}
 						<button class="btn btn-default dropdown-toggler" type="button" id="usermenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 							{{ user.username }}
 							<span class="caret"></span>
@@ -37,6 +37,9 @@
 							<li><a href="/accounts/profile/">Dashboard</a></li>
 							<li><a href="/accounts/settings/">Settings</a></li>
 							<li><a href="/accounts/logout/">Log Out</a></li>
+							{% if user.is_staff %}
+								<li><a href="/admin/">Admin Site</a></li>
+							{% endif %}
 						</ul>
 						{% else %}
 						<div class="btn-group" role="group" aria-label="usermgmt">
