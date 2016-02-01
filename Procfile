@@ -1,2 +1,2 @@
-web: gunicorn vogon.wsgi --log-file -
+web: gunicorn vogon.wsgi --log-file=-
 worker: celery worker -A vogon
