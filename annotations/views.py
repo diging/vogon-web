@@ -827,6 +827,8 @@ def relation_template(request):
                 # Index so that we can fill FK references among RTPs.
                 relationTemplateParts[relationTemplatePart.internal_id] = relationTemplatePart
 
+            # If there is interdependency among RTPs, determine and execute
+            #  the correct save order.
             if len(dependency_order) > 0:
                 # Find the relation template furthest downstream.
                 # TODO: is this really better than hitting the database twice?
@@ -864,9 +866,8 @@ def relation_template(request):
                         if not relationTemplateParts[i].id:
                             relationTemplateParts[i].save()
 
-
-
-            else:
+            # Otherwise, just save the (one and only) RTP.
+            elif len(relationTemplateParts) == 1:
                 relationTemplateParts.values()[0].save()
 
             if not error:
@@ -885,25 +886,54 @@ def relation_template(request):
     return render(request, 'annotations/relationtemplate.html', context)
 
 
-def list_relationtemplates(request):
-    pass
+def list_relationtemplate(request):
+    """
+    Returns a list of all :class:`.RelationTemplate`\s.
+    """
+    queryset = RelationTemplate.objects.all()
+    data = {
+        'templates': [{
+            'id': rt.id,
+            'name': rt.name,
+            'description': rt.description
+            } for rt in queryset]
+        }
+    return JsonResponse(data)
 
 
 def get_relationtemplate(request, template_id):
+    """
+    Returns data on fillable fields in a :class:`.RelationTemplate`\.
+    """
+
     template = get_object_or_404(RelationTemplate, pk=template_id)
 
-    type_fields = []
-    for templatepart in template.template_parts.all():
+    fields = []    # The fields that we need the user to fill go in here.
+    for tpart in template.template_parts.all():
         for field in ['source', 'predicate', 'object']:
-            if getattr(templatepart, '%s_node_type' % field) == RelationTemplatePart.TYPE:
-                type_fields.append((
-                    getattr(templatepart, '%s_type' % field).id,
-                    getattr(templatepart, '%s_type' % field).label,
-                    getattr(templatepart, '%s_prompt_text' % field),
-                    getattr(templatepart, '%s_description' % field),
-                ))
+            evidenceRequired = getattr(tpart, '%s_prompt_text' % field)
+            nodeType = getattr(tpart, '%s_node_type' % field)
+            # The user needs to provide specific concepts for TYPE fields.
+            if nodeType == RelationTemplatePart.TYPE:
+                fields.append({
+                    'type': 'TP',
+                    'id': getattr(tpart, '%s_type' % field).id,
+                    'label': getattr(tpart, '%s_type' % field).label,
+                    'evidence_required': evidenceRequired,
+                    'description': getattr(tpart, '%s_description' % field),
+                })
+            # Even if there is an explicit concept, we may require textual
+            #  evidence from the user.
+            elif evidenceRequired and nodeType == RelationTemplatePart.CONCEPT:
+                fields.append({
+                    'type': 'CO',
+                    'id': getattr(tpart, '%s_concept' % field).id,
+                    'label': getattr(tpart, '%s_concept' % field).label,
+                    'evidence_required': evidenceRequired,
+                    'description': getattr(tpart, '%s_description' % field),
+                })
     data = {
-        'fields': type_fields,
+        'fields': fields,
         'name': template.name,
         'description': template.description,
         'id': template_id,

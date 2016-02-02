@@ -10,6 +10,7 @@ def populate_relation_generic_fields(apps, schema_editor):
     """
 
     Relation = apps.get_model("annotations", "Relation")
+    RelationSet = apps.get_model("annotations", "RelationSet")
     Appellation = apps.get_model("annotations", "Appellation")
     Concept = apps.get_model("concepts", "Concept")
     ContentType = apps.get_model('contenttypes', 'ContentType')
@@ -21,6 +22,10 @@ def populate_relation_generic_fields(apps, schema_editor):
     relationType = ContentType.objects.get_for_model(Relation)
 
     for relation in Relation.objects.all():
+        relationSet = RelationSet(
+            createdBy_id = 1,
+        )
+        relationSet.save()
         # Need to look at the controlling_verb, and if set create nested
         #  Relations accordingly.
         if relation.predicate.controlling_verb:
@@ -28,15 +33,12 @@ def populate_relation_generic_fields(apps, schema_editor):
             haveAppellation = Appellation(
                 occursIn = relation.occursIn,
                 createdBy_id = 1,
-                # interpretation = have
             )
-
             haveAppellation.interpretation = have
             haveAppellation.save()
             beAppellation = Appellation(
                 occursIn = relation.occursIn,
                 createdBy_id = 1,
-                # interpretation = be
             )
             beAppellation.interpretation = be
             beAppellation.save()
@@ -51,7 +53,8 @@ def populate_relation_generic_fields(apps, schema_editor):
                     object_object_id = relation.object.id,
                     object = relation.object,
                     createdBy_id = 1,
-                    occursIn = relation.occursIn
+                    occursIn = relation.occursIn,
+                    part_of = relationSet,
                 )
                 downRelation.save()
 
@@ -60,6 +63,7 @@ def populate_relation_generic_fields(apps, schema_editor):
                 relation.predicate = haveAppellation
                 relation.object_content_type  = relationType
                 relation.object_object_id = downRelation.id
+                relation.part_of = relationSet
             elif relation.predicate.controlling_verb == 'is':
                 upRelation = Relation(
                     source_content_type = appellationType,
@@ -70,7 +74,8 @@ def populate_relation_generic_fields(apps, schema_editor):
                     object_object_id = relation.id,
                     object = relation.object,
                     occursIn = relation.occursIn,
-                    createdBy_id = 1
+                    createdBy_id = 1,
+                    part_of = relationSet,
                 )
                 upRelation.save()
 
@@ -79,17 +84,17 @@ def populate_relation_generic_fields(apps, schema_editor):
                 relation.predicate = beAppellation
                 relation.object_content_type = appellationType
                 relation.object_object_id = relation.source.id
+                relation.part_of = relationSet
 
         else:   # No nesting, just migrate source/object data to new fields.
             relation.source_content_type = appellationType
             relation.object_content_type = appellationType
             relation.source_object_id = relation.source.id
             relation.object_object_id = relation.object.id
+            relation.part_of = relationSet
             relation.save()
 
         relation.save()
-
-
 
 
 def populate_relation_generic_fields_reverse(apps, schema_editor):
@@ -164,8 +169,30 @@ class Migration(migrations.Migration):
             name='source_object_id',
             field=models.PositiveIntegerField(null=True, blank=True),
         ),
+        migrations.CreateModel(
+            name='RelationSet',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('createdBy', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('template', models.ForeignKey(related_name='instantiations', blank=True, to='annotations.RelationTemplate', null=True)),
+            ],
+        ),
+        migrations.AddField(
+            model_name='relation',
+            name='part_of',
+            field=models.ForeignKey(related_name='constituents', blank=True, to='annotations.RelationSet', null=True),
+        ),
         migrations.RunPython(
             populate_relation_generic_fields,
             populate_relation_generic_fields_reverse
+        ),
+        migrations.RemoveField(
+            model_name='relation',
+            name='object',
+        ),
+        migrations.RemoveField(
+            model_name='relation',
+            name='source',
         ),
     ]

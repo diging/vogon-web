@@ -66,7 +66,6 @@ angular.module('formApp', [])
                 $(this).text(total);
             });
 
-
             total++;
             $('#id_' + type + '-TOTAL_FORMS').val(total);
             $compile(newElement)($scope);
@@ -77,8 +76,8 @@ angular.module('formApp', [])
         }
 
         $scope.addRelation = function() {
-            $scope.cloneMore('.form_table_row:first', 'form');
-
+            // Appends another Relation row, and corresponding formset.
+            $scope.cloneMore('.form_table_row:last', 'form');
             $('.autocomplete').each(function() {
                 var pos = 'noun';
                 if (this.id.indexOf('predicate') > -1) {
@@ -86,6 +85,10 @@ angular.module('formApp', [])
                 }
                 bindAutocomplete('#' + this.id, pos);
             });
+        }
+
+        $scope.removeRelation = function(relation_id) {
+            // TODO: implement me!
         }
     }]);
 

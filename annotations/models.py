@@ -283,11 +283,25 @@ class Appellation(Annotation, Interpreted):
     Applies only if the Appellation is a predicate.""")
 
 
+class RelationSet(models.Model):
+    """
+    A :class:`.RelationSet` organizes :class:`.Relation`\s into complete
+    statements.
+    """
+
+    template = models.ForeignKey('RelationTemplate', blank=True, null=True, related_name='instantiations')
+    created = models.DateTimeField(auto_now_add=True)
+    createdBy = models.ForeignKey('VogonUser')
+
+
+
 class Relation(Annotation):
     """
     A Relation captures a user's assertion that a passage of text implies a
     specific relation between two concepts.
     """
+
+    part_of = models.ForeignKey('RelationSet', blank=True, null=True, related_name='constituents')
 
     # source = models.ForeignKey("Appellation", related_name="relationsFrom")
     source_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='as_source_in_relation', null=True, blank=True)
