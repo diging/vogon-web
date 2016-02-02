@@ -34,7 +34,7 @@ class VogonUserAdmin(UserAdmin):
 
 
 class TextAdmin(admin.ModelAdmin):
-    list_display = ('uri', 'title', 'created', 'addedBy', 'added')
+    list_display = ('uri', 'title', 'created','addedBy', 'added')
 
 
 admin.site.register(VogonUser, VogonUserAdmin)
