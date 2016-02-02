@@ -333,6 +333,9 @@ class RelationTemplate(models.Model):
     description = models.TextField()
     """A longer-form description of the relation."""
 
+    expression = models.TextField(null=True)
+    """Pattern for representing the relation in normal language."""
+
 
 class RelationTemplatePart(models.Model):
     TYPE = 'TP'
@@ -357,6 +360,7 @@ class RelationTemplatePart(models.Model):
     internal_id = models.IntegerField(default=-1)
 
     source_node_type = models.CharField(choices=NODE_CHOICES, max_length=2, null=True, blank=True)
+    source_label = models.CharField(max_length=100, null=True, blank=True)
     source_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_source')
     source_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_source')
     source_relationtemplate = models.ForeignKey('RelationTemplatePart',  blank=True, null=True, related_name='used_as_source')
@@ -367,6 +371,7 @@ class RelationTemplatePart(models.Model):
     source_description = models.TextField(blank=True, null=True)
 
     predicate_node_type = models.CharField(choices=PRED_CHOICES, max_length=2, null=True, blank=True)
+    predicate_label = models.CharField(max_length=100, null=True, blank=True)
     predicate_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_predicate')
     predicate_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_predicate')
     predicate_prompt_text = models.BooleanField(default=True)
@@ -374,6 +379,7 @@ class RelationTemplatePart(models.Model):
     predicate_description = models.TextField(blank=True, null=True)
 
     object_node_type = models.CharField(choices=NODE_CHOICES, max_length=2, null=True, blank=True)
+    object_label = models.CharField(max_length=100, null=True, blank=True)
     object_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_object')
     object_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_object')
     object_relationtemplate = models.ForeignKey('RelationTemplatePart',  blank=True, null=True, related_name='used_as_object')

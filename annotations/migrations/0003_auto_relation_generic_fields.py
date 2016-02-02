@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.db import models, migrations
-
+from django.conf import settings
 
 def populate_relation_generic_fields(apps, schema_editor):
     """
@@ -23,7 +23,7 @@ def populate_relation_generic_fields(apps, schema_editor):
 
     for relation in Relation.objects.all():
         relationSet = RelationSet(
-            createdBy_id = 1,
+            createdBy_id = relation.createdBy.id,
         )
         relationSet.save()
         # Need to look at the controlling_verb, and if set create nested
@@ -32,13 +32,13 @@ def populate_relation_generic_fields(apps, schema_editor):
             # Create baseless appellations for have and be.
             haveAppellation = Appellation(
                 occursIn = relation.occursIn,
-                createdBy_id = 1,
+                createdBy_id = relation.createdBy.id,
             )
             haveAppellation.interpretation = have
             haveAppellation.save()
             beAppellation = Appellation(
                 occursIn = relation.occursIn,
-                createdBy_id = 1,
+                createdBy_id = relation.createdBy.id,
             )
             beAppellation.interpretation = be
             beAppellation.save()
@@ -52,7 +52,7 @@ def populate_relation_generic_fields(apps, schema_editor):
                     object_content_type = appellationType,
                     object_object_id = relation.object.id,
                     object = relation.object,
-                    createdBy_id = 1,
+                    createdBy_id = relation.createdBy.id,
                     occursIn = relation.occursIn,
                     part_of = relationSet,
                 )
@@ -74,7 +74,7 @@ def populate_relation_generic_fields(apps, schema_editor):
                     object_object_id = relation.id,
                     object = relation.object,
                     occursIn = relation.occursIn,
-                    createdBy_id = 1,
+                    createdBy_id = relation.createdBy.id,
                     part_of = relationSet,
                 )
                 upRelation.save()

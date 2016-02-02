@@ -17,18 +17,20 @@ angular.module('formApp', [])
 
             newElement.find('div').each(function() {
                 var attrs = {};
+                console.log(this);
                 if ($(this).attr('id')) {
                      attrs['id'] = $(this).attr('id').replace('-' + (total-1) + '-','-' + total + '-');
                      attrs['selected-object'] = 'searchStr_' + total;
                 }
                 if ($(this).attr('name')) {
-                     attrs['name'] = $(this).attr('id').replace('-' + (total-1) + '-','-' + total + '-');
+                     attrs['name'] = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
                 }
 
                 $(this).attr(attrs);
             });
 
             newElement.find(':input').each(function() {
+                console.log(this);
                 var attrs = {};
                 if ($(this).attr('name')) {
                      attrs['name'] = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
@@ -43,7 +45,6 @@ angular.module('formApp', [])
 
                 // Increment internal_id.
                 if ($(this).attr('name').indexOf('internal_id') > -1) {
-                    console.log(total);
                     $(this).val(total);
                 } else {
                     $(this).val('');
@@ -59,8 +60,10 @@ angular.module('formApp', [])
 
             })
             newElement.find('label').each(function() {
-                var newFor = $(this).attr('for').replace('-' + (total-1) + '-','-' + total + '-');
-                $(this).attr('for', newFor);
+                if ($(this).attr('for')) {
+                    var newFor = $(this).attr('for').replace('-' + (total-1) + '-','-' + total + '-');
+                    $(this).attr('for', newFor);
+                }
             });
             newElement.find('#form_ident').each(function() {
                 $(this).text(total);
@@ -127,6 +130,9 @@ angular.module('formApp', [])
                     <p>
                         <textarea class="form-control" name="description" placeholder="Please describe this relation.">{% if template_description %}{{ template_description }}{% endif %}</textarea>
                     </p>
+                    <p>
+                        <textarea class="form-control" name="expression" placeholder="Enter an expression pattern for this relation.">{% if template_expression %}{{ template_expression }}{% endif %}</textarea>
+                    </p>
                     <table id="form_table" class="table table-condensed table-striped table-bordered table-responsive">
                         <thead>
                             <tr class="text-center info">
@@ -150,11 +156,18 @@ angular.module('formApp', [])
                                     <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP'">{{ form.source_type }}</li>
                                     <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'CO'">{{ form.source_concept_text }}</li>
                                     <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'RE'">{{ form.source_relationtemplate_internal_id }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP' || selection_{{ form.safe_prefix }}_source_node_type == 'CO'">
+                                        <label>Label</label>
+                                        {{ form.source_label }}
+                                    </li>
 
                                     {{ form.source_concept }}
                                     {{ form.source_relationtemplate }}
 
-                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP'">{{ form.source_description }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP' || selection_{{ form.safe_prefix }}_source_node_type == 'CO'">
+                                        <label>Description</label>
+                                        {{ form.source_description }}
+                                    </li>
                                     <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP' || selection_{{ form.safe_prefix }}_source_node_type == 'CO'">{{ form.source_prompt_text }} Prompt for evidence</li>
 
                                 </ul>
@@ -167,7 +180,14 @@ angular.module('formApp', [])
                                     <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'CO'">{{ form.predicate_concept_text }}</li>
                                     {{ form.predicate_concept }}
 
-                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'TP'">{{ form.predicate_description }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'TP' || selection_{{ form.safe_prefix }}_predicate_node_type == 'CO'">
+                                        <label>Label</label>
+                                        {{ form.predicate_label }}
+                                    </li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'TP' || selection_{{ form.safe_prefix }}_predicate_node_type == 'CO'">
+                                        <label>Description</label>
+                                        {{ form.predicate_description }}
+                                    </li>
                                     <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'TP' || selection_{{ form.safe_prefix }}_predicate_node_type == 'CO'">{{ form.predicate_prompt_text }} Prompt for evidence</li>
 
                                 </ul>
@@ -182,7 +202,15 @@ angular.module('formApp', [])
                                     {{ form.object_concept }}
                                     {{ form.object_relationtemplate }}
 
-                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'TP'">{{ form.object_description }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'TP' || selection_{{ form.safe_prefix }}_object_node_type == 'CO'">
+                                        <label>Label</label>
+                                        {{ form.object_label }}
+                                    </li>
+
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'TP' || selection_{{ form.safe_prefix }}_object_node_type == 'CO'">
+                                        <label>Description</label>
+                                        {{ form.object_description }}
+                                    </li>
                                     <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'TP' || selection_{{ form.safe_prefix }}_object_node_type == 'CO'">{{ form.object_prompt_text }} Prompt for evidence</li>
 
                                 </ul>

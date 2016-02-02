@@ -761,7 +761,7 @@ def concept_details(request, conceptid):
 
 
 @staff_member_required
-def relation_template(request):
+def add_relationtemplate(request):
     """
     Staff can use this view to create :class:`.RelationTemplate`\s.
     """
@@ -886,6 +886,7 @@ def relation_template(request):
     return render(request, 'annotations/relationtemplate.html', context)
 
 
+@login_required
 def list_relationtemplate(request):
     """
     Returns a list of all :class:`.RelationTemplate`\s.
@@ -901,6 +902,7 @@ def list_relationtemplate(request):
     return JsonResponse(data)
 
 
+@login_required
 def get_relationtemplate(request, template_id):
     """
     Returns data on fillable fields in a :class:`.RelationTemplate`\.
@@ -937,5 +939,21 @@ def get_relationtemplate(request, template_id):
         'name': template.name,
         'description': template.description,
         'id': template_id,
+        'expression': template.expression,
     }
     return JsonResponse(data)
+
+
+@login_required
+def create_from_relationtemplate(request, template_id):
+    """
+    Create a :class:`.RelationSet` and constituent :class:`.Relation`\s from
+    a :class:`.RelationTemplate` and user annotations.
+    """
+
+    template = get_object_or_404(RelationTemplate, pk=template_id)
+
+    if request.POST:
+        print request.POST
+
+    return JsonResponse({})
