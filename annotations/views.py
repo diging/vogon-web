@@ -218,6 +218,33 @@ def list_texts(request):
     }
     return HttpResponse(template.render(context))
 
+def list_users(request):
+    """
+    List all the users of Vogon web
+    """
+    queryset = VogonUser.objects.all()
+    template = loader.get_template('annotations/contributors.html')
+    userList = []
+    # text_list = Text.objects.all()
+    for user in queryset:
+        userList.append(user)
+    paginator = Paginator(userList, 25)
+
+    page = request.GET.get('page')
+    try:
+        users = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        users = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        users = paginator.page(paginator.num_pages)
+
+    context = {
+        'user_list': users,
+        'user': request.user,
+    }
+    return HttpResponse(template.render(context))
 
 @login_required
 def collection_texts(request, collectionid):
@@ -281,32 +308,6 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = VogonUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
-    def list(self, request):
-        """
-        List all the users of Vogon web
-        """
-        template = loader.get_template('annotations/contributers.html')
-        userList = []
-        # text_list = Text.objects.all()
-        for user in queryset:
-            userList.append(user)
-        paginator = Paginator(userList, 25)
-
-        page = request.GET.get('page')
-        try:
-            users = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer, deliver first page.
-            users = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range (e.g. 9999), deliver last page of results.
-            users = paginator.page(paginator.num_pages)
-
-        context = {
-            'user_list': users,
-            'user': request.user,
-        }
-        return HttpResponse(template.render(context))
 
 
 class RepositoryViewSet(viewsets.ModelViewSet):

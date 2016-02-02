@@ -16,11 +16,16 @@
     </div>
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
-            {% if texts|length > 0 %}
+            {% if user_list|length > 0 %}
             <ul class="list-group">
-            {% for user in user_list %}
-                <a href="{% url "user" user.id %}" class="list-group-item">{{ user.full_name }}</a>
-            {% endfor %}
+              <div class="list-group row">
+                {% for users in user_list %}
+                  <a href="#" class="list-group-item col-sm-3">{{ users.username }}</a>
+                  <div class="list-group-item col-sm-3">2</div>
+                  <div class="list-group-item col-sm-3">3</div>
+                  <div class="list-group-item col-sm-3">4</div>
+                {% endfor %}
+              </div>
             </ul>
 
             <div>
