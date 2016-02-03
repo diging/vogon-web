@@ -2,7 +2,7 @@
   "name": "vogonweb",
   "description": "",
   "scripts": {
-      "postdeploy": "python manage.py migrate"
+      "postdeploy": "python manage.py migrate; python manage.py loaddata vogonweb-data.xml"
   },
   "env": {
     "DJANGO_SETTINGS_MODULE": "vogon.local_settings"
