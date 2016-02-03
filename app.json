@@ -5,12 +5,9 @@
       "postdeploy": "python manage.py migrate"
   },
   "env": {
-    "DJANGO_SETTINGS_MODULE": {
-      "required": true
-    }
+    "DJANGO_SETTINGS_MODULE": "vogon.local_settings"
   },
   "addons": [
-    "heroku-postgresql:hobby-dev",
     "heroku-redis:hobby-dev"
   ]
 }
