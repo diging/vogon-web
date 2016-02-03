@@ -418,7 +418,6 @@ class RelationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in conceptid]) | Q(object__interpretation__id__in=[int(c) for c in conceptid]))
         if len(related_concepts) > 0:  # Source or target concept in `concept`.
             queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in related_concepts]) & Q(object__interpretation__id__in=[int(c) for c in related_concepts]))
-            print queryset
         if len(userid) > 0:
             queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
         elif userid is not None and type(userid) is not list:
@@ -664,15 +663,15 @@ def network_data(request):
     for key, relation in relations.items():
         relation['size'] = 3. * relation['weight']/max_relation
     for key, node in nodes.items():
-        node['size'] = 3. * node['weight']/max_node
+        node['size'] = (4 + (2 * node['weight']))/max_node
 
     graph = igraph.Graph()
     graph.add_vertices(len(nodes))
     graph.add_edges([(relation['source']['id'], relation['target']['id']) for relation in relations.values()])
     layout = graph.layout_fruchterman_reingold()
     for i, coords in enumerate(layout._coords):
-        nodes.values()[i]['x'] = coords[0] * 25
-        nodes.values()[i]['y'] = coords[1] * 25
+        nodes.values()[i]['x'] = coords[0] * 2
+        nodes.values()[i]['y'] = coords[1] * 2
 
 
     return JsonResponse({'nodes': nodes.values(), 'edges': relations.values()})

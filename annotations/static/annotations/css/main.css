@@ -199,13 +199,24 @@ circle.node {
 
 .nodeLabel {
     font-size: 8pt;
-    visibility: hidden;
+
+    /* Prevent selecting text. */
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Chrome/Safari/Opera */
+    -khtml-user-select: none;    /* Konqueror */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;       /* IE/Edge */
+    user-select: none;
+    display: none;
 }
 
 
 .nodeSelected .nodeLabel {
     font-size: 13pt;
-    visibility: visible;
+
+    opacity: 1.0;
+    display: block;
+    z-index: 5000;
 }
 
 .panel.narrow {
