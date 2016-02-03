@@ -1,0 +1,13 @@
+{
+  "name": "vogonweb",
+  "description": "",
+  "scripts": {
+      "postdeploy": "python manage.py migrate"
+  },
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "vogon.local_settings"
+  },
+  "addons": [
+    "heroku-redis:hobby-dev"
+  ]
+}
