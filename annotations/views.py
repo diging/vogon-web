@@ -255,13 +255,9 @@ def text(request, textid):
     Provides the main text annotation view for logged-in users.
     Provides summary of the text for non-logged-in users.
     """
-    text_dict = dict()
-    text = get_object_or_404(Text, pk=textid)
-    text_dict['text'] = text
-    text_dict['textid'] = textid
-    text_dict['title'] = 'Annotate Text'
-    text_dict['baselocation'] = basepath(request)
 
+    text = get_object_or_404(Text, pk=textid)
+    context_data = {'text': text, 'textid': textid, 'title': 'Annotate Text', 'baselocation' : basepath(request)}
     if request.user.is_authenticated():
         template = loader.get_template('annotations/text.html')
 
@@ -271,13 +267,13 @@ def text(request, textid):
             # TODO: return a pretty templated response.
             return HttpResponseForbidden("Sorry, this text is restricted.")
 
-        text_dict['userid'] = request.user.id
+        context_data['userid'] = request.user.id
 
-        context = RequestContext(request, text_dict)
+        context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
     else:
         template = loader.get_template('annotations/anonymous_text.html')
-        context = RequestContext(request, text_dict)
+        context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
 
 
@@ -683,14 +679,21 @@ def add_text_to_collection(request, *args, **kwargs):
     return JsonResponse({})
 
 
-@login_required
+#@login_required
 def user_details(request, userid, *args, **kwargs):
     user = get_object_or_404(VogonUser, pk=userid)
-    template = loader.get_template('annotations/user_details.html')
-    context = RequestContext(request, {
-        'user': request.user,
-        'detail_user': user,
-    })
+    if request.user.is_authenticated():
+        template = loader.get_template('annotations/user_details.html')
+        context = RequestContext(request, {
+            'user': request.user,
+            'detail_user': user,
+        })
+    else:
+        template = loader.get_template('annotations/user_details.html')
+        context = RequestContext(request, {
+            'user': request.user,
+            'detail_user': user,
+        })
     return HttpResponse(template.render(context))
 
 
