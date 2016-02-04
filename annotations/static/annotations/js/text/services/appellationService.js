@@ -40,6 +40,7 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
             if (!(appId in this.appellationsById)) return; // Nothing to do.
 
             var appIndex = this.getAppellationIndex(appId);
+
             var appellation = this.appellationsById[appId];
             var foundIndex = null;
 
@@ -51,8 +52,7 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
                 if (foundIndex != null) this.appellationHash[appellation.interpretation].splice(foundIndex, 1);
             }
 
-            if (appIndex > -1) this.appellations.slice(appIndex, 1)
-
+            if (appIndex > -1) this.appellations.splice(appIndex, 1)
             // Remove from ID index.
             if (appId in this.appellationsById) {
                 delete this.appellationsById[appId];
@@ -74,12 +74,16 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
           */
         getAppellation: function(appId) {
             // First check our current index.
+            var service = this;
             if (appId in this.appellationsById) {
+                return $q(function(resolve, reject) {
+                    resolve(service.appellationsById[appId]);
+                });
                 // We use the $q service to mimic the Resource get promise in
                 //  the else case.
-                var deferred = $q.defer();
-                deferred.resolve(this.appellationsById[appId]);
-                return deferred.promise;
+                // var deferred = $q.defer();
+                // deferred.resolve();
+                // return deferred.promise;
             } else {
                 return Appellation.get({id: appId}).$promise;
             }
@@ -90,7 +94,7 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
           */
         getAppellationIndex: function(appId) {  // Retrieve by ID.
             var foundIndex = null;
-            service.appellations.forEach(function(appellation, index) {
+            this.appellations.forEach(function(appellation, index) {
                 if (String(appellation.id) == String(appId)) foundIndex = index;
             });
             return foundIndex;
