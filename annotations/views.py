@@ -679,21 +679,14 @@ def add_text_to_collection(request, *args, **kwargs):
     return JsonResponse({})
 
 
-#@login_required
+@login_required
 def user_details(request, userid, *args, **kwargs):
     user = get_object_or_404(VogonUser, pk=userid)
-    if request.user.is_authenticated():
-        template = loader.get_template('annotations/user_details.html')
-        context = RequestContext(request, {
-            'user': request.user,
-            'detail_user': user,
-        })
-    else:
-        template = loader.get_template('annotations/user_details.html')
-        context = RequestContext(request, {
-            'user': request.user,
-            'detail_user': user,
-        })
+    template = loader.get_template('annotations/user_details.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'detail_user': user,
+    })
     return HttpResponse(template.render(context))
 
 
