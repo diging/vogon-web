@@ -19,11 +19,15 @@
             {% if user_list|length > 0 %}
             <ul class="list-group">
               <div class="list-group row">
+                <div class="list-group-item col-sm-3"><h5><b>User Name</b></h5></div>
+                <div class="list-group-item col-sm-3"><h5><b>Full Name</b></h5></div>
+                <div class="list-group-item col-sm-3"><h5><b>Affiliation</b></h5></div>
+                <div class="list-group-item col-sm-3"><h5><b>Location</b></h5></div>
                 {% for users in user_list %}
                   <a href="#" class="list-group-item col-sm-3">{{ users.username }}</a>
-                  <div class="list-group-item col-sm-3">2</div>
-                  <div class="list-group-item col-sm-3">3</div>
-                  <div class="list-group-item col-sm-3">4</div>
+                  <div class="list-group-item col-sm-3">{{user.full_name}}</div>
+                  <div class="list-group-item col-sm-3">{{user.affiliation}}</div>
+                  <div class="list-group-item col-sm-3">{{user.location}}</div>
                 {% endfor %}
               </div>
             </ul>
