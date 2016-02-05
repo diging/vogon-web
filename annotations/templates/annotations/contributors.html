@@ -19,15 +19,21 @@
             {% if user_list|length > 0 %}
             <ul class="list-group">
               <div class="list-group row">
-                <div class="list-group-item col-sm-3"><h5><b>User Name</b></h5></div>
-                <div class="list-group-item col-sm-3"><h5><b>Full Name</b></h5></div>
-                <div class="list-group-item col-sm-3"><h5><b>Affiliation</b></h5></div>
-                <div class="list-group-item col-sm-3"><h5><b>Location</b></h5></div>
+                <a href="?sort=user_name" class="list-group-item col-sm-3"><h5> <b>User Name</b></h5></a>
+                <a href="?sort=name" class="list-group-item col-sm-3"><h5><b>Full Name</b></h5></a>
+                <a href="?sort=aff" class="list-group-item col-sm-3"><h5><b>Affiliation</b></h5></a>
+                <a href="?sort=loc"class="list-group-item col-sm-3"><h5><b>Location</b></h5></a>
                 {% for users in user_list %}
-                  <a href="#" class="list-group-item col-sm-3">{{ users.username }}</a>
-                  <div class="list-group-item col-sm-3">{{user.full_name}}</div>
-                  <div class="list-group-item col-sm-3">{{user.affiliation}}</div>
-                  <div class="list-group-item col-sm-3">{{user.location}}</div>
+
+                  {% if users.is_admin %}
+                    <a href="/user/{{users.id}}/" class="list-group-item col-sm-3">
+                    {{ users.username }} &nbsp;<span class="glyphicon glyphicon-user"></span></a>
+                  {% else %}
+                  <a href="/user/{{users.id}}/" class="list-group-item col-sm-3">{{ users.username }}</a>
+                  {% endif %}
+                  <div class="list-group-item col-sm-3">{{users.full_name}}</div>
+                  <div class="list-group-item col-sm-3">{{users.affiliation}}</div>
+                  <div class="list-group-item col-sm-3">{{users.location}}</div>
                 {% endfor %}
               </div>
             </ul>
@@ -51,7 +57,7 @@
                         <a href="?page={{ user_list.next_page_number }}">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
-                    </lu>
+                    </li>
                     {% endif %}
                 </ul>
             </div>

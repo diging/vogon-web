@@ -281,13 +281,22 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = VogonUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
-    user_list = list(queryset)
+    counter = 1
     def list(self, request):
         """
         List all the users of Vogon web
         """
+        #To map the column sort parameter from UI to the column name in DB
+        sortDict = {"user_name":"username", "name":"full_name",
+         "aff":"affiliation", "loc":"location"}
+
+        sort = request.GET.get('sort')
+        if(sort != None):
+            sort_by = sortDict[sort]
+            self.queryset = VogonUser.objects.all().order_by(sort_by)
+        user_list = list(self.queryset)
         template = loader.get_template('annotations/contributors.html')
-        paginator = Paginator(self.user_list, 25)
+        paginator = Paginator(user_list, 25)
 
         page = request.GET.get('page')
         try:
