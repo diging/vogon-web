@@ -713,7 +713,6 @@ def user_details(request, userid, *args, **kwargs):
             annotationCount += text.annotationCount
         textAnnotated = len(annotationsSet)
         template = loader.get_template('annotations/user_details_public.html')
-	print '------>',annotationCount
         context = RequestContext(request, {
             'detail_user': user,
             'textCount': textCount,
