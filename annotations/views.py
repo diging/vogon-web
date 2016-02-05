@@ -48,6 +48,8 @@ import igraph
 import json
 
 from django.shortcuts import render
+
+
 def home(request):
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('dashboard'))
@@ -159,6 +161,13 @@ def user_settings(request):
     })
     return HttpResponse(template.render(context))
 
+def about(request):
+    """
+    Provides information about Vogon-Web
+    """
+    template = loader.get_template('annotations/about.html')
+    context = RequestContext(request)
+    return HttpResponse(template.render(context))
 
 @login_required
 def dashboard(request):
@@ -191,7 +200,6 @@ def network(request):
     return HttpResponse(template.render(context))
 
 
-@login_required
 def list_texts(request):
     """
     List all of the texts that the user can see, with links to annotate them.
@@ -252,28 +260,31 @@ def collection_texts(request, collectionid):
 
 
 @ensure_csrf_cookie
-@login_required
 def text(request, textid):
     """
-    Provides the main text annotation view.
+    Provides the main text annotation view for logged-in users.
+    Provides summary of the text for non-logged-in users.
     """
-    template = loader.get_template('annotations/text.html')
+
     text = get_object_or_404(Text, pk=textid)
+    context_data = {'text': text, 'textid': textid, 'title': 'Annotate Text', 'baselocation' : basepath(request)}
+    if request.user.is_authenticated():
+        template = loader.get_template('annotations/text.html')
 
-    # If a text is restricted, then the user needs explicit permission to
-    #  access it.
-    if not text.public and not request.user.has_perm('annotations.view_text'):
-        # TODO: return a pretty templated response.
-        return HttpResponseForbidden("Sorry, this text is restricted.")
+        # If a text is restricted, then the user needs explicit permission to
+        #  access it.
+        if not text.public and not request.user.has_perm('annotations.view_text'):
+            # TODO: return a pretty templated response.
+            return HttpResponseForbidden("Sorry, this text is restricted.")
 
-    context = RequestContext(request, {
-        'textid': textid,
-        'text': text,
-        'userid': request.user.id,
-        'title': 'Annotate Text',
-        'baselocation': basepath(request),
-    })
-    return HttpResponse(template.render(context))
+        context_data['userid'] = request.user.id
+
+        context = RequestContext(request, context_data)
+        return HttpResponse(template.render(context))
+    else:
+        template = loader.get_template('annotations/anonymous_text.html')
+        context = RequestContext(request, context_data)
+        return HttpResponse(template.render(context))
 
 
 ### REST API class-based views.
@@ -353,6 +364,9 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
 
         concept = self.request.query_params.get('concept', None)
         text = self.request.query_params.get('text', None)
+        thisuser = self.request.query_params.get('thisuser', False)
+        if thisuser:
+            queryset = queryset.filter(createdBy_id=self.request.user.id)
         if concept:
             queryset = queryset.filter(interpretation_id=concept)
         if text:
@@ -399,7 +413,6 @@ class RelationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in conceptid]) | Q(object__interpretation__id__in=[int(c) for c in conceptid]))
         if len(related_concepts) > 0:  # Source or target concept in `concept`.
             queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in related_concepts]) & Q(object__interpretation__id__in=[int(c) for c in related_concepts]))
-            print queryset
         if len(userid) > 0:
             queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
         elif userid is not None and type(userid) is not list:
@@ -645,15 +658,15 @@ def network_data(request):
     for key, relation in relations.items():
         relation['size'] = 3. * relation['weight']/max_relation
     for key, node in nodes.items():
-        node['size'] = 3. * node['weight']/max_node
+        node['size'] = (4 + (2 * node['weight']))/max_node
 
     graph = igraph.Graph()
     graph.add_vertices(len(nodes))
     graph.add_edges([(relation['source']['id'], relation['target']['id']) for relation in relations.values()])
     layout = graph.layout_fruchterman_reingold()
     for i, coords in enumerate(layout._coords):
-        nodes.values()[i]['x'] = coords[0] * 25
-        nodes.values()[i]['y'] = coords[1] * 25
+        nodes.values()[i]['x'] = coords[0] * 2
+        nodes.values()[i]['y'] = coords[1] * 2
 
 
     return JsonResponse({'nodes': nodes.values(), 'edges': relations.values()})
