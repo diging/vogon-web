@@ -36,16 +36,13 @@ class VogonUserAdmin(UserAdmin):
 class TextAdmin(admin.ModelAdmin):
     list_display = ('uri', 'title', 'created')
 
+
 class RelationAdmin(admin.ModelAdmin):
-    list_display = ('ID', 'OCCURS_IN', 'CREATED_BY', 'CREATED_AT')
-    def ID(self, obj):
-        return obj.id
-    def OCCURS_IN(self, obj):
+    list_display = ('id', 'occurs_in', 'created_by', 'created')
+    def occurs_in(self, obj):
         return obj.occursIn.title
-    def CREATED_BY(self, obj):
+    def created_by(self, obj):
         return obj.createdBy
-    def CREATED_AT(self, obj):
-        return obj.created
 
 
 admin.site.register(VogonUser, VogonUserAdmin)
