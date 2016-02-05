@@ -685,16 +685,43 @@ def add_text_to_collection(request, *args, **kwargs):
     return JsonResponse({})
 
 
-@login_required
 def user_details(request, userid, *args, **kwargs):
-    user = get_object_or_404(VogonUser, pk=userid)
-    template = loader.get_template('annotations/user_details.html')
-    context = RequestContext(request, {
-        'user': request.user,
-        'detail_user': user,
-    })
-    return HttpResponse(template.render(context))
+    """
 
+    :param request: The user request to fetch user details
+    :type: Request()
+    :param userid:
+    :type int
+    :param args:
+    :type list
+    :param kwargs:
+    :type dict
+    :return: HttpResponse
+    """
+    user = get_object_or_404(VogonUser, pk=userid)
+    if request.user.is_authenticated():
+        template = loader.get_template('annotations/user_details.html')
+        context = RequestContext(request, {
+            'user': request.user,
+            'detail_user': user,
+        })
+    else:
+        textCount = Text.objects.filter(addedBy=user).count()
+        annotationsSet = Text.objects.filter(annotators=user).distinct()
+        annotationCount = 0
+        for text in annotationsSet:
+            annotationCount += text.annotationCount
+        textAnnotated = len(annotationsSet)
+        template = loader.get_template('annotations/user_details_public.html')
+	print '------>',annotationCount
+        context = RequestContext(request, {
+            'detail_user': user,
+            'textCount': textCount,
+            'annotationCount': annotationCount,
+            'textAnnotated' : textAnnotated
+        })
+
+    return HttpResponse(template.render(context))
 
 def list_collections(request, *args, **kwargs):
     queryset = TextCollection.objects.all()
