@@ -17,8 +17,16 @@
 				
 				<li class="list-group-item"><strong>Affiliation: </strong>{{ detail_user.affiliation }}</li>
 				<li class="list-group-item"><strong>Location: </strong>{{ detail_user.location }}</li>
-				<li class="list-group-item"><strong>Concept power URI: </strong><a href="{{ detail_user.conceptpower_uri }}">{{ detail_user.conceptpower_uri }}</a></li>
+				{% if  detail_user.conceptpower_uri  %}
+					<li class="list-group-item"><strong>Concept power URI: </strong><a href="{{ detail_user.conceptpower_uri }}">{{ detail_user.conceptpower_uri }}</a></li>
+				{%  else %}
+					<li class="list-group-item"><strong>Concept power URI: </strong>{{ detail_user.conceptpower_uri }}</li>
+				{% endif %}
+				{% if  detail_user.link  %}
 				<li class="list-group-item"><strong>Link: </strong><a href="{{ detail_user.link}}">{{ detail_user.link}}</a></li>
+				{%  else %}
+					<li class="list-group-item"><strong>Link: </strong>{{ detail_user.link }}</li>
+				{% endif %}
 				<li class="list-group-item">User has added <strong>{{textCount}}</strong> texts</li>
 				<li class="list-group-item">Contributed to <strong>{{ annotationCount }}</strong> annotations out of <strong>{{textAnnotated}}</strong> texts</li>
 			</ul>
