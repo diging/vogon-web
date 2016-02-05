@@ -89,7 +89,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location', 'link', )
+        fields = ('full_name', 'email', 'affiliation', 'location', 'link', 'imageFile')
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -113,7 +113,8 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location', 'link', )
+        fields = ('full_name', 'email', 'affiliation', 'location', 'link', 'imageFile' )
+        imageFile = forms.FileField(label='Select a file',)
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.

@@ -139,7 +139,10 @@ def user_settings(request):
     if request.method == 'POST':
         form = UserChangeForm(request.POST)
         if form.is_valid():
-            for field in ['first_name', 'last_name', 'email']:
+            uImage = VogonUser(imageFile = request.FILES['imageFile'])
+            uImage.save()
+
+            for field in ['first_name', 'last_name', 'email',]:
                 value = request.POST.get(field, None)
                 if value:
                     setattr(request.user, field, value)
