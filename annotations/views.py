@@ -713,16 +713,13 @@ def user_details(request, userid, *args, **kwargs):
         })
     else:
         textCount = Text.objects.filter(addedBy=user).count()
-        annotationsSet = Text.objects.filter(annotators=user).distinct()
-        annotationCount = 0
-        for text in annotationsSet:
-            annotationCount += text.annotationCount
-        textAnnotated = annotationsSet.count()
+        textAnnotated = Text.objects.filter(annotators=user).distinct().count()
+        relationCount = user.relation_set.count()
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
             'textCount': textCount,
-            'annotationCount': annotationCount,
+            'relationCount': relationCount,
             'textAnnotated': textAnnotated
         })
     return HttpResponse(template.render(context))
