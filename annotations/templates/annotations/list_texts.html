@@ -24,10 +24,12 @@
             <table class="table table-hover">
               <th>Text title</th>
               <th>Count</th>
+              <th>Publication date</th>
               {% for text in texts %}
               <tr>
-                <td><a href="{% url "text" text.id %}">{{ text.title }}</a></td:>
+                <td><a href="{% url "text" text.id %}">{{ text.title }}</a></td>
                 <td><span class="badge">{{ text.relationCount }}</span></td>
+                <td>{{text.created}}</td>
               </tr>
               {% endfor %}
             </table>
