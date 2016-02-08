@@ -225,6 +225,41 @@ def list_texts(request):
     return HttpResponse(template.render(context))
 
 
+def list_user(request):
+    """
+    List all the users of Vogon web
+    """
+
+    template = loader.get_template('annotations/contributors.html')
+
+    #To map the column sort parameter from UI to the column name in DB
+    sort_dict = {"user_name":"username", "name":"full_name",
+     "aff":"affiliation", "loc":"location"}
+
+    sort = request.GET.get('sort', 'user_name')
+
+    sort_column = sort_dict[sort]
+
+    queryset = VogonUser.objects.all().order_by(sort_column)
+    paginator = Paginator(queryset, 25)
+
+    page = request.GET.get('page')
+    try:
+        users = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        users = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        users = paginator.page(paginator.num_pages)
+
+    context = {
+        'sort_column' : sort,
+        'user_list': users,
+        'user': request.user,
+    }
+    return HttpResponse(template.render(context))
+
 @login_required
 def collection_texts(request, collectionid):
     """
@@ -282,7 +317,6 @@ def text(request, textid):
         template = loader.get_template('annotations/anonymous_text.html')
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
-
 
 ### REST API class-based views.
 
