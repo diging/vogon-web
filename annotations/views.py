@@ -228,20 +228,16 @@ def list_user(request):
 
     #Default Sort
     sort = "user_name"
-    sort_order = "asc"
     #To map the column sort parameter from UI to the column name in DB
     sort_dict = {"user_name":"username", "name":"full_name",
      "aff":"affiliation", "loc":"location"}
 
     if(request.GET.get('sort') != None):
         sort = request.GET.get('sort')
-    if(request.GET.get('sort_order') != None):
-        sort_order = request.GET.get('sort_order')
 
     sort_column = sort_dict[sort]
 
-    if(sort_order == "dsc"):
-        queryset = VogonUser.objects.all().order_by("-"+sort_column)
+    queryset = VogonUser.objects.all().order_by(sort_column)
     paginator = Paginator(queryset, 5)
 
     page = request.GET.get('page')
@@ -255,7 +251,6 @@ def list_user(request):
         users = paginator.page(paginator.num_pages)
 
     context = {
-        'sort_order' : sort_order
         'sort_column' : sort,
         'user_list': users,
         'user': request.user,
