@@ -19,18 +19,28 @@
             {% if user_list|length > 0 %}
             <ul class="list-group">
               <div class="list-group row">
+                <a href="?sort=user_name" class="list-group-item col-sm-3"><h5><b>User Name</b></h5></a>
+                <a href="?sort=name" class="list-group-item col-sm-3"><h5><b>Full Name</b></h5></a>
+                <a href="?sort=aff" class="list-group-item col-sm-3"><h5><b>Affiliation</b></h5></a>
+                <a href="?sort=loc"class="list-group-item col-sm-3"><h5><b>Location</b></h5></a>
                 {% for users in user_list %}
-                  <a href="#" class="list-group-item col-sm-3">{{ users.username }}</a>
-                  <div class="list-group-item col-sm-3">2</div>
-                  <div class="list-group-item col-sm-3">3</div>
-                  <div class="list-group-item col-sm-3">4</div>
+
+                  {% if users.is_admin %}
+                    <a href="/user/{{users.id}}/" class="list-group-item col-sm-3">
+                    {{ users.username }} &nbsp;<span class="glyphicon glyphicon-user"></span></a>
+                  {% else %}
+                  <a href="/user/{{users.id}}/" class="list-group-item col-sm-3">{{ users.username }}</a>
+                  {% endif %}
+                  <div class="list-group-item col-sm-3">{{users.full_name}}</div>
+                  <div class="list-group-item col-sm-3">{{users.affiliation}}</div>
+                  <div class="list-group-item col-sm-3">{{users.location}}</div>
                 {% endfor %}
               </div>
             </ul>
 
             <div>
                 <ul class="pagination pagination-sm">
-                    {% if texts.has_previous %}
+                    {% if user_list.has_previous %}
                     <li>
                         <a href="?page={{ user_list.previous_page_number }}">
                             <span aria-hidden="true">&laquo;</span>
@@ -39,7 +49,7 @@
                     {% endif %}
                     {% for p in user_list.paginator.page_range %}
                     <li{% if p == user_list.number %} class="active"{% endif %}>
-                        <a href="?page={{p}}">{{p}}</a>
+                        <a href="?page={{p}}&sort={{sort_column}}">{{p}}</a>
                     </li>
                     {% endfor %}
                     {% if user_list.has_next %}
@@ -47,7 +57,7 @@
                         <a href="?page={{ user_list.next_page_number }}">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
-                    </lu>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
