@@ -139,16 +139,15 @@ def user_settings(request):
     """ User profile settings"""
 
     if request.method == 'POST':
-        form = UserChangeForm(request.POST)
+        form = UserChangeForm(request.POST,request.FILES)
         if form.is_valid():
-            uImage = VogonUser(imageFile = request.FILES['imageFile'])
-            uImage.save()
-
-            for field in ['first_name', 'last_name', 'email',]:
+            
+            for field in ['first_name', 'last_name', 'email','imagefile']:
                 value = request.POST.get(field, None)
                 if value:
                     setattr(request.user, field, value)
             request.user.save()
+
             return HttpResponseRedirect('/accounts/profile/')
     else:
         form = UserChangeForm(instance=request.user)
