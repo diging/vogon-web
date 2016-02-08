@@ -25,9 +25,9 @@
               <th>Text title</th>
               <th>Count</th>
               {% for text in texts %}
-              <tr class="text-table">
+              <tr>
                 <td><a href="{% url "text" text.id %}">{{ text.title }}</a></td:>
-                <td>{{ text.relationCount }}</td>
+                <td><span class="badge">{{ text.relationCount }}</span></td>
               </tr>
               {% endfor %}
             </table>
