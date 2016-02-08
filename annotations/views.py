@@ -142,11 +142,15 @@ def user_settings(request):
         form = UserChangeForm(request.POST,request.FILES)
         if form.is_valid():
             
+            
             for field in ['first_name', 'last_name', 'email','imagefile']:
                 value = request.POST.get(field, None)
                 if value:
                     setattr(request.user, field, value)
             request.user.save()
+
+                #to save uploaded file
+            save_file(request.FILES['imagefile'])
 
             return HttpResponseRedirect('/accounts/profile/')
     else:
@@ -159,6 +163,13 @@ def user_settings(request):
         'subpath': settings.SUBPATH,
     })
     return HttpResponse(template.render(context))
+
+def save_file(f):
+    filename = f.name
+    fd = open('%s/%s' % (settings.MEDIA_ROOT, str(filename)), 'wb')
+    for chunk in f.chunks():
+        fd.write(chunk)
+    fd.close()
 
 def about(request):
     """
@@ -758,3 +769,6 @@ def concept_details(request, conceptid):
     })
 
     return HttpResponse(template.render(context))
+
+
+

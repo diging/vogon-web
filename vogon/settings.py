@@ -118,8 +118,6 @@ USE_TZ = True
 
 STATIC_URL = '/vogonstatic/'
 STATIC_ROOT = '/diging/wwwnginx/vogon/static/'
-MEDIA_ROOT = os.path.join(STATIC_ROOT, 'media')
-MEDIA_URL = '/media/'
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False
