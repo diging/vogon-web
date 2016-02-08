@@ -268,11 +268,3 @@ circle.node {
 .navbar-nav {
     font-size: 1.2em;
 }
-
-.text-table:hover{
-    background-color: #F0F0F0;
-}
-
-.text-table a{
-    text-decoration: none;
-}
