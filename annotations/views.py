@@ -218,7 +218,7 @@ def list_texts(request):
     }
     return HttpResponse(template.render(context))
 
-@login_required
+
 def list_user(request):
     """
     List all the users of Vogon web
