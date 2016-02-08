@@ -226,14 +226,11 @@ def list_user(request):
 
     template = loader.get_template('annotations/contributors.html')
 
-    #Default Sort
-    sort = "user_name"
     #To map the column sort parameter from UI to the column name in DB
     sort_dict = {"user_name":"username", "name":"full_name",
      "aff":"affiliation", "loc":"location"}
 
-    if(request.GET.get('sort') != None):
-        sort = request.GET.get('sort')
+    sort = request.GET.get('sort', 'user_name')
 
     sort_column = sort_dict[sort]
 
