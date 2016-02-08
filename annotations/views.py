@@ -685,14 +685,43 @@ def add_text_to_collection(request, *args, **kwargs):
     return JsonResponse({})
 
 
-@login_required
 def user_details(request, userid, *args, **kwargs):
+    """
+    Provides users with their own profile view and public profile view of other users in case they are loggedIn.
+    Provides users with public profile page in case they are not loggedIn
+    ----------
+    request : HTTPRequest
+        The request for fetching user details
+    userid : int
+        The userid of user who's data  needs to be fetched
+    args : list
+        List of arguments to view
+    kwargs : dict
+        dict of arugments to view
+    Returns
+    ----------
+    :HTTPResponse:
+        Renders an user details view based on user's authentication status.
+    """
+
     user = get_object_or_404(VogonUser, pk=userid)
-    template = loader.get_template('annotations/user_details.html')
-    context = RequestContext(request, {
-        'user': request.user,
-        'detail_user': user,
-    })
+    if request.user.is_authenticated() and request.user.id == userid:
+        template = loader.get_template('annotations/user_details.html')
+        context = RequestContext(request, {
+            'user': request.user,
+            'detail_user': user,
+        })
+    else:
+        textCount = Text.objects.filter(addedBy=user).count()
+        textAnnotated = Text.objects.filter(annotators=user).distinct().count()
+        relationCount = user.relation_set.count()
+        template = loader.get_template('annotations/user_details_public.html')
+        context = RequestContext(request, {
+            'detail_user': user,
+            'textCount': textCount,
+            'relationCount': relationCount,
+            'textAnnotated': textAnnotated
+        })
     return HttpResponse(template.render(context))
 
 
