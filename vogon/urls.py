@@ -42,6 +42,7 @@ remotecollection_router = nrouters.NestedSimpleRouter(repository_router, r'colle
 remotecollection_router.register('resource', views.RemoteResourceViewSet, base_name='collection')
 
 urlpatterns = [
+    url(r'^home/$',views.home,name="home"),
     url(r'^about/$', views.about, name='about'),
     url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
     url(r'^accounts/settings/$', views.user_settings),

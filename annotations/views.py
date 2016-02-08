@@ -51,9 +51,19 @@ from django.shortcuts import render
 
 
 def home(request):
-    if request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('dashboard'))
-    return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
+    template = loader.get_template('registration/home.html')
+    user_count = VogonUser.objects.filter(is_active=True).count()
+    text_count = Text.objects.all().count()
+    #relation_count = Relation.all().count()
+    context = RequestContext(request, {
+        'user_count': user_count,
+        'text_count': text_count,
+        'relation_count':0
+    })
+    return HttpResponse(template.render(context))
+    # if request.user.is_authenticated():
+    #     return HttpResponseRedirect(reverse('dashboard'))
+    # return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
 
 
 def user_texts(user):
