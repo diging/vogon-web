@@ -72,10 +72,11 @@ def home(request):
         template = loader.get_template('registration/home.html')
         user_count = VogonUser.objects.filter(is_active=True).count()
         text_count = Text.objects.all().count()
+        relation_count = Relation.objects.count()
         context = RequestContext(request, {
             'user_count': user_count,
             'text_count': text_count,
-            'relation_count':0
+            'relation_count': relation_count
         })
         return HttpResponse(template.render(context))
 
