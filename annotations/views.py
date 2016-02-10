@@ -51,19 +51,33 @@ from django.shortcuts import render
 
 
 def home(request):
-    template = loader.get_template('registration/home.html')
-    user_count = VogonUser.objects.filter(is_active=True).count()
-    text_count = Text.objects.all().count()
-    #relation_count = Relation.all().count()
-    context = RequestContext(request, {
-        'user_count': user_count,
-        'text_count': text_count,
-        'relation_count':0
-    })
-    return HttpResponse(template.render(context))
-    # if request.user.is_authenticated():
-    #     return HttpResponseRedirect(reverse('dashboard'))
-    # return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
+    """
+
+    Provides a landing page containing information about the application
+    for user who are not authenticated
+
+    LoggedIn users are redirected to the dashboard view
+    ----------
+    request : HTTPRequest
+        The request for application landing page.
+    Returns
+    ----------
+    :template:
+        Renders landing page for non-loggedin user and
+        dashboard view for loggedin users.
+    """
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('dashboard'))
+    else:
+        template = loader.get_template('registration/home.html')
+        user_count = VogonUser.objects.filter(is_active=True).count()
+        text_count = Text.objects.all().count()
+        context = RequestContext(request, {
+            'user_count': user_count,
+            'text_count': text_count,
+            'relation_count':0
+        })
+        return HttpResponse(template.render(context))
 
 
 def user_texts(user):
