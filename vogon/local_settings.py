@@ -130,9 +130,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/diging/wwwnginx/vogon/static/'
-MEDIA_ROOT = '/home/jasdeep/Documents'
+#MEDIA_ROOT = '/home/jasdeep/Documents'
 MEDIA_URL = '/media/'
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False

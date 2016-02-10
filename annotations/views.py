@@ -44,6 +44,7 @@ from urlnorm import norm
 from itertools import chain
 import uuid
 import igraph
+import os
 
 import json
 
@@ -166,6 +167,10 @@ def user_settings(request):
 
 def save_file(f):
     filename = f.name
+
+    if not os.path.exists(settings.MEDIA_ROOT):
+        os.makedirs(settings.MEDIA_ROOT)
+
     fd = open('%s/%s' % (settings.MEDIA_ROOT, str(filename)), 'wb')
     for chunk in f.chunks():
         fd.write(chunk)
