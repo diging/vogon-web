@@ -31,7 +31,7 @@
                 {% for users in user_list %}
                 <tr>
                     <td class="col-sm-3">
-                    <a href="/user/{{users.id}}/">{{ users.username }} &nbsp;{% if users.is_admin %}<span class="glyphicon glyphicon-user"></span>{% endif %}</a></td>
+                    <a href="{% url "user_details" users.id %}">{{ users.username }} &nbsp;{% if users.is_admin %}<span class="glyphicon glyphicon-user"></span>{% endif %}</a></td>
                     <td class="col-sm-3">{% if users.full_name %}{{users.full_name}}{% endif %}</td>
                     <td class="col-sm-3">{% if users.affiliation %}{{users.affiliation}}{% endif %}</td>
                     <td class="col-sm-3">{% if users.location %}{{users.location}}{% endif %}</td>
