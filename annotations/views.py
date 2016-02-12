@@ -203,8 +203,12 @@ def list_texts(request):
     """
     template = loader.get_template('annotations/list_texts.html')
 
+
+    #Text.objects.all().order_by(order_by)
+
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
-    text_list = text_list.order_by('title')
+    order_by = request.GET.get('order_by','title')
+    text_list = text_list.order_by(order_by)
     # text_list = Text.objects.all()
     paginator = Paginator(text_list, 25)
 
