@@ -52,9 +52,34 @@ from django.shortcuts import render
 
 
 def home(request):
+    """
+
+    Provides a landing page containing information about the application
+    for user who are not authenticated
+
+    LoggedIn users are redirected to the dashboard view
+    ----------
+    request : HTTPRequest
+        The request for application landing page.
+    Returns
+    ----------
+    :template:
+        Renders landing page for non-loggedin user and
+        dashboard view for loggedin users.
+    """
     if request.user.is_authenticated():
         return HttpResponseRedirect(reverse('dashboard'))
-    return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
+    else:
+        template = loader.get_template('registration/home.html')
+        user_count = VogonUser.objects.filter(is_active=True).count()
+        text_count = Text.objects.all().count()
+        relation_count = Relation.objects.count()
+        context = RequestContext(request, {
+            'user_count': user_count,
+            'text_count': text_count,
+            'relation_count': relation_count
+        })
+        return HttpResponse(template.render(context))
 
 
 def user_texts(user):
@@ -231,7 +256,7 @@ def list_texts(request):
     template = loader.get_template('annotations/list_texts.html')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
-
+    text_list = text_list.order_by('title')
     # text_list = Text.objects.all()
     paginator = Paginator(text_list, 25)
 
@@ -251,6 +276,41 @@ def list_texts(request):
     }
     return HttpResponse(template.render(context))
 
+
+def list_user(request):
+    """
+    List all the users of Vogon web
+    """
+
+    template = loader.get_template('annotations/contributors.html')
+
+    #To map the column sort parameter from UI to the column name in DB
+    sort_dict = {"user_name":"username", "name":"full_name",
+     "aff":"affiliation", "loc":"location"}
+
+    sort = request.GET.get('sort', 'user_name')
+
+    sort_column = sort_dict[sort]
+
+    queryset = VogonUser.objects.exclude(id = -1).order_by(sort_column)
+    paginator = Paginator(queryset, 25)
+
+    page = request.GET.get('page')
+    try:
+        users = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        users = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        users = paginator.page(paginator.num_pages)
+
+    context = {
+        'sort_column' : sort,
+        'user_list': users,
+        'user': request.user,
+    }
+    return HttpResponse(template.render(context))
 
 @login_required
 def collection_texts(request, collectionid):
@@ -309,7 +369,6 @@ def text(request, textid):
         template = loader.get_template('annotations/anonymous_text.html')
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
-
 
 ### REST API class-based views.
 
@@ -712,14 +771,43 @@ def add_text_to_collection(request, *args, **kwargs):
     return JsonResponse({})
 
 
-@login_required
 def user_details(request, userid, *args, **kwargs):
+    """
+    Provides users with their own profile view and public profile view of other users in case they are loggedIn.
+    Provides users with public profile page in case they are not loggedIn
+    ----------
+    request : HTTPRequest
+        The request for fetching user details
+    userid : int
+        The userid of user who's data  needs to be fetched
+    args : list
+        List of arguments to view
+    kwargs : dict
+        dict of arugments to view
+    Returns
+    ----------
+    :HTTPResponse:
+        Renders an user details view based on user's authentication status.
+    """
+
     user = get_object_or_404(VogonUser, pk=userid)
-    template = loader.get_template('annotations/user_details.html')
-    context = RequestContext(request, {
-        'user': request.user,
-        'detail_user': user,
-    })
+    if request.user.is_authenticated() and request.user.id == userid:
+        template = loader.get_template('annotations/user_details.html')
+        context = RequestContext(request, {
+            'user': request.user,
+            'detail_user': user,
+        })
+    else:
+        textCount = Text.objects.filter(addedBy=user).count()
+        textAnnotated = Text.objects.filter(annotators=user).distinct().count()
+        relationCount = user.relation_set.count()
+        template = loader.get_template('annotations/user_details_public.html')
+        context = RequestContext(request, {
+            'detail_user': user,
+            'textCount': textCount,
+            'relationCount': relationCount,
+            'textAnnotated': textAnnotated
+        })
     return HttpResponse(template.render(context))
 
 

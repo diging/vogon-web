@@ -42,6 +42,7 @@ remotecollection_router = nrouters.NestedSimpleRouter(repository_router, r'colle
 remotecollection_router.register('resource', views.RemoteResourceViewSet, base_name='collection')
 
 urlpatterns = [
+    url(r'^$', views.home, name='home'),
     url(r'^about/$', views.about, name='about'),
     url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
     url(r'^accounts/settings/$', views.user_settings),
@@ -61,11 +62,11 @@ urlpatterns = [
     url(r'^collection/$', views.list_collections, name="collection_list"),
     url(r'^collection/(?P<collectionid>[0-9]+)/$', views.collection_texts, name="collection_texts"),
     url(r'^collection/text/add/$', views.add_text_to_collection, name="collection_addtext"),
+    url(r'^user$', views.list_user, name = 'user'),
     url(r'^user/(?P<userid>[0-9]+)/$', views.user_details, name="user_details"),
     url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
     url(r'^relations/(?P<concept_a_id>[0-9]+)/(?P<concept_b_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
-    url(r'^$', views.home)
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

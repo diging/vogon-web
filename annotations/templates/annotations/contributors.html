@@ -1,0 +1,71 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+{% block main %}
+
+<div id="main" class="container-fluid">
+    <div class="row" style="margin-bottom: 10px;">
+        <div class="col-sm-8 col-sm-offset-2">
+            {% block title %}
+            <div>
+                <span class="h2">All Users</span>
+            </div>
+            <hr></hr>
+            {% endblock %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+            {% if user_list|length > 0 %}
+            <ul class="list-group">
+              <div class="list-group row">
+                <a href="?sort=user_name" class="list-group-item col-sm-3"><h5><b>User Name</b></h5></a>
+                <a href="?sort=name" class="list-group-item col-sm-3"><h5><b>Full Name</b></h5></a>
+                <a href="?sort=aff" class="list-group-item col-sm-3"><h5><b>Affiliation</b></h5></a>
+                <a href="?sort=loc"class="list-group-item col-sm-3"><h5><b>Location</b></h5></a>
+                {% for users in user_list %}
+
+                  {% if users.is_admin %}
+                    <a href="/user/{{users.id}}/" class="list-group-item col-sm-3">
+                    {{ users.username }} &nbsp;<span class="glyphicon glyphicon-user"></span></a>
+                  {% else %}
+                  <a href="/user/{{users.id}}/" class="list-group-item col-sm-3">{{ users.username }}</a>
+                  {% endif %}
+                  <div class="list-group-item col-sm-3">{{users.full_name}}</div>
+                  <div class="list-group-item col-sm-3">{{users.affiliation}}</div>
+                  <div class="list-group-item col-sm-3">{{users.location}}</div>
+                {% endfor %}
+              </div>
+            </ul>
+
+            <div>
+                <ul class="pagination pagination-sm">
+                    {% if user_list.has_previous %}
+                    <li>
+                        <a href="?page={{ user_list.previous_page_number }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </lu>
+                    {% endif %}
+                    {% for p in user_list.paginator.page_range %}
+                    <li{% if p == user_list.number %} class="active"{% endif %}>
+                        <a href="?page={{p}}&sort={{sort_column}}">{{p}}</a>
+                    </li>
+                    {% endfor %}
+                    {% if user_list.has_next %}
+                    <li>
+                        <a href="?page={{ user_list.next_page_number }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% else %}
+            <p>No users to display.</p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock main %}
