@@ -268,3 +268,8 @@ circle.node {
 .navbar-nav {
     font-size: 1.2em;
 }
+
+.img-responsive{
+  width: 800px;
+  height: 450px;
+}
