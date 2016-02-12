@@ -140,17 +140,17 @@ def user_settings(request):
     """ User profile settings"""
 
     if request.method == 'POST':
-        form = UserChangeForm(request.POST,request.FILES)
+        form = UserChangeForm(request.POST, request.FILES)
         if form.is_valid():
             
             
-            for field in ['first_name', 'last_name', 'email','imagefile']:
+            for field in ['first_name', 'last_name', 'email', 'imagefile']:
                 value = request.POST.get(field, None)
                 if value:
                     setattr(request.user, field, value)
             request.user.save()
 
-                #to save uploaded file
+            # Function to save the uploaded file.
             save_file(request.FILES['imagefile'])
 
             return HttpResponseRedirect('/accounts/profile/')
@@ -165,7 +165,14 @@ def user_settings(request):
     })
     return HttpResponse(template.render(context))
 
+
 def save_file(f):
+    """ Function to upload the imagefile.
+
+    Gets the file to be uploaded as input parameter.
+    Saves it to /media directory that is created from MEDIA_ROOT defined in local_settings.py.
+    """
+
     filename = f.name
 
     if not os.path.exists(settings.MEDIA_ROOT):
@@ -176,6 +183,7 @@ def save_file(f):
         fd.write(chunk)
     fd.close()
 
+
 def about(request):
     """
     Provides information about Vogon-Web
@@ -183,6 +191,7 @@ def about(request):
     template = loader.get_template('annotations/about.html')
     context = RequestContext(request)
     return HttpResponse(template.render(context))
+
 
 @login_required
 def dashboard(request):
