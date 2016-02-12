@@ -16,28 +16,34 @@
     </div>
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
-            {% if user_list|length > 0 %}
-            <ul class="list-group">
-              <div class="list-group row">
-                <a href="?sort=user_name" class="list-group-item col-sm-3"><h5><b>User Name</b></h5></a>
-                <a href="?sort=name" class="list-group-item col-sm-3"><h5><b>Full Name</b></h5></a>
-                <a href="?sort=aff" class="list-group-item col-sm-3"><h5><b>Affiliation</b></h5></a>
-                <a href="?sort=loc"class="list-group-item col-sm-3"><h5><b>Location</b></h5></a>
+          {% if user_list|length > 0 %}
+          <div class = "table-responsive">
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th class="col-sm-3"><a href="?sort=user_name"><h5><b>User Name</b></h5></a></th>
+                  <th class="col-sm-3"><a href="?sort=name"><h5><b>Full Name</b></h5></a></th>
+                  <th class="col-sm-3"><a href="?sort=aff"><h5><b>Affiliation</b></h5></a></th>
+                  <th class="col-sm-3"><a href="?sort=loc"><h5><b>Location</b></h5></a></th>
+                </tr>
+              </thead>
+              <tbody>
                 {% for users in user_list %}
-
+                <tr>
                   {% if users.is_admin %}
-                    <a href="/user/{{users.id}}/" class="list-group-item col-sm-3">
-                    {{ users.username }} &nbsp;<span class="glyphicon glyphicon-user"></span></a>
+                    <td href="/user/{{users.id}}/" class="col-sm-3">
+                    <a href="/user/{{users.id}}/">{{ users.username }} &nbsp;<span class="glyphicon glyphicon-user"></span></a></td>
                   {% else %}
-                  <a href="/user/{{users.id}}/" class="list-group-item col-sm-3">{{ users.username }}</a>
+                  <td  class="col-sm-3"><a href="/user/{{users.id}}/">{{ users.username }}</a></td>
                   {% endif %}
-                  <div class="list-group-item col-sm-3">{{users.full_name}}</div>
-                  <div class="list-group-item col-sm-3">{{users.affiliation}}</div>
-                  <div class="list-group-item col-sm-3">{{users.location}}</div>
+                  <td class="col-sm-3">{% if users.full_name %}{{users.full_name}}{% endif %}</td>
+                  <td class="col-sm-3">{% if users.affiliation %}{{users.affiliation}}{% endif %}</td>
+                  <td class="col-sm-3">{% if users.location %}{{users.location}}{% endif %}</td>
+                </tr>
                 {% endfor %}
-              </div>
-            </ul>
-
+              </tbody>
+            </table>
+          </div>
             <div>
                 <ul class="pagination pagination-sm">
                     {% if user_list.has_previous %}
