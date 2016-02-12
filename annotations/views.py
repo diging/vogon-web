@@ -265,7 +265,7 @@ def list_user(request):
 
     sort_column = sort_dict[sort]
 
-    queryset = VogonUser.objects.all().order_by(sort_column)
+    queryset = VogonUser.objects.exclude(id = -1).order_by(sort_column)
     paginator = Paginator(queryset, 25)
 
     page = request.GET.get('page')
