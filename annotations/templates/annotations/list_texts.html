@@ -22,8 +22,8 @@
         <div class="col-sm-8 col-sm-offset-2">
             {% if texts|length > 0 %}
             <table class="table table-hover">
-              <th class="col-sm-8">Text title</th>
-              <th class="col-sm-3">Publication date</th>
+              <th class="col-sm-8"><a href="?order_by=title" id="order_title">Text title</a></th>
+              <th class="col-sm-3"><a href="?order_by=created" id="order_publication">Publication date</a></th>
               <th class="col-sm-2">Count</th>
               {% for text in texts %}
               <tr>
@@ -45,7 +45,7 @@
                     {% endif %}
                     {% for p in texts.paginator.page_range %}
                     <li{% if p == texts.number %} class="active"{% endif %}>
-                        <a href="?page={{p}}">{{p}}</a>
+                        <a id="page_number_{{p}}" onclick=getQueryString('{{p}}')>{{p}}</a>
                     </li>
                     {% endfor %}
                     {% if texts.has_next %}
@@ -67,4 +67,19 @@
 <table class="table">
   <column id='test'/>
 </table>
+<script>
+$("#order_title").click(function(){
+  sessionStorage.setItem('order', 'title');
+});
+$("#order_publication").click(function(){
+  sessionStorage.setItem('order', 'created');
+});
+function getQueryString(q){
+  page = document.getElementById('page_number_'+q);
+  if(sessionStorage.getItem('order') == null)
+    page.href='?page='+q+'&order_by=title';
+  else
+    page.href='?page='+q+'&order_by='+ sessionStorage.getItem('order');
+}
+</script>
 {% endblock main %}
