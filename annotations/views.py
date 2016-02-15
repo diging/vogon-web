@@ -170,6 +170,7 @@ def user_settings(request):
     if request.method == 'POST':
         form = UserChangeForm(request.POST, request.FILES,instance=request.user)
         if form.is_valid():
+            #Check if MEDIA_ROOT directory exists and create if it does not exist.
             if not os.path.exists(settings.MEDIA_ROOT):
                 os.makedirs(settings.MEDIA_ROOT)
             form.save()
