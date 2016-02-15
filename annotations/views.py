@@ -170,14 +170,17 @@ def user_settings(request):
     if request.method == 'POST':
         form = UserChangeForm(request.POST, request.FILES)
         if form.is_valid():
-            
-            
+            form.save()
+            if not os.path.exists(settings.MEDIA_ROOT):
+                os.makedirs(settings.MEDIA_ROOT)
+
             for field in ['first_name', 'last_name', 'email', 'imagefile']:
                 value = request.POST.get(field, None)
                 if value:
                     setattr(request.user, field, value)
-            form.save()
-            #request.user.save()
+            
+            request.user.save()
+            
 
             # Function to save the uploaded file.
             #save_file(request.FILES['imagefile'])
