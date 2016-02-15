@@ -119,6 +119,9 @@ def register(request):
             form.cleaned_data['username'],
             form.cleaned_data['email'],
             password=form.cleaned_data['password1'],
+            full_name=form.cleaned_data['full_name'],
+            affiliation=form.cleaned_data['affiliation'],
+            location=form.cleaned_data['location'],
             )
 
             g = Group.objects.get_or_create(name='Public')[0]

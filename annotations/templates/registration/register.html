@@ -35,12 +35,21 @@
 					{% endif %}
 
 					<div id="content-main">
+						    <div class="form-group">
+							{{ form.full_name.errors }}
+								<label for="full_name" class="required control-label col-sm-4">{% trans 'Full Name:' %}</label>
+								<div class="col-sm-6">
+									{{ form.full_name | addcss:"form-control"}}
+								</div>
+
+							</div>
 							<div class="form-group">
 							{{ form.username.errors }}
 								<label for="username" class="required control-label col-sm-4">{{ form.username.label }}:</label>
 								<div class="col-sm-6">
 									{{ form.username | addcss:"form-control" }}
 								</div>
+                                <input type="hidden" name="next" value="{{ next }}" />
 							</div>
 							<div class="form-group">
 							{{ form.email.errors }}
@@ -63,6 +72,22 @@
 								<label for="password1" class="required control-label col-sm-4">{% trans 'Password (again):' %}</label>
 								<div class="col-sm-6">
 									{{ form.password2 | addcss:"form-control"}}
+								</div>
+								<input type="hidden" name="next" value="{{ next }}" />
+							</div>
+							<div class="form-group">
+							{{ form.affiliation.errors }}
+								<label for="affiliation" class="required control-label col-sm-4">{% trans 'Affiliation:' %}</label>
+								<div class="col-sm-6">
+									{{ form.affiliation | addcss:"form-control"}}
+								</div>
+								<input type="hidden" name="next" value="{{ next }}" />
+							</div>
+							<div class="form-group">
+							{{ form.location.errors }}
+								<label for="location" class="required control-label col-sm-4">{% trans 'Location:' %}</label>
+								<div class="col-sm-6">
+									{{ form.location | addcss:"form-control"}}
 								</div>
 								<input type="hidden" name="next" value="{{ next }}" />
 							</div>
