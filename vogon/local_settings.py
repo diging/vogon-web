@@ -147,3 +147,20 @@ SUBPATH = ''
 JARS_KEY = '050814a54ac5c81b990140c3c43278031d391676'
 
 AUTH_USER_MODEL = 'annotations.VogonUser'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
+    },
+}

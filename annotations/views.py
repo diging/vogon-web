@@ -49,6 +49,9 @@ import json
 
 from django.shortcuts import render
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def home(request):
     """
@@ -196,6 +199,7 @@ def dashboard(request):
     """
     Provides the user's personalized dashboard.
     """
+
     template = loader.get_template('annotations/dashboard.html')
     texts = user_recent_texts(request.user)
     context = RequestContext(request, {
