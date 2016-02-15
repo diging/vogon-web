@@ -167,13 +167,9 @@ def user_settings(request):
     """ User profile settings"""
 
     if request.method == 'POST':
-        form = UserChangeForm(request.POST)
+        form = UserChangeForm(request.POST, instance=request.user)
         if form.is_valid():
-            for field in ['first_name', 'last_name', 'email']:
-                value = request.POST.get(field, None)
-                if value:
-                    setattr(request.user, field, value)
-            request.user.save()
+            form.save()
             return HttpResponseRedirect('/accounts/profile/')
     else:
         form = UserChangeForm(instance=request.user)
