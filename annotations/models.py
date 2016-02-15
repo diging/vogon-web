@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class VogonUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None,full_name=None,affiliation=None,location=None):
+    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None):
         if not email:
             raise ValueError('Users must have an email address')
 
