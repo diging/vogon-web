@@ -168,23 +168,11 @@ def user_settings(request):
     """ User profile settings"""
 
     if request.method == 'POST':
-        form = UserChangeForm(request.POST, request.FILES)
+        form = UserChangeForm(request.POST, request.FILES,instance=request.user)
         if form.is_valid():
-            form.save()
             if not os.path.exists(settings.MEDIA_ROOT):
                 os.makedirs(settings.MEDIA_ROOT)
-
-            for field in ['first_name', 'last_name', 'email', 'imagefile']:
-                value = request.POST.get(field, None)
-                if value:
-                    setattr(request.user, field, value)
-            
-            request.user.save()
-            
-
-            # Function to save the uploaded file.
-            #save_file(request.FILES['imagefile'])
-
+            form.save()
             return HttpResponseRedirect('/accounts/profile/')
     else:
         form = UserChangeForm(instance=request.user)
@@ -196,24 +184,6 @@ def user_settings(request):
         'subpath': settings.SUBPATH,
     })
     return HttpResponse(template.render(context))
-
-
-def save_file(f):
-    """ Function to upload the imagefile.
-
-    Gets the file to be uploaded as input parameter.
-    Saves it to /media directory that is created from MEDIA_ROOT defined in local_settings.py.
-    """
-
-    filename = f.name
-
-    if not os.path.exists(settings.MEDIA_ROOT):
-        os.makedirs(settings.MEDIA_ROOT)
-
-    fd = open('%s/%s' % (settings.MEDIA_ROOT, str(filename)), 'wb')
-    for chunk in f.chunks():
-        fd.write(chunk)
-    fd.close()
 
 
 def about(request):
