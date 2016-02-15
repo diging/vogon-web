@@ -206,7 +206,6 @@ def list_texts(request):
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
     order_by = request.GET.get('order_by','title')
     text_list = text_list.order_by(order_by)
-    # text_list = Text.objects.all()
     paginator = Paginator(text_list, 25)
 
     page = request.GET.get('page')
@@ -222,6 +221,7 @@ def list_texts(request):
     context = {
         'texts': texts,
         'order_by': order_by,
+        'order': 'a',
         'user': request.user,
     }
     return HttpResponse(template.render(context))

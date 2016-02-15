@@ -22,13 +22,13 @@
         <div class="col-sm-8 col-sm-offset-2">
             {% if texts|length > 0 %}
             <table class="table table-hover">
-              <th class="col-sm-8"><a href="?order_by=title" id="order_title">Text title</a></th>
-              <th class="col-sm-3"><a href="?order_by=created" id="order_publication">Publication date</a></th>
+              <th class="col-sm-8"><a href="{% if order_by == '-title' %}?order_by=title{% else %}?order_by=-title{% endif %}" id="order_title">Text title</a></th>
+              <th class="col-sm-3"><a href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}" id="order_publication">Publication date</a></th>
               <th class="col-sm-2">Count</th>
               {% for text in texts %}
               <tr>
                 <td class="col-sm-8"><a href="{% url "text" text.id %}">{{ text.title }}</a></td>
-                <td class="col-sm-3">{{text.created}}</td>
+                <td class="col-sm-3">{{ text.created }}</td>
                 <td class="col-sm-2"><span class="badge">{{ text.relationCount }}</span></td>
               </tr>
               {% endfor %}
