@@ -173,10 +173,11 @@ def user_settings(request):
                 value = request.POST.get(field, None)
                 if value:
                     setattr(request.user, field, value)
-            request.user.save()
+            form.save()
+            #request.user.save()
 
             # Function to save the uploaded file.
-            save_file(request.FILES['imagefile'])
+            #save_file(request.FILES['imagefile'])
 
             return HttpResponseRedirect('/accounts/profile/')
     else:
