@@ -208,7 +208,7 @@ def dashboard(request):
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
-        'relationCount': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
+        'relation_count': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
     })
     return HttpResponse(template.render(context))
 
@@ -232,9 +232,10 @@ def list_texts(request):
     template = loader.get_template('annotations/list_texts.html')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
-    text_list = text_list.annotate(relation_count=Count('relation'))
+
     order_by = request.GET.get('order_by', 'title')
     text_list = text_list.order_by(order_by)
+
     paginator = Paginator(text_list, 15)
 
     page = request.GET.get('page')
@@ -300,14 +301,12 @@ def collection_texts(request, collectionid):
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
     text_list = text_list.filter(partOf=collectionid)
-    text_list = text_list.annotate(relation_count=Count('relation'))
     text_list = text_list.order_by(order_by)
 
     N_relations = Relation.objects.filter(
         occursIn__partOf__id=collectionid).count()
     N_appellations = Appellation.objects.filter(
         occursIn__partOf__id=collectionid).count()
-    N_annotated = text_list.filter(relation_count__gt=0).count()
 
     # text_list = Text.objects.all()
     paginator = Paginator(text_list, 10)
@@ -328,7 +327,6 @@ def collection_texts(request, collectionid):
         'order_by': order_by,
         'N_relations': N_relations,
         'N_appellations': N_appellations,
-        'N_annotated': N_annotated,
         'collection': TextCollection.objects.get(pk=collectionid)
     }
     return HttpResponse(template.render(context))
@@ -791,12 +789,12 @@ def user_details(request, userid, *args, **kwargs):
     else:
         textCount = Text.objects.filter(addedBy=user).count()
         textAnnotated = Text.objects.filter(annotators=user).distinct().count()
-        relationCount = user.relation_set.count()
+        relation_count = user.relation_set.count()
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
             'textCount': textCount,
-            'relationCount': relationCount,
+            'relation_count': relation_count,
             'textAnnotated': textAnnotated
         })
     return HttpResponse(template.render(context))

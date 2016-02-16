@@ -36,11 +36,11 @@
                         </a>
                     </th>
                     <th class="col-sm-2">
-                        <!-- <span class="h4" style="text-decoration: none; vertical-align: middle;"></span> -->
-                        <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-relation_count' %}?order_by=relation_count{% else %}?order_by=-relation_count{% endif %}" id="order_publication">Relations</a>
+                        <span class="h4" style="text-decoration: none; vertical-align: middle;">Relations</span>
+                        <!-- <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-relation_count' %}?order_by=relation_count{% else %}?order_by=-relation_count{% endif %}" id="order_publication">Relations</a>
                         <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-relation_count' %}?order_by=relation_count{% else %}?order_by=-relation_count{% endif %}">
                             <span class="glyphicon glyphicon-sort-by-order{% if order_by != '-relation_count' %}-alt{% endif %}" aria-hidden="true"></span>
-                        </a>
+                        </a> -->
                     </th>
                 </thead>
             {% for text in texts %}

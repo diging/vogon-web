@@ -178,11 +178,11 @@ class Text(models.Model):
     public = models.BooleanField(default=True)
 
     @property
-    def annotationCount(self):
+    def annotation_count(self):
         return self.appellation_set.count() + self.relation_set.count()
 
     @property
-    def relationCount(self):
+    def relation_count(self):
         return self.relation_set.count()
 
     class Meta:

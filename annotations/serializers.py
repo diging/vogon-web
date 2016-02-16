@@ -47,7 +47,7 @@ class TextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Text
         fields = ('id', 'uri', 'title', 'created', 'added',
-                  'addedBy', 'source', 'annotators', 'annotationCount')
+                  'addedBy', 'source', 'annotators', 'annotation_count')
 
     def create(self, validated_data):
         repository = Repository.objects.get(pk=validated_data['source'])
