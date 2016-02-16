@@ -232,8 +232,7 @@ def list_texts(request):
     template = loader.get_template('annotations/list_texts.html')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
-    text_list = text_list.annotate(relation_count=Count('relation', distinct=True))
-    text_list = text_list.annotate(appellation_count=Count('appellation', distinct=True))
+    text_list = text_list.annotate(relation_count=Count('relation'))
     order_by = request.GET.get('order_by', 'title')
     text_list = text_list.order_by(order_by)
     paginator = Paginator(text_list, 15)
@@ -301,9 +300,7 @@ def collection_texts(request, collectionid):
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
     text_list = text_list.filter(partOf=collectionid)
-    text_list = text_list.annotate(
-        relation_count=Count('relation', distinct=True),
-        appellation_count=Count('appellation', distinct=True))
+    text_list = text_list.annotate(relation_count=Count('relation'))
     text_list = text_list.order_by(order_by)
 
     N_relations = Relation.objects.filter(
