@@ -387,6 +387,7 @@ function update(data) {
 
 
     node.on("click", function(n) {
+        if (n === selected) return;
         deselectAllNodes();
         deselectAllEdges();
 
@@ -416,6 +417,7 @@ function update(data) {
     });
 
     edge.on("click", function(e) {
+        if (e === selected) return;
         deselectAllNodes();
         deselectAllEdges();
 
@@ -482,21 +484,6 @@ function update(data) {
             return "translate(" + d.x +  "," + d.y + ")";
         });
 
-
-    // svg.append('defs').append('marker')
-    //     .attr({'id':'arrowhead',
-    //     'viewBox':'-0 -5 10 10',
-    //     'refX':15,
-    //     'refY':0,
-    //     //'markerUnits':'strokeWidth',
-    //     'orient':'auto',
-    //     'markerWidth':10,
-    //     'markerHeight':10,
-    //     'xoverflow':'visible'})
-    //     .append('svg:path')
-    //     .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
-    //     .attr('fill', '#ccc')
-    //     .attr('stroke','#ccc');
 }
 </script>
 
