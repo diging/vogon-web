@@ -11,6 +11,44 @@
 
 <script src="{% static "annotations/js/d3.min.js" %}"></script>
 <script src="{% static "annotations/js/fisheye.js" %}"></script>
+<script src="{% static "annotations/js/spin.min.js" %}"></script>
+<script src="{% static "annotations/js/jquery.spin.js" %}"></script>
+
+<script>
+// While awaiting a response to an ajax request, a spinner is shown in the
+//  network visualization panel.
+var opts = {
+  lines: 13 // The number of lines to draw
+, length: 21 // The length of each line
+, width: 14 // The line thickness
+, radius: 42 // The radius of the inner circle
+, scale: 1 // Scales overall size of the spinner
+, corners: 1 // Corner roundness (0..1)
+, color: '#297CA6' // #rgb or #rrggbb or array of colors
+, opacity: 0.25 // Opacity of the lines
+, rotate: 0 // The rotation offset
+, direction: 1 // 1: clockwise, -1: counterclockwise
+, speed: 1 // Rounds per second
+, trail: 62 // Afterglow percentage
+, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+, zIndex: 2e9 // The z-index (defaults to 2000000000)
+, className: 'spinner' // The CSS class to assign to the spinner
+, top: '50%' // Top position relative to parent
+, left: '50%' // Left position relative to parent
+, shadow: false // Whether to render a shadow
+, hwaccel: false // Whether to use hardware acceleration
+, position: 'absolute' // Element positioning
+}
+
+// $(document)
+//     .ajaxStart(function () {
+//         $('#networkVis').spin(opts);
+//
+//     })
+//     .ajaxStop(function () {
+//         $('#networkVis').spin(false);
+//     });
+</script>
 
 <div class="container-fluid">
     <div class="row" style="margin-top: 15px;">
@@ -61,8 +99,12 @@ $.ajax({
     url: '{% url "network-data" %}',
     dataType: 'json',
     async: true,
+    beforeSend: function(data) {
+        $('#networkVis').spin(opts);
+    },
     success: function (data) {
         update(data);
+        $('#networkVis').spin(false);
     },
     error: function (result) {
     }
@@ -189,7 +231,7 @@ function resize() {
 }
 
 var zoom = d3.behavior.zoom()
-    .scaleExtent([1, 10])
+    .scaleExtent([0.5, 10])
     .on("zoom", zoomed);
 
 var svg = d3.select("#networkVis")
@@ -345,6 +387,7 @@ function update(data) {
 
 
     node.on("click", function(n) {
+        if (n === selected) return;
         deselectAllNodes();
         deselectAllEdges();
 
@@ -374,6 +417,7 @@ function update(data) {
     });
 
     edge.on("click", function(e) {
+        if (e === selected) return;
         deselectAllNodes();
         deselectAllEdges();
 
@@ -440,21 +484,6 @@ function update(data) {
             return "translate(" + d.x +  "," + d.y + ")";
         });
 
-
-    // svg.append('defs').append('marker')
-    //     .attr({'id':'arrowhead',
-    //     'viewBox':'-0 -5 10 10',
-    //     'refX':15,
-    //     'refY':0,
-    //     //'markerUnits':'strokeWidth',
-    //     'orient':'auto',
-    //     'markerWidth':10,
-    //     'markerHeight':10,
-    //     'xoverflow':'visible'})
-    //     .append('svg:path')
-    //     .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
-    //     .attr('fill', '#ccc')
-    //     .attr('stroke','#ccc');
 }
 </script>
 
