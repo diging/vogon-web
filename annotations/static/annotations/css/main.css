@@ -268,3 +268,12 @@ circle.node {
 .navbar-nav {
     font-size: 1.2em;
 }
+
+
+.btn-group {
+  white-space: nowrap;
+  .btn {
+    float: none;
+    display: inline-block;
+  }
+}

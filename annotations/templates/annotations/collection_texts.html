@@ -12,5 +12,9 @@
 <div class="text text-muted text-small">
     This collection was created by <a href="{% url "user_details" collection.ownedBy.id %}">{{ collection.ownedBy }}</a>.
 </div>
+
+<div class="panel">
+    <span class="label label-default">{{ N_appellations }}</span> Appellations | <span class="label label-default">{{ N_relations }}</span> Relations | <span class="label label-default">{{ N_annotated }}</span> annotated texts out of <span class="label label-default">{{ collection.texts.count }}</span> total texts.
+</div>
 <hr></hr>
 {% endblock %}

@@ -10,7 +10,7 @@ from django.contrib.auth import login,authenticate
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.conf import settings
 from django.core.serializers import serialize
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
 from django.core.files import File
 from guardian.shortcuts import get_objects_for_user
@@ -232,7 +232,7 @@ def list_texts(request):
     template = loader.get_template('annotations/list_texts.html')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
-    order_by = request.GET.get('order_by','title')
+    order_by = request.GET.get('order_by', 'title')
     text_list = text_list.order_by(order_by)
     paginator = Paginator(text_list, 25)
 
@@ -249,7 +249,6 @@ def list_texts(request):
     context = {
         'texts': texts,
         'order_by': order_by,
-        'order': 'a',
         'user': request.user,
     }
     return HttpResponse(template.render(context))
@@ -290,15 +289,21 @@ def list_user(request):
     }
     return HttpResponse(template.render(context))
 
-@login_required
+
 def collection_texts(request, collectionid):
     """
     List all of the texts that the user can see, with links to annotate them.
     """
     template = loader.get_template('annotations/collection_texts.html')
+    order_by = request.GET.get('order_by', 'title')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
     text_list = text_list.filter(partOf=collectionid)
+    text_list = text_list.order_by(order_by)
+
+    N_relations = Relation.objects.filter(occursIn__partOf__id=collectionid).count()
+    N_appellations = Appellation.objects.filter(occursIn__partOf__id=collectionid).count()
+    N_annotated = text_list.annotate(num_relations=Count('relation')).filter(num_relations__gt=0).count()
 
     # text_list = Text.objects.all()
     paginator = Paginator(text_list, 25)
@@ -316,6 +321,10 @@ def collection_texts(request, collectionid):
     context = {
         'texts': texts,
         'user': request.user,
+        'order_by': order_by,
+        'N_relations': N_relations,
+        'N_appellations': N_appellations,
+        'N_annotated': N_annotated,
         'collection': TextCollection.objects.get(pk=collectionid)
     }
     return HttpResponse(template.render(context))
