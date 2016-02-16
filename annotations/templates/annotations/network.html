@@ -40,14 +40,14 @@ var opts = {
 , position: 'absolute' // Element positioning
 }
 
-$(document)
-    .ajaxStart(function () {
-        $('#networkVis').spin(opts);
-
-    })
-    .ajaxStop(function () {
-        $('#networkVis').spin(false);
-    });
+// $(document)
+//     .ajaxStart(function () {
+//         $('#networkVis').spin(opts);
+//
+//     })
+//     .ajaxStop(function () {
+//         $('#networkVis').spin(false);
+//     });
 </script>
 
 <div class="container-fluid">
@@ -99,8 +99,12 @@ $.ajax({
     url: '{% url "network-data" %}',
     dataType: 'json',
     async: true,
+    beforeSend: function(data) {
+        $('#networkVis').spin(opts);
+    },
     success: function (data) {
         update(data);
+        $('#networkVis').spin(false);
     },
     error: function (result) {
     }
