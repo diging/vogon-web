@@ -189,7 +189,7 @@ function resize() {
 }
 
 var zoom = d3.behavior.zoom()
-    .scaleExtent([1, 10])
+    .scaleExtent([0.5, 10])
     .on("zoom", zoomed);
 
 var svg = d3.select("#networkVis")

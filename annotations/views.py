@@ -301,12 +301,15 @@ def collection_texts(request, collectionid):
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
     text_list = text_list.filter(partOf=collectionid)
-    text_list = text_list.annotate(relation_count=Count('relation', distinct=True))
-    text_list = text_list.annotate(appellation_count=Count('appellation', distinct=True))
+    text_list = text_list.annotate(
+        relation_count=Count('relation', distinct=True),
+        appellation_count=Count('appellation', distinct=True))
     text_list = text_list.order_by(order_by)
 
-    N_relations = Relation.objects.filter(occursIn__partOf__id=collectionid).count()
-    N_appellations = Appellation.objects.filter(occursIn__partOf__id=collectionid).count()
+    N_relations = Relation.objects.filter(
+        occursIn__partOf__id=collectionid).count()
+    N_appellations = Appellation.objects.filter(
+        occursIn__partOf__id=collectionid).count()
     N_annotated = text_list.filter(relation_count__gt=0).count()
 
     # text_list = Text.objects.all()
