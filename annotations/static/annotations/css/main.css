@@ -270,6 +270,11 @@ circle.node {
 }
 
 
+.div_padding{
+   padding: 30px;
+}
+
+
 .img-responsive{
   width: 230px;
   height: 230px;
