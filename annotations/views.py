@@ -13,7 +13,7 @@ from django.core.serializers import serialize
 from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
 from django.core.files import File
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_perms
 from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.response import Response
@@ -340,15 +340,27 @@ def text(request, textid):
     """
 
     text = get_object_or_404(Text, pk=textid)
-    context_data = {'text': text, 'textid': textid, 'title': 'Annotate Text', 'baselocation' : basepath(request)}
+    context_data = {
+        'text': text,
+        'textid': textid,
+        'title': 'Annotate Text',
+        'baselocation' : basepath(request)
+    }
+
+    # If a text is restricted, then the user needs explicit permission to
+    #  access it.
+    access_conditions = [
+        'annotations.view_text' in get_perms(request.user, text),
+        request.user in text.annotators.all(),
+        getattr(request.user, 'is_admin', False),
+        text.public,
+    ]
+    if not any(access_conditions):
+        # TODO: return a pretty templated response.
+        return HttpResponseForbidden("Sorry, this text is restricted.")
+
     if request.user.is_authenticated():
         template = loader.get_template('annotations/text.html')
-
-        # If a text is restricted, then the user needs explicit permission to
-        #  access it.
-        if not text.public and not request.user.has_perm('annotations.view_text'):
-            # TODO: return a pretty templated response.
-            return HttpResponseForbidden("Sorry, this text is restricted.")
 
         context_data['userid'] = request.user.id
 
