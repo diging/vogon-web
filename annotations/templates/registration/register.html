@@ -15,69 +15,103 @@
 
 {% block main %}
 <div id="main">
-	<div class="row col-sm-4 col-sm-offset-4">
+	<div class="row col-sm-6 col-sm-offset-3">
     <div id="register" class="panel panel-default narrow center">
-      <div class="panel-heading">Register</div>
-      <form action="." method="post" id="register-form" class="form-horizontal" style="margin-bottom: 0px;">{% csrf_token %}
-				<div class="panel-body">
-					{% if form.errors and not form.non_field_errors %}
-					<p class="errornote">
-						{% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
-					</p>
-					{% endif %}
+      <div class="panel-heading"><span class="h4">Create a New Account</span></div>
+	  <form action="." method="post" id="register-form" class="form-horizontal" style="margin-bottom: 0px;">{% csrf_token %}
+	  <div class="panel-body">
+		  <p class="text text-info">
+			  <strong>Get credit for your work!</strong> Creating an account is the first step to contributing to the Vogon databank. Please fill in all
+			  of the fields, below.
+		  </p>
 
-					{% if form.non_field_errors %}
-						{% for error in form.non_field_errors %}
+					<div class="panel-body">
+						{% if form.errors and not form.non_field_errors %}
 						<p class="errornote">
-								{{ error }}
+							{% if form.errors.items|length == 1 %}{% trans "Please correct the error below." %}{% else %}{% trans "Please correct the errors below." %}{% endif %}
 						</p>
-						{% endfor %}
-					{% endif %}
+						{% endif %}
 
-					<div id="content-main">
-							<div class="form-group">
-							{{ form.username.errors }}
-								<label for="username" class="required control-label col-sm-4">{{ form.username.label }}:</label>
-								<div class="col-sm-6">
-									{{ form.username | addcss:"form-control" }}
-								</div>
-							</div>
-							<div class="form-group">
-							{{ form.email.errors }}
-								<label for="email" class="required control-label col-sm-4">{% trans 'Email:' %}</label>
-								<div class="col-sm-6">
-									{{ form.email | addcss:"form-control"}}
-								</div>
-								<input type="hidden" name="next" value="{{ next }}" />
-							</div>
-							<div class="form-group">
-							{{ form.password1.errors }}
-								<label for="password1" class="required control-label col-sm-4">{% trans 'Password:' %}</label>
-								<div class="col-sm-6">
-									{{ form.password1 | addcss:"form-control"}}
-								</div>
-								<input type="hidden" name="next" value="{{ next }}" />
-							</div>
-							<div class="form-group">
-							{{ form.password2.errors }}
-								<label for="password1" class="required control-label col-sm-4">{% trans 'Password (again):' %}</label>
-								<div class="col-sm-6">
-									{{ form.password2 | addcss:"form-control"}}
-								</div>
-								<input type="hidden" name="next" value="{{ next }}" />
-							</div>
+						{% if form.non_field_errors %}
+							{% for error in form.non_field_errors %}
+							<p class="errornote">
+									{{ error }}
+							</p>
+							{% endfor %}
+						{% endif %}
 
-						<script type="text/javascript">
-						document.getElementById('id_username').focus()
-						</script>
+						<div id="content-main">
+							    <div class="form-group">
+								{{ form.full_name.errors }}
+									<label for="full_name" class="required control-label col-sm-4">{% trans 'Full Name:' %}</label>
+									<div class="col-sm-6">
+										{{ form.full_name | addcss:"form-control"}}
+									</div>
+
+								</div>
+								<div class="form-group">
+								{{ form.username.errors }}
+									<label for="username" class="required control-label col-sm-4">{{ form.username.label }}:</label>
+									<div class="col-sm-6">
+										{{ form.username | addcss:"form-control" }}
+									</div>
+	                                <input type="hidden" name="next" value="{{ next }}" />
+								</div>
+								<div class="form-group">
+								{{ form.email.errors }}
+									<label for="email" class="required control-label col-sm-4">{% trans 'Email:' %}</label>
+									<div class="col-sm-6">
+										{{ form.email | addcss:"form-control"}}
+									</div>
+									<input type="hidden" name="next" value="{{ next }}" />
+								</div>
+								<div class="form-group">
+								{{ form.password1.errors }}
+									<label for="password1" class="required control-label col-sm-4">{% trans 'Password:' %}</label>
+									<div class="col-sm-6">
+										{{ form.password1 | addcss:"form-control"}}
+									</div>
+									<input type="hidden" name="next" value="{{ next }}" />
+								</div>
+								<div class="form-group">
+								{{ form.password2.errors }}
+									<label for="password1" class="required control-label col-sm-4">{% trans 'Password (again):' %}</label>
+									<div class="col-sm-6">
+										{{ form.password2 | addcss:"form-control"}}
+									</div>
+									<input type="hidden" name="next" value="{{ next }}" />
+								</div>
+								<div class="form-group">
+								{{ form.affiliation.errors }}
+									<label for="affiliation" class="required control-label col-sm-4">{% trans 'Affiliation:' %}</label>
+									<div class="col-sm-6">
+										{{ form.affiliation | addcss:"form-control"}}
+									</div>
+									<input type="hidden" name="next" value="{{ next }}" />
+								</div>
+								<div class="form-group">
+								{{ form.location.errors }}
+									<label for="location" class="required control-label col-sm-4">{% trans 'Location:' %}</label>
+									<div class="col-sm-6">
+										{{ form.location | addcss:"form-control"}}
+									</div>
+									<input type="hidden" name="next" value="{{ next }}" />
+								</div>
+
+							<script type="text/javascript">
+							document.getElementById('id_username').focus()
+							</script>
+						</div>
 					</div>
-				</div>
-				<div class="panel-footer clearfix">
-					<div class="submit-row btn-group btn-group-sm pull-right">
-        		<input type="submit" class="btn btn-primary" value="Register" />
-      		</div>
-  			</div>
-      </form>
+
+
+	  </div>
+	  <div class="panel-footer clearfix">
+		  <div class="submit-row btn-group btn-group-sm pull-right">
+	  <input type="submit" class="btn btn-primary" value="Register" />
+  </div>
+  </div>
+	  </form>
     </div>
 	</div>
 </div>
