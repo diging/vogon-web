@@ -4,7 +4,7 @@
       return d3_fisheye_scale(scaleType(), 3, 0);
     },
     circular: function() {
-      var radius = 200,
+      var radius = 50,
           distortion = 2,
           k0,
           k1,

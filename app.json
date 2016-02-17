@@ -1,16 +1,14 @@
 {
-  "name": "vogonweb",
-  "description": "",
-  "scripts": {
-      "postdeploy": "python manage.py migrate & python manage.py collectstatic --noinput"
-  },
-  "env": {
-    "DJANGO_SETTINGS_MODULE": {
-      "required": true
-    }
-  },
-  "addons": [
-    "heroku-postgresql:hobby-dev",
-    "heroku-redis:hobby-dev"
-  ]
+	"name": "vogonweb",
+	"description": "",
+	"env": {
+		"DJANGO_SETTINGS_MODULE": "vogon.heroku_settings"
+	},
+	"addons": [
+		"heroku-redis:hobby-dev",
+		"heroku-postgresql:hobby-dev"
+	],
+	"scripts": {
+		"postdeploy": "./postdeploy.sh"
+	}
 }
