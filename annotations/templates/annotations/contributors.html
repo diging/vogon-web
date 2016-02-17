@@ -15,7 +15,7 @@
         </div>
         <form class="navbar-form" role="search">
           <div class="input-group col-sm-3 col-sm-offset-2">
-            <input type="text" class="form-control" placeholder= {% if srch_term %}"{{srch_term}}"{% else %}"Search by full name" {% endif %}name="srch-term" id="srch-term">
+            <input type="text" class="form-control" placeholder= {% if search_term %}"{{search_term}}"{% else %}"Search by full name" {% endif %}name="search_term" id="search_term">
             <div class="input-group-btn">
               <button class="btn btn-default" type="submit"><div class="glyphicon glyphicon-search"></div></button>
             </div>
@@ -29,17 +29,38 @@
             <table class="table table-bordered table-striped">
               <thead>
                 <tr>
-                  <th class="col-sm-3"><a href="?sort=user_name"><h5><b>User Name</b></h5></a></th>
-                  <th class="col-sm-3"><a href="?sort=name"><h5><b>Full Name</b></h5></a></th>
-                  <th class="col-sm-3"><a href="?sort=aff"><h5><b>Affiliation</b></h5></a></th>
-                  <th class="col-sm-3"><a href="?sort=loc"><h5><b>Location</b></h5></a></th>
+                  <th class="col-sm-3">
+                    <a href="?sort=user_name{% if search_term %}&search_term={{search_term}}{% endif %}">
+                      <h5><b>User Name</b></h5>
+                    </a>
+                  </th>
+                  <th class="col-sm-3">
+                    <a href="?sort=name{% if search_term %}&search_term={{search_term}}{% endif %}">
+                      <h5><b>Full Name</b></h5>
+                    </a>
+                  </th>
+                  <th class="col-sm-3">
+                    <a href="?sort=aff{% if search_term %}&search_term={{search_term}}{% endif %}">
+                      <h5><b>Affiliation</b></h5>
+                    </a>
+                  </th>
+                  <th class="col-sm-3">
+                    <a href="?sort=loc{% if search_term %}&search_term={{search_term}}{% endif %}">
+                      <h5><b>Location</b></h5>
+                    </a>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {% for users in user_list %}
                 <tr>
                     <td class="col-sm-3">
-                    <a href="{% url "user_details" users.id %}">{{ users.username }} &nbsp;{% if users.is_admin %}<span class="glyphicon glyphicon-user"></span>{% endif %}</a></td>
+                      <a href="{% url "user_details" users.id %}">{{ users.username }} &nbsp;
+                        {% if users.is_admin %}
+                          <span class="glyphicon glyphicon-user"></span>
+                        {% endif %}
+                      </a>
+                    </td>
                     <td class="col-sm-3">{% if users.full_name %}{{users.full_name}}{% endif %}</td>
                     <td class="col-sm-3">{% if users.affiliation %}{{users.affiliation}}{% endif %}</td>
                     <td class="col-sm-3">{% if users.location %}{{users.location}}{% endif %}</td>
@@ -59,7 +80,7 @@
                     {% endif %}
                     {% for p in user_list.paginator.page_range %}
                     <li{% if p == user_list.number %} class="active"{% endif %}>
-                        <a href="?page={{p}}&sort={{sort_column}}{% if srch_term %}&srch-term={{srch_term}}{% endif %}">{{p}}</a>
+                        <a href="?page={{p}}&sort={{sort_column}}{% if search_term %}&search_term={{search_term}}{% endif %}">{{p}}</a>
                     </li>
                     {% endfor %}
                     {% if user_list.has_next %}
