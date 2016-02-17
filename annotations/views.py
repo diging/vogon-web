@@ -268,11 +268,16 @@ def list_user(request):
     sort_dict = {"user_name":"username", "name":"full_name",
      "aff":"affiliation", "loc":"location"}
 
+    srch_term = request.GET.get('srch-term')
     sort = request.GET.get('sort', 'user_name')
 
     sort_column = sort_dict[sort]
 
-    queryset = VogonUser.objects.exclude(id = -1).order_by(sort_column)
+    if(srch_term):
+        queryset = VogonUser.objects.filter(username__contains = srch_term).exclude(id = -1).order_by(sort_column)
+    else:
+        queryset = VogonUser.objects.exclude(id = -1).order_by(sort_column)
+
     paginator = Paginator(queryset, 25)
 
     page = request.GET.get('page')
@@ -286,6 +291,7 @@ def list_user(request):
         users = paginator.page(paginator.num_pages)
 
     context = {
+        'srch_term' : srch_term,
         'sort_column' : sort,
         'user_list': users,
         'user': request.user,
