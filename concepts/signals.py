@@ -20,7 +20,8 @@ def concept_post_save_receiver(sender, **kwargs):
     not already :prop:`.resolved`\.
     """
     instance = kwargs.get('instance', None)
-    resolve_concept.delay(sender, instance)
+    if instance:
+        resolve_concept.delay(sender, instance)
 
 @receiver(post_save, sender=Type)
 def type_post_save_receiver(sender, **kwargs):
@@ -30,4 +31,5 @@ def type_post_save_receiver(sender, **kwargs):
     not already :prop:`.resolved`\.
     """
     instance = kwargs.get('instance', None)
-    resolve_concept.delay(sender, instance)
+    if instance:
+        resolve_concept.delay(sender, instance)
