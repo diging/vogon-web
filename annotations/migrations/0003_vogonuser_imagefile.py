@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='vogonuser',
             name='imagefile',
-            field=models.FileField(null=True, upload_to=b'documents/%Y/%m/%d', blank=True),
+            field=models.FileField(default=b'', null=True, upload_to=b'/Users/nravi/vogon-web/vogon/media', blank=True),
         ),
     ]

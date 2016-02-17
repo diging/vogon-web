@@ -10,7 +10,7 @@ from django.contrib.auth import login,authenticate
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.conf import settings
 from django.core.serializers import serialize
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
 from django.core.files import File
 from guardian.shortcuts import get_objects_for_user
@@ -120,6 +120,9 @@ def register(request):
             form.cleaned_data['username'],
             form.cleaned_data['email'],
             password=form.cleaned_data['password1'],
+            full_name=form.cleaned_data['full_name'],
+            affiliation=form.cleaned_data['affiliation'],
+            location=form.cleaned_data['location'],
             )
 
             g = Group.objects.get_or_create(name='Public')[0]
@@ -211,7 +214,7 @@ def dashboard(request):
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
-        'relationCount': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
+        'relation_count': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
     })
     return HttpResponse(template.render(context))
 
@@ -235,9 +238,11 @@ def list_texts(request):
     template = loader.get_template('annotations/list_texts.html')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
-    text_list = text_list.order_by('title')
-    # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 25)
+
+    order_by = request.GET.get('order_by', 'title')
+    text_list = text_list.order_by(order_by)
+
+    paginator = Paginator(text_list, 15)
 
     page = request.GET.get('page')
     try:
@@ -251,6 +256,7 @@ def list_texts(request):
 
     context = {
         'texts': texts,
+        'order_by': order_by,
         'user': request.user,
     }
     return HttpResponse(template.render(context))
@@ -291,18 +297,25 @@ def list_user(request):
     }
     return HttpResponse(template.render(context))
 
-@login_required
+
 def collection_texts(request, collectionid):
     """
     List all of the texts that the user can see, with links to annotate them.
     """
     template = loader.get_template('annotations/collection_texts.html')
+    order_by = request.GET.get('order_by', 'title')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
     text_list = text_list.filter(partOf=collectionid)
+    text_list = text_list.order_by(order_by)
+
+    N_relations = Relation.objects.filter(
+        occursIn__partOf__id=collectionid).count()
+    N_appellations = Appellation.objects.filter(
+        occursIn__partOf__id=collectionid).count()
 
     # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 25)
+    paginator = Paginator(text_list, 10)
 
     page = request.GET.get('page')
     try:
@@ -317,6 +330,9 @@ def collection_texts(request, collectionid):
     context = {
         'texts': texts,
         'user': request.user,
+        'order_by': order_by,
+        'N_relations': N_relations,
+        'N_appellations': N_appellations,
         'collection': TextCollection.objects.get(pk=collectionid)
     }
     return HttpResponse(template.render(context))
@@ -779,12 +795,12 @@ def user_details(request, userid, *args, **kwargs):
     else:
         textCount = Text.objects.filter(addedBy=user).count()
         textAnnotated = Text.objects.filter(annotators=user).distinct().count()
-        relationCount = user.relation_set.count()
+        relation_count = user.relation_set.count()
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
             'textCount': textCount,
-            'relationCount': relationCount,
+            'relation_count': relation_count,
             'textAnnotated': textAnnotated
         })
     return HttpResponse(template.render(context))
