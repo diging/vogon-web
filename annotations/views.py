@@ -10,10 +10,10 @@ from django.contrib.auth import login,authenticate
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 from django.conf import settings
 from django.core.serializers import serialize
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
 from django.core.files import File
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_perms
 from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.response import Response
@@ -48,6 +48,9 @@ import igraph
 import json
 
 from django.shortcuts import render
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def home(request):
@@ -116,6 +119,9 @@ def register(request):
             form.cleaned_data['username'],
             form.cleaned_data['email'],
             password=form.cleaned_data['password1'],
+            full_name=form.cleaned_data['full_name'],
+            affiliation=form.cleaned_data['affiliation'],
+            location=form.cleaned_data['location'],
             )
 
             g = Group.objects.get_or_create(name='Public')[0]
@@ -164,13 +170,9 @@ def user_settings(request):
     """ User profile settings"""
 
     if request.method == 'POST':
-        form = UserChangeForm(request.POST)
+        form = UserChangeForm(request.POST, instance=request.user)
         if form.is_valid():
-            for field in ['first_name', 'last_name', 'email']:
-                value = request.POST.get(field, None)
-                if value:
-                    setattr(request.user, field, value)
-            request.user.save()
+            form.save()
             return HttpResponseRedirect('/accounts/profile/')
     else:
         form = UserChangeForm(instance=request.user)
@@ -196,6 +198,7 @@ def dashboard(request):
     """
     Provides the user's personalized dashboard.
     """
+
     template = loader.get_template('annotations/dashboard.html')
     texts = user_recent_texts(request.user)
     context = RequestContext(request, {
@@ -205,7 +208,7 @@ def dashboard(request):
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
-        'relationCount': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
+        'relation_count': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
     })
     return HttpResponse(template.render(context))
 
@@ -229,9 +232,11 @@ def list_texts(request):
     template = loader.get_template('annotations/list_texts.html')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
-    text_list = text_list.order_by('title')
-    # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 25)
+
+    order_by = request.GET.get('order_by', 'title')
+    text_list = text_list.order_by(order_by)
+
+    paginator = Paginator(text_list, 15)
 
     page = request.GET.get('page')
     try:
@@ -245,6 +250,7 @@ def list_texts(request):
 
     context = {
         'texts': texts,
+        'order_by': order_by,
         'user': request.user,
     }
     return HttpResponse(template.render(context))
@@ -285,18 +291,25 @@ def list_user(request):
     }
     return HttpResponse(template.render(context))
 
-@login_required
+
 def collection_texts(request, collectionid):
     """
     List all of the texts that the user can see, with links to annotate them.
     """
     template = loader.get_template('annotations/collection_texts.html')
+    order_by = request.GET.get('order_by', 'title')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
     text_list = text_list.filter(partOf=collectionid)
+    text_list = text_list.order_by(order_by)
+
+    N_relations = Relation.objects.filter(
+        occursIn__partOf__id=collectionid).count()
+    N_appellations = Appellation.objects.filter(
+        occursIn__partOf__id=collectionid).count()
 
     # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 25)
+    paginator = Paginator(text_list, 10)
 
     page = request.GET.get('page')
     try:
@@ -311,6 +324,9 @@ def collection_texts(request, collectionid):
     context = {
         'texts': texts,
         'user': request.user,
+        'order_by': order_by,
+        'N_relations': N_relations,
+        'N_appellations': N_appellations,
         'collection': TextCollection.objects.get(pk=collectionid)
     }
     return HttpResponse(template.render(context))
@@ -324,15 +340,27 @@ def text(request, textid):
     """
 
     text = get_object_or_404(Text, pk=textid)
-    context_data = {'text': text, 'textid': textid, 'title': 'Annotate Text', 'baselocation' : basepath(request)}
+    context_data = {
+        'text': text,
+        'textid': textid,
+        'title': 'Annotate Text',
+        'baselocation' : basepath(request)
+    }
+
+    # If a text is restricted, then the user needs explicit permission to
+    #  access it.
+    access_conditions = [
+        'annotations.view_text' in get_perms(request.user, text),
+        request.user in text.annotators.all(),
+        getattr(request.user, 'is_admin', False),
+        text.public,
+    ]
+    if not any(access_conditions):
+        # TODO: return a pretty templated response.
+        return HttpResponseForbidden("Sorry, this text is restricted.")
+
     if request.user.is_authenticated():
         template = loader.get_template('annotations/text.html')
-
-        # If a text is restricted, then the user needs explicit permission to
-        #  access it.
-        if not text.public and not request.user.has_perm('annotations.view_text'):
-            # TODO: return a pretty templated response.
-            return HttpResponseForbidden("Sorry, this text is restricted.")
 
         context_data['userid'] = request.user.id
 
@@ -773,12 +801,12 @@ def user_details(request, userid, *args, **kwargs):
     else:
         textCount = Text.objects.filter(addedBy=user).count()
         textAnnotated = Text.objects.filter(annotators=user).distinct().count()
-        relationCount = user.relation_set.count()
+        relation_count = user.relation_set.count()
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
             'textCount': textCount,
-            'relationCount': relationCount,
+            'relation_count': relation_count,
             'textAnnotated': textAnnotated
         })
     return HttpResponse(template.render(context))
