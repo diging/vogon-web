@@ -51,7 +51,7 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     link = models.URLField(max_length=500, blank=True, null=True)
     full_name = models.CharField(max_length=255, blank=True, null=True)
     conceptpower_uri = models.URLField(max_length=500, blank=True, null=True)
-    imagefile = models.FileField(upload_to=settings.MEDIA_ROOT, 
+    imagefile = models.FileField(upload_to='uploads/', 
         blank=True, null=True, default='')
 
     is_active = models.BooleanField(default=True)

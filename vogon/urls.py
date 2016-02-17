@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.conf import settings
+from django.views.static import serve
 from django.conf.urls.static import static
 
 from rest_framework import routers
@@ -68,6 +69,9 @@ urlpatterns = [
     url(r'^relations/(?P<concept_a_id>[0-9]+)/(?P<concept_b_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
+    url(r'^media/(?P<path>.*)$', serve, {
+        'document_root': settings.MEDIA_ROOT}), 
     url(r'^$', views.home)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
 
