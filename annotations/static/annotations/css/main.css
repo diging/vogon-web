@@ -270,6 +270,17 @@ circle.node {
 }
 
 
+.img-responsive{
+  width: 230px;
+  height: 230px;
+}
+
+.div_padding{
+    padding: 30px;
+}
+
+
+
 .btn-group {
   white-space: nowrap;
   .btn {
@@ -277,3 +288,4 @@ circle.node {
     display: inline-block;
   }
 }
+
