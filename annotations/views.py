@@ -350,7 +350,7 @@ def text(request, textid):
     # If a text is restricted, then the user needs explicit permission to
     #  access it.
     access_conditions = [
-        'annotations.view_text' in get_perms(request.user, text),
+        'view_text' in get_perms(request.user, text),
         request.user in text.annotators.all(),
         getattr(request.user, 'is_admin', False),
         text.public,
