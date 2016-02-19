@@ -268,12 +268,13 @@ def list_user(request):
     sort_dict = {"user_name":"username", "name":"full_name",
      "aff":"affiliation", "loc":"location"}
 
-    search_term = request.GET.get('search_term', "")
+    search_term = request.GET.get('search_term')
     sort = request.GET.get('sort', 'user_name')
 
     sort_column = sort_dict[sort]
-
-    queryset = VogonUser.objects.filter(full_name__icontains = search_term).exclude(id = -1).order_by(sort_column)
+    queryset = VogonUser.objects.exclude(id = -1).order_by(sort_column)
+    if search_term:
+        queryset = queryset.filter(full_name__icontains = search_term)
 
     paginator = Paginator(queryset, 10)
 
