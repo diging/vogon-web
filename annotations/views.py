@@ -69,19 +69,16 @@ def home(request):
         Renders landing page for non-loggedin user and
         dashboard view for loggedin users.
     """
-    if request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('dashboard'))
-    else:
-        template = loader.get_template('registration/home.html')
-        user_count = VogonUser.objects.filter(is_active=True).count()
-        text_count = Text.objects.all().count()
-        relation_count = Relation.objects.count()
-        context = RequestContext(request, {
-            'user_count': user_count,
-            'text_count': text_count,
-            'relation_count': relation_count
-        })
-        return HttpResponse(template.render(context))
+    template = loader.get_template('registration/home.html')
+    user_count = VogonUser.objects.filter(is_active=True).count()
+    text_count = Text.objects.all().count()
+    relation_count = Relation.objects.count()
+    context = RequestContext(request, {
+        'user_count': user_count,
+        'text_count': text_count,
+        'relation_count': relation_count
+    })
+    return HttpResponse(template.render(context))
 
 
 def user_texts(user):
