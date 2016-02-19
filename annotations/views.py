@@ -358,7 +358,10 @@ def text(request, textid):
     ]
     if not any(access_conditions):
         # TODO: return a pretty templated response.
-        return HttpResponseForbidden("Sorry, this text is restricted.")
+        template = loader.get_template('annotations/forbidden_error_page.html')
+        context_data['userid'] = request.user.id
+        context = RequestContext(request, context_data)
+        return HttpResponse(template.render(context))
 
     if request.user.is_authenticated():
         template = loader.get_template('annotations/text.html')
