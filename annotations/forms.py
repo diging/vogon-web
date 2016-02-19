@@ -122,3 +122,19 @@ class UserChangeForm(forms.ModelForm):
         model = VogonUser
         fields = ('full_name', 'email', 'affiliation', 'location', 'link', )
 
+    def clean(self):
+        validationErrorDict = {}
+        if not self.cleaned_data.get('full_name'):
+            validationErrorDict['full_name']= ValidationError(_('Missing full name.'), code='required')
+
+        if not self.cleaned_data.get('affiliation'):
+            validationErrorDict['affiliation']= ValidationError(_('Missing affiliation.'), code='required')
+
+        if not self.cleaned_data.get('location'):
+            validationErrorDict['location']= ValidationError(_('Missing location.'), code='required')
+
+        if not self.cleaned_data.get('link'):
+            validationErrorDict['link']= ValidationError(_('Missing link.'), code='required')
+
+        if validationErrorDict:
+            raise ValidationError(validationErrorDict)
