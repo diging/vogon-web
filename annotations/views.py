@@ -174,10 +174,9 @@ def user_settings(request):
             if not os.path.exists(settings.MEDIA_ROOT):
                 os.makedirs(settings.MEDIA_ROOT)
             form.save()
-            if request.POST.get("go_home"):
-                return HttpResponseRedirect(reverse('/accounts/profile/'))
-            elif request.POST.get("go_account"):
-                return HttpResponseRedirect('/accounts/userprofile/')
+            
+            return HttpResponseRedirect(reverse('/accounts/profile/'))
+            
     else:
         form = UserChangeForm(instance=request.user)
 
@@ -187,15 +186,6 @@ def user_settings(request):
         'form': form,
         'subpath': settings.SUBPATH,
     })
-    return HttpResponse(template.render(context))
-
-
-def account(request):
-    """
-    Provides user profile information
-    """
-    template = loader.get_template('annotations/account.html')
-    context = RequestContext(request)
     return HttpResponse(template.render(context))
 
 
