@@ -199,24 +199,13 @@ circle.node {
 
 .nodeLabel {
     font-size: 8pt;
-
-    /* Prevent selecting text. */
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none;   /* Chrome/Safari/Opera */
-    -khtml-user-select: none;    /* Konqueror */
-    -moz-user-select: none;      /* Firefox */
-    -ms-user-select: none;       /* IE/Edge */
-    user-select: none;
-    display: none;
+    visibility: hidden;
 }
 
 
 .nodeSelected .nodeLabel {
     font-size: 13pt;
-
-    opacity: 1.0;
-    display: block;
-    z-index: 5000;
+    visibility: visible;
 }
 
 .panel.narrow {
@@ -225,7 +214,7 @@ circle.node {
 .panel.center {
     margin-left: auto;
     margin-right: auto;
-    margin-top: 50px;
+    margin-top: 100px;
 }
 
 #userdropdown {
@@ -268,24 +257,3 @@ circle.node {
 .navbar-nav {
     font-size: 1.2em;
 }
-
-
-.img-responsive{
-  width: 230px;
-  height: 230px;
-}
-
-.div_padding{
-    padding: 30px;
-}
-
-
-
-.btn-group {
-  white-space: nowrap;
-  .btn {
-    float: none;
-    display: inline-block;
-  }
-}
-

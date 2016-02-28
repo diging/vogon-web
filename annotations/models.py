@@ -11,16 +11,13 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class VogonUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None):
+    def create_user(self, username, email, password=None):
         if not email:
             raise ValueError('Users must have an email address')
 
         user = self.model(
             username=username,
             email=self.normalize_email(email),
-            full_name=full_name,
-            affiliation=affiliation,
-            location=location
         )
 
         user.set_password(password)
@@ -178,11 +175,11 @@ class Text(models.Model):
     public = models.BooleanField(default=True)
 
     @property
-    def annotation_count(self):
+    def annotationCount(self):
         return self.appellation_set.count() + self.relation_set.count()
 
     @property
-    def relation_count(self):
+    def relationCount(self):
         return self.relation_set.count()
 
     class Meta:

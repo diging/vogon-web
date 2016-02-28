@@ -3,23 +3,14 @@
 
 
 {% block title %}
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <span class="h2">Collection: <span class="text text-info">{{ collection.name }}</span></span>
-        <div class="text text-muted text-small">
-            This collection was created by <a href="{% url "user_details" collection.ownedBy.id %}">{{ collection.ownedBy }}</a>.
-        </div>
-    </div>
-    <div class="panel-body">
-
-
-
-        <span class="label label-default">{{ N_appellations }}</span> appellations | <span class="label label-default">{{ N_relations }}</span> relations | <span class="label label-default">{{ collection.texts.count }}</span> total texts.
-    </div>
-    <div class="panel-footer clearfix">
-        <span class="btn-group pull-right">
-            <a href="{% url 'file_upload' %}" class="btn btn-sm btn-primary">Upload Text</a>
-        </span>
-    </div>
+<div>
+    <span class="h2">Texts in Collection <span class="text text-info">{{ collection.name }}</span></span>
+    <span class="btn-group pull-right">
+        <a href="{% url 'file_upload' %}" class="btn btn-primary">Upload Text</a>
+    </span>
 </div>
+<div class="text text-muted text-small">
+    This collection was created by <a href="{% url "user_details" collection.ownedBy.id %}">{{ collection.ownedBy }}</a>.
+</div>
+<hr></hr>
 {% endblock %}

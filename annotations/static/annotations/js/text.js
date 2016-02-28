@@ -23,8 +23,7 @@ app.config(function($httpProvider){
 
 app.factory('Appellation', function($resource) {
     return $resource(BASELOCATION + '/rest/appellation/:id/', {
-        text: TEXTID,
-        thisuser: true
+        text: TEXTID
     }, {
         list: {
             method: 'GET',
@@ -570,7 +569,7 @@ app.factory('selectionService',
 
         // TODO: figure out why this is necessary.
         var alertScope = angular.element($('#alerts')).scope();
-        alertScope.newMessage('Hold the shift key and click on another word to select a series of words. Press the <kbd>esc</kbd> key to deselect words or appellations');
+        alertScope.newMessage('Hold the shift key and click on another word to select a series of words.');
         if(!alertScope.$$phase) alertScope.$apply();
         return;
     }
