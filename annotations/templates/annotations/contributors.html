@@ -30,23 +30,43 @@
               <thead>
                 <tr>
                   <th class="col-sm-3">
-                    <a href="?sort=user_name{% if search_term %}&search_term={{search_term}}{% endif %}">
-                      <h5><b>User Name</b></h5>
+                    <a class="h4" style="text-decoration: none; vertical-align: middle;"
+                       href="{% if sort_column == '-username' %}?sort=username{% else %}?sort=-username{% endif %}{% if search_term %}&search_term={{search_term}}{% endif %}">
+                       User Name
+                    </a>
+                    <a class="btn btn-sm btn-default" aria-label="Left Align"
+                       href="{% if sort_column == '-username' %}?sort=username{% else %}?sort=-username{% endif %}{% if search_term %}&search_term={{search_term}}{% endif %}">
+                        <span class="glyphicon glyphicon-sort-by-alphabet{% if order_by != '-username' %}-alt{% endif %}" aria-hidden="true"></span>
                     </a>
                   </th>
                   <th class="col-sm-3">
-                    <a href="?sort=name{% if search_term %}&search_term={{search_term}}{% endif %}">
-                      <h5><b>Full Name</b></h5>
+                    <a class="h4" style="text-decoration: none; vertical-align: middle;"
+                       href="{% if sort_column == '-full_name' %}?sort=full_name{% else %}?sort=-full_name{% endif %}{% if search_term %}&search_term={{search_term}}{% endif %}">
+                       Full Name
+                    </a>
+                    <a class="btn btn-sm btn-default" aria-label="Left Align"
+                       href="{% if sort_column == '-full_name' %}?sort=full_name{% else %}?sort=-full_name{% endif %}{% if search_term %}&search_term={{search_term}}{% endif %}">
+                        <span class="glyphicon glyphicon-sort-by-alphabet{% if order_by != '-full_name' %}-alt{% endif %}" aria-hidden="true"></span>
                     </a>
                   </th>
                   <th class="col-sm-3">
-                    <a href="?sort=aff{% if search_term %}&search_term={{search_term}}{% endif %}">
-                      <h5><b>Affiliation</b></h5>
+                    <a class="h4" style="text-decoration: none; vertical-align: middle;"
+                       href="{% if sort_column == '-affiliation' %}?sort=affiliation{% else %}?sort=-affiliation{% endif %}{% if search_term %}&search_term={{search_term}}{% endif %}">
+                       Affiliation
+                    </a>
+                    <a class="btn btn-sm btn-default" aria-label="Left Align"
+                       href="{% if sort_column == '-affiliation' %}?sort=affiliation{% else %}?sort=-affiliation{% endif %}{% if search_term %}&search_term={{search_term}}{% endif %}">
+                        <span class="glyphicon glyphicon-sort-by-alphabet{% if order_by != '-affiliation' %}-alt{% endif %}" aria-hidden="true"></span>
                     </a>
                   </th>
                   <th class="col-sm-3">
-                    <a href="?sort=loc{% if search_term %}&search_term={{search_term}}{% endif %}">
-                      <h5><b>Location</b></h5>
+                    <a class="h4" style="text-decoration: none; vertical-align: middle;"
+                       href="{% if sort_column == '-location' %}?sort=location{% else %}?sort=-location{% endif %}{% if search_term %}&search_term={{search_term}}{% endif %}">
+                       Location
+                    </a>
+                    <a class="btn btn-sm btn-default" aria-label="Left Align"
+                       href="{% if sort_column == '-location' %}?sort=location{% else %}?sort=-location{% endif %}{% if search_term %}&search_term={{search_term}}{% endif %}">
+                        <span class="glyphicon glyphicon-sort-by-alphabet{% if order_by != '-location' %}-alt{% endif %}" aria-hidden="true"></span>
                     </a>
                   </th>
                 </tr>
