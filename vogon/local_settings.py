@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'guardian',
     'djcelery',
+    'haystack',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -148,6 +149,16 @@ JARS_KEY = '050814a54ac5c81b990140c3c43278031d391676'
 
 AUTH_USER_MODEL = 'annotations.VogonUser'
 
+# Haystack
+# http://django-haystack.readthedocs.org/en/v2.4.0/index.html
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
+    },
+}
 
 LOGGING = {
     'version': 1,
