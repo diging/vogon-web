@@ -429,7 +429,7 @@ class AnnotationFilterMixin(object):
             queryset = queryset.filter(createdBy__pk=userid)
         elif userid is not None:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
-        return queryset
+        return queryset.iterator()
 
 
 class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
@@ -458,7 +458,7 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(interpretation_id=concept)
         if text:
             queryset = queryset.filter(occursIn_id=text)
-        return queryset
+        return queryset.iterator()
 
 
 class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
@@ -505,7 +505,7 @@ class RelationViewSet(viewsets.ModelViewSet):
         elif userid is not None and type(userid) is not list:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
 
-        return queryset
+        return queryset.iterator()
 
 
 class TemporalBoundsViewSet(viewsets.ModelViewSet, AnnotationFilterMixin):
@@ -547,7 +547,7 @@ class TextViewSet(viewsets.ModelViewSet):
         if len(related_concepts) > 1:
             queryset = queryset.filter(appellation__interpretation_id=int(related_concepts[0])).filter(appellation__interpretation_id=int(related_concepts[1]))
 
-        return queryset.distinct()
+        return queryset.distinct().iterator()
 
 
 class TextCollectionViewSet(viewsets.ModelViewSet):
@@ -647,7 +647,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
         if max_results:
             return queryset[:max_results]
-        return queryset
+        return queryset.iterator()
+
 
 @login_required
 def upload_file(request):
