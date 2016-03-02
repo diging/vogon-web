@@ -1,72 +1,71 @@
 {% extends "annotations/base.html" %}
 {% load staticfiles %}
-
 {% block main %}
+<script type="text/javascript">
+/*
+   Function called when file input updated. If there is a file selected, then
+   start upload procedure by asking for a signed request from the app.
+*/
+function init_upload(){
+    var files = document.getElementById("file_input").files;
+    var file = files[0];
+    if(file == null){
+        alert("No file selected.");
+        return;
+    }
+    get_signed_request(file);
+}
+/*
+   Bind listeners when the page loads.
+*/
+(function() {
+    document.getElementById("file_input").onchange = init_upload;
+})();
 
+</script>
 <div id="main">
-
-        <div class="col-sm-8 col-sm-offset-2">
-            <form action="#" method="POST" enctype="multipart/form-data">
-                <div id="settings" class="panel panel-default">
-                    <div class="panel-heading">Update your profile</div>
-                    <div class="panel-body">
-                        
-                        <form role="form">
-                    <div class="form-group">
-                      <label for="fullname">Full Name</label>
-                      <input type="text" class="form-control" id="fullname">
-                    </div>
-                    <div class="form-group">
-                      <label for="email">Email Address</label>
-                      <input type="email" class="form-control" id="email">
-                    </div>
-                    <div class="form-group">
-                      <label for="affiliation">Affiliation</label>
-                      <input type="text" class="form-control" id="affiliation">
-                    </div>
-                    <div class="form-group">
-                      <label for="location">Location</label>
-                      <input type="text" class="form-control" id="location">
-                    </div>
-                    <div class="form-group">
-                      <label for="link">Link</label>
-                      <input type="text" class="form-control" id="link">
-                    </div>
-
-                <div class="form-group">
-                    <input type="file" id="file_input"/>
-                    <p id="status">Please select a file</p>
-                    <img id="preview" src="{% static "images/defaultprofile.png" %}" alt="My image"/ />
-                     <input type="hidden" id="defaultImage" name="defaultImage" value="{% static "images/defaultprofile.png" %}" />
-
-                </div>
-
-                    
-
-
-
-
-                     </form>    
-
-
-
-                    </div>
-
-                    <div class="panel-footer clearfix">
-                        <span class="pull-right">
-                            <input type="submit" class="btn btn-primary" value="Submit" />
-                         </span>
-                    </div>
-
-
-                </div>
-            </form>
-        </div>
-</div>
-
-
-<div class="container">
-  
+   <div class="col-sm-8 col-sm-offset-2">
+      <form action="#" method="POST" enctype="multipart/form-data">
+         <div id="settings" class="panel panel-default">
+            <div class="panel-heading">Update your profile</div>
+            <div class="panel-body">
+      <form  action="#" method="post"  enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+      <label for="fullname">Full Name</label>
+      <input type="text" class="form-control" id="id_fullname" value="{{ full_name }}">
+      </div>
+      <div class="form-group">
+      <label for="email">Email Address</label>
+      <input type="email" class="form-control" id="id_email" value="{{ email }}">
+      </div>
+      <div class="form-group">
+      <label for="affiliation">Affiliation</label>
+      <input type="text" class="form-control" id="id_affiliation" value="{{ affiliation }}">
+      </div>
+      <div class="form-group">
+      <label for="location">Location</label>
+      <input type="text" class="form-control" id="id_location" value="{{ location }}">
+      </div>
+      <div class="form-group">
+      <label for="link">Link</label>
+      <input type="text" class="form-control" id="id_link" value="{{ link }}">
+      </div>
+      <div class="form-group">
+      <label for="imagefile">Please upload an image</label>
+      <input type="file" id="file_input"/>
+      <img id="preview" src="{% static "images/defaultprofile.png" %}" alt="My image"/ />
+      <input type="hidden" id="defaultImage" name="defaultImage" value="{% static "images/defaultprofile.png" %}" />
+      </div>
+      </form>
+      </div>
+      <div class="panel-footer clearfix">
+      <span class="pull-right">
+      <input type="submit" class="btn btn-primary" value="Submit" />
+      </span>
+      </div>
+      </div>
+      </form>
+   </div>
 </div>
 {% endblock main %}
-

@@ -183,6 +183,11 @@ def user_settings(request):
     template = loader.get_template('annotations/settings.html')
     context = RequestContext(request, {
         'user': request.user,
+        'full_name' : request.user.full_name,
+        'email' : request.user.email,
+        'affiliation' : request.user.affiliation,
+        'location' : request.user.location,
+        'link' : request.user.link,
         'form': form,
         'subpath': settings.SUBPATH,
     })
