@@ -429,7 +429,7 @@ class AnnotationFilterMixin(object):
             queryset = queryset.filter(createdBy__pk=userid)
         elif userid is not None:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
-        return queryset.iterator()
+        return queryset
 
 
 class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
@@ -447,7 +447,8 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_queryset(self, *args, **kwargs):
-        queryset = super(AppellationViewSet, self).get_queryset(*args, **kwargs)
+
+        queryset = AnnotationFilterMixin.get_queryset(self, *args, **kwargs)
 
         concept = self.request.query_params.get('concept', None)
         text = self.request.query_params.get('text', None)
