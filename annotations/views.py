@@ -419,9 +419,12 @@ class AnnotationFilterMixin(object):
         queryset = super(AnnotationFilterMixin, self).get_queryset(*args, **kwargs)
 
         textid = self.request.query_params.get('text', None)
+        texturi = self.request.query_params.get('text_uri', None)
         userid = self.request.query_params.get('user', None)
         if textid:
             queryset = queryset.filter(occursIn=int(textid))
+        if texturi:
+            queryset = queryset.filter(occursIn__uri=texturi)
         if userid:
             queryset = queryset.filter(createdBy__pk=userid)
         elif userid is not None:
@@ -533,9 +536,12 @@ class TextViewSet(viewsets.ModelViewSet):
         textcollectionid = self.request.query_params.get('textcollection', None)
         conceptid = self.request.query_params.getlist('concept')
         related_concepts = self.request.query_params.getlist('related_concepts')
+        uri = self.request.query_params.get('uri', None)
 
         if textcollectionid:
             queryset = queryset.filter(partOf=int(textcollectionid))
+        if uri:
+            queryset = queryset.filter(uri=uri)
         if len(conceptid) > 0:
             queryset = queryset.filter(appellation__interpretation__pk__in=[int(c) for c in conceptid])
         if len(related_concepts) > 1:
@@ -623,6 +629,14 @@ class ConceptViewSet(viewsets.ModelViewSet):
         # Search Concept labels for ``search`` param.
         query = self.request.query_params.get('search', None)
         remote = self.request.query_params.get('remote', False)
+        uri = self.request.query_params.get('uri', None)
+        type_uri = self.request.query_params.get('type_uri', None)
+        max_results = self.request.query_params.get('max', None)
+
+        if uri:
+            queryset = queryset.filter(uri=uri)
+        if type_uri:
+            queryset = queryset.filter(type__uri=uri)
         if query:
             if pos == 'all':
                 pos = None
@@ -631,6 +645,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 search_concept.delay(query, pos=pos)
             queryset = queryset.filter(label__icontains=query)
 
+        if max_results:
+            return queryset[:max_results]
         return queryset
 
 @login_required
