@@ -436,6 +436,7 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    # pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -459,7 +460,7 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(interpretation_id=concept)
         if text:
             queryset = queryset.filter(occursIn_id=text)
-        return queryset.iterator()
+        return queryset
 
 
 class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
@@ -506,7 +507,7 @@ class RelationViewSet(viewsets.ModelViewSet):
         elif userid is not None and type(userid) is not list:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
 
-        return queryset.iterator()
+        return queryset
 
 
 class TemporalBoundsViewSet(viewsets.ModelViewSet, AnnotationFilterMixin):
@@ -548,7 +549,7 @@ class TextViewSet(viewsets.ModelViewSet):
         if len(related_concepts) > 1:
             queryset = queryset.filter(appellation__interpretation_id=int(related_concepts[0])).filter(appellation__interpretation_id=int(related_concepts[1]))
 
-        return queryset.distinct().iterator()
+        return queryset.distinct()
 
 
 class TextCollectionViewSet(viewsets.ModelViewSet):
@@ -648,7 +649,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
         if max_results:
             return queryset[:max_results]
-        return queryset.iterator()
+        return queryset
 
 
 @login_required
