@@ -201,10 +201,13 @@ def dashboard(request):
 
     template = loader.get_template('annotations/dashboard.html')
     texts = user_recent_texts(request.user)
+    baselocation = basepath(request)
+    if baselocation[-1] == '/':
+        baselocation = baselocation[:-1]
     context = RequestContext(request, {
         'user': request.user,
         'subpath': settings.SUBPATH,
-        'baselocation': basepath(request),
+        'baselocation': baselocation,
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
