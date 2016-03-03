@@ -65,7 +65,8 @@ app.factory('Appellation', function($resource) {
 
 app.factory('Relation', function($resource) {
     return $resource(BASELOCATION + '/rest/relation/:id/', {
-        text: TEXTID
+        text: TEXTID,
+        thisuser: true
     }, {
         list: {
             method: 'GET',
@@ -164,7 +165,7 @@ app.factory('Concept', function($resource) {
 
 app.factory('Type', function($resource) {
     return $resource(BASELOCATION + '/rest/type/:id/', {}, {
-        
+
         list: {
             method: 'GET',
             cache: true,
