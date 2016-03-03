@@ -510,6 +510,10 @@ class RelationViewSet(viewsets.ModelViewSet):
         elif userid is not None and type(userid) is not list:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
 
+        thisuser = self.request.query_params.get('thisuser', False)
+        if thisuser:
+            queryset = queryset.filter(createdBy_id=self.request.user.id)
+
         return queryset
 
 
