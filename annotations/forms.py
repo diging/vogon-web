@@ -141,6 +141,6 @@ class UserChangeForm(forms.ModelForm):
         if not self.cleaned_data.get('location'):
             raise ValidationError(_('Missing location.'), code='required')
 
-    def clean_link(self):
-        if not self.cleaned_data.get('link'):
-            raise ValidationError(_('Missing link.'), code='required')
+	def clean_email(self):
+		if not self.cleaned_data.get('email'):
+			raise ValidationError(_('Missing location.'), code='required')

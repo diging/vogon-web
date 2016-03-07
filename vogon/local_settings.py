@@ -169,3 +169,9 @@ LOGGING = {
         },
     },
 }
+
+# AWS Access Key and Secret Key credentials
+
+AWS_ACCESS_KEY     = 'AKIAIAM452M3MX7RRNGA'
+AWS_SECRET_KEY = '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'
+S3_BUCKET = 'vogonweb-test'

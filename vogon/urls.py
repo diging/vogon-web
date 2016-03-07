@@ -68,7 +68,8 @@ urlpatterns = [
     url(r'^relations/(?P<concept_a_id>[0-9]+)/(?P<concept_b_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
-    url(r'^$', views.home)
+    url(r'^$', views.home),
+    url(r'^sign_s3$', views.sign_s3)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:

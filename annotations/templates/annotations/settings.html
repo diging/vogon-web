@@ -1,71 +1,121 @@
 {% extends "annotations/base.html" %}
 {% load staticfiles %}
 {% block main %}
-<script type="text/javascript">
-/*
-   Function called when file input updated. If there is a file selected, then
-   start upload procedure by asking for a signed request from the app.
-*/
-function init_upload(){
-    var files = document.getElementById("file_input").files;
-    var file = files[0];
-    if(file == null){
-        alert("No file selected.");
-        return;
-    }
-    get_signed_request(file);
-}
-/*
-   Bind listeners when the page loads.
-*/
-(function() {
-    document.getElementById("file_input").onchange = init_upload;
-})();
-
-</script>
 <div id="main">
+              <form  action="#" method="post" enctype='multipart/form-data'>
    <div class="col-sm-8 col-sm-offset-2">
-      <form action="#" method="POST" enctype="multipart/form-data">
          <div id="settings" class="panel panel-default">
             <div class="panel-heading">Update your profile</div>
             <div class="panel-body">
-      <form  action="#" method="post"  enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="form-group">
-      <label for="fullname">Full Name</label>
-      <input type="text" class="form-control" id="id_fullname" value="{{ full_name }}">
-      </div>
-      <div class="form-group">
-      <label for="email">Email Address</label>
-      <input type="email" class="form-control" id="id_email" value="{{ email }}">
-      </div>
-      <div class="form-group">
-      <label for="affiliation">Affiliation</label>
-      <input type="text" class="form-control" id="id_affiliation" value="{{ affiliation }}">
-      </div>
-      <div class="form-group">
-      <label for="location">Location</label>
-      <input type="text" class="form-control" id="id_location" value="{{ location }}">
-      </div>
-      <div class="form-group">
-      <label for="link">Link</label>
-      <input type="text" class="form-control" id="id_link" value="{{ link }}">
-      </div>
-      <div class="form-group">
-      <label for="imagefile">Please upload an image</label>
-      <input type="file" id="file_input"/>
-      <img id="preview" src="{% static "images/defaultprofile.png" %}" alt="My image"/ />
-      <input type="hidden" id="defaultImage" name="defaultImage" value="{% static "images/defaultprofile.png" %}" />
-      </div>
-      </form>
-      </div>
-      <div class="panel-footer clearfix">
-      <span class="pull-right">
-      <input type="submit" class="btn btn-primary" value="Submit" />
-      </span>
-      </div>
-      </div>
-      </form>
+
+              {% csrf_token %}
+              {{ form.errors }}
+              {{ form.non_field_errors }}
+              <div class="form-group">
+              <label for="fullname">Full Name</label>
+              <input type="text" class="form-control" id="id_fullname" value="{{ full_name }}">
+              </div>
+              <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" class="form-control" id="id_email" value="{{ email }}">
+              </div>
+              <div class="form-group">
+              <label for="affiliation">Affiliation</label>
+              <input type="text" class="form-control" id="id_affiliation" value="{{ affiliation }}">
+              </div>
+              <div class="form-group">
+              <label for="location">Location</label>
+              <input type="text" class="form-control" id="id_location" value="{{ location }}">
+              </div>
+              <div class="form-group">
+              <label for="link">Link</label>
+              <input type="text" class="form-control" id="id_link" value="{{ link }}">
+              </div>
+              <div class="form-group">
+              <label for="imagefile">Please upload an image</label>
+              <input type="file" id="file_input"/>
+              <p id="status">Please select a file</p>
+              <img id="preview" src="{% static "images/defaultprofile.png" %}" alt="My image"/ />
+              <input type="hidden" id="defaultImage" name="defaultImage" />
+              </div>
+              <div class="panel-footer clearfix">
+              <span class="pull-right">
+              <input type="submit" class="btn btn-primary" value="Submit" />
+              </span>
+              </div>
+
+              </div>
+              </div>
    </div>
+                 </form>
 </div>
+<script type="text/javascript">
+   /*
+      Function called when file input updated. If there is a file selected, then
+      start upload procedure by asking for a signed request from the app.
+   */
+   function init_upload(){
+       var files = document.getElementById("file_input").files;
+       var file = files[0];
+       if(file == null){
+           alert("No file selected.");
+           return;
+       }
+       get_signed_request(file);
+   }
+   
+   
+   /*
+      Bind listeners when the page loads.
+   */
+   (function() {
+       document.getElementById("file_input").onchange = init_upload;
+   })();
+   
+   
+   /*
+       Function to get the temporary signed request from the Python app.
+       If request successful, continue to upload the file using this signed
+       request.
+   */
+   function get_signed_request(file){
+       var xhr = new XMLHttpRequest();
+       xhr.open("GET", "/sign_s3?file_name="+file.name+"&file_type="+file.type);
+       xhr.onreadystatechange = function(){
+           if(xhr.readyState === 4){
+               if(xhr.status === 200){
+                   var response = JSON.parse(xhr.responseText);
+                   upload_file(file, response.signed_request, response.url);
+               }
+               else{
+                   alert("Could not get signed URL.");
+               }
+           }
+       };
+       xhr.send();
+   }
+   
+   
+   /*
+       Function to carry out the actual PUT request to S3 using the signed request from the Python app.
+   */
+   function upload_file(file, signed_request, url){
+       var xhr = new XMLHttpRequest();
+       xhr.open("PUT", signed_request);
+       xhr.setRequestHeader('x-amz-acl', 'public-read');
+       xhr.onload = function() {
+           if (xhr.status === 200) {
+               document.getElementById("preview").src = url;            
+               document.getElementById("defaultImage").value = url;
+               alert("Profile image upload successful.")
+           }
+       };
+       xhr.onerror = function() {
+           alert("Could not upload file."); 
+       };
+       xhr.send(file);
+   }
+   
+   
+</script>
 {% endblock main %}
