@@ -168,26 +168,18 @@ def json_response(func):
 @login_required
 def user_settings(request):
     """ User profile settings"""
-
+    
     if request.method == 'POST':
-        #Binding required fields to the form.
-        data={}
-        data["username"]=request.user
-        data["full_name"]=request.user.full_name
-        data["email"]=request.user.email
-        data["location"]=request.user.location
-        data["affiliation"]=request.user.affiliation
-        data["link"]=request.user.link
-        form = UserChangeForm(data=data)
-
+        form = UserChangeForm(request.POST,instance=request.user)
         if form.is_valid():
-            userRecord=VogonUser.objects.get(username=request.user)
-            userRecord.imagefile = request.POST.get('defaultImage')
-            userRecord.save()
+            form.save()
             return HttpResponseRedirect('/accounts/profile/')
-            
+
     else:
         form = UserChangeForm(instance=request.user)
+        # Assign default image in the preview if no profile image is selected for the user.
+        if request.user.imagefile == "" or request.user.imagefile is None:
+            request.user.imagefile=settings.STATIC_URL+"images/defaultprofile.png"
 
     template = loader.get_template('annotations/settings.html')
     context = RequestContext(request, {
@@ -197,6 +189,7 @@ def user_settings(request):
         'affiliation' : request.user.affiliation,
         'location' : request.user.location,
         'link' : request.user.link,
+        'preview' : request.user.imagefile,
         'form': form,
         'subpath': settings.SUBPATH,
     })

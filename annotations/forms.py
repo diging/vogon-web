@@ -132,15 +132,29 @@ class UserChangeForm(forms.ModelForm):
     def clean_full_name(self):
         if not self.cleaned_data.get('full_name'):
             raise ValidationError(_('Missing full name.'), code='required')
+        else:
+        	return self.cleaned_data['full_name']
 
-    def clean_affiliation(self):
-        if not self.cleaned_data.get('affiliation'):
-            raise ValidationError(_('Missing affiliation.'), code='required')
+    def clean_email(self):
+        if not self.cleaned_data.get('email'):
+            raise ValidationError(_('Missing email.'), code='required')
+        else:
+        	return self.cleaned_data['email']
 
     def clean_location(self):
         if not self.cleaned_data.get('location'):
             raise ValidationError(_('Missing location.'), code='required')
+        else:
+        	return self.cleaned_data['location']
 
-	def clean_email(self):
-		if not self.cleaned_data.get('email'):
-			raise ValidationError(_('Missing location.'), code='required')
+    def clean_affiliation(self):
+        if not self.cleaned_data.get('affiliation'):
+            raise ValidationError(_('Missing affiliation.'), code='required')
+        else:
+        	return self.cleaned_data['affiliation']
+
+    def clean_imagefile(self):
+        if not self.cleaned_data.get('imagefile'):
+            raise ValidationError(_('Missing profile image.'), code='required')
+        else:
+        	return self.cleaned_data['imagefile'] 
