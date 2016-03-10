@@ -13,18 +13,18 @@ resolve.verbose_name = 'resolve selected concepts'
 
 def merge_concepts(self, request, queryset):
     return render_to_response('admin/merge_concepts.html', {'concepts': queryset})
-    add_tag.short_description = "Merge Concepts"
+merge_concepts.verbose_name = "Merge Concepts"
 
 class ConceptAdmin(admin.ModelAdmin):
     model = Concept
-    search_fields = (   'label',    )
-    list_display = (    'label', 'resolved','concept_state'  )
-    actions = ( resolve,merge_concepts,    )
-    list_filter=('concept_state',)
+    search_fields = ('label',)
+    list_display = ('label', 'resolved', 'concept_state', 'typed',)
+    actions = (resolve, merge_concepts,)
+    list_filter=('concept_state', 'typed',)
 
 class TypeAdmin(admin.ModelAdmin):
     model = Type
-    list_display = (    'label', 'resolved'  )
+    list_display = ('label', 'resolved',)
 
 # def export_selected_objects(modeladmin, request, queryset):
 #     selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
