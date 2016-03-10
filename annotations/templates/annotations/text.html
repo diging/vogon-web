@@ -22,6 +22,7 @@
         var USERID = {{ userid }};
         </script>
         <title>{{ title }}</title>
+
     </head>
     <body escape-key>
         {% include "annotations/header.html" %}
@@ -112,6 +113,44 @@
                                             Relations will be added to this list as you create them.
                                         </div>
                                     </div>
+                                    <div  ng-controller="RelationTemplateSearchController">
+                                        {% verbatim %}
+                                        <div id="relationtemplate-search">
+                                            <input
+                                                type="text"
+                                                name="search"
+                                                id="relationtemplate-search-field"
+                                                ng-model="query"
+                                                ng-change="search()"
+                                                class="form-control"
+                                                placeholder="Search for a relation template">
+                                            </input>
+
+                                            <li class="list-group-item" ng-repeat="template in relation_templates" ng-click="select(template)">
+                                                <span class="h5">{{ template.name }}</span>
+                                                <p>{{ template.description }}</p>
+                                                <p>
+                                                    <label class="label label-primary" ng-repeat="field in template.fields" ng-if="field.type == 'TP'" style="margin-right: 7px;">{{ field.concept_label }}</label>
+                                                </p>
+                                            </li>
+
+                                        </div>
+                                        <div id="relationtemplate-create" ng-show="relation_create">
+                                            <span class="h4">{{ relation_template.name }}</span>
+                                            <p>{{ relation_template.description }}</p>
+
+                                            <div class="form-group" ng-repeat="field in relation_template.fields">
+                                                <label for="{{ field.part_id }}_{{ field.part_field }}">{{ field.label }}.</label> <span class="text text-muted">{{ field.description }}</span>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" ng-readonly="isReadOnly(field)" id="{{ field.part_id }}_{{ field.part_field }}" placeholder="{{ field.concept_label }}"></input>
+                                                    <div class="input-group-addon"><span class="glyphicon glyphicon-edit"></span></div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        {% endverbatim %}
+                                    </div>
+
                                 </tab>
 
                             </tabset>

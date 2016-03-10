@@ -960,6 +960,9 @@ def add_relationtemplate(request):
                             form.cleaned_data[part + '_node_type'])
                     setattr(relationTemplatePart, part + '_prompt_text',
                             form.cleaned_data[part + '_prompt_text'])
+                    setattr(relationTemplatePart, part + '_label',
+                            form.cleaned_data[part + '_label'])
+
 
                     # Node is a concept Type. e.g. ``E20 Person``.
                     if form.cleaned_data[part + '_node_type'] == 'TP':
@@ -1033,7 +1036,7 @@ def add_relationtemplate(request):
             if not error:
                 # TODO: when the list view for RTs is implemented, we should
                 #  direct the user there.
-                return HttpResponseRedirect(reverse('dashboard'))
+                return HttpResponseRedirect(reverse('list_relationtemplate'))
 
             else:
                 # For now, we can render this view-wide error separately. But
@@ -1042,7 +1045,7 @@ def add_relationtemplate(request):
                 context['error'] = error
     else:   # No data, start with a fresh formset.
         context['formset'] = formset()
-
+    print error
     return render(request, 'annotations/relationtemplate.html', context)
 
 
@@ -1052,11 +1055,19 @@ def list_relationtemplate(request):
     Returns a list of all :class:`.RelationTemplate`\s.
     """
     queryset = RelationTemplate.objects.all()
+    search = request.GET.get('search', None)
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search) |
+            Q(description__icontains=search)
+        )
+
     data = {
         'templates': [{
             'id': rt.id,
             'name': rt.name,
-            'description': rt.description
+            'description': rt.description,
+            'fields': rt.fields,
             } for rt in queryset]
         }
 
@@ -1080,40 +1091,27 @@ def get_relationtemplate(request, template_id):
     Returns data on fillable fields in a :class:`.RelationTemplate`\.
     """
 
-    template = get_object_or_404(RelationTemplate, pk=template_id)
+    relation_template = get_object_or_404(RelationTemplate, pk=template_id)
 
-    fields = []    # The fields that we need the user to fill go in here.
-    for tpart in template.template_parts.all():
-        for field in ['source', 'predicate', 'object']:
-            evidenceRequired = getattr(tpart, '%s_prompt_text' % field)
-            nodeType = getattr(tpart, '%s_node_type' % field)
-            # The user needs to provide specific concepts for TYPE fields.
-            if nodeType == RelationTemplatePart.TYPE:
-                fields.append({
-                    'type': 'TP',
-                    'id': getattr(tpart, '%s_type' % field).id,
-                    'label': getattr(tpart, '%s_type' % field).label,
-                    'evidence_required': evidenceRequired,
-                    'description': getattr(tpart, '%s_description' % field),
-                })
-            # Even if there is an explicit concept, we may require textual
-            #  evidence from the user.
-            elif evidenceRequired and nodeType == RelationTemplatePart.CONCEPT:
-                fields.append({
-                    'type': 'CO',
-                    'id': getattr(tpart, '%s_concept' % field).id,
-                    'label': getattr(tpart, '%s_concept' % field).label,
-                    'evidence_required': evidenceRequired,
-                    'description': getattr(tpart, '%s_description' % field),
-                })
     data = {
-        'fields': fields,
-        'name': template.name,
-        'description': template.description,
+        'fields': relation_template.fields,
+        'name': relation_template.name,
+        'description': relation_template.description,
         'id': template_id,
-        'expression': template.expression,
+        'expression': relation_template.expression,
     }
-    return JsonResponse(data)
+    response_format = request.GET.get('format', None)
+    if response_format == 'json':
+        return JsonResponse(data)
+    template = loader.get_template('annotations/relationtemplate_show.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'data': data,
+    })
+
+    return HttpResponse(template.render(context))
+
+
 
 
 @login_required

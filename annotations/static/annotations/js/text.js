@@ -1647,3 +1647,53 @@ var bindHelpPopover = function() {
         }
     );
 }
+
+
+
+
+app.factory('RelationTemplate', function($resource) {
+  return $resource('/relationtemplate/:id/', {
+      format: 'json',
+  }, {
+      list: {
+          method: 'GET',
+          cache: true,
+          headers: {'Content-Type': 'application/json'}
+      },
+      query: {
+          isArray: false,
+      }
+
+  });
+});
+
+
+
+app.controller('RelationTemplateSearchController', ['$scope', 'RelationTemplate', function($scope, RelationTemplate) {
+
+
+    $scope.search = function() {
+        $scope.relation_templates = RelationTemplate.query({search: $scope.query}).$promise.then(function(data){
+            $scope.relation_templates = data.templates;
+        });
+    }
+
+    $scope.select = function(rt) {
+        $scope.relation_template = rt;
+        $scope.relation_create = true;
+    }
+
+    $scope.reset  = function() {
+        $scope.relation_templates = RelationTemplate.list().$promise.then(function(data) {
+            $scope.relation_templates = data.templates;
+        });
+        $scope.relation_template = {};
+        $scope.relation_create = false;
+    }
+
+    $scope.isReadOnly = function(field) {
+        return field.evidence_required;
+    }
+
+    $scope.reset();
+}]);

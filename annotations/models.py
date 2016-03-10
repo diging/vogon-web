@@ -339,6 +339,40 @@ class RelationTemplate(models.Model):
     expression = models.TextField(null=True)
     """Pattern for representing the relation in normal language."""
 
+    @property
+    def fields(self):
+        fields = []    # The fields that we need the user to fill go in here.
+        for tpart in self.template_parts.all():
+            for field in ['source', 'predicate', 'object']:
+                evidenceRequired = getattr(tpart, '%s_prompt_text' % field)
+                nodeType = getattr(tpart, '%s_node_type' % field)
+                # The user needs to provide specific concepts for TYPE fields.
+                if nodeType == RelationTemplatePart.TYPE:
+                    fields.append({
+                        'type': 'TP',
+                        'part_id': tpart.id,
+                        'part_field': field,
+                        'concept_id': getattr(tpart, '%s_type' % field).id,
+                        'label': getattr(tpart, '%s_label' % field),
+                        'concept_label': getattr(tpart, '%s_type' % field).label,
+                        'evidence_required': evidenceRequired,
+                        'description': getattr(tpart, '%s_description' % field),
+                    })
+                # Even if there is an explicit concept, we may require textual
+                #  evidence from the user.
+                elif evidenceRequired and nodeType == RelationTemplatePart.CONCEPT:
+                    fields.append({
+                        'type': 'CO',
+                        'part_id': tpart.id,
+                        'part_field': field,
+                        'concept_id': getattr(tpart, '%s_concept' % field).id,
+                        'label': getattr(tpart, '%s_label' % field),
+                        'concept_label': getattr(tpart, '%s_concept' % field).label,
+                        'evidence_required': evidenceRequired,
+                        'description': getattr(tpart, '%s_description' % field),
+                    })
+        return fields
+
 
 class RelationTemplatePart(models.Model):
     TYPE = 'TP'
