@@ -198,10 +198,13 @@ def dashboard(request):
 
     template = loader.get_template('annotations/dashboard.html')
     texts = user_recent_texts(request.user)
+    baselocation = basepath(request)
+    if baselocation[-1] == '/':
+        baselocation = baselocation[:-1]
     context = RequestContext(request, {
         'user': request.user,
         'subpath': settings.SUBPATH,
-        'baselocation': basepath(request),
+        'baselocation': baselocation,
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
@@ -450,6 +453,7 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    # pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -461,7 +465,8 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_queryset(self, *args, **kwargs):
-        queryset = super(AppellationViewSet, self).get_queryset(*args, **kwargs)
+
+        queryset = AnnotationFilterMixin.get_queryset(self, *args, **kwargs)
 
         concept = self.request.query_params.get('concept', None)
         text = self.request.query_params.get('text', None)
@@ -518,6 +523,10 @@ class RelationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
         elif userid is not None and type(userid) is not list:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
+
+        thisuser = self.request.query_params.get('thisuser', False)
+        if thisuser:
+            queryset = queryset.filter(createdBy_id=self.request.user.id)
 
         return queryset
 
@@ -662,6 +671,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         if max_results:
             return queryset[:max_results]
         return queryset
+
 
 @login_required
 def upload_file(request):
