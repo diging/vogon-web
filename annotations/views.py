@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, JsonResponse
 from django.template import RequestContext, loader
 from annotations.models import VogonUser
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
@@ -353,7 +353,7 @@ def text(request, textid):
     ]
     if not any(access_conditions):
         # TODO: return a pretty templated response.
-        return HttpResponseForbidden("Sorry, this text is restricted.")
+        raise PermissionDenied
 
     if request.user.is_authenticated():
         template = loader.get_template('annotations/text.html')
@@ -366,6 +366,24 @@ def text(request, textid):
         template = loader.get_template('annotations/anonymous_text.html')
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
+
+
+def custom_403_handler(request):
+    """
+    Default 403 Handler. This method gets invoked if a PermissionDenied Exception is raised.
+    Args:
+        request: HttpRequest()
+
+    Returns: HttpResponse() with status=403
+
+    """
+    template = loader.get_template('annotations/forbidden_error_page.html')
+    context_data = {'userid': request.user.id,
+                    'error_message': "Sorry you are not authorised to view this page."
+                    }
+    context = RequestContext(request, context_data)
+    return HttpResponse(template.render(context), status=403)
+
 
 ### REST API class-based views.
 
