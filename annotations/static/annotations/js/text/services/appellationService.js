@@ -101,6 +101,9 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
         },
 
 
+        /**
+          * Create and index a new Appellation.
+          */
         createAppellation: function(data) {
             var appellation = new Appellation(data);
             var service = this;

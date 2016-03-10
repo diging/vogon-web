@@ -38,11 +38,19 @@ class TextAdmin(admin.ModelAdmin):
     list_display = ('uri', 'title', 'created', 'addedBy', 'added')
 
 
+class RelationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'occurs_in', 'created_by', 'created')
+    def occurs_in(self, obj):
+        return obj.occursIn.title
+    def created_by(self, obj):
+        return obj.createdBy
+
+
 admin.site.register(VogonUser, VogonUserAdmin)
 admin.site.register(Appellation)
 admin.site.register(Text, TextAdmin)
 admin.site.register(TextCollection)
 admin.site.register(Repository)
-admin.site.register(Relation)
+admin.site.register(Relation, RelationAdmin)
 admin.site.register(RelationTemplate)
 admin.site.register(RelationTemplatePart)

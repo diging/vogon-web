@@ -1,4 +1,5 @@
 describe('appellationService functions:', function() {
+    // Mocks the Appellation Resource.
     var appellationSpy = function(data) {
         return this;
     }
@@ -12,7 +13,8 @@ describe('appellationService functions:', function() {
             }
         }
     }
-    appellationSpy.$save = function(data) {
+    appellationSpy.prototype.$save = function(data) {
+        if (data === undefined) var data = {};
         return {
             then: function(callback) {
                 data.id = 4;
@@ -117,10 +119,10 @@ describe('appellationService functions:', function() {
         });
     });
     describe('the createAppellation method', function() {
-        it('calls Appellation.save()', function() {
-            spyOn(Appellation, '$save').and.callThrough();
+        it('calls Appellation.prototype.$save()', function() {
+            spyOn(Appellation.prototype, '$save').and.callThrough();
             appellationService.createAppellation({interpretation: 51});
-            expect(Appellation.$save).toHaveBeenCalled();
+            expect(Appellation.prototype.$save).toHaveBeenCalled();
         });
     });
 });

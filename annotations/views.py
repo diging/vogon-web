@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, JsonResponse
 from django.template import RequestContext, loader
-from django.core.exceptions import ObjectDoesNotExist
+from annotations.models import VogonUser
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.files import File
@@ -17,11 +18,16 @@ from django.views.generic.edit import FormView
 
 from django.conf import settings
 
-from django.db.models import Q
-from django.utils.safestring import mark_safe
 
 from django.forms import formset_factory
 
+
+from django.core.serializers import serialize
+from django.db.models import Q, Count
+from django.utils.safestring import mark_safe
+from django.core.files import File
+from guardian.shortcuts import get_objects_for_user, get_perms
+from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
@@ -59,11 +65,36 @@ import json
 
 from django.shortcuts import render
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def home(request):
-    if request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('dashboard'))
-    return HttpResponseRedirect(reverse('django.contrib.auth.views.login'))
+    """
+
+    Provides a landing page containing information about the application
+    for user who are not authenticated
+
+    LoggedIn users are redirected to the dashboard view
+    ----------
+    request : HTTPRequest
+        The request for application landing page.
+    Returns
+    ----------
+    :template:
+        Renders landing page for non-loggedin user and
+        dashboard view for loggedin users.
+    """
+    template = loader.get_template('registration/home.html')
+    user_count = VogonUser.objects.filter(is_active=True).count()
+    text_count = Text.objects.all().count()
+    relation_count = Relation.objects.count()
+    context = RequestContext(request, {
+        'user_count': user_count,
+        'text_count': text_count,
+        'relation_count': relation_count
+    })
+    return HttpResponse(template.render(context))
 
 
 def user_texts(user):
@@ -101,6 +132,9 @@ def register(request):
             form.cleaned_data['username'],
             form.cleaned_data['email'],
             password=form.cleaned_data['password1'],
+            full_name=form.cleaned_data['full_name'],
+            affiliation=form.cleaned_data['affiliation'],
+            location=form.cleaned_data['location'],
             )
 
             g = Group.objects.get_or_create(name='Public')[0]
@@ -149,13 +183,9 @@ def user_settings(request):
     """ User profile settings"""
 
     if request.method == 'POST':
-        form = UserChangeForm(request.POST)
+        form = UserChangeForm(request.POST, instance=request.user)
         if form.is_valid():
-            for field in ['first_name', 'last_name', 'email']:
-                value = request.POST.get(field, None)
-                if value:
-                    setattr(request.user, field, value)
-            request.user.save()
+            form.save()
             return HttpResponseRedirect('/accounts/profile/')
     else:
         form = UserChangeForm(instance=request.user)
@@ -181,6 +211,7 @@ def dashboard(request):
     """
     Provides the user's personalized dashboard.
     """
+
     template = loader.get_template('annotations/dashboard.html')
     texts = user_recent_texts(request.user)
     context = RequestContext(request, {
@@ -190,7 +221,7 @@ def dashboard(request):
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
-        'relationCount': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
+        'relation_count': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
     })
     return HttpResponse(template.render(context))
 
@@ -215,8 +246,10 @@ def list_texts(request):
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
 
-    # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 25)
+    order_by = request.GET.get('order_by', 'title')
+    text_list = text_list.order_by(order_by)
+
+    paginator = Paginator(text_list, 15)
 
     page = request.GET.get('page')
     try:
@@ -230,23 +263,65 @@ def list_texts(request):
 
     context = {
         'texts': texts,
+        'order_by': order_by,
         'user': request.user,
     }
     return HttpResponse(template.render(context))
 
 
-@login_required
+def list_user(request):
+    """
+    List all the users of Vogon web
+    """
+
+    template = loader.get_template('annotations/contributors.html')
+
+    search_term = request.GET.get('search_term')
+    sort = request.GET.get('sort', 'username')
+    queryset = VogonUser.objects.exclude(id = -1).order_by(sort)
+
+    if search_term:
+        queryset = queryset.filter(full_name__icontains = search_term)
+
+    paginator = Paginator(queryset, 10)
+
+    page = request.GET.get('page')
+    try:
+        users = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        users = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        users = paginator.page(paginator.num_pages)
+
+    context = {
+        'search_term' : search_term,
+        'sort_column' : sort,
+        'user_list': users,
+        'user': request.user,
+    }
+    return HttpResponse(template.render(context))
+
+
 def collection_texts(request, collectionid):
     """
     List all of the texts that the user can see, with links to annotate them.
     """
     template = loader.get_template('annotations/collection_texts.html')
+    order_by = request.GET.get('order_by', 'title')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
     text_list = text_list.filter(partOf=collectionid)
+    text_list = text_list.order_by(order_by)
+
+    N_relations = Relation.objects.filter(
+        occursIn__partOf__id=collectionid).count()
+    N_appellations = Appellation.objects.filter(
+        occursIn__partOf__id=collectionid).count()
 
     # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 25)
+    paginator = Paginator(text_list, 10)
 
     page = request.GET.get('page')
     try:
@@ -261,6 +336,9 @@ def collection_texts(request, collectionid):
     context = {
         'texts': texts,
         'user': request.user,
+        'order_by': order_by,
+        'N_relations': N_relations,
+        'N_appellations': N_appellations,
         'collection': TextCollection.objects.get(pk=collectionid)
     }
     return HttpResponse(template.render(context))
@@ -274,15 +352,27 @@ def text(request, textid):
     """
 
     text = get_object_or_404(Text, pk=textid)
-    context_data = {'text': text, 'textid': textid, 'title': 'Annotate Text', 'baselocation' : basepath(request)}
+    context_data = {
+        'text': text,
+        'textid': textid,
+        'title': 'Annotate Text',
+        'baselocation' : basepath(request)
+    }
+
+    # If a text is restricted, then the user needs explicit permission to
+    #  access it.
+    access_conditions = [
+        'view_text' in get_perms(request.user, text),
+        request.user in text.annotators.all(),
+        getattr(request.user, 'is_admin', False),
+        text.public,
+    ]
+    if not any(access_conditions):
+        # TODO: return a pretty templated response.
+        raise PermissionDenied
+
     if request.user.is_authenticated():
         template = loader.get_template('annotations/text.html')
-
-        # If a text is restricted, then the user needs explicit permission to
-        #  access it.
-        if not text.public and not request.user.has_perm('annotations.view_text'):
-            # TODO: return a pretty templated response.
-            return HttpResponseForbidden("Sorry, this text is restricted.")
 
         context_data['userid'] = request.user.id
 
@@ -292,6 +382,23 @@ def text(request, textid):
         template = loader.get_template('annotations/anonymous_text.html')
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
+
+
+def custom_403_handler(request):
+    """
+    Default 403 Handler. This method gets invoked if a PermissionDenied Exception is raised.
+    Args:
+        request: HttpRequest()
+
+    Returns: HttpResponse() with status=403
+
+    """
+    template = loader.get_template('annotations/forbidden_error_page.html')
+    context_data = {'userid': request.user.id,
+                    'error_message': "Sorry you are not authorised to view this page."
+                    }
+    context = RequestContext(request, context_data)
+    return HttpResponse(template.render(context), status=403)
 
 
 ### REST API class-based views.
@@ -342,9 +449,12 @@ class AnnotationFilterMixin(object):
         queryset = super(AnnotationFilterMixin, self).get_queryset(*args, **kwargs)
 
         textid = self.request.query_params.get('text', None)
+        texturi = self.request.query_params.get('text_uri', None)
         userid = self.request.query_params.get('user', None)
         if textid:
             queryset = queryset.filter(occursIn=int(textid))
+        if texturi:
+            queryset = queryset.filter(occursIn__uri=texturi)
         if userid:
             queryset = queryset.filter(createdBy__pk=userid)
         elif userid is not None:
@@ -456,9 +566,12 @@ class TextViewSet(viewsets.ModelViewSet):
         textcollectionid = self.request.query_params.get('textcollection', None)
         conceptid = self.request.query_params.getlist('concept')
         related_concepts = self.request.query_params.getlist('related_concepts')
+        uri = self.request.query_params.get('uri', None)
 
         if textcollectionid:
             queryset = queryset.filter(partOf=int(textcollectionid))
+        if uri:
+            queryset = queryset.filter(uri=uri)
         if len(conceptid) > 0:
             queryset = queryset.filter(appellation__interpretation__pk__in=[int(c) for c in conceptid])
         if len(related_concepts) > 1:
@@ -546,6 +659,14 @@ class ConceptViewSet(viewsets.ModelViewSet):
         # Search Concept labels for ``search`` param.
         query = self.request.query_params.get('search', None)
         remote = self.request.query_params.get('remote', False)
+        uri = self.request.query_params.get('uri', None)
+        type_uri = self.request.query_params.get('type_uri', None)
+        max_results = self.request.query_params.get('max', None)
+
+        if uri:
+            queryset = queryset.filter(uri=uri)
+        if type_uri:
+            queryset = queryset.filter(type__uri=uri)
         if query:
             if pos == 'all':
                 pos = None
@@ -554,6 +675,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 search_concept.delay(query, pos=pos)
             queryset = queryset.filter(label__icontains=query)
 
+        if max_results:
+            return queryset[:max_results]
         return queryset
 
 @login_required
@@ -695,14 +818,43 @@ def add_text_to_collection(request, *args, **kwargs):
     return JsonResponse({})
 
 
-@login_required
 def user_details(request, userid, *args, **kwargs):
+    """
+    Provides users with their own profile view and public profile view of other users in case they are loggedIn.
+    Provides users with public profile page in case they are not loggedIn
+    ----------
+    request : HTTPRequest
+        The request for fetching user details
+    userid : int
+        The userid of user who's data  needs to be fetched
+    args : list
+        List of arguments to view
+    kwargs : dict
+        dict of arugments to view
+    Returns
+    ----------
+    :HTTPResponse:
+        Renders an user details view based on user's authentication status.
+    """
+
     user = get_object_or_404(VogonUser, pk=userid)
-    template = loader.get_template('annotations/user_details.html')
-    context = RequestContext(request, {
-        'user': request.user,
-        'detail_user': user,
-    })
+    if request.user.is_authenticated() and request.user.id == userid:
+        template = loader.get_template('annotations/user_details.html')
+        context = RequestContext(request, {
+            'user': request.user,
+            'detail_user': user,
+        })
+    else:
+        textCount = Text.objects.filter(addedBy=user).count()
+        textAnnotated = Text.objects.filter(annotators=user).distinct().count()
+        relation_count = user.relation_set.count()
+        template = loader.get_template('annotations/user_details_public.html')
+        context = RequestContext(request, {
+            'detail_user': user,
+            'textCount': textCount,
+            'relation_count': relation_count,
+            'textAnnotated': textAnnotated
+        })
     return HttpResponse(template.render(context))
 
 
@@ -907,7 +1059,19 @@ def list_relationtemplate(request):
             'description': rt.description
             } for rt in queryset]
         }
-    return JsonResponse(data)
+
+    response_format = request.GET.get('format', None)
+    if response_format == 'json':
+        return JsonResponse(data)
+
+    template = loader.get_template('annotations/relationtemplate_list.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'data': data,
+    })
+
+    return HttpResponse(template.render(context))
+
 
 
 @login_required
