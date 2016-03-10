@@ -147,7 +147,7 @@
                                             <div class="form-group" ng-repeat="field in relation_template.fields">
                                                 <label for="{{ field.part_id }}_{{ field.part_field }}">{{ field.label }}.</label> <span class="text text-muted">{{ field.description }}</span>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control" ng-readonly="isReadOnly(field)" id="{{ field.part_id }}_{{ field.part_field }}" placeholder="{{ field.concept_label }}"></input>
+                                                    <input type="text" class="form-control" ng-readonly="isReadOnly(field)" ng-change="conceptSearch(field)" ng-model="field.query" id="{{ field.part_id }}_{{ field.part_field }}" placeholder="{{ field.concept_label }}"></input>
                                                     <div class="input-group-addon"><span class="glyphicon glyphicon-edit"></span></div>
                                                 </div>
                                             </div>

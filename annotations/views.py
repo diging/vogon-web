@@ -669,6 +669,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         query = self.request.query_params.get('search', None)
         remote = self.request.query_params.get('remote', False)
         uri = self.request.query_params.get('uri', None)
+        type_id = self.request.query_params.get('typed', None)
         type_uri = self.request.query_params.get('type_uri', None)
         max_results = self.request.query_params.get('max', None)
 
@@ -676,6 +677,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(uri=uri)
         if type_uri:
             queryset = queryset.filter(type__uri=uri)
+        if type_id:
+            queryset = queryset.filter(typed_id=type_id)
         if query:
             if pos == 'all':
                 pos = None
