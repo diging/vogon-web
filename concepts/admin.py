@@ -26,16 +26,5 @@ class TypeAdmin(admin.ModelAdmin):
     model = Type
     list_display = ('label', 'resolved',)
 
-# def export_selected_objects(modeladmin, request, queryset):
-#     selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-#     ct = ContentType.objects.get_for_model(queryset.model)
-#     return HttpResponseRedirect("/export/?ct=%s&ids=%s" % (ct.pk, ",".join(selected)))
-#
-# class MergeAdmin(admin.ModelAdmin):
-#     model = Merge
-#     actions = ( export_selected_objects,    )
-#     list_display = (    'label', 'resolved'  )
-
 admin.site.register(Concept, ConceptAdmin)
 admin.site.register(Type, TypeAdmin)
-# admin.site.register(Merge, MergeAdmin)
