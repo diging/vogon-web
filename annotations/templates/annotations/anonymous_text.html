@@ -3,8 +3,7 @@
 
 <html ng-app="annotationApp">
 <head>
-    <script type="text/javascript"
-            src="https://diging.atlassian.net/s/feb56a6b15dfe1c4dce860c5ec0d0c12-T/en_USugtsph-ren-off/70107/dd3ed69607618acd4f2d9e33519d4b21/2.0.7/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=da09a5cd"></script>
+    <script type="text/javascript" src="https://diging.atlassian.net/s/feb56a6b15dfe1c4dce860c5ec0d0c12-T/en_USugtsph-ren-off/70107/dd3ed69607618acd4f2d9e33519d4b21/2.0.7/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=da09a5cd"></script>
     <script>
 
         var BASELOCATION = "{{baselocation}}";
@@ -15,27 +14,12 @@
     {% include "annotations/angular.html" %}
     {% include "annotations/scripts.html" %}
 
-    <script src="{% static " annotations
-    /js/network.js" %}"></script>
-    <
-    script
-    src = "{% static "
-    annotations / js / text.js
-    " %}" ></script>
+    <script src="{% static " annotations/js/network.js" %}"></script>
+    <script src = "{% static "annotations / js / text.js" %}" ></script>
 
     <script>
-        var TEXTID = {
-        {
-            textid
-        }
-        }
-        ;
-        var USERID = {
-        {
-            userid
-        }
-        }
-        ;
+        var TEXTID = {{ textid }};
+        var USERID = {{ userid }};
     </script>
     <title>{{ title }}</title>
 </head>
@@ -50,7 +34,7 @@
                     <div id="textTitle" class="panel-heading">
                         <span class="h3">{{ text.title }}</span>
                         {% if text.originalResource %}
-                        <a href="{{ text.originalResource }}" type="button" class="btn btn-primary pull-right">
+                        <a href="{{ text.originalResource }}" type="button" class="btn btn-primary pull-right" title="Please click to access the original resource">
                             <span class="glyphicon glyphicon-new-window "></span>
                         </a>
                         {% endif %}
