@@ -171,6 +171,8 @@ def user_settings(request):
     
     if request.method == 'POST':
         form = UserChangeForm(request.POST,instance=request.user)
+       # return HttpResponse(request.POST['imagefile'])
+
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/accounts/profile/')
@@ -928,7 +930,7 @@ def concept_details(request, conceptid):
 
     return HttpResponse(template.render(context))
 
-
+@login_required
 def sign_s3(request):
     """
     Genaration of a temporary signtaure using AWS secret key and access key.

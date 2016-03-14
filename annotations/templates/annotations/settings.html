@@ -2,12 +2,13 @@
 {% load staticfiles %}
 {% block main %}
 <div id="main">
-              <form  action="#" method="post" enctype='multipart/form-data'>
+              
    <div class="col-sm-8 col-sm-offset-2">
          <div id="settings" class="panel panel-default">
+
             <div class="panel-heading">Update your profile</div>
             <div class="panel-body">
-
+<form  action="#" method="post" enctype='multipart/form-data'>
               {% csrf_token %}
               {{ form.errors }}
               {{ form.non_field_errors }}
@@ -31,23 +32,33 @@
               <label for="link">Link</label>
               <input type="text" class="form-control" id="id_link" name="link" value="{{ link }}">
               </div>
-              <div class="form-group">
+              
+              <input type="hidden" id="defaultImage" name="imagefile" value="{{ preview }}"/>
+              
+              <span class="pull-left">
+              <input type="submit" class="btn btn-primary" value="Submit" />
+              </span>
+ </form>
+
+ <br><br><br>
+  <div class="form-group">
+    <div class="panel-footer clearfix">
               <label for="imagefile">Please upload an image</label>
               <input type="file" id="file_input"/>
               <p id="status">Please select a file</p>
               <img id="preview"  src="{{ preview }}"/>
-              <input type="hidden" id="defaultImage" name="imagefile" value="{{ preview }}"/>
-              </div>
-              <div class="panel-footer clearfix">
-              <span class="pull-right">
-              <input type="submit" class="btn btn-primary" value="Submit" />
-              </span>
-              </div>
+             </div></div>
+
+
+
 
               </div>
               </div>
-   </div>
-                 </form>
+          </div>
+                
+
+             
+    
 </div>
 <script type="text/javascript">
    /*
@@ -107,7 +118,6 @@
            if (xhr.status === 200) {
                document.getElementById("preview").src = url;            
                document.getElementById("defaultImage").value = url;
-               alert("Profile image upload successful.")
            }
        };
        xhr.onerror = function() {

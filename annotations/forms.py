@@ -118,10 +118,10 @@ class UserCreationForm(forms.ModelForm):
 
 class UserChangeForm(forms.ModelForm):
 
+    imagefile = forms.URLField(required=False)
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location', 'link', 'imagefile' )
-
+        fields = ('full_name', 'email', 'affiliation', 'location','imagefile')
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
@@ -153,8 +153,5 @@ class UserChangeForm(forms.ModelForm):
         else:
         	return self.cleaned_data['affiliation']
 
-    def clean_imagefile(self):
-        if not self.cleaned_data.get('imagefile'):
-            raise ValidationError(_('Missing profile image.'), code='required')
-        else:
-        	return self.cleaned_data['imagefile'] 
+
+    
