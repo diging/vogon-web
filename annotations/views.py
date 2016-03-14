@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, JsonResponse
 from django.template import RequestContext, loader
 from annotations.models import VogonUser
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
@@ -198,10 +198,13 @@ def dashboard(request):
 
     template = loader.get_template('annotations/dashboard.html')
     texts = user_recent_texts(request.user)
+    baselocation = basepath(request)
+    if baselocation[-1] == '/':
+        baselocation = baselocation[:-1]
     context = RequestContext(request, {
         'user': request.user,
         'subpath': settings.SUBPATH,
-        'baselocation': basepath(request),
+        'baselocation': baselocation,
         'texts': texts,
         'textCount': len(texts),
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
@@ -346,17 +349,14 @@ def text(request, textid):
     # If a text is restricted, then the user needs explicit permission to
     #  access it.
     access_conditions = [
-        'annotations.view_text' in get_perms(request.user, text),
+        'view_text' in get_perms(request.user, text),
         request.user in text.annotators.all(),
         getattr(request.user, 'is_admin', False),
         text.public,
     ]
     if not any(access_conditions):
         # TODO: return a pretty templated response.
-        template = loader.get_template('annotations/forbidden_error_page.html')
-        context_data['userid'] = request.user.id
-        context = RequestContext(request, context_data)
-        return HttpResponse(template.render(context))
+        raise PermissionDenied
 
     if request.user.is_authenticated():
         template = loader.get_template('annotations/text.html')
@@ -369,6 +369,24 @@ def text(request, textid):
         template = loader.get_template('annotations/anonymous_text.html')
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
+
+
+def custom_403_handler(request):
+    """
+    Default 403 Handler. This method gets invoked if a PermissionDenied Exception is raised.
+    Args:
+        request: HttpRequest()
+
+    Returns: HttpResponse() with status=403
+
+    """
+    template = loader.get_template('annotations/forbidden_error_page.html')
+    context_data = {'userid': request.user.id,
+                    'error_message': "Sorry you are not authorised to view this page."
+                    }
+    context = RequestContext(request, context_data)
+    return HttpResponse(template.render(context), status=403)
+
 
 ### REST API class-based views.
 
@@ -418,9 +436,12 @@ class AnnotationFilterMixin(object):
         queryset = super(AnnotationFilterMixin, self).get_queryset(*args, **kwargs)
 
         textid = self.request.query_params.get('text', None)
+        texturi = self.request.query_params.get('text_uri', None)
         userid = self.request.query_params.get('user', None)
         if textid:
             queryset = queryset.filter(occursIn=int(textid))
+        if texturi:
+            queryset = queryset.filter(occursIn__uri=texturi)
         if userid:
             queryset = queryset.filter(createdBy__pk=userid)
         elif userid is not None:
@@ -432,6 +453,7 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    # pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -443,7 +465,8 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def get_queryset(self, *args, **kwargs):
-        queryset = super(AppellationViewSet, self).get_queryset(*args, **kwargs)
+
+        queryset = AnnotationFilterMixin.get_queryset(self, *args, **kwargs)
 
         concept = self.request.query_params.get('concept', None)
         text = self.request.query_params.get('text', None)
@@ -501,6 +524,10 @@ class RelationViewSet(viewsets.ModelViewSet):
         elif userid is not None and type(userid) is not list:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
 
+        thisuser = self.request.query_params.get('thisuser', False)
+        if thisuser:
+            queryset = queryset.filter(createdBy_id=self.request.user.id)
+
         return queryset
 
 
@@ -532,9 +559,12 @@ class TextViewSet(viewsets.ModelViewSet):
         textcollectionid = self.request.query_params.get('textcollection', None)
         conceptid = self.request.query_params.getlist('concept')
         related_concepts = self.request.query_params.getlist('related_concepts')
+        uri = self.request.query_params.get('uri', None)
 
         if textcollectionid:
             queryset = queryset.filter(partOf=int(textcollectionid))
+        if uri:
+            queryset = queryset.filter(uri=uri)
         if len(conceptid) > 0:
             queryset = queryset.filter(appellation__interpretation__pk__in=[int(c) for c in conceptid])
         if len(related_concepts) > 1:
@@ -622,6 +652,14 @@ class ConceptViewSet(viewsets.ModelViewSet):
         # Search Concept labels for ``search`` param.
         query = self.request.query_params.get('search', None)
         remote = self.request.query_params.get('remote', False)
+        uri = self.request.query_params.get('uri', None)
+        type_uri = self.request.query_params.get('type_uri', None)
+        max_results = self.request.query_params.get('max', None)
+
+        if uri:
+            queryset = queryset.filter(uri=uri)
+        if type_uri:
+            queryset = queryset.filter(type__uri=uri)
         if query:
             if pos == 'all':
                 pos = None
@@ -630,7 +668,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 search_concept.delay(query, pos=pos)
             queryset = queryset.filter(label__icontains=query)
 
+        if max_results:
+            return queryset[:max_results]
         return queryset
+
 
 @login_required
 def upload_file(request):

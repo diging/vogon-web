@@ -435,9 +435,11 @@
 
       function httpSuccessCallbackGen(str) {
         return function(responseData, status, headers, config) {
+            responseData = responseData.results;
           // normalize return obejct from promise
           if (!status && !headers && !config) {
-            responseData = responseData.data;
+
+
           }
           scope.searching = false;
           processResults(
