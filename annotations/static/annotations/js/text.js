@@ -21,64 +21,177 @@ app.config(function($httpProvider){
 
 
 
-app.factory('Appellation', function($resource) {
-    return $resource(BASELOCATION + '/rest/appellation/:id/', {
-        text: TEXTID,
-        thisuser: true
-    }, {
-        list: {
-            method: 'GET',
-            cache: true,
-            headers: {'Content-Type': 'application/json'}
-        },
-        save: {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'}
-        }
-    });
-});
+  app.factory('Appellation', function($resource) {
+      return $resource(BASELOCATION + '/rest/appellation/:id/', {
+          text: TEXTID,
+          thisuser: true
+      }, {
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          get: {
+              method: 'GET',
+              cache: true,
+              headers: {'Content-Type': 'application/json'},
+          },
+          save: {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'}
+          }
+      });
+  });
 
 
-app.factory('Relation', function($resource) {
-    return $resource(BASELOCATION + '/rest/relation/:id/', {
-        text: TEXTID
-    });
-});
+  app.factory('Relation', function($resource) {
+      return $resource(BASELOCATION + '/rest/relation/:id/', {
+          text: TEXTID,
+          thisuser: true
+      }, {
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+      });
+  });
 
 
-app.factory('Predicate', function($resource) {
-    return $resource(BASELOCATION + '/rest/predicate/:id/', {
-        text: TEXTID
-    });
-});
+  app.factory('Predicate', function($resource) {
+      return $resource(BASELOCATION + '/rest/predicate/:id/', {
+          text: TEXTID
+      }, {
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+      });
+  });
 
 
-app.factory('TemporalBounds', function($resource) {
-    return $resource(BASELOCATION + '/rest/temporalbounds/:id/');
-});
+  app.factory('TemporalBounds', function($resource) {
+      return $resource(BASELOCATION + '/rest/temporalbounds/:id/');
+  });
 
 
-app.factory('Concept', function($resource) {
-    return $resource(BASELOCATION + '/rest/concept/:id/', {}, {
-        list: {
-            method: 'GET',
-            cache: true,
-        },
-        query: {
-            isArray: false,
-        }
-    });
-});
+  app.factory('Concept', function($resource) {
+      return $resource(BASELOCATION + '/rest/concept/:id/', {}, {
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          }
+      });
+  });
 
 
-app.factory('Type', function($resource) {
-    return $resource(BASELOCATION + '/rest/type/:id/', {}, {
-        list: {
-            method: 'GET',
-            cache: true,
-        }
-    });
-});
+  app.factory('Type', function($resource) {
+      return $resource(BASELOCATION + '/rest/type/:id/', {}, {
+
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          }
+      });
+  });
 
 
 app.factory('messageService', function($rootScope) {
@@ -1672,8 +1785,7 @@ app.factory('RelationTemplate', function($resource) {
 
 
 
-app.controller('RelationTemplateSearchController', ['$scope', 'RelationTemplate', function($scope, RelationTemplate) {
-
+app.controller('RelationTemplateSearchController', ['$scope', 'RelationTemplate', 'Concept', function($scope, RelationTemplate, Concept) {
 
     $scope.search = function() {
         $scope.relation_templates = RelationTemplate.query({search: $scope.query}).$promise.then(function(data){
@@ -1682,6 +1794,10 @@ app.controller('RelationTemplateSearchController', ['$scope', 'RelationTemplate'
     }
 
     $scope.select = function(rt) {
+        rt.fields.forEach(function(field) {
+            field.placeholder = field.concept_label;
+            field.filled = false;
+        });
         $scope.relation_template = rt;
         $scope.relation_create = true;
     }
@@ -1695,13 +1811,37 @@ app.controller('RelationTemplateSearchController', ['$scope', 'RelationTemplate'
     }
 
     $scope.isReadOnly = function(field) {
-        return field.evidence_required;
+        return (field.evidence_required | field.filled);
     }
 
     $scope.conceptSearch = function(field) {
-        Concept.query({search: field.query, pos: 'all', typed: field.concept_id}).$promise.then(function(data) {
-            console.log(data);
-        });
+        if (field.query.length > 2) {
+            field.options = Concept.query({
+                search: field.query,
+                pos: 'all',
+                typed: field.concept_id,
+                remote: true,
+            }).$promise.then(function(data) {
+                field.options = data;
+                console.log(data);
+            });
+        };
+    }
+
+    $scope.isSearching = function(field) {
+        if (field.options !== undefined) {
+            if (field.options.length > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    $scope.selectConcept = function(field, option) {
+        field.selected = option;
+        field.options = [];
+        field.placeholder = option.label;
+        field.filled = true;
     }
 
     $scope.reset();

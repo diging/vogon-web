@@ -125,4 +125,6 @@ describe('appellationService functions:', function() {
             expect(Appellation.prototype.$save).toHaveBeenCalled();
         });
     });
+
+    
 });

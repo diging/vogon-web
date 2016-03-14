@@ -26,14 +26,24 @@
         var TEXTID = {{ textid }};
         var USERID = {{ userid }};
         </script>
+
+        <style>
+        .relationtemplate-field-search {
+            max-height: 200px;
+            overflow-y: scroll;
+        }
+        .relationtemplate-field-search > .list-group-item {
+            cursor: pointer;
+        }
+        </style>
         <title>{{ title }}</title>
 
     </head>
     <body escape-key>
         {% include "annotations/header.html" %}
         <div id="main" class="container">
-            <div class="row col-md-12">
-                <div id="left" class="col-md-6">
+            <div class="row col-sm-12">
+                <div id="left" class="col-sm-6">
                     <div class="row">
                         <div ng-controller="AlertController" id="alerts">
                             {% verbatim %}
@@ -58,7 +68,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="right" class="col-md-6">
+                <div id="right" class="col-sm-6">
                     <div id="rightTools">
                         <div class="panel panel-default">
                             <tabset justified="true">
@@ -147,8 +157,11 @@
                                             <div class="form-group" ng-repeat="field in relation_template.fields">
                                                 <label for="{{ field.part_id }}_{{ field.part_field }}">{{ field.label }}.</label> <span class="text text-muted">{{ field.description }}</span>
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control" ng-readonly="isReadOnly(field)" ng-change="conceptSearch(field)" ng-model="field.query" id="{{ field.part_id }}_{{ field.part_field }}" placeholder="{{ field.concept_label }}"></input>
+                                                    <input type="text" class="form-control" ng-readonly="isReadOnly(field)" ng-change="conceptSearch(field)" ng-model="field.query" id="{{ field.part_id }}_{{ field.part_field }}" placeholder="{{ field.placeholder }}"></input>
                                                     <div class="input-group-addon"><span class="glyphicon glyphicon-edit"></span></div>
+                                                </div>
+                                                <div ng-show="isSearching(field)" class="relationtemplate-field-search">
+                                                    <a class="list-group-item" ng-click="selectConcept(field, option)" ng-repeat="option in field.options"><span class="text text-primary strong">{{ option.label }}</span>. <span class="text text-muted">{{ option.description }}</span></a>
                                                 </div>
                                             </div>
 

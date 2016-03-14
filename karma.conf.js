@@ -10,18 +10,20 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine'],
+    frameworks: ['jasmine-jquery', 'jasmine'],
 
 
     // list of files / patterns to load in the browser
     files: [
+        { pattern: 'tests/fixtures/*.html', included: false, served: true },
+        { pattern: 'annotations/templates/**/*.html', included: false, served: true },
       'annotations/static/annotations/bower_components/angular/angular.min.js',
+      'annotations/static/annotations/bower_components/jquery/dist/jquery.min.js',
       'annotations/static/annotations/js/angular-mocks.js',
       'annotations/static/annotations/js/text/app.js',
       'annotations/static/annotations/js/text/**/*.js',
       'tests/js/*.js'
     ],
-
 
     // list of files to exclude
     exclude: [
@@ -37,7 +39,7 @@ module.exports = function(config) {
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['progress', 'html'],
 
 
     // web server port
@@ -68,6 +70,18 @@ module.exports = function(config) {
 
     // Concurrency level
     // how many browser should be started simultaneous
-    concurrency: Infinity
+    concurrency: Infinity,
+
+
+    htmlReporter: {
+      outputDir: 'karma_html', // where to put the reports
+      templatePath: null, // set if you moved jasmine_template.html
+      focusOnFailures: true, // reports show failures on start
+      namedFiles: false, // name files instead of creating sub-directories
+      pageTitle: null, // page title for reports; browser info by default
+      urlFriendlyName: false, // simply replaces spaces with _ for files/dirs
+      reportName: 'test-summary', // report summary filename; browser info by default
+
+    }
   })
 }
