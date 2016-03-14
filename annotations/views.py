@@ -171,8 +171,6 @@ def user_settings(request):
     
     if request.method == 'POST':
         form = UserChangeForm(request.POST,instance=request.user)
-       # return HttpResponse(request.POST['imagefile'])
-
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/accounts/profile/')
@@ -181,7 +179,7 @@ def user_settings(request):
         form = UserChangeForm(instance=request.user)
         # Assign default image in the preview if no profile image is selected for the user.
         if request.user.imagefile == "" or request.user.imagefile is None:
-            request.user.imagefile=settings.STATIC_URL+"images/defaultprofile.png"
+            request.user.imagefile=settings.DEFAULT_USER_IMAGE
 
     template = loader.get_template('annotations/settings.html')
     context = RequestContext(request, {

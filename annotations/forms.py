@@ -118,7 +118,6 @@ class UserCreationForm(forms.ModelForm):
 
 class UserChangeForm(forms.ModelForm):
 
-    imagefile = forms.URLField(required=False)
     class Meta:
         model = VogonUser
         fields = ('full_name', 'email', 'affiliation', 'location','imagefile')
