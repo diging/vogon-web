@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'guardian',
     'djcelery',
+    'haystack',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -162,5 +163,17 @@ LOGGING = {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
+    },
+}
+
+
+# Haystack
+# http://django-haystack.readthedocs.org/en/v2.4.0/index.html
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
     },
 }
