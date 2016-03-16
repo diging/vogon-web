@@ -1,5 +1,6 @@
 {% extends "annotations/base.html" %}
 {% load staticfiles %}
+
 {% block main %}
 <div id="main">
               
@@ -91,6 +92,7 @@
    */
    function get_signed_request(file){
        var xhr = new XMLHttpRequest();
+       {% url "sign_s3" %}
        xhr.open("GET", "/sign_s3?file_name="+file.name+"&file_type="+file.type);
        xhr.onreadystatechange = function(){
            if(xhr.readyState === 4){

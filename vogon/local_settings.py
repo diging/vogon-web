@@ -173,8 +173,7 @@ LOGGING = {
 }
 
 # AWS Access Key and Secret Key credentials
-
-AWS_ACCESS_KEY     = 'AKIAIAM452M3MX7RRNGA'
-AWS_SECRET_KEY = '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'
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
+AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
 S3_BUCKET = 'vogonweb-test'
 DEFAULT_USER_IMAGE = 'https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png'

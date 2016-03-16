@@ -150,3 +150,10 @@ STATICFILES_DIRS = (
 
 JARS_KEY = '050814a54ac5c81b990140c3c43278031d391676'
 AUTH_USER_MODEL = 'annotations.VogonUser'
+
+# AWS Access Key and Secret Key credentials
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
+AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
+S3_BUCKET = 'vogonweb-test'
+DEFAULT_USER_IMAGE = 'https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png'
+
