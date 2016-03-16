@@ -3,9 +3,13 @@
 {% url "sign_s3" %}
 {% block main %}
 <div id="main">
+
+  
               
    <div class="col-sm-8 col-sm-offset-2">
          <div id="settings" class="panel panel-default">
+
+
 
             <div class="panel-heading">Update your profile</div>
             <div class="panel-body">
@@ -44,8 +48,11 @@
  <br><br><br>
   <div class="form-group">
     <div class="panel-footer clearfix">
+      <div id = "myAlert" class = "alert alert-warning collapse">
+   <strong>Warning!</strong> No File Selected!
+  </div>
               <label for="imagefile">Please upload an image</label>
-              <input type="file" id="file_input"/>
+              <input type="file" id="file_input" class="uploadBtn"/>
               <p id="status">Please select a file</p>
               <img id="preview"  src="{{ preview }}"/>
              </div></div>
@@ -69,10 +76,6 @@
    function init_upload(){
        var files = document.getElementById("file_input").files;
        var file = files[0];
-       if(file == null){
-           alert("No file selected.");
-           return;
-       }
        get_signed_request(file);
    }
    
@@ -100,7 +103,11 @@
                    upload_file(file, response.signed_request, response.url);
                }
                else{
-                   alert("Could not get signed URL.");
+                   $(function(){
+                       
+                          $("#myAlert").show();
+                        
+                    });
                }
            }
        };
@@ -122,7 +129,11 @@
            }
        };
        xhr.onerror = function() {
-           alert("Could not upload file."); 
+           $(function(){
+                       
+                          $("#myAlert").show();
+                        
+                    });
        };
        xhr.send(file);
    }
