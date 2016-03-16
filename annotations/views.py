@@ -18,6 +18,8 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from django.db import models
+from django.db.models.query import QuerySet
 
 from rest_framework import viewsets, exceptions, status
 from rest_framework.authentication import SessionAuthentication
@@ -912,3 +914,8 @@ def concept_details(request, conceptid):
     })
 
     return HttpResponse(template.render(context))
+
+def recent_activity(request):
+    result = Text.objects.all().order_by("addedBy", "-added")
+    print result.values()
+    return HttpResponse()
