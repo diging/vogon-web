@@ -17,10 +17,18 @@
 
 <p>{% blocktrans with object as escaped_object %}Are you sure you want to merge unresolved concepts into resolved concept?{% endblocktrans %}</p>
 
-    <h2>Summary</h2>
-    <li>
-    <ul>ResolvedConcept: <b> {{resolvedConcept}} </b> </ul>
-    </li>
+    <h3>ResolvedConcepts</h3>
+    <ul>
+        <li>Concept: <b> {{resolvedConcept}} </b> </li>
+    </ul>
+
+    <h3>UnResolvedConcepts</h3>
+    <ul >
+    {% for concept in unResolvedConcepts %}
+        <li>Concept: <b> {{concept.label}} </b> </li>
+    {% endfor %}
+    </ul>
+
     <br>
     <form action="" method="post">{% csrf_token %}
     <div>

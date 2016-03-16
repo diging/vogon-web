@@ -20,7 +20,7 @@ def merge_concepts(modeladmin, request, queryset):
     :param queryset:
     :return:
     """
-
+    
     opts = modeladmin.model._meta
     app_label = opts.app_label
     RESOLVED_STATUS = Concept.RESOLVED
@@ -29,6 +29,8 @@ def merge_concepts(modeladmin, request, queryset):
     #VGNWB-121 gets called only when there is only one resolved concept
     if resolvedConceptCount == 1:
         resolvedConceptsList = queryset.filter(concept_state = RESOLVED_STATUS).values()
+        unResolvedConceptsList = queryset.exclude(concept_state = RESOLVED_STATUS).values()
+
         #As there will be only one element in the list
         resolvedConcept = resolvedConceptsList[0]
         resolvedConceptName = resolvedConcept['label']
@@ -36,7 +38,8 @@ def merge_concepts(modeladmin, request, queryset):
         context = {
         "resolvedConcept": resolvedConceptName,
         "opts": opts,
-        "app_label": app_label
+        "app_label": app_label,
+        "unResolvedConcepts": unResolvedConceptsList
         }
         return render_to_response('admin/merge_concepts_resolved.html', context)
 
