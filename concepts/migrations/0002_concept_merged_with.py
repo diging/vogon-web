@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='concept',
             name='merged_with',
-            field=models.ForeignKey(related_name='merged_with_field', blank=True, to='concepts.Concept', null=True),
+            field=models.ForeignKey(related_name='merged_concepts', blank=True, to='concepts.Concept', null=True),
         ),
     ]
