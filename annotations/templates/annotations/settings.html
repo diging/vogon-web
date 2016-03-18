@@ -47,6 +47,8 @@
                      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                      <strong>Error!</strong> Could not get signed URL.
                   </div>
+                  <i id="spinner" class="fa fa-circle-o-notch fa-spin " style="font-size:24px"></i>
+
                   <label for="imagefile">Please upload an image</label>
                   <input type="file" id="file_input" class="uploadBtn"/>
                   <p id="status">Please select a file</p>
@@ -63,6 +65,8 @@
       start upload procedure by asking for a signed request from the app.
    */
    function init_upload(){
+       document.getElementById("spinner").style.display;
+                        
        var files = document.getElementById("file_input").files;
        var file = files[0];
        get_signed_request(file);
