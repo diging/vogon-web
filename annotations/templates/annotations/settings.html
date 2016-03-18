@@ -31,7 +31,9 @@
                   <label for="link">Link</label>
                   <input type="text" class="form-control" id="id_link" name="link" value="{{ link }}">
                </div>
+
                <input type="hidden" id="defaultImage" name="imagefile" value="{{ preview }}"/>
+             
                <span class="pull-left">
                <input type="submit" class="btn btn-primary" value="Submit" />
                </span>
@@ -47,26 +49,57 @@
                      <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                      <strong>Error!</strong> Could not get signed URL.
                   </div>
-                  <i id="spinner" class="fa fa-circle-o-notch fa-spin " style="font-size:24px"></i>
-
+                  
                   <label for="imagefile">Please upload an image</label>
                   <input type="file" id="file_input" class="uploadBtn"/>
                   <p id="status">Please select a file</p>
+                   <div id="spinnerContainer" class="spinner">
                   <img id="preview"  src="{{ preview }}"/>
+                  </div>
+                  
                </div>
             </div>
          </div>
       </div>
    </div>
 </div>
-<script type="text/javascript">
+<script src="{% static "annotations/js/spin.min.js" %}"></script>
+<script type="text/javascript" >
+var spinner ;
+    function loadSpinner(div){
+      var opts = {
+          lines: 13 // The number of lines to draw
+        , length: 21 // The length of each line
+        , width: 14 // The line thickness
+        , radius: 42 // The radius of the inner circle
+        , scale: 1 // Scales overall size of the spinner
+        , corners: 1 // Corner roundness (0..1)
+        , color: '#297CA6' // #rgb or #rrggbb or array of colors
+        , opacity: 0.25 // Opacity of the lines
+        , rotate: 0 // The rotation offset
+        , direction: 1 // 1: clockwise, -1: counterclockwise
+        , speed: 1 // Rounds per second
+        , trail: 62 // Afterglow percentage
+        , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+        , zIndex: 2e9 // The z-index (defaults to 2000000000)
+        , className: 'spinner' // The CSS class to assign to the spinner
+        , top: '50%' // Top position relative to parent
+        , left: '50%' // Left position relative to parent
+        , shadow: false // Whether to render a shadow
+        , hwaccel: false // Whether to use hardware acceleration
+        , position: 'absolute' // Element positioning
+      };
+      var target = document.getElementById(div);
+      spinner= new Spinner(opts).spin(target);
+    return spinner;
+    };
+
    /*
       Function called when file input updated. If there is a file selected, then
       start upload procedure by asking for a signed request from the app.
    */
-   function init_upload(){
-       document.getElementById("spinner").style.display;
-                        
+   function init_upload(){   
+       spinner=loadSpinner('spinnerContainer');          
        var files = document.getElementById("file_input").files;
        var file = files[0];
        get_signed_request(file);
@@ -128,6 +161,7 @@
                         
                     });
        };
+       spinner.stop();
        xhr.send(file);
    }
    
