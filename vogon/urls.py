@@ -48,7 +48,7 @@ handler403 = 'annotations.views.custom_403_handler'
 urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^about/$', views.about, name='about'),
-    url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
+    url(r'^accounts/profile/', views.dashboard, name='dashboard'),
     url(r'^accounts/settings/$', views.user_settings),
     url(r'^accounts/register/$', views.register),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
@@ -71,4 +71,9 @@ urlpatterns = [
     url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
     url(r'^relations/(?P<concept_a_id>[0-9]+)/(?P<concept_b_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^$', views.home),
+    url(r'^sign_s3$', views.sign_s3, name="sign_s3")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

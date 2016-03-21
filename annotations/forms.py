@@ -97,7 +97,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location', 'link', )
+        fields = ('full_name', 'email', 'affiliation', 'location', 'link', 'imagefile')
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -120,20 +120,37 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location', 'link', )
+        fields = ('full_name', 'email', 'affiliation', 'location','imagefile')
+
+    def clean_password(self):
+        # Regardless of what the user provides, return the initial value.
+        # This is done here, rather than on the field, because the
+        # field does not have access to the initial value
+        return self.initial.get("password")
 
     def clean_full_name(self):
         if not self.cleaned_data.get('full_name'):
             raise ValidationError(_('Missing full name.'), code='required')
+        else:
+        	return self.cleaned_data['full_name']
 
-    def clean_affiliation(self):
-        if not self.cleaned_data.get('affiliation'):
-            raise ValidationError(_('Missing affiliation.'), code='required')
+    def clean_email(self):
+        if not self.cleaned_data.get('email'):
+            raise ValidationError(_('Missing email.'), code='required')
+        else:
+        	return self.cleaned_data['email']
 
     def clean_location(self):
         if not self.cleaned_data.get('location'):
             raise ValidationError(_('Missing location.'), code='required')
+        else:
+        	return self.cleaned_data['location']
 
-    def clean_link(self):
-        if not self.cleaned_data.get('link'):
-            raise ValidationError(_('Missing link.'), code='required')
+    def clean_affiliation(self):
+        if not self.cleaned_data.get('affiliation'):
+            raise ValidationError(_('Missing affiliation.'), code='required')
+        else:
+        	return self.cleaned_data['affiliation']
+
+
+    
