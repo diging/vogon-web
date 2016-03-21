@@ -79,7 +79,9 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
-    )
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 50,
 }
 
 WSGI_APPLICATION = 'vogon.wsgi.application'
@@ -169,3 +171,9 @@ LOGGING = {
         },
     },
 }
+
+# AWS Access Key and Secret Key credentials
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
+AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
+S3_BUCKET = 'vogonweb-test'
+DEFAULT_USER_IMAGE = 'https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png'
