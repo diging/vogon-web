@@ -342,16 +342,16 @@ def recent_activity(request):
     from django.utils import timezone
 
     time_threshold = datetime.now() - timedelta(days=10)
-    text_list = Text.objects.filter(added__gt=time_threshold).order_by('-added')[:5]
-    hourData={}
+    text_list = list(Text.objects.filter(added__gt=time_threshold).order_by('-added')[:10])
+    activity_data={}
     if text_list:
         for initialHour in range(1, 25):
             for item in text_list:
                 username = item.addedBy.username
-                if not hourData.get(initialHour):
-                    hourData[initialHour] = {}
-                if item.added < timezone.now() - timedelta(hours=initialHour):
-                    userDict = hourData[initialHour]
+                if not activity_data.get(initialHour):
+                    activity_data[initialHour] = {}
+                if item.added > timezone.now() - timedelta(hours=initialHour):
+                    userDict = activity_data[initialHour]
                     if not userDict.get(username):
                         activity = RecentActivity()
                         activity.text +=1
@@ -359,9 +359,29 @@ def recent_activity(request):
                     else:
                         activity = userDict.get(username)
                         activity.text +=1
-                
-    print hourData
-    return HttpResponse(hourData)
+                text_list.remove(item)
+
+    appleation_list = list(Appellation.objects.filter(created__gt=time_threshold).order_by('-created')[:10])
+    if appleation_list:
+        for initialHour in range(1,25):
+            for appleation in appleation_list:
+                username = appleation.createdBy.username
+                if not activity_data.get(initialHour):
+                    activity_data[initialHour] = {}
+                if appleation.created > timezone.now() - timedelta(hours=initialHour):
+                    userDict = activity_data[initialHour]
+                    if not userDict.get(username):
+                        activity = RecentActivity()
+                        activity.appelation +=1
+                        userDict[username] = activity
+                    else:
+                        activity = userDict.get(username)
+                        activity.appelation +=1
+                appleation_list.remove(appleation)
+
+    print activity_data
+    return HttpResponse(activity_data)
+
 
 @ensure_csrf_cookie
 def text(request, textid):
