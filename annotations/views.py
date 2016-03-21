@@ -340,9 +340,9 @@ class RecentActivity(models.Model):
 def recent_activity(request):
     from datetime import datetime, timedelta
     from django.utils import timezone
-
+    template = loader.get_template('annotations/recent_activity.html')
     time_threshold = datetime.now() - timedelta(days=10)
-    text_list = Text.objects.filter(added__gt=time_threshold).order_by('-added')[:5]
+    text_list = list(Text.objects.filter(added__gt=time_threshold).order_by('-added')[:10])
     hourData={}
     if text_list:
         for initialHour in range(1, 25):
@@ -359,9 +359,13 @@ def recent_activity(request):
                     else:
                         activity = userDict.get(username)
                         activity.text +=1
+                text_list.remove(item)
                 
     print hourData
-    return HttpResponse(hourData)
+    context = {
+        'recent_activity': hourData
+    }
+    return HttpResponse(template.render(context))
 
 @ensure_csrf_cookie
 def text(request, textid):
@@ -945,7 +949,3 @@ def concept_details(request, conceptid):
 
     return HttpResponse(template.render(context))
 
-def recent_activity(request):
-    result = Text.objects.all().order_by("addedBy", "-added")
-    print result.values()
-    return HttpResponse()
