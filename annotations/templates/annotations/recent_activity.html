@@ -1,0 +1,49 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+
+
+
+{% block main %}
+<div id="main" class="container-fluid">
+    <div class="row" style="margin-bottom: 10px;">
+        <div class="col-sm-10 col-sm-offset-1">
+            {% block title %}
+            <div>
+                <span class="h2">Recent Activity</span>
+
+            </div>
+
+            {% endblock %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+            {% if texts|length > 0 %}
+
+            <div>
+                <ul class="pagination pagination-sm">
+                    {% if texts.has_previous %}
+
+                    {% for p in texts.paginator.page_range %}
+                    <li{% if p == texts.number %} class="active"{% endif %}>
+                        <a href="?page={{p}}{%if order_by%}&order_by={{order_by}}{%endif%}">{{p}}</a>
+                    </li>
+                    {% endfor %}
+
+                    <li>
+                        <a href="?page={{ texts.next_page_number }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% else %}
+            <p>No texts to display.</p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock main %}
