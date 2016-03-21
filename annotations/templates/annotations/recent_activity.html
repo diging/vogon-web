@@ -25,8 +25,10 @@
                     <h1>{{ recent_activity|length }}</h1>
                     {% for key1,value in recent_activity.items%}
                         {% for key,value in value.items%}
-                            <li>User {{ key }} added {{value.text }} texts {{key1}} hours ago</li>
-                            <br>
+                            <li>User {{ key }} added {% if value.text != 0 %}{{value.text }} texts{% endif %}
+                            {% if value.appellation != 0 %} and {{value.appellation }} appellation{% endif %}
+                            </li>
+                           <br>
                         {% endfor %}
                     {% endfor %}
 

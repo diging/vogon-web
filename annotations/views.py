@@ -334,7 +334,7 @@ def collection_texts(request, collectionid):
 
 class RecentActivity(models.Model):
     def __init__(self):
-        self.appelation = 0
+        self.appellation = 0
         self.text = 0
 
 def recent_activity(request):
@@ -343,15 +343,17 @@ def recent_activity(request):
     template = loader.get_template('annotations/recent_activity.html')
     time_threshold = datetime.now() - timedelta(days=10)
     text_list = list(Text.objects.filter(added__gt=time_threshold).order_by('-added')[:10])
-    hourData={}
+
+    activity_data={}
+
     if text_list:
         for initialHour in range(1, 25):
             for item in text_list:
                 username = item.addedBy.username
-                if not hourData.get(initialHour):
-                    hourData[initialHour] = {}
+                if not activity_data.get(initialHour):
+                    activity_data[initialHour] = {}
                 if item.added < timezone.now() - timedelta(hours=initialHour):
-                    userDict = hourData[initialHour]
+                    userDict = activity_data[initialHour]
                     if not userDict.get(username):
                         activity = RecentActivity()
                         activity.text +=1
@@ -360,10 +362,27 @@ def recent_activity(request):
                         activity = userDict.get(username)
                         activity.text +=1
                 text_list.remove(item)
-                
-    print hourData
+
+    appellation_list = list(Appellation.objects.filter(created__gt=time_threshold).order_by('-created')[:10])
+    if appellation_list:
+        for initialHour in range(1,25):
+            for appellation in appellation_list:
+                username = appellation.createdBy.username
+                if not activity_data.get(initialHour):
+                    activity_data[initialHour] = {}
+                if appellation.created > timezone.now() - timedelta(hours=initialHour):
+                    userDict = activity_data[initialHour]
+                    if not userDict.get(username):
+                        activity = RecentActivity()
+                        activity.appellation +=1
+                        userDict[username] = activity
+                    else:
+                        activity = userDict.get(username)
+                        activity.appelation +=1
+                appellation_list.remove(appellation)
+    print activity_data
     context = {
-        'recent_activity': hourData
+        'recent_activity': activity_data
     }
     return HttpResponse(template.render(context))
 
