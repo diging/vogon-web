@@ -5,7 +5,6 @@ from annotations.models import Text
 class TextIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     title = indexes.CharField(model_attr='title')
-    author = indexes.CharField(model_attr='addedBy')
 
     def get_model(self):
         return Text
