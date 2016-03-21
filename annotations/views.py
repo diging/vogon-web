@@ -341,7 +341,7 @@ def recent_activity(request):
     from datetime import datetime, timedelta
     from django.utils import timezone
     template = loader.get_template('annotations/recent_activity.html')
-    time_threshold = datetime.now() - timedelta(days=10)
+    time_threshold = datetime.now() - timedelta(days=1)
     text_list = list(Text.objects.filter(added__gt=time_threshold).order_by('-added')[:10])
 
     activity_data={}
@@ -352,7 +352,7 @@ def recent_activity(request):
                 username = item.addedBy.username
                 if not activity_data.get(initialHour):
                     activity_data[initialHour] = {}
-                if item.added < timezone.now() - timedelta(hours=initialHour):
+                if item.added > timezone.now() - timedelta(hours=initialHour):
                     userDict = activity_data[initialHour]
                     if not userDict.get(username):
                         activity = RecentActivity()
@@ -378,9 +378,9 @@ def recent_activity(request):
                         userDict[username] = activity
                     else:
                         activity = userDict.get(username)
-                        activity.appelation +=1
+                        activity.appellation +=1
                 appellation_list.remove(appellation)
-    print activity_data
+
     context = {
         'recent_activity': activity_data
     }
