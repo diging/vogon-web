@@ -168,7 +168,7 @@ def json_response(func):
 @login_required
 def user_settings(request):
     """ User profile settings"""
-    
+
     if request.method == 'POST':
         form = UserChangeForm(request.POST,instance=request.user)
         if form.is_valid():
