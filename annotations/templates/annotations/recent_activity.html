@@ -23,10 +23,10 @@
             <div>
                 <ul class="pagination pagination-sm">
                     <h1>{{ recent_activity|length }}</h1>
-                    {% for key1,value in recent_activity.items%}
-                        {% for key,value in value.items%}
-                            <li>User {{ key }} added {% if value.text != 0 %}{{value.text }} texts{% endif %}
-                            {% if value.appellation != 0 %} and {{value.appellation }} appellation{% endif %}
+                    {% for hour,detail in recent_activity.items%}
+                        {% for user,data in detail.items%}
+                            <li>User {{ user }} added {% if data.text != 0 %}{{data.text }} texts{% endif %}
+                            {% if data.appellation != 0 %} and {{data.appellation }} appellation {% endif %} {{ hour }} hours ago
                             </li>
                            <br>
                         {% endfor %}
@@ -35,7 +35,7 @@
                 </ul>
             </div>
             {% else %}
-            <p>No texts to display.</p>
+            <p>No recent activities to display.</p>
             {% endif %}
 
         </div>
