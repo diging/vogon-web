@@ -64,10 +64,10 @@
    </div>
 </div>
 <script src="{% static "annotations/js/spin.min.js" %}"></script>
+<script src="{% static "annotations/js/jquery.spin.js" %}"></script>
 <script type="text/javascript" >
-var spinner ;
-    function loadSpinner(div){
-      var opts = {
+
+var opts = {
           lines: 13 // The number of lines to draw
         , length: 21 // The length of each line
         , width: 14 // The line thickness
@@ -89,17 +89,16 @@ var spinner ;
         , hwaccel: false // Whether to use hardware acceleration
         , position: 'absolute' // Element positioning
       };
-      var target = document.getElementById(div);
-      spinner= new Spinner(opts).spin(target);
-    return spinner;
-    };
+
+
+    
 
    /*
       Function called when file input updated. If there is a file selected, then
       start upload procedure by asking for a signed request from the app.
    */
    function init_upload(){   
-       spinner=loadSpinner('spinnerContainer');          
+       $('#spinnerContainer').spin(opts);
        var files = document.getElementById("file_input").files;
        var file = files[0];
        get_signed_request(file);
@@ -156,13 +155,14 @@ var spinner ;
        };
        xhr.onerror = function() {
            $(function(){
-                       
+              
                           $("#myAlertUpload").show();
                         
                     });
        };
-       spinner.stop();
+      
        xhr.send(file);
+        $('#spinnerContainer').spin(false);
    }
    
    
