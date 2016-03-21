@@ -13,7 +13,7 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import include, url
+from django.conf.urls import include, url, handler403
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -41,10 +41,14 @@ repository_router.register('collection', views.RemoteCollectionViewSet, base_nam
 remotecollection_router = nrouters.NestedSimpleRouter(repository_router, r'collection', lookup='collection')
 remotecollection_router.register('resource', views.RemoteResourceViewSet, base_name='collection')
 
+
+#Error Handlers
+handler403 = 'annotations.views.custom_403_handler'
+
 urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^about/$', views.about, name='about'),
-    url(r'^accounts/profile/$', views.dashboard, name='dashboard'),
+    url(r'^accounts/profile/', views.dashboard, name='dashboard'),
     url(r'^accounts/settings/$', views.user_settings),
     url(r'^accounts/register/$', views.register),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
@@ -67,6 +71,9 @@ urlpatterns = [
     url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
     url(r'^relations/(?P<concept_a_id>[0-9]+)/(?P<concept_b_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-
+    url(r'^$', views.home),
+    url(r'^sign_s3$', views.sign_s3, name="sign_s3")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

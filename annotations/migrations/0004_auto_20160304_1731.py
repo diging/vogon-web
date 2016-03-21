@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='vogonuser',
             name='imagefile',
-            field=models.FileField(default=b'', null=True, upload_to=b'documents/%Y/%m/%d', blank=True),
+            field=models.URLField(null=True, blank=True),
         ),
     ]

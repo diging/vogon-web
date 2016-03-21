@@ -7,13 +7,13 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('annotations', '0002_auto_20160128_1717'),
+        ('concepts', '0001_initial'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='vogonuser',
-            name='imagefile',
-            field=models.FileField(default=b'', null=True, upload_to=b'uploads/', blank=True),
+            model_name='concept',
+            name='merged_with',
+            field=models.ForeignKey(related_name='merged_concepts', blank=True, to='concepts.Concept', null=True),
         ),
     ]

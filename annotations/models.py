@@ -1,5 +1,6 @@
 from django.db import models
 from concepts.models import Concept
+from django.conf import settings
 import ast
 
 from annotations.managers import repositoryManagers
@@ -11,13 +12,16 @@ from django.utils.translation import ugettext_lazy as _
 
 
 class VogonUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None):
+    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None):
         if not email:
             raise ValueError('Users must have an email address')
 
         user = self.model(
             username=username,
             email=self.normalize_email(email),
+            full_name=full_name,
+            affiliation=affiliation,
+            location=location
         )
 
         user.set_password(password)
@@ -47,8 +51,7 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     link = models.URLField(max_length=500, blank=True, null=True)
     full_name = models.CharField(max_length=255, blank=True, null=True)
     conceptpower_uri = models.URLField(max_length=500, blank=True, null=True)
-    imagefile = models.FileField(upload_to='documents/%Y/%m/%d', 
-        blank=True, null=True, default='')
+    imagefile = models.URLField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -177,11 +180,11 @@ class Text(models.Model):
     public = models.BooleanField(default=True)
 
     @property
-    def annotationCount(self):
+    def annotation_count(self):
         return self.appellation_set.count() + self.relation_set.count()
 
     @property
-    def relationCount(self):
+    def relation_count(self):
         return self.relation_set.count()
 
     class Meta:

@@ -27,10 +27,19 @@ class RegistrationForm(forms.Form):
 	"""
 	Gives user form of signup and validates it.
 	"""
-	username = forms.RegexField(regex=r'^\w+$', widget=forms.TextInput(attrs=dict(required=True, max_length=30)), label=_("Username"), error_messages={ 'invalid': _("This value must contain only letters, numbers and underscores.") })
+	full_name = forms.CharField(required=True, max_length=30, label=_("Full name"))
+	username = forms.RegexField(regex=r'^\w+$', widget=forms.TextInput(attrs=dict(required=True, max_length=30)),
+                                label=_("Username"),
+                                error_messages={ 'invalid': _("This value must contain only letters, "
+                                                              "numbers and underscores.") })
 	email = forms.EmailField(widget=forms.TextInput(attrs=dict(required=True, max_length=30)), label=_("Email address"))
-	password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30, render_value=False)), label=_("Password"))
-	password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30, render_value=False)), label=_("Password (again)"))
+	password1 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30,
+                                                                      render_value=False)), label=_("Password"))
+	password2 = forms.CharField(widget=forms.PasswordInput(attrs=dict(required=True, max_length=30,
+                                                                      render_value=False)), label=_("Password (again)"))
+	affiliation = forms.CharField(required=True, max_length=30, label=_("Affliation"))
+	location = forms.CharField(required=True, max_length=30, label=_("Location"))
+
 
 	def clean_username(self):
 		"""
@@ -49,7 +58,6 @@ class RegistrationForm(forms.Form):
 		if 'password1' in self.cleaned_data and 'password2' in self.cleaned_data:
 			if self.cleaned_data['password1'] != self.cleaned_data['password2']:
 				raise forms.ValidationError(_("The two password fields did not match."))
-		return self.cleaned_data
 
 def validatefiletype(file):
 	"""
@@ -109,14 +117,40 @@ class UserCreationForm(forms.ModelForm):
 
 
 class UserChangeForm(forms.ModelForm):
-    password = ReadOnlyPasswordHashField()
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location', 'link', 'imagefile' )
+        fields = ('full_name', 'email', 'affiliation', 'location','imagefile')
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
         # This is done here, rather than on the field, because the
         # field does not have access to the initial value
         return self.initial.get("password")
+
+    def clean_full_name(self):
+        if not self.cleaned_data.get('full_name'):
+            raise ValidationError(_('Missing full name.'), code='required')
+        else:
+        	return self.cleaned_data['full_name']
+
+    def clean_email(self):
+        if not self.cleaned_data.get('email'):
+            raise ValidationError(_('Missing email.'), code='required')
+        else:
+        	return self.cleaned_data['email']
+
+    def clean_location(self):
+        if not self.cleaned_data.get('location'):
+            raise ValidationError(_('Missing location.'), code='required')
+        else:
+        	return self.cleaned_data['location']
+
+    def clean_affiliation(self):
+        if not self.cleaned_data.get('affiliation'):
+            raise ValidationError(_('Missing affiliation.'), code='required')
+        else:
+        	return self.cleaned_data['affiliation']
+
+
+    

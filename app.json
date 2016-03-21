@@ -2,10 +2,7 @@
 	"name": "vogonweb",
 	"description": "",
 	"env": {
-		"DJANGO_SETTINGS_MODULE": "vogon.heroku_settings",
-		"DATABASE_URL": {
-			"required": "true"
-		}
+		"DJANGO_SETTINGS_MODULE": "vogon.heroku_settings"
 	},
 	"addons": [
 		"heroku-redis:hobby-dev",
