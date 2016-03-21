@@ -10,7 +10,14 @@ angular.module('annotationApp').factory('Appellation', function($resource) {
       list: {
           method: 'GET',
           cache: true,
+          isArray: false,
           headers: {'Content-Type': 'application/json'}
+      },
+      query: {
+          method: 'GET',
+          isArray: false,
+          headers: {'Content-Type': 'application/json'}
+
       },
       save: {
           method: 'POST',

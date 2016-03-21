@@ -64,8 +64,11 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
           *  interface.
           */
         getAppellations: function(callback) {
+            var service = this;
             return Appellation.query().$promise
-                .then(this.insertAppellations)
+                .then(function(data) {
+                    service.insertAppellations(data.results);
+                })
                 .finally(callback);
         },
 

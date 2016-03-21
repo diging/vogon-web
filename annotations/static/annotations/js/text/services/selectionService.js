@@ -1,4 +1,4 @@
-app.factory('selectionService', ['appellationService', function(appellationService) {
+angular.module('annotationApp').factory('selectionService', ['appellationService', function(appellationService) {
     var service = {
         // Word callback hoppers.
         word_success_callbacks: [],
@@ -73,7 +73,8 @@ app.factory('selectionService', ['appellationService', function(appellationServi
         service.word_success_callbacks.forEach(function(callback) {
             callback(service.selected_words);
         });
-        service.resetWordCallbacks();
+
+        if (service.autorelease) service.releaseWords();
         service.failAppellationExpectation();
     }
 
@@ -85,7 +86,6 @@ app.factory('selectionService', ['appellationService', function(appellationServi
             callback();
         });
         service.resetAppellationCallbacks();
-        service.resetWordSelection();
         service.resetAppellationSelection();
     }
 
@@ -96,7 +96,7 @@ app.factory('selectionService', ['appellationService', function(appellationServi
         service.appellation_success_callbacks.forEach(function(callback) {
             callback(service.selected_appellation);
         });
-        service.resetAppellationCallbacks();
+        if (service.autorelease) service.resetAppellationCallbacks();
         service.failWordExpectation();
     }
 
@@ -121,10 +121,21 @@ app.factory('selectionService', ['appellationService', function(appellationServi
       *  Register success and failure callbacks for word selection events.
       *  @param {function} success_callback - Function to be called when the user selects a word.
       *  @param {function} failure_callback - Function to be called when the user fails to select a word.
+      *  @param {bool} autorelease - If false, word selection will not be released until service.releaseWords() is called.
       */
-    service.expectWords = function(success_callback, failure_callback) {
+    service.expectWords = function(success_callback, failure_callback, autorelease) {
         if (success_callback) service.word_success_callbacks.push(success_callback);
         if (failure_callback) service.word_failure_callbacks.push(failure_callback);
+        console.log(autorelease);
+        service.autorelease = autorelease;
+    }
+
+    service.releaseWords = function() {
+        service.resetWordSelection();
+    }
+
+    service.releaseAppellations = function() {
+        service.resetAppellationCallbacks();
     }
 
     /**
@@ -159,6 +170,7 @@ app.factory('selectionService', ['appellationService', function(appellationServi
                 service.replaceWordSelection(word);
             }
             service.selected_words.addClass("selected");
+            service.selectedWordPopover();
         }
     }
 
@@ -168,6 +180,23 @@ app.factory('selectionService', ['appellationService', function(appellationServi
     }
 
 
+    /**
+      * Display a popover with button on the last selected word.
+      */
+    service.selectedWordPopover = function() {
+        var lastId = service.selected_words[service.selected_words.length - 1].id;
+        $('word').popover('destroy');
+        $('word#' + lastId).popover({
+            html: true,
+            template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
+            content:'<a class="btn btn-xs btn-primary glyphicon glyphicon-plus" id="wordPopoverOK"></a>'
+        });
+        $('word#' + lastId).popover('show');
+        $('#wordPopoverOK').on('click', function() {
+            $('word').popover('destroy');
+            service.handleSelectWord();
+        });
+    }
 
     /**
       *  Callback for select word event.
@@ -198,6 +227,7 @@ app.factory('selectionService', ['appellationService', function(appellationServi
       *  Callback for ESC key event.
       */
     service.handleEsc = function(event) {
+        service.releaseWords();
     }
 
     /**
@@ -259,6 +289,6 @@ app.factory('selectionService', ['appellationService', function(appellationServi
             if(event.which == 27) service.handleEsc(event);
         });
     }
-
+    service.bindWords();
     return service;
 }]);

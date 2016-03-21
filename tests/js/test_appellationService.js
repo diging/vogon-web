@@ -4,7 +4,7 @@ describe('appellationService functions:', function() {
         return this;
     }
     appellationSpy.query = function() {
-        return [{id: 0}, {id: 1}, {id: 2}];
+        return { results: [{id: 0}, {id: 1}, {id: 2}] };
     }
     appellationSpy.get = function() {
         return {
@@ -126,5 +126,5 @@ describe('appellationService functions:', function() {
         });
     });
 
-    
+
 });
