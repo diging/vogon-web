@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, JsonResponse
 from django.template import RequestContext, loader
 from annotations.models import VogonUser
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
@@ -18,6 +18,8 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from django.db import models
+from django.db.models.query import QuerySet
 
 from rest_framework import viewsets, exceptions, status
 from rest_framework.authentication import SessionAuthentication
@@ -69,19 +71,16 @@ def home(request):
         Renders landing page for non-loggedin user and
         dashboard view for loggedin users.
     """
-    if request.user.is_authenticated():
-        return HttpResponseRedirect(reverse('dashboard'))
-    else:
-        template = loader.get_template('registration/home.html')
-        user_count = VogonUser.objects.filter(is_active=True).count()
-        text_count = Text.objects.all().count()
-        relation_count = Relation.objects.count()
-        context = RequestContext(request, {
-            'user_count': user_count,
-            'text_count': text_count,
-            'relation_count': relation_count
-        })
-        return HttpResponse(template.render(context))
+    template = loader.get_template('registration/home.html')
+    user_count = VogonUser.objects.filter(is_active=True).count()
+    text_count = Text.objects.all().count()
+    relation_count = Relation.objects.count()
+    context = RequestContext(request, {
+        'user_count': user_count,
+        'text_count': text_count,
+        'relation_count': relation_count
+    })
+    return HttpResponse(template.render(context))
 
 
 def user_texts(user):
@@ -266,16 +265,14 @@ def list_user(request):
 
     template = loader.get_template('annotations/contributors.html')
 
-    #To map the column sort parameter from UI to the column name in DB
-    sort_dict = {"user_name":"username", "name":"full_name",
-     "aff":"affiliation", "loc":"location"}
+    search_term = request.GET.get('search_term')
+    sort = request.GET.get('sort', 'username')
+    queryset = VogonUser.objects.exclude(id = -1).order_by(sort)
 
-    sort = request.GET.get('sort', 'user_name')
+    if search_term:
+        queryset = queryset.filter(full_name__icontains = search_term)
 
-    sort_column = sort_dict[sort]
-
-    queryset = VogonUser.objects.exclude(id = -1).order_by(sort_column)
-    paginator = Paginator(queryset, 25)
+    paginator = Paginator(queryset, 10)
 
     page = request.GET.get('page')
     try:
@@ -288,6 +285,7 @@ def list_user(request):
         users = paginator.page(paginator.num_pages)
 
     context = {
+        'search_term' : search_term,
         'sort_column' : sort,
         'user_list': users,
         'user': request.user,
@@ -334,6 +332,59 @@ def collection_texts(request, collectionid):
     }
     return HttpResponse(template.render(context))
 
+class RecentActivity(models.Model):
+    def __init__(self):
+        self.appellation = 0
+        self.text = 0
+
+def recent_activity(request):
+    from datetime import datetime, timedelta
+    from django.utils import timezone
+    template = loader.get_template('annotations/recent_activity.html')
+    time_threshold = datetime.now() - timedelta(days=1)
+    text_list = list(Text.objects.filter(added__gt=time_threshold).order_by('-added')[:10])
+
+    activity_data={}
+
+    if text_list:
+        for initialHour in range(1, 25):
+            for item in text_list:
+                username = item.addedBy.username
+                if not activity_data.get(initialHour):
+                    activity_data[initialHour] = {}
+                if item.added > timezone.now() - timedelta(hours=initialHour):
+                    userDict = activity_data[initialHour]
+                    if not userDict.get(username):
+                        activity = RecentActivity()
+                        activity.text +=1
+                        userDict[username] = activity
+                    else:
+                        activity = userDict.get(username)
+                        activity.text +=1
+                text_list.remove(item)
+
+    appellation_list = list(Appellation.objects.filter(created__gt=time_threshold).order_by('-created')[:10])
+    if appellation_list:
+        for initialHour in range(1,25):
+            for appellation in appellation_list:
+                username = appellation.createdBy.username
+                if not activity_data.get(initialHour):
+                    activity_data[initialHour] = {}
+                if appellation.created > timezone.now() - timedelta(hours=initialHour):
+                    userDict = activity_data[initialHour]
+                    if not userDict.get(username):
+                        activity = RecentActivity()
+                        activity.appellation +=1
+                        userDict[username] = activity
+                    else:
+                        activity = userDict.get(username)
+                        activity.appellation +=1
+                appellation_list.remove(appellation)
+
+    context = {
+        'recent_activity': activity_data
+    }
+    return HttpResponse(template.render(context))
 
 @ensure_csrf_cookie
 def text(request, textid):
@@ -360,7 +411,7 @@ def text(request, textid):
     ]
     if not any(access_conditions):
         # TODO: return a pretty templated response.
-        return HttpResponseForbidden("Sorry, this text is restricted.")
+        raise PermissionDenied
 
     if request.user.is_authenticated():
         template = loader.get_template('annotations/text.html')
@@ -373,6 +424,24 @@ def text(request, textid):
         template = loader.get_template('annotations/anonymous_text.html')
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
+
+
+def custom_403_handler(request):
+    """
+    Default 403 Handler. This method gets invoked if a PermissionDenied Exception is raised.
+    Args:
+        request: HttpRequest()
+
+    Returns: HttpResponse() with status=403
+
+    """
+    template = loader.get_template('annotations/forbidden_error_page.html')
+    context_data = {'userid': request.user.id,
+                    'error_message': "Sorry you are not authorised to view this page."
+                    }
+    context = RequestContext(request, context_data)
+    return HttpResponse(template.render(context), status=403)
+
 
 ### REST API class-based views.
 
@@ -898,3 +967,4 @@ def concept_details(request, conceptid):
     })
 
     return HttpResponse(template.render(context))
+

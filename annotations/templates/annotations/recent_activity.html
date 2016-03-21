@@ -1,0 +1,45 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+
+
+
+{% block main %}
+<div id="main" class="container-fluid">
+    <div class="row" style="margin-bottom: 10px;">
+        <div class="col-sm-10 col-sm-offset-1">
+            {% block title %}
+            <div>
+                <span class="h2">Recent Activity</span>
+
+            </div>
+
+            {% endblock %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+            {% if recent_activity|length > 0 %}
+
+            <div>
+                <ul class="pagination pagination-sm">
+                    <h1>{{ recent_activity|length }}</h1>
+                    {% for hour,detail in recent_activity.items%}
+                        {% for user,data in detail.items%}
+                            <li>User {{ user }} added {% if data.text != 0 %}{{data.text }} texts{% endif %}
+                            {% if data.appellation != 0 %} and {{data.appellation }} appellation {% endif %} {{ hour }} hours ago
+                            </li>
+                           <br>
+                        {% endfor %}
+                    {% endfor %}
+
+                </ul>
+            </div>
+            {% else %}
+            <p>No recent activities to display.</p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock main %}
