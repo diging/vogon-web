@@ -18,24 +18,18 @@
     </div>
     <div class="row">
         <div class="col-sm-10 col-sm-offset-1">
-            {% if texts|length > 0 %}
+            {% if recent_activity|length > 0 %}
 
             <div>
                 <ul class="pagination pagination-sm">
-                    {% if texts.has_previous %}
-
-                    {% for p in texts.paginator.page_range %}
-                    <li{% if p == texts.number %} class="active"{% endif %}>
-                        <a href="?page={{p}}{%if order_by%}&order_by={{order_by}}{%endif%}">{{p}}</a>
-                    </li>
+                    <h1>{{ recent_activity|length }}</h1>
+                    {% for key1,value in recent_activity.items%}
+                        {% for key,value in value.items%}
+                            <li>User {{ key }} added {{value.text }} texts {{key1}} hours ago</li>
+                            <br>
+                        {% endfor %}
                     {% endfor %}
 
-                    <li>
-                        <a href="?page={{ texts.next_page_number }}">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                    {% endif %}
                 </ul>
             </div>
             {% else %}
