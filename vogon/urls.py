@@ -54,6 +54,7 @@ urlpatterns = [
     url(r'^activity/$', views.recent_activity),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
                           {'next_page': '/accounts/login/'}),
+    url(r'^activity/$', views.recent_activity),
     url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest/', include(router.urls)),

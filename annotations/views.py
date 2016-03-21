@@ -332,6 +332,36 @@ def collection_texts(request, collectionid):
     }
     return HttpResponse(template.render(context))
 
+class RecentActivity(models.Model):
+    def __init__(self):
+        self.appelation = 0
+        self.text = 0
+
+def recent_activity(request):
+    from datetime import datetime, timedelta
+    from django.utils import timezone
+
+    time_threshold = datetime.now() - timedelta(days=10)
+    text_list = Text.objects.filter(added__gt=time_threshold).order_by('-added')[:5]
+    hourData={}
+    if text_list:
+        for initialHour in range(1, 25):
+            for item in text_list:
+                username = item.addedBy.username
+                if not hourData.get(initialHour):
+                    hourData[initialHour] = {}
+                if item.added < timezone.now() - timedelta(hours=initialHour):
+                    userDict = hourData[initialHour]
+                    if not userDict.get(username):
+                        activity = RecentActivity()
+                        activity.text +=1
+                        userDict[username] = activity
+                    else:
+                        activity = userDict.get(username)
+                        activity.text +=1
+                
+    print hourData
+    return HttpResponse(hourData)
 
 @ensure_csrf_cookie
 def text(request, textid):
