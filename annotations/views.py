@@ -625,7 +625,6 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
                         headers=headers)
 
 
-
 class TypeViewSet(viewsets.ModelViewSet):
     queryset = Type.objects.all()
     serializer_class = TypeSerializer

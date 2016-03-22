@@ -306,3 +306,9 @@ word {
 .popover-action {
     padding: 0px;
 }
+
+
+word {
+    margin-right: 2px;
+    margin-left: 2px;
+}

@@ -153,11 +153,12 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event - Click event with a valid ``target``.
       */
     service.handleClick = function(event) {
-
         var word = $(event.target);
         // If the word is part of an appellation, select it (and succeed).
         if (service.isAppellation(word)) {
-            service.handleSelectAppellation(event);
+            // service.handleSelectAppellation(event);
+            service.replaceAppellationSelection(word);
+
 
         // If the word is not part of an Appellation, add word to the word
         //  selection hopper.
@@ -179,6 +180,15 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         service.selected_words = word;
     }
 
+    service.replaceAppellationSelection = function(word) {
+        service.resetAppellationSelection();
+        var word = $(event.target);
+        appellationService.getAppellation(service.getAppellationID(word)).then(function(appellation) {
+            service.selected_appellation = appellation;
+            service.selectedAppellationPopover();
+        });
+    }
+
 
     /**
       * Display a popover with button on the last selected word.
@@ -189,13 +199,25 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         $('word#' + lastId).popover({
             html: true,
             template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
-            content:'<a class="btn btn-xs btn-primary glyphicon glyphicon-plus" id="wordPopoverOK"></a>'
+            content:'<a class="btn btn-xs btn-primary glyphicon glyphicon-tag word-popover-button"></a>'
         });
         $('word#' + lastId).popover('show');
-        $('#wordPopoverOK').on('click', function() {
-            $('word').popover('destroy');
-            service.handleSelectWord();
+    }
+
+    /**
+      * Display a popover with button on the last selected word.
+      */
+    service.selectedAppellationPopover = function() {
+        console.log(service.selected_appellation);
+        var selector = $('word[appellation=' + service.selected_appellation.id + ']');
+
+        $('word').popover('destroy');
+        selector.last().popover({
+            html: true,
+            template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
+            content:'<a class="btn btn-xs btn-primary glyphicon glyphicon-plus appellation-popover-button"></a>'
         });
+        selector.last().popover('show');
     }
 
     /**
@@ -203,6 +225,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event
       */
     service.handleSelectWord = function(event) {
+
         service.succeedWordExpectation();
     }
 
@@ -211,8 +234,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event
       */
     service.handleSelectAppellation = function(event) {
-        var word = $(event.target);
-        service.selected_appellation = appellationService.getAppellation(service.getAppellationID(word));
+
         service.succeedAppellationExpectation();
     }
 
@@ -228,6 +250,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.handleEsc = function(event) {
         service.releaseWords();
+        $('word').popover('destroy');
     }
 
     /**
@@ -238,7 +261,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     service.selectIntermediateWords = function(start, end) {
         // Select words between start and end. If start, end, or any
         // intermediate words are appellations, abort and clear all selections.
-        var toSelect = start.nextUntil(end).add(start).add(end);
+        var toSelect = start.nextUntil(end, "word").add(start).add(end);
 
         if (toSelect.is('.appellation')) {
             // Selection crosses an appellation. Abort!
@@ -284,9 +307,23 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     service.bindWords = function() {
         $('word').click(service.handleClick);
 
-        $(document).keypress(function(event) {
+        $('body').on('click', '.word-popover-button', function() {
+            $('word').popover('destroy');
+            service.handleSelectWord();
+        });
+
+        $('body').on('click', '.appellation-popover-button', function() {
+            $('word').popover('destroy');
+            service.handleSelectAppellation();
+        });
+
+        $(document).keydown(function(event) {
             if(event.which == 13) service.handleEnter(event);
             if(event.which == 27) service.handleEsc(event);
+        });
+        $(document).keypress(function(event) {
+
+
         });
     }
     service.bindWords();

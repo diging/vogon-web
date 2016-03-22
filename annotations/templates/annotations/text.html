@@ -44,41 +44,70 @@
         .panel.with-nav-tabs .nav-justified{
         	margin-bottom: -1px;
         }
+
+        .fixed {
+            top: 0px;
+            position: fixed;
+        }
         </style>
+
+        <script>
+        // If the window scrolls below the top of the main content, the right-
+        //  hand column should scroll with it.
+        function sticky_relocate() {
+            var window_top = $(window).scrollTop();
+            var div_top = $('#main-container').offset().top;
+            if (window_top > div_top) {
+                $('#sticky').addClass('fixed');
+                $('#sticky').addClass('col-sm-offset-6');
+            } else {
+                $('#sticky').removeClass('fixed');
+                // Setting position: fixed removes the element from the flow,
+                //  so this applies the appropriate left-offset.
+                $('#sticky').removeClass('col-sm-offset-6');
+            }
+        }
+
+        $(function() {
+            $(window).scroll(sticky_relocate);
+            sticky_relocate();
+        });
+        </script>
         <title>{{ title }}</title>
 
     </head>
     <body>
         {% include "annotations/header.html" %}
-        <div class="container-fluid">
-            <div class="h1">{{ text.title }}</div>
-            <div>{{ text.uri }}</div>
-            <div>{{ text.source }}</div>
-            <div>{{ text.created }}</div>
-            <div>{{ text.addedBy }}</div>
-
+        <div class="container-fluid" id="main-container">
             <div class="row">
                 <div class="col-sm-6">
+                    <div class="h1">{{ text.title }}</div>
+                    <div>{{ text.uri }}</div>
+                    <div>{{ text.source }}</div>
+                    <div>{{ text.created }}</div>
+                    <div>{{ text.addedBy }}</div>
                     <div class="panel">
                         <div class="panel-body">
                             {{ text.tokenizedContent|safe }}
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
-                    <div class="panel with-nav-tabs panel-default" style="position: fixed;">
-                        <div class="panel-heading">
-                                <ul class="nav nav-tabs">
-                                    <li class="active"><a href="#tabAppellations" data-toggle="tab">Appellations</a></li>
-                                    <li><a href="#tabRelations" data-toggle="tab">Relations</a></li>
-                                </ul>
-                        </div>
-                        <div class="panel-body">
-                            <div class="tab-content">
-                                <div class="tab-pane fade in active" id="tabAppellations" ng-controller="AppellationsController">
 
+                <div id="sticky" class="col-sm-6">
+
+                    <div style="margin-top: 10px;">
+                        <div class="panel with-nav-tabs panel-default">
+                            <div class="panel-heading">
+                                    <ul class="nav nav-tabs">
+                                        <li class="active"><a href="#tabAppellations" data-toggle="tab">Appellations</a></li>
+                                        <li><a href="#tabRelations" data-toggle="tab">Relations</a></li>
+                                    </ul>
+                            </div>
+                            <div class="panel-body">
+                                <div class="tab-content">
+                                    {% include "annotations/text/appellationTab.html" %}
+                                    <div class="tab-pane fade" id="tabRelations">Default 2</div>
                                 </div>
-                                <div class="tab-pane fade" id="tabRelations">Default 2</div>
                             </div>
                         </div>
                     </div>

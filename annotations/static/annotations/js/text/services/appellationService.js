@@ -11,6 +11,18 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
         appellationsById: {}, // Indexes Appellations by ID.
 
         /**
+          * Add appellation ID and class to appellated words.
+          */
+        tagWordAsAppellation: function(appellation) {
+            var tokenIds = appellation.tokenIds.split(',');
+            tokenIds.forEach(function(tokenId) {
+                $('word#' + tokenId).attr('appellation', appellation.id)
+                    .addClass('appellation');
+
+            });
+        },
+
+        /**
           * Add Appellations retrieved from the REST interface to this service.
           */
         insertAppellations: function(appellations) {
@@ -18,6 +30,7 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
             this.appellations = appellations;
             this.appellations.forEach(function(appellation) {
                 service.indexAppellation(appellation);
+                service.tagWordAsAppellation(appellation);
             });
         },
 
@@ -69,7 +82,9 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
                 .then(function(data) {
                     service.insertAppellations(data.results);
                 })
-                .finally(callback);
+                .finally(function(data) {
+                    callback(service.appellations);
+                });
         },
 
         /**
@@ -117,6 +132,8 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
                     service.appellationHash[a.interpretation] = [];
                 }
                 service.appellationHash[a.interpretation].push(a);
+
+                service.tagWordAsAppellation(a);
                 $rootScope.$broadcast('newAppellation', a);
                 return a;
             });
