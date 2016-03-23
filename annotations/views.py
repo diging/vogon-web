@@ -52,6 +52,9 @@ from django.shortcuts import render
 import logging
 logger = logging.getLogger(__name__)
 
+from haystack.views import SearchView, search_view_factory
+from haystack.query import SearchQuerySet
+
 
 def home(request):
     """
@@ -912,3 +915,17 @@ def concept_details(request, conceptid):
     })
 
     return HttpResponse(template.render(context))
+
+
+# Not complete yet (threadsafe search)
+class TextSearchView(SearchView):
+    template = 'templates/search/search.html'
+    queryset = SearchQuerySet().all()
+
+    def get_queryset(self):
+        queryset = super(TextSearchView, self).get_queryset()
+        return queryset
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(TextSearchView, self).get_context_data(*args, **kwargs)
+        return context
