@@ -24,7 +24,7 @@
             <h3>Results</h3>
             {% for result in page.object_list %}
                 <p>
-                    <a href="#">{{ result.object.title }}</a>
+                    <a href="{% url "text" result.object.id %}">{{ result.object.title }}</a>
                 </p>
             {% empty %}
                 <p>No results found.</p>
