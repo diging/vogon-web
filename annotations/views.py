@@ -52,7 +52,7 @@ from django.shortcuts import render
 import logging
 logger = logging.getLogger(__name__)
 
-from haystack.views import SearchView, search_view_factory
+from haystack.generic_views import SearchView
 from haystack.query import SearchQuerySet
 
 

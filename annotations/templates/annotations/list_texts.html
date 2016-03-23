@@ -17,9 +17,9 @@
             <hr></hr>
             {% endblock %}
         </div>
-        <form class="navbar-form" role="search">
+        <form class="navbar-form" role="search" action="/search/">
           <div class="input-group col-sm-3 col-sm-offset-1">
-            <input type="text" class="form-control" placeholder= {% if search_term %}"{{search_term}}"{% else %}"Search texts" {% endif %}name="search_term" id="search_term">
+            <input type="text" class="form-control" placeholder= {% if q %}"{{q}}"{% else %}"Search texts" {% endif %}name="q" id="q">
             <div class="input-group-btn">
               <button class="btn btn-default" type="submit"><div class="glyphicon glyphicon-search"></div></button>
             </div>
