@@ -31,12 +31,12 @@ from rest_framework.pagination import LimitOffsetPagination, PageNumberPaginatio
 from concepts.models import Concept
 from concepts.authorities import search
 from concepts.tasks import search_concept
-
+from annotations.models import VogonUser
 from models import *
 from forms import *
 from serializers import *
 from tasks import *
-
+import hmac
 import hashlib
 from itertools import chain
 from collections import OrderedDict
@@ -46,11 +46,14 @@ from urlnorm import norm
 from itertools import chain
 import uuid
 import igraph
-
+import os
+from urlparse import urlparse
+import urllib
 import json
-
+import time
 from django.shortcuts import render
-
+from hashlib import sha1
+import base64
 import logging
 logger = logging.getLogger(__name__)
 
@@ -167,22 +170,33 @@ def json_response(func):
 @login_required
 def user_settings(request):
     """ User profile settings"""
-
+    
     if request.method == 'POST':
-        form = UserChangeForm(request.POST, instance=request.user)
+        form = UserChangeForm(request.POST,instance=request.user)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/accounts/profile/')
+
     else:
         form = UserChangeForm(instance=request.user)
+        # Assign default image in the preview if no profile image is selected for the user.
+        if request.user.imagefile == "" or request.user.imagefile is None:
+            request.user.imagefile=settings.DEFAULT_USER_IMAGE
 
     template = loader.get_template('annotations/settings.html')
     context = RequestContext(request, {
         'user': request.user,
+        'full_name' : request.user.full_name,
+        'email' : request.user.email,
+        'affiliation' : request.user.affiliation,
+        'location' : request.user.location,
+        'link' : request.user.link,
+        'preview' : request.user.imagefile,
         'form': form,
         'subpath': settings.SUBPATH,
     })
     return HttpResponse(template.render(context))
+
 
 def about(request):
     """
@@ -191,6 +205,7 @@ def about(request):
     template = loader.get_template('annotations/about.html')
     context = RequestContext(request)
     return HttpResponse(template.render(context))
+
 
 @login_required
 def dashboard(request):
@@ -971,3 +986,37 @@ def concept_details(request, conceptid):
 
     return HttpResponse(template.render(context))
 
+
+@login_required
+def sign_s3(request):
+    """
+    Genaration of a temporary signtaure using AWS secret key and access key.
+    https://devcenter.heroku.com/articles/s3-upload-python
+    """
+
+    if request.method == 'GET':
+        AWS_ACCESS_KEY = settings.AWS_ACCESS_KEY
+        AWS_SECRET_KEY = settings.AWS_SECRET_KEY
+        S3_BUCKET = settings.S3_BUCKET
+
+        object_name = urllib.quote_plus(request.GET.get('file_name'))
+        mime_type = request.GET.get('file_type')
+
+        secondsPerDay = 24*60*60
+        expires = int(time.time()+secondsPerDay)
+        amz_headers = "x-amz-acl:public-read"
+
+        string_to_sign = "PUT\n\n%s\n%d\n%s\n/%s/%s" % (mime_type, expires, amz_headers, S3_BUCKET, object_name)
+
+        encodedSecretKey = AWS_SECRET_KEY.encode()
+        encodedString = string_to_sign.encode()
+        h = hmac.new(encodedSecretKey, encodedString, sha1)
+        hDigest = h.digest()
+        signature = base64.b64encode(hDigest).strip()
+        signature = urllib.quote_plus(signature)
+        url = 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, object_name)
+
+        return JsonResponse({
+            'signed_request': '%s?AWSAccessKeyId=%s&Expires=%s&Signature=%s' % (url, AWS_ACCESS_KEY, expires, signature),
+            'url': url,
+        })
