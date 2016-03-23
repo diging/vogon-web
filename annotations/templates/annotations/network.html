@@ -202,7 +202,7 @@ var displayRelation = function(concept_a, concept_b) {
 
 var displayTexts = function(texts) {
     $('#text-list').empty();
-    texts.forEach(function(text) {
+    texts.results.forEach(function(text) {
         $('#text-list')
             .append('<tr><td class="text-small"><a href="/text/' + text.id + '/">' + text.title + '</a></td></tr>');
     });
