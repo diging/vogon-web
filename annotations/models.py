@@ -159,6 +159,7 @@ class TextCollection(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     participants = models.ManyToManyField(VogonUser, related_name='contributes_to')
 
+
 class Text(models.Model):
     uri = models.CharField(max_length=255, unique=True)
     """Should be sufficient to retrieve text from repository."""

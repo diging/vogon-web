@@ -332,10 +332,12 @@ def collection_texts(request, collectionid):
     }
     return HttpResponse(template.render(context))
 
+
 class RecentActivity(models.Model):
     def __init__(self):
         self.appellation = 0
         self.text = 0
+
 
 def recent_activity(request):
     from datetime import datetime, timedelta
@@ -385,6 +387,7 @@ def recent_activity(request):
         'recent_activity': activity_data
     }
     return HttpResponse(template.render(context))
+
 
 @ensure_csrf_cookie
 def text(request, textid):
