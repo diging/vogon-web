@@ -10,7 +10,13 @@
 		  <span class="h2">User details for: {{ detail_user.full_name}}</span>
 	  </div>
       	<div class="panel-body">
-      		<img src={{detail_user.imagefile}} width="200px" height="200px"></img>
+      		<img src={% if detail_user.imagefile %}
+											{{detail_user.imagefile}}
+									 {% else %}
+									 		{{default_user_image}}
+									 {% endif %}
+									 width="200px" height="200px">
+					</img>
       		<br>
       		<br>
 			<ul class="list-group">

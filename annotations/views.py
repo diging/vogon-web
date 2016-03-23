@@ -862,7 +862,8 @@ def user_details(request, userid, *args, **kwargs):
             'detail_user': user,
             'textCount': textCount,
             'relation_count': relation_count,
-            'textAnnotated': textAnnotated
+            'textAnnotated': textAnnotated,
+            'default_user_image' : settings.DEFAULT_USER_IMAGE
         })
     return HttpResponse(template.render(context))
 
