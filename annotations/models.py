@@ -120,7 +120,6 @@ class VogonGroup(models.Model):
         return (self.name,)
 
 
-
 class TupleField(models.TextField):
     __metaclass__ = models.SubfieldBase
     description = "Stores a Python tuple of instances of built-in types"
@@ -160,7 +159,8 @@ class TextCollection(models.Model):
     texts = models.ManyToManyField('Text', related_name='partOf',
                                    blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
-    participants = models.ManyToManyField(VogonUser, related_name='contributes_to')
+    participants = models.ManyToManyField(VogonUser,
+                                          related_name='contributes_to')
 
 
 class Text(models.Model):
@@ -231,6 +231,23 @@ class Interpreted(models.Model):
 
     interpretation = models.ForeignKey(Concept)
 
+    @property
+    def interpretation_type(self):
+        if self.interpretation.typed:
+            return self.interpretation.typed.id
+        return None
+
+    @property
+    def interpretation_label(self):
+        return self.interpretation.label
+
+    @property
+    def interpretation_type_label(self):
+        if self.interpretation.typed:
+            return self.interpretation.typed.label
+        return None
+
+
 
 class Appellation(Annotation, Interpreted):
     """
@@ -270,7 +287,8 @@ class Appellation(Annotation, Interpreted):
     asPredicate = models.BooleanField(default=False)
     """
     Indicates whether this Appellation should function as a predicate for a
-    Relation.
+    Relation. As of version 0.3, this basically just controls whether or not
+    the Appellation should be displayed in the text annotation view.
     """
 
     IS = 'is'
@@ -295,7 +313,7 @@ class RelationSet(models.Model):
     template = models.ForeignKey('RelationTemplate', blank=True, null=True, related_name='instantiations')
     created = models.DateTimeField(auto_now_add=True)
     createdBy = models.ForeignKey('VogonUser')
-
+    occursIn = models.ForeignKey('Text', related_name='relationsets')
 
 
 class Relation(Annotation):
@@ -424,6 +442,7 @@ class RelationTemplatePart(models.Model):
     object_prompt_text = models.BooleanField(default=True)
     """Indicates whether the user should be asked for evidence for object."""
     object_description = models.TextField(blank=True, null=True)
+
 
 
 class TemporalBounds(models.Model):

@@ -1,78 +1,11 @@
-{% verbatim %}
-<style>
-.concept-search {
-    max-height: 200px;
-    overflow-y: scroll;
-}
-.concept-search > .list-group-item {
-    cursor: pointer;
-}
-</style>
-
-<div id="appellationModal">
-    <div class="modal-header">
-        <h3 class="modal-title">Create a new appellation</h3>
-    </div>
-    <div class="modal-body">
-        <p>You selected the text: <span id="selected-text" class="text text-info"></span></p>
-        <p>Please select the concept (e.g. person, place, institution, organism) to which your text selection refers.</p>
-        <div ng-controller='ConceptSearchController'>
-            <div id="concept-search">
-                <input
-                    type="text"
-                    name="search"
-                    id="concept-search-id"
-                    ng-model="query"
-                    ng-change="search()"
-                    class="form-control"
-                    ng-disabled="conceptSelected()"
-                    placeholder="Search for a relation template">
-                </input>
-                <ul id="concept-search-results" class="list-group">
-                    <li class="list-group-item" ng-repeat="concept in concepts" ng-click="select(concept)">
-                        <span class="h5">{{ concept.label }}  <label class="label label-primary">{{ concept.type }}</label></span>
-                        <p>{{ concept.description }}</p>
-                    </li>
-                </ul>
-            </div>
+<script type="text/ng-template" id="appellationModalContent.html">
+    <div class="modal-content" ng-controller="AppellationsController">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h3 class="modal-title">Create a new appellation</h3>
         </div>
-        <div class="clearfix">
-            <div class="btn-group btn-group-sm pull-right">
-                <button class="btn btn-primary" ng-disabled="createConceptDisabled" ng-click="startCreatingConcept()">Create Concept</button>
-            </div>
-        </div>
-        <div class="panel" ng-hide="hideCreateConcept">
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" ng-change="assertUnique()">
-                    I've tried my hardest, but I can't find this concept in any search results.
-                </label>
-            </div>
-        </div>
-        <div class="panel" ng-hide="createConceptDetailsHidden">
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea
-                    class="form-control"
-                    name="description"
-                    required="true"
-                    ng-model="newConcept.description"
-                    id="description"
-                    placeholder="Describe this concept in as much detail as you can.">
-                </textarea>
-            </div>
-            <div class="form-group">
-                <label for="type">Type</label>
-                <select class="form-control" ng-model="newConcept.typed" required="true" ng-options="t.label for t in data.types">
-                    <option></option>
-                </select>
-            </div>
+        <div class="modal-body">
+            {% include "annotations/text/appellationCreate.html" %}
         </div>
     </div>
-    <div class="modal-footer">
-        <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()" ng-disabled="okDisabled">OK</button>
-        <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
-    </div>
-</div>
-
-{% endverbatim %}
+</script>

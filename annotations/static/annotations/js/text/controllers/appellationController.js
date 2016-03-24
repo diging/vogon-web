@@ -52,7 +52,10 @@ angular.module('annotationApp')
             "interpretation": $scope.data.selectedConcept.id,
         }
 
-        appellationService.createAppellation(data);
+        appellationService.createAppellation(data).then(function(appellation) {
+            $scope.selectAppellation(appellation);
+            $scope.$emit('appellationCreated');
+        });
         $scope.reset();
     }
 
@@ -69,7 +72,6 @@ angular.module('annotationApp')
             $scope.selectedWords = data;
             $scope.selectedText = getStringRep(data, ' ');
             $scope.$apply();
-
         });
 
         // Re-populate the list of existing Appellations.
@@ -87,6 +89,8 @@ angular.module('annotationApp')
       *  Trigger Appellation selection service via click event.
       */
     $scope.selectAppellation = function(appellation) {
+        console.log('selectAppellation: ' + appellation.id);
+
         // Select the last word.
         var tokenIds = appellation.tokenIds.split(',');
         var elem = $('word#' + tokenIds[tokenIds.length - 1]);

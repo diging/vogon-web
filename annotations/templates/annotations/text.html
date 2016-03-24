@@ -74,10 +74,12 @@
         });
         </script>
         <title>{{ title }}</title>
+        {% csrf_token %}
 
     </head>
     <body>
         {% include "annotations/header.html" %}
+        <script src="{% static "annotations/js/csrf_ajax.js" %}"></script>
         <div class="container-fluid" id="main-container">
             <div class="row">
                 <div class="col-sm-6">
@@ -106,7 +108,7 @@
                             <div class="panel-body">
                                 <div class="tab-content">
                                     {% include "annotations/text/appellationTab.html" %}
-                                    <div class="tab-pane fade" id="tabRelations">Default 2</div>
+                                    {% include "annotations/text/relationTab.html" %}
                                 </div>
                             </div>
                         </div>

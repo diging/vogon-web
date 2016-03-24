@@ -22,7 +22,10 @@ var bindAutocomplete = function(selector, pos) {
                             search: extractLast( request.term ),
                             pos: pos,
                             remote: true,
-                        }, response );
+                        }, function(data){
+
+                            response(data.results);
+                        } );
                     },
                     search: function() {
                         // custom minLength

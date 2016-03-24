@@ -11,6 +11,50 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         // Current selection. Holds {jQuery} objects.
         selected_words: $(),
         selected_appellation: null,
+
+        deferred: {
+            word_success_callbacks: [],
+            word_failure_callbacks: [],
+            appellation_success_callbacks: [],
+            appellation_failure_callbacks: [],
+        },
+
+        skipAppellationPopover: false,
+        skipWordPopover: false,
+    }
+
+    /**
+      * Put existing expectations on hold.
+      */
+    service.defer = function() {
+        console.log('selectionService: defer expectations');
+        service.deferred.word_success_callbacks = service.word_success_callbacks;
+        service.deferred.word_failure_callbacks = service.word_failure_callbacks;
+        service.deferred.appellation_success_callbacks = service.appellation_success_callbacks;
+        service.deferred.appellation_failure_callbacks = service.appellation_failure_callbacks;
+
+        service.word_success_callbacks = [];
+        service.word_failure_callbacks = [];
+        service.appellation_success_callbacks = [];
+        service.appellation_failure_callbacks = [];
+    }
+
+    /**
+      * Re-instate deferred expectations.
+      */
+    service.resume = function() {
+        console.log('selectionService: resume expectations');
+        service.word_success_callbacks = service.deferred.word_success_callbacks;
+        service.word_failure_callbacks = service.deferred.word_failure_callbacks;
+        service.appellation_success_callbacks = service.deferred.appellation_success_callbacks;
+        service.appellation_failure_callbacks = service.deferred.appellation_failure_callbacks;
+
+        service.deferred = {
+            word_success_callbacks: [],
+            word_failure_callbacks: [],
+            appellation_success_callbacks: [],
+            appellation_failure_callbacks: [],
+        }
     }
 
     /**
@@ -25,6 +69,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.resetWordSelection = function() {
         service.selected_words.removeClass("selected");
+        $('word').popover('destroy');
         service.selected_words = $();
     }
 
@@ -35,6 +80,9 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  appellation at a time.
       */
     service.resetAppellationSelection = function() {
+        console.log('resetAppellationSelection');
+        service.unhighlightAppellations();
+        $('word').popover('destroy');
         service.selected_appellation = null;
     }
 
@@ -63,7 +111,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         });
         service.resetWordCallbacks();
         service.resetWordSelection();
-        service.resetAppellationSelection();
     }
 
     /**
@@ -75,7 +122,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         });
 
         if (service.autorelease) service.releaseWords();
-        service.failAppellationExpectation();
     }
 
     /**
@@ -94,10 +140,10 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.succeedAppellationExpectation = function() {
         service.appellation_success_callbacks.forEach(function(callback) {
+            console.log('succeedAppellationExpectation: ' + service.selected_appellation.id)
             callback(service.selected_appellation);
         });
         if (service.autorelease) service.resetAppellationCallbacks();
-        service.failWordExpectation();
     }
 
     /**
@@ -126,7 +172,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     service.expectWords = function(success_callback, failure_callback, autorelease) {
         if (success_callback) service.word_success_callbacks.push(success_callback);
         if (failure_callback) service.word_failure_callbacks.push(failure_callback);
-        console.log(autorelease);
         service.autorelease = autorelease;
     }
 
@@ -135,7 +180,9 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     service.releaseAppellations = function() {
+        console.log('releaseAppellations');
         service.resetAppellationCallbacks();
+        service.resetAppellationSelection();
     }
 
     /**
@@ -154,11 +201,10 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.handleClick = function(event) {
         var word = $(event.target);
-        // If the word is part of an appellation, select it (and succeed).
+        // If the word is part of an appellation, select it.
         if (service.isAppellation(word)) {
             // service.handleSelectAppellation(event);
             service.replaceAppellationSelection(word);
-
 
         // If the word is not part of an Appellation, add word to the word
         //  selection hopper.
@@ -180,12 +226,33 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         service.selected_words = word;
     }
 
+    service.unhighlightAppellations = function() {
+        console.log('unhighlightAppellations');
+        $('.appellation').removeClass('selected');
+    }
+
+    service.highlightAppellation = function(appellation) {
+        $('[appellation=' + appellation.id + ']').addClass('selected');
+    }
+
+    /**
+      * Clear the existing Appellation selection, and replace it with the
+      *  Appellation associated with ``word``.
+      */
     service.replaceAppellationSelection = function(word) {
         service.resetAppellationSelection();
-        var word = $(event.target);
+
         appellationService.getAppellation(service.getAppellationID(word)).then(function(appellation) {
             service.selected_appellation = appellation;
-            service.selectedAppellationPopover();
+            if (service.skipAppellationPopover) {
+                // Appellation is selected as soon as the user clicks it.
+                service.succeedAppellationExpectation();
+            } else {
+                // Require user input (e.g. click a button) to complete the
+                //  selection.
+                service.selectedAppellationPopover();
+                service.highlightAppellation(appellation);
+            }
         });
     }
 
@@ -208,7 +275,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       * Display a popover with button on the last selected word.
       */
     service.selectedAppellationPopover = function() {
-        console.log(service.selected_appellation);
         var selector = $('word[appellation=' + service.selected_appellation.id + ']');
 
         $('word').popover('destroy');
@@ -234,7 +300,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event
       */
     service.handleSelectAppellation = function(event) {
-
         service.succeedAppellationExpectation();
     }
 
@@ -327,5 +392,13 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         });
     }
     service.bindWords();
+
+    $(document).keydown(function(event) {
+        if(event.which == 27) {     // ESC key.
+            service.resetAppellationSelection();
+            service.resetWordSelection();
+            service.bindWords();
+        }
+    });
     return service;
 }]);

@@ -14,10 +14,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import FormView
 
 from django.conf import settings
-
 
 from django.forms import formset_factory
 
@@ -500,6 +500,31 @@ class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=True)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+
+
+class RelationSetViewSet(viewsets.ModelViewSet):
+    queryset = RelationSet.objects.all()
+    serializer_class = RelationSetSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(RelationSetViewSet, self).get_queryset(*args, **kwargs)
+
+        textid = self.request.query_params.getlist('text')
+        userid = self.request.query_params.getlist('user')
+
+        if len(textid) > 0:
+            queryset = queryset.filter(occursIn__in=[int(t) for t in textid])
+        if len(userid) > 0:
+            queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
+        elif userid is not None and type(userid) is not list:
+            queryset = queryset.filter(createdBy__pk=self.request.user.id)
+
+        thisuser = self.request.query_params.get('thisuser', False)
+        if thisuser:
+            queryset = queryset.filter(createdBy_id=self.request.user.id)
+
+        return queryset
 
 
 class RelationViewSet(viewsets.ModelViewSet):
@@ -1061,7 +1086,7 @@ def add_relationtemplate(request):
                 context['error'] = error
     else:   # No data, start with a fresh formset.
         context['formset'] = formset()
-    print error
+
     return render(request, 'annotations/relationtemplate.html', context)
 
 
@@ -1128,18 +1153,120 @@ def get_relationtemplate(request, template_id):
     return HttpResponse(template.render(context))
 
 
-
-
 @login_required
 def create_from_relationtemplate(request, template_id):
     """
     Create a :class:`.RelationSet` and constituent :class:`.Relation`\s from
     a :class:`.RelationTemplate` and user annotations.
+
+    This is mainly used by the RelationTemplateController in the text
+    annotation  view.
     """
 
     template = get_object_or_404(RelationTemplate, pk=template_id)
 
-    if request.POST:
-        print request.POST
+    # Index RelationTemplateParts by ID.
+    template_parts = {part.id: part for part in template.template_parts.all()}
 
-    return JsonResponse({})
+    if request.POST:
+        relations = {}
+        data = json.loads(request.body)
+
+        relation_data = {}
+        for field in data['fields']:
+            if field['part_id'] not in relation_data:
+                relation_data[int(field['part_id'])] = {}
+            relation_data[int(field['part_id'])][field['part_field']] = field
+
+        relation_set = RelationSet(
+            template=template,
+            createdBy=request.user,
+            occursIn_id=data['occursIn'],
+        )
+        relation_set.save()
+
+        def create_appellation(field_data, template_part, field, evidence_required=True):
+            node_type = getattr(template_part, '%s_node_type' % field)
+
+            appellation_data = {
+                'occursIn_id': field_data['data']['occursIn'],
+                'createdBy_id': request.user.id,
+            }
+            if evidence_required:
+                appellation_data.update({
+                    'tokenIds': field_data['data']['tokenIds'],
+                    'stringRep': field_data['data']['stringRep'],
+                })
+
+            if node_type == RelationTemplatePart.CONCEPT:
+                # The interpretation is already provided.
+                interpretation = getattr(template_part, '%s_concept' % field)
+            elif node_type == RelationTemplatePart.TOBE:
+                interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")
+            elif node_type == RelationTemplatePart.HAS:
+                interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9")
+            if interpretation:
+                appellation_data.update({'interpretation': interpretation})
+
+            if field == 'predicate':
+                appellation_data.update({'asPredicate': True})
+
+            appellation = Appellation(**appellation_data)
+            appellation.save()
+            return appellation
+
+        # Since we don't know anything about the structure of the
+        #  RelationTemplate, we watch for nodes that expect to be Relation
+        #  instances and recurse to create them as needed. We store the results
+        #  for each Relation in ``relation_data_processed`` so that we don't
+        #  create duplicate Relation instances.
+        relation_data_processed = {}
+        def process_recurse(part_id, template_part):
+            """
+
+            Returns
+            -------
+            relation_id : int
+            relation : :class:`.Relation`
+            """
+            if part_id in relation_data_processed:
+                return relation_data_processed[part_id]
+
+            part_data = {
+                'createdBy': request.user,
+                'occursIn_id': data['occursIn']
+            }
+            for field in ['source', 'predicate', 'object']:
+                field_data = relation_data[part_id][field]
+
+                node_type = getattr(template_part, '%s_node_type' % field)
+                evidence_required = getattr(template_part, '%s_prompt_text' % field)
+
+                if node_type == RelationTemplatePart.TYPE:
+                    part_data['%s_object_id' % field] = int(field_data['appellation']['id'])
+                    part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
+                elif node_type == RelationTemplatePart.RELATION:
+                    # -vv- Recusion happens here! -vv-
+                    child_part = getattr(template_part, '%s_relationtemplate' % field)
+                    part_data['%s_object_id' % field], part_data['%s_content_type' % field] = process_recurse(child_part.id, child_part)
+                else:   # We will need to create an Appellation.
+                    part_data['%s_object_id' % field] = create_appellation(field_data, template_part, field, evidence_required).id
+                    part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
+            part_data['predicate_id'] = part_data['predicate_object_id']
+            del part_data['predicate_object_id']
+            del part_data['predicate_content_type']
+            part_data['part_of'] = relation_set
+
+            relation = Relation(**part_data)
+            relation.save()
+            relation_data_processed[part_id] = (relation.id, ContentType.objects.get_for_model(Relation))
+            return (relation.id, ContentType.objects.get_for_model(Relation))
+
+        for part_id, template_part in template_parts.iteritems():
+            process_recurse(part_id, template_part)
+
+        response_data = {'relationset': relation_set.id}
+    else:   # Not sure if we want to do anything for GET requests at this point.
+        response_data = {}
+
+    return JsonResponse(response_data)

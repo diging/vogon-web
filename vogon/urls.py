@@ -27,6 +27,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'appellation', views.AppellationViewSet)
 router.register(r'predicate', views.PredicateViewSet)
 router.register(r'relation', views.RelationViewSet)
+router.register(r'relationset', views.RelationSetViewSet)
 router.register(r'text', views.TextViewSet)
 router.register(r'repository', views.RepositoryViewSet)
 router.register(r'temporalbounds', views.TemporalBoundsViewSet)
@@ -61,6 +62,7 @@ urlpatterns = [
     url(r'^network/$', views.network, name="network"),
     url(r'^relationtemplate/add/$', views.add_relationtemplate, name="add_relationtemplate"),
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.get_relationtemplate, name="get_relationtemplate"),
+    url(r'^relationtemplate/(?P<template_id>[0-9]+)/create/$', views.create_from_relationtemplate, name="create_from_relationtemplate"),
     url(r'^relationtemplate[/]?$', views.list_relationtemplate, name='list_relationtemplate'),
     url(r'^network/data/$', views.network_data, name="network-data"),
     url(r'^text/$', views.list_texts, name="list_texts"),

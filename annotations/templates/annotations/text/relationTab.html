@@ -1,0 +1,94 @@
+{% verbatim %}
+<!-- The Appellation Tab orchestrates the appellation process. -->
+<div class="tab-pane fade" id="tabRelations" ng-controller="RelationTemplateSearchController">
+    <div class="clearfix" ng-show="hideRelationCreate">
+        <div class="btn btn-group-sm pull-right">
+            <a class="btn btn-success" ng-click="startCreatingRelation()">Create</a>
+        </div>
+    </div>
+    <ul class="list-group" ng-show="hideRelationCreate">
+        <a class="list-group-item relation-list-item" ng-repeat="relation in relations" ng-click="">{{ relation }}</a>
+    </ul>
+
+    <div ng-hide="hideRelationCreate">
+        <p class="h4">Create a new relation</p>
+        <div >
+            {% endverbatim %}
+            {% include "annotations/text/appellationModal.html" %}
+            {% verbatim %}
+
+            <!-- When the user selects a relation template from the search menu, the entire search menu is hidden. -->
+            <div id="relationtemplate-search" ng-hide="hideRelationSearch()">
+                <input
+                    type="text"
+                    name="search"
+                    id="relationtemplate-search-field"
+                    ng-model="query"
+                    ng-change="search()"
+                    class="form-control"
+                    ng-disabled="hideRelationSearch()"
+                    placeholder="Search for a relation template">
+                </input>
+                <ul class="list-group relationtemplate-search-results">
+                    <li class="list-group-item" ng-repeat="template in relation_templates" ng-click="select(template)">
+                        <span class="h5">{{ template.name }}</span>
+                        <p>{{ template.description }}</p>
+                        <p>
+                            <label class="label label-primary" ng-repeat="field in template.fields" ng-if="field.type == 'TP'" style="margin-right: 7px;">{{ field.concept_label }}</label>
+                        </p>
+                    </li>
+                </ul>
+
+            </div>
+            <!-- When the user selects a relation template, a detailed form is displayed. -->
+            <div id="relationtemplate-create" ng-show="relation_create">
+                <span class="h4">{{ relation_template.name }}</span>
+                <p>{{ relation_template.description }}</p>
+
+                <div ng-repeat="field in relation_template.fields" ng-controller="RelationTemplateFieldController">
+                    <div class="form-group">
+                        <label for="{{ field.part_id }}_{{ field.part_field }}">{{ field.label }}.</label> <span class="text text-muted">{{ field.description }}</span>
+                        <div class="input-group">
+                            <input type="text"
+                                class="form-control"
+                                ng-readonly="isReadOnly(field)"
+                                ng-change="conceptSearch(field)"
+                                ng-model="label"
+                                id="{{ field.part_id }}_{{ field.part_field }}"
+                                placeholder="{{ field.placeholder }}"></input>
+                            <a class="input-group-addon btn btn-xs" ng-click="expectEvidence()">
+                                <span class="glyphicon evidence-button" ng-class="iconClass()"></span>
+                            </a>
+                        </div>
+                        <!-- TODO: What is this for? -->
+                        <div ng-show="isSearching(field)" class="relationtemplate-field-search">
+                            <a class="list-group-item"
+                                ng-click="selectConcept(field, option)"
+                                ng-repeat="option in field.options">
+                                <span class="text text-primary strong">{{ option.label }}</span>. <span class="text text-muted">{{ option.description }}</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger" ng-show="alert">
+                        <button type="button" class="close" aria-label="Close" ng-click="resetAlert()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        {{ alert }}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="clearfix" ng-show="allFieldsFilled()">
+                <div class="pull-right">
+                    <a class="btn btn-success" ng-click="createRelation()">Create</a>
+                </div>
+            </div>
+            <!-- TODO: there should be a "Create" button down here, that is active when all of the fields are filled. -->
+
+
+        </div>
+    </div>
+</div>
+
+    {% endverbatim %}

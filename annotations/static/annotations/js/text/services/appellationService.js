@@ -16,9 +16,12 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
         tagWordAsAppellation: function(appellation) {
             var tokenIds = appellation.tokenIds.split(',');
             tokenIds.forEach(function(tokenId) {
+                // Hovering over an appellation displays a tooltip that shows
+                //  the label and type of the interpretation (concept).
                 $('word#' + tokenId).attr('appellation', appellation.id)
-                    .addClass('appellation');
-
+                    .attr('data-toggle', 'tooltip')
+                    .addClass('appellation')
+                    .tooltip({container: 'body', title: appellation.interpretation_label + ' (' + appellation.interpretation_type_label + ')'});  // Fix jumpiness.
             });
         },
 

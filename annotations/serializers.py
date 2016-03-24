@@ -33,9 +33,18 @@ class RelationSerializer(serializers.ModelSerializer):
         model = Relation
 
 
+class RelationSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RelationSet
+
+
 class AppellationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appellation
+        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
+                  'interpretation', 'interpretation_type', 'occursIn',
+                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
+                  'interpretation_type_label')
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
