@@ -15,8 +15,16 @@ def populate_relation_generic_fields(apps, schema_editor):
     Concept = apps.get_model("concepts", "Concept")
     ContentType = apps.get_model('contenttypes', 'ContentType')
     conceptType = ContentType.objects.get_for_model(Concept)
-    have = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9")#[0]#, defaults={'real_type_id': conceptType.id})[0]
-    be = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")#[0]#, defaults={'real_type_id': conceptType.id})[0]
+    try:
+        have = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9")#[0]#, defaults={'real_type_id': conceptType.id})[0]
+    except Concept.DoesNotExist:
+        have = Concept(uri="http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9", authority='Conceptpower', real_type=conceptType)
+        have.save()
+    try:
+        be = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")#[0]#, defaults={'real_type_id': conceptType.id})[0]
+    except Concept.DoesNotExist:
+        be = Concept(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316", authority='Conceptpower', real_type=conceptType)
+        be.save()
 
     appellationType = ContentType.objects.get_for_model(Appellation)
     relationType = ContentType.objects.get_for_model(Relation)

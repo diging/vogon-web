@@ -784,7 +784,7 @@ def network_data(request):
     user = request.GET.get('user', None)
     text = request.GET.get('text', None)
 
-    queryset = Relation.objects.all()
+    queryset = RelationSet.objects.all()
     if project:
         queryset = queryset.filter(occursIn__partOf_id=project)
     if user:
@@ -792,57 +792,46 @@ def network_data(request):
     if text:
         queryset = queryset.filter(occursIn_id=text)
 
-
-    nodes = OrderedDict()
-    relations = OrderedDict()
-    N = queryset.count()
-    max_relation = 0.
+    nodes, edges = generate_network_data(queryset)
+    nodes_rebased = {}
+    edges_rebased = {}
+    node_lookup = {}
+    max_edge = 0.
     max_node = 0.
-    for relation in queryset:
-        source = relation.source.interpretation
-        target = relation.object.interpretation
-        key = tuple(sorted([source.id, target.id]))
-        ids = {}
-        for node in [source, target]:
-            if node.id not in nodes:
-                nodes[node.id] = {
-                    'id': len(nodes),
-                    'concept_id': node.id,
-                    'label': node.label,
-                    'weight': 1.,
-                }
-            else:
-                nodes[node.id]['weight'] += 1.
-            if nodes[node.id]['weight'] > max_node:
-                max_node = nodes[node.id]['weight']
+    for i, node in enumerate(nodes.values()):
+        ogn_id = copy.deepcopy(node['data']['id'])
+        nodes_rebased[i] = node['data']
+        nodes_rebased[i].update({'id': i})
+        nodes_rebased[i]['concept_id'] = ogn_id
+        node_lookup[ogn_id] = i
 
-        if key in relations:
-            relations[key]['weight'] += 1.
-        else:
-            relations[key] = {
-                'source': nodes[source.id],
-                'target': nodes[target.id],
-                'id': relation.id,
-                'weight': 1.,
-            }
-        if relations[key]['weight'] > max_relation:
-            max_relation = relations[key]['weight']
+        if node['data']['weight'] > max_node:
+            max_node = node['data']['weight']
+    for i, edge in enumerate(edges.values()):
+        ogn_id = copy.deepcopy(edge['data']['id'])
+        edges_rebased[i] = edge['data']
+        edges_rebased[i].update({'id': i})
+        edges_rebased[i]['source'] = nodes_rebased[node_lookup[edge['data']['source']]]
+        edges_rebased[i]['target'] = nodes_rebased[node_lookup[edge['data']['target']]]
+        if edge['data']['weight'] > max_edge:
+            max_edge = edge['data']['weight']
 
-    for key, relation in relations.items():
-        relation['size'] = 3. * relation['weight']/max_relation
-    for key, node in nodes.items():
+    for edge in edges_rebased.values():
+        edge['size'] = 3. * edge['weight']/max_edge
+    for node in nodes_rebased.values():
         node['size'] = (4 + (2 * node['weight']))/max_node
 
     graph = igraph.Graph()
-    graph.add_vertices(len(nodes))
-    graph.add_edges([(relation['source']['id'], relation['target']['id']) for relation in relations.values()])
+    graph.add_vertices(len(nodes_rebased))
+
+    graph.add_edges([(relation['source']['id'], relation['target']['id']) for relation in edges_rebased.values()])
     layout = graph.layout_fruchterman_reingold()
     for i, coords in enumerate(layout._coords):
-        nodes.values()[i]['x'] = coords[0] * 2
-        nodes.values()[i]['y'] = coords[1] * 2
+        nodes_rebased.values()[i]['x'] = coords[0] * 2
+        nodes_rebased.values()[i]['y'] = coords[1] * 2
 
 
-    return JsonResponse({'nodes': nodes.values(), 'edges': relations.values()})
+    return JsonResponse({'nodes': nodes_rebased.values(), 'edges': edges_rebased.values()})
 
 
 @login_required
@@ -1281,17 +1270,23 @@ def network_for_text(request, text_id):
     if user_id:
         relationset_queryset = relationset_queryset.filter(createdBy_id=user_id)
 
+    nodes, edges = generate_network_data(relationset_queryset, text_id=text_id)
+    return JsonResponse({'elements': nodes.values() + edges.values()})
+
+
+def generate_network_data(relationset_queryset, text_id=None, user_id=None):
     edges = {}
     nodes = {}
-
     for relationset in relationset_queryset:
         for source, target in combinations(relationset.concepts(), 2):
             edge_key = tuple(sorted([source.id, target.id]))
             for node in [source, target]:   # ...to save some writing.
                 if node.id not in nodes:
+                    appellation_set = node.appellation_set.all()
                     # All of the appellations in this text in which this
                     #  particular concept was the interpretation.
-                    appellation_set = node.appellation_set.all().filter(occursIn_id=text_id)
+                    if text_id:
+                        appellation_set = appellation_set.filter(occursIn_id=text_id)
                     if user_id:     # ...created by this user.
                         appellation_set = appellation_set.filter(createdBy_id=user_id)
                     # We only need IDs. The consumer can do what it pleases
@@ -1317,5 +1312,4 @@ def network_for_text(request, text_id):
                     }
                 }
             edges[edge_key]['data']['weight'] += 1.
-
-    return JsonResponse({'elements': nodes.values() + edges.values()})
+    return nodes, edges
