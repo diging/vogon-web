@@ -23,40 +23,31 @@ def merge_concepts(modeladmin, request, queryset):
     :param queryset:
     :return:
     """
-    #return render_to_response('admin/Sample.html')
-    RESOLVED_STATUS = Concept.RESOLVED
+    unResolvedConceptsList = queryset.exclude(concept_state = Concept.RESOLVED).values()
+    resolvedConceptsList = queryset.filter(concept_state = Concept.RESOLVED).values()
 
+    if 'POST' in request.POST:
+        # process the queryset here
 
-    if 'post' in request.POST:
-            # process the queryset here
+        unResolvedConceptsCount = unResolvedConceptsList.count()
 
-        unResolvedConceptsList = queryset.exclude(concept_state = RESOLVED_STATUS).values()
-        resolvedConceptsList = queryset.filter(concept_state = RESOLVED_STATUS).values()
-        resolvedConcept = resolvedConceptsList[0]
+        for i in range(0,unResolvedConceptsCount):
+             presentConcept = unResolvedConceptsList.get(i)
+             presentConcept.merged_with = unResolvedConceptsList[0]['label']
+             presentConcept.concept_state = Concept.REJECTED
 
-        for i in range(0,len(unResolvedConceptsList)):
-            presentConcept = unResolvedConceptsList.get(i)
-            presentConcept.merged_with = resolvedConcept
-            presentConcept.concept_state = Concept.REJECTED
-
-        return render_to_response('admin/Sample.html')
     else:
         opts = modeladmin.model._meta
         app_label = opts.app_label
-
-        resolvedConceptCount = queryset.filter(concept_state = RESOLVED_STATUS).count()
+        resolvedConceptCount = queryset.filter(concept_state = Concept.RESOLVED).count()
 
     #VGNWB-121 gets called only when there is only one resolved concept
         if resolvedConceptCount == 1:
-            resolvedConceptsList = queryset.filter(concept_state = RESOLVED_STATUS).values()
-            unResolvedConceptsList = queryset.exclude(concept_state = RESOLVED_STATUS).values()
 
             #As there will be only one element in the list
-            resolvedConcept = resolvedConceptsList[0]
-            resolvedConceptName = resolvedConcept['label']
 
             context = {
-                "resolvedConcept": resolvedConceptName,
+                "resolvedConcept": resolvedConceptsList[0]['label'],
                 "opts": opts,
                 "app_label": app_label,
                 "unResolvedConcepts": unResolvedConceptsList ,
