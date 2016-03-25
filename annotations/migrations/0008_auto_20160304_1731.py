@@ -7,13 +7,13 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('annotations', '0002_auto_20160128_1717'),
+        ('annotations', '0007_vogonuser_imagefile'),
     ]
 
     operations = [
-        migrations.AddField(
+        migrations.AlterField(
             model_name='vogonuser',
             name='imagefile',
-            field=models.FileField(default=b'', null=True, upload_to=b'uploads/', blank=True),
+            field=models.URLField(null=True, blank=True),
         ),
     ]
