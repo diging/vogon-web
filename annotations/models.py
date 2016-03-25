@@ -1,7 +1,16 @@
 from django.db import models
+
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+
+from concepts.models import Concept
+from django.conf import settings
+import ast
+
+from annotations.managers import repositoryManagers
+
+
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin, Permission
 )
@@ -53,6 +62,7 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     link = models.URLField(max_length=500, blank=True, null=True)
     full_name = models.CharField(max_length=255, blank=True, null=True)
     conceptpower_uri = models.URLField(max_length=500, blank=True, null=True)
+    imagefile = models.URLField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -331,7 +341,7 @@ class RelationSet(models.Model):
                 appellation_ids.append(relation.source_object_id)
             if relation.object_content_type == appellation_type:
                 appellation_ids.append(relation.object_object_id)
-        
+
         return Appellation.objects.filter(pk__in=appellation_ids)
 
     def concepts(self):
