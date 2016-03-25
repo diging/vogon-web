@@ -33,11 +33,6 @@ class RelationSerializer(serializers.ModelSerializer):
         model = Relation
 
 
-class RelationSetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RelationSet
-
-
 class AppellationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appellation
@@ -45,6 +40,28 @@ class AppellationSerializer(serializers.ModelSerializer):
                   'interpretation', 'interpretation_type', 'occursIn',
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label')
+
+
+class ConceptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Concept
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+                  'description', 'pos', 'resolved')
+
+
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+                  'description')
+
+
+class RelationSetSerializer(serializers.ModelSerializer):
+    appellations = AppellationSerializer(many=True)
+    concepts = ConceptSerializer(many=True)
+    class Meta:
+        model = RelationSet
+        fields = ('id', 'label', 'created', 'template', 'createdBy', 'occursIn', 'appellations', 'concepts')
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
@@ -75,17 +92,3 @@ class TextSerializer(serializers.ModelSerializer):
 class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextCollection
-
-
-class ConceptSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Concept
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-                  'description', 'pos', 'resolved')
-
-
-class TypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Type
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-                  'description')

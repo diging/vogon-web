@@ -303,30 +303,51 @@ word {
     user-select: none;
 }
 
-
 .popover-action {
     padding: 0px;
 }
 
 
-word {
-    margin-right: 2px;
-    margin-left: 2px;
-}
-
-
-#concept-search-results {
+.action-panel-container {
     margin-top: 10px;
-    max-height: 200px;
-    overflow-y: scroll;
 }
-#concept-search-results > .list-group-item {
+
+.action-tab-anchor {
     cursor: pointer;
 }
 
-.appellation-list {
-    max-height: 400px;
+.appellation-modal-body .concept-search-results {
+    max-height: 300px;
     overflow-y: scroll;
+}
+
+.concept-search-results {
+    margin-top: 10px;
+
+}
+
+.concept-search-results > .list-group-item {
+    cursor: pointer;
+}
+
+
+.relationtemplate-search-results {
+    margin-top: 10px;
+}
+
+.relationtemplate-search-results > .list-group-item {
+    cursor: pointer;
+}
+
+.relationtemplate-field-search {
+
+}
+.relationtemplate-field-search > .list-group-item {
+    cursor: pointer;
+}
+
+
+.appellation-list {
 }
 
 .appellation-list-item {
@@ -337,18 +358,56 @@ a.appellation-list-item.selected {
     background-color: orange;
 }
 
-.relationtemplate-field-search {
-    max-height: 200px;
-    overflow-y: scroll;
+.evidence-filled {
+    color: green;
 }
+
 .relationtemplate-field-search > .list-group-item {
     cursor: pointer;
 }
 
-.relationtemplate-search-results {
+.panel.with-nav-tabs .panel-heading{
+    padding: 5px 5px 0 5px;
+}
+.panel.with-nav-tabs .nav-tabs{
+    border-bottom: none;
+}
+.panel.with-nav-tabs .nav-justified{
+    margin-bottom: -1px;
+}
+
+/* Keep the action panel in the window. If the window is wide enough, it should
+ *  ride to the right, at the top of the window. If the screen is too small,
+ *  it should ride at the bottom of the window on top of the text.
+ */
+ .action-body {
+     max-height: 300px;
+     overflow-y: scroll;
+ }
+
+.fixed {
+    top: 0px;
+    position: fixed;
+}
+.fixed-bottom {
+    bottom: -10px;
+    position: fixed;
+}
+.fixed-bottom .action-body {
+    max-height: 150px;
+}
+
+
+.metadata-panel {
     margin-top: 10px;
 }
 
-.evidence-filled {
-    color: green;
+
+.networkHighlight {
+    text-shadow: 0px 0px 10px blue;
+}
+
+
+.relation-list-item {
+    cursor: pointer;
 }

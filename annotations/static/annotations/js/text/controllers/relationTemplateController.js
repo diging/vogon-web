@@ -26,6 +26,11 @@ angular.module('annotationApp')
         return ($scope.relation_create);
     }
 
+    $scope.highlightAppellations = function(appellations) {
+        selectionService.unhighlightAppellations();
+        appellations.forEach(selectionService.highlightAppellation);
+    }
+
     $scope.startCreatingRelation = function() {
         // TODO: do we need both of these?
         $scope.relation_create = true;
@@ -34,7 +39,12 @@ angular.module('annotationApp')
         // Just in case the user has already selected some words...
         selectionService.releaseWords();
         selectionService.releaseAppellations();
+
+        // Keep selected appellations highlighted.
+        selectionService.persistHighlighting = true;
+
     }
+    $scope.$on('startCreatingRelation', $scope.startCreatingRelation);
 
     $scope.hideRelationSearch = function() {
         return ($scope.relation_template.id != undefined | !$scope.relation_create);
@@ -52,6 +62,9 @@ angular.module('annotationApp')
         // TODO: do we need both of these?
         $scope.relation_create = false;
         $scope.hideRelationCreate = true;
+
+        selectionService.persistHighlighting = false;
+        selectionService.unhighlightAppellations();
     }
 
     $scope.isReadOnly = function(field) {
@@ -173,6 +186,20 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
         $scope.fielddata = {};
         $scope.field.filled = false;
         $scope.alert = false;
+        $scope.clearFieldHighlights();
+    }
+
+    /**
+      *   Remove field highlighting.
+      */
+    $scope.clearFieldHighlights = function() {
+        $('.relation-field-input-group').removeClass('has-success');
+    }
+
+    $scope.highlightField = function() {
+        $scope.clearFieldHighlights();
+        $("#input-group-" + $scope.field.part_id + "_" + $scope.field.part_field).addClass('has-success');
+
     }
 
     /**
@@ -246,6 +273,8 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
       *  Set up word and appellation expectations for the field.
       */
     $scope.expectEvidence = function() {
+        $scope.highlightField();
+
         selectionService.defer();   // We want precedence. Reenabled on success.
         // The appellation expectation should be fulfilled as soon as the user
         //  clicks on an appellation.
@@ -261,13 +290,13 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
         if ($scope.field.type == 'TP') {
             // User can select an existing appellation.
             selectionService.expectAppellation(function(appellation) {
-                console.log(appellation);
-
                 if (appellation.interpretation_type == $scope.field.concept_id) {
                     // The Appellation interpretation has the correct Type.
                     $scope.field.appellation = appellation;
                     $scope.label = appellation.stringRep;
                     $scope.field.filled = true;
+
+                    selectionService.highlightAppellation(appellation);
                 } else {    // Appellation has the wrong Type for this field.
                     // TODO: This could be simplified with $q.
                     Type.get({id: appellation.interpretation_type}).$promise.then(function(selectedType) {
@@ -281,7 +310,7 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
                 //  attempt.
                 selectionService.resume();
 
-                // TODO: let the parent controller know that this field is filled.
+                $scope.clearFieldHighlights();
             });
 
             // User can select text to create a new appellation. We use a modal
@@ -313,10 +342,9 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
                     tokenIds: getTokenIds(data),
                     occursIn: TEXTID,
                 }
+                $scope.clearFieldHighlights();
             }, function() {}, true);    // Release word selection automatically.
         }
-
-
     }
 
     $scope.reset();

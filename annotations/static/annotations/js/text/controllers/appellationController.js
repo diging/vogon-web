@@ -71,6 +71,7 @@ angular.module('annotationApp')
             $scope.hideAppellationCreate = false;
             $scope.selectedWords = data;
             $scope.selectedText = getStringRep(data, ' ');
+            $scope.$emit('appellationTab');
             $scope.$apply();
         });
 
@@ -80,6 +81,7 @@ angular.module('annotationApp')
         });
 
         selectionService.releaseWords();
+        selectionService.reset
 
         // Make sure that all of the children know.
         $scope.$broadcast('reset');
@@ -89,6 +91,7 @@ angular.module('annotationApp')
       *  Trigger Appellation selection service via click event.
       */
     $scope.selectAppellation = function(appellation) {
+
         console.log('selectAppellation: ' + appellation.id);
 
         // Select the last word.

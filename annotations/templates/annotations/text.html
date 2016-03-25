@@ -26,89 +26,156 @@
         </script>
 
         {% include "annotations/textApp.html" %}
-        <style>
-        .relationtemplate-field-search {
-            max-height: 200px;
-            overflow-y: scroll;
-        }
-        .relationtemplate-field-search > .list-group-item {
-            cursor: pointer;
-        }
-
-        .panel.with-nav-tabs .panel-heading{
-            padding: 5px 5px 0 5px;
-        }
-        .panel.with-nav-tabs .nav-tabs{
-        	border-bottom: none;
-        }
-        .panel.with-nav-tabs .nav-justified{
-        	margin-bottom: -1px;
-        }
-
-        .fixed {
-            top: 0px;
-            position: fixed;
-        }
-        </style>
 
         <script>
         // If the window scrolls below the top of the main content, the right-
         //  hand column should scroll with it.
         function sticky_relocate() {
-            var window_top = $(window).scrollTop();
-            var div_top = $('#main-container').offset().top;
-            if (window_top > div_top) {
-                $('#sticky').addClass('fixed');
-                $('#sticky').addClass('col-sm-offset-6');
-            } else {
+            var window_top = $(window).scrollTop(),
+                window_width = $(window).width(),
+                window_height = $(window).height(),
+                div_top = $('#main-container').offset().top;
+
+
+            // If the window is narrow, the action panel is overlayed on the
+            //  text at the bottom of the window.
+            if (window_width < 768) {   // Bootstrap sm/xs breakpoint is 768px.
                 $('#sticky').removeClass('fixed');
-                // Setting position: fixed removes the element from the flow,
-                //  so this applies the appropriate left-offset.
-                $('#sticky').removeClass('col-sm-offset-6');
+                $('#sticky').addClass('fixed-bottom');
+                $('#sticky').addClass('col-xs-12');
+
+                // The action panel should scale vertically with window height.
+                $('.action-body').css('max-height', window_height/3);
+
+            // If the window is wide enough, the action panel stays on the far
+            //  right, and sticks to the top of the window as the user scrolls.
+            } else {
+                $('.action-body').css('max-height', 300);
+                $('#sticky').removeClass('fixed-bottom');
+                $('#sticky').removeClass('col-xs-12');
+                if (window_top > div_top) {
+                    $('#sticky').addClass('fixed');
+                    // Setting position: fixed removes the element from the
+                    //  flow, so this applies the appropriate left-offset.
+                    $('#sticky').addClass('col-sm-offset-8');
+                } else {
+                    // The user hasn't scrolled below the navbar, so we keep
+                    //  the action panel in the grid.
+                    $('#sticky').removeClass('fixed');
+                    $('#sticky').removeClass('col-sm-offset-8');
+                }
             }
         }
 
         $(function() {
             $(window).scroll(sticky_relocate);
+            $(window).resize(sticky_relocate);
             sticky_relocate();
         });
         </script>
         <title>{{ title }}</title>
+
         {% csrf_token %}
 
+        <!-- Mobile support. We want to be slightly zoomed out, or else the interface is simply too mashed. -->
+        <meta name="viewport" content="width=device-width, initial-scale=0.75">
     </head>
-    <body>
+    <body ng-cloak><!-- ng-cloak prevents unrendered angular templates from being displayed. -->
         {% include "annotations/header.html" %}
+
+        <!-- csrf_ajax.js gets the CSRF token for this page, and pre-configures AJAX requests. -->
         <script src="{% static "annotations/js/csrf_ajax.js" %}"></script>
+
         <div class="container-fluid" id="main-container">
             <div class="row">
-                <div class="col-sm-6">
-                    <div class="h1">{{ text.title }}</div>
-                    <div>{{ text.uri }}</div>
-                    <div>{{ text.source }}</div>
-                    <div>{{ text.created }}</div>
-                    <div>{{ text.addedBy }}</div>
-                    <div class="panel">
+                <div class="col-sm-8">
+                    <div class="panel panel-default metadata-panel">
+                        <div class="panel-heading">
+                            <span class="h2">{{ text.title }}</span>
+                            {% if text.originalResource %}
+                            <a href="{{ text.originalResource }}"
+                                    type="button" id="originalResourceLink"
+                                    class="btn btn-primary pull-right"
+                                    data-toggle="tooltip"
+                                    title="Open original resource in a new tab"
+                                    target="_blank">
+                                <span class="glyphicon glyphicon-new-window "></span>
+                            </a>
+                            <script>$('#originalResourceLink').tooltip();</script>
+                            {% endif %}
+                        </div>
+                        <div class="panel-body">
+                            <div>
+                                <span class="label label-default">URI</span> {{ text.uri }}
+                            </div>
+                            <div>
+                                <span class="label label-default">Source</span> {{ text.source }}
+                            </div>
+                            <div>
+                                <span class="label label-default">Created</span> {{ text.created }}
+                            </div>
+                            <div>
+                                <span class="label label-default">Added by</span> {{ text.addedBy }}
+                            </div>
+                            <div>
+                                <span class="label label-default">Added</span> {{ text.added }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <span class="h4">Content</span>
+                        </div>
                         <div class="panel-body">
                             {{ text.tokenizedContent|safe }}
                         </div>
                     </div>
                 </div>
 
-                <div id="sticky" class="col-sm-6">
-
-                    <div style="margin-top: 10px;">
-                        <div class="panel with-nav-tabs panel-default">
+                <div id="sticky" class="col-sm-4">
+                    <div class="action-panel-container">
+                        <div class="panel with-nav-tabs panel-default"
+                                ng-controller="ActionPanelController">
                             <div class="panel-heading">
-                                    <ul class="nav nav-tabs">
-                                        <li class="active"><a href="#tabAppellations" data-toggle="tab">Appellations</a></li>
-                                        <li><a href="#tabRelations" data-toggle="tab">Relations</a></li>
-                                    </ul>
+                                <ul class="nav nav-tabs">
+                                    <li class="active clearfix">
+                                        <a id="appellationTabAnchor"
+                                            class="action-tab-anchor text-small"
+                                            data-target="#tabAppellations"
+                                            data-toggle="tab">Tags</a>
+                                    </li>
+                                    <li>
+                                        <a id="relationTabAnchor"
+                                            class="action-tab-anchor text-small"
+                                            data-target="#tabRelations"
+                                            data-toggle="tab">Relations</a>
+                                    </li>
+                                    <li>
+                                        <a id="graphTabAnchor"
+                                            class="action-tab-anchor text-small"
+                                            data-target="#tabGraph"
+                                            data-toggle="tab">Graph</a>
+                                    </li>
+                                    <!-- <li class=""> -->
+                                        <div class="btn btn-group-sm pull-right">
+                                            <a class="btn btn-success"
+                                                    ng-click="startCreatingRelation()"
+                                                    id="createRelationButton"
+                                                    data-toggle="tooltip"
+                                                    title="Create a new relation"
+                                                    data-placement="left">
+                                                <span class="glyphicon glyphicon-plus"></span>
+                                            </a>
+                                            <script>$('#createRelationButton').tooltip();</script>
+                                        </div>
+                                    <!-- </li> -->
+                                </ul>
                             </div>
                             <div class="panel-body">
-                                <div class="tab-content">
+                                <div class="tab-content action-body">
                                     {% include "annotations/text/appellationTab.html" %}
                                     {% include "annotations/text/relationTab.html" %}
+                                    {% include "annotations/text/graphTab.html" %}
                                 </div>
                             </div>
                         </div>

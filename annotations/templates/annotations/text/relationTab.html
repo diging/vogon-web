@@ -1,17 +1,29 @@
 {% verbatim %}
 <!-- The Appellation Tab orchestrates the appellation process. -->
-<div class="tab-pane fade" id="tabRelations" ng-controller="RelationTemplateSearchController">
-    <div class="clearfix" ng-show="hideRelationCreate">
-        <div class="btn btn-group-sm pull-right">
-            <a class="btn btn-success" ng-click="startCreatingRelation()">Create</a>
-        </div>
-    </div>
+<div class="tab-pane fade" id="tabRelations" ng-controller="RelationTemplateSearchController" ng-cloak>
     <ul class="list-group" ng-show="hideRelationCreate">
-        <a class="list-group-item relation-list-item" ng-repeat="relation in relations" ng-click="">{{ relation }}</a>
+        <a class="list-group-item relation-list-item"
+            ng-repeat="relation in relations"
+            ng-click="highlightAppellations(relation.appellations)">{{ relation.label }} <span class="label label-success" style="margin-right: 5px;" ng-repeat="concept in relation.concepts">{{ concept.label }}</span>
+        </a>
     </ul>
 
     <div ng-hide="hideRelationCreate">
-        <p class="h4">Create a new relation</p>
+        <p class="h4">Create a new relation
+            <a class="btn btn-sm glyphicon glyphicon-info-sign"
+                tabindex="0"
+                id="relationInfoPopover"
+                data-toggle="popover"
+                data-placement="bottom"
+                data-trigger="focus"
+                data-title="What is a relation?"
+                data-content="A relation is a statement about how two or more concepts (e.g. people, places, organisms) are related to each other.
+                              The project admins have created a variety of templates for creating relations: use the search interface on this panel
+                              to find the template that best matches the relation that you would like to express."></a>
+            <script>
+            $('#relationInfoPopover').popover();
+            </script>
+        </p>
         <div >
             {% endverbatim %}
             {% include "annotations/text/appellationModal.html" %}
@@ -40,6 +52,14 @@
                 </ul>
 
             </div>
+            <div class="clearfix" ng-show="allFieldsFilled()">
+                <div class="alert alert-success text text-success clearfix">All fields have been filled!
+                    <div class="pull-right">
+                        <a class="btn btn-success btn-xs" ng-click="createRelation()">Create</a>
+                    </div>
+                </div>
+
+            </div>
             <!-- When the user selects a relation template, a detailed form is displayed. -->
             <div id="relationtemplate-create" ng-show="relation_create">
                 <span class="h4">{{ relation_template.name }}</span>
@@ -48,7 +68,7 @@
                 <div ng-repeat="field in relation_template.fields" ng-controller="RelationTemplateFieldController">
                     <div class="form-group">
                         <label for="{{ field.part_id }}_{{ field.part_field }}">{{ field.label }}.</label> <span class="text text-muted">{{ field.description }}</span>
-                        <div class="input-group">
+                        <div class="input-group relation-field-input-group" id="input-group-{{ field.part_id }}_{{ field.part_field }}">
                             <input type="text"
                                 class="form-control"
                                 ng-readonly="isReadOnly(field)"
@@ -79,11 +99,7 @@
 
             </div>
 
-            <div class="clearfix" ng-show="allFieldsFilled()">
-                <div class="pull-right">
-                    <a class="btn btn-success" ng-click="createRelation()">Create</a>
-                </div>
-            </div>
+
             <!-- TODO: there should be a "Create" button down here, that is active when all of the fields are filled. -->
 
 

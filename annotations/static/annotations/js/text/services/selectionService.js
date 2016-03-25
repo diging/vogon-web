@@ -21,6 +21,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
 
         skipAppellationPopover: false,
         skipWordPopover: false,
+        persistHighlighting: false,
     }
 
     /**
@@ -80,8 +81,9 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  appellation at a time.
       */
     service.resetAppellationSelection = function() {
-        console.log('resetAppellationSelection');
-        service.unhighlightAppellations();
+        if (!service.persistHighlighting) {
+            service.unhighlightAppellations();
+        }
         $('word').popover('destroy');
         service.selected_appellation = null;
     }
@@ -227,7 +229,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     service.unhighlightAppellations = function() {
-        console.log('unhighlightAppellations');
         $('.appellation').removeClass('selected');
     }
 
@@ -250,7 +251,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
             } else {
                 // Require user input (e.g. click a button) to complete the
                 //  selection.
-                service.selectedAppellationPopover();
+                // service.selectedAppellationPopover();
                 service.highlightAppellation(appellation);
             }
         });
@@ -266,7 +267,8 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         $('word#' + lastId).popover({
             html: true,
             template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
-            content:'<a class="btn btn-xs btn-primary glyphicon glyphicon-tag word-popover-button"></a>'
+            content:'<a class="btn btn-xs glyphicon glyphicon-tag word-popover-button"></a>',
+            container: 'body'   // Prevents shifting text.
         });
         $('word#' + lastId).popover('show');
     }
@@ -281,7 +283,8 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         selector.last().popover({
             html: true,
             template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
-            content:'<a class="btn btn-xs btn-primary glyphicon glyphicon-plus appellation-popover-button"></a>'
+            content:'<a class="btn btn-xs glyphicon glyphicon-plus appellation-popover-button"></a>',
+            container: 'body'   // Prevents shifting text.
         });
         selector.last().popover('show');
     }
@@ -371,6 +374,8 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
 
     service.bindWords = function() {
         $('word').click(service.handleClick);
+
+        service.persistHighlighting = false;
 
         $('body').on('click', '.word-popover-button', function() {
             $('word').popover('destroy');

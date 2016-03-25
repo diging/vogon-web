@@ -51,7 +51,7 @@ from serializers import *
 from tasks import *
 
 import hashlib
-from itertools import chain
+from itertools import chain, combinations
 from collections import OrderedDict
 import requests
 import re
@@ -198,6 +198,7 @@ def user_settings(request):
     })
     return HttpResponse(template.render(context))
 
+
 def about(request):
     """
     Provides information about Vogon-Web
@@ -205,6 +206,7 @@ def about(request):
     template = loader.get_template('annotations/about.html')
     context = RequestContext(request)
     return HttpResponse(template.render(context))
+
 
 @login_required
 def dashboard(request):
@@ -1270,3 +1272,50 @@ def create_from_relationtemplate(request, template_id):
         response_data = {}
 
     return JsonResponse(response_data)
+
+
+def network_for_text(request, text_id):
+    relationset_queryset = RelationSet.objects.filter(occursIn_id=text_id)
+
+    user_id = request.GET.get('user', None)
+    if user_id:
+        relationset_queryset = relationset_queryset.filter(createdBy_id=user_id)
+
+    edges = {}
+    nodes = {}
+
+    for relationset in relationset_queryset:
+        for source, target in combinations(relationset.concepts(), 2):
+            edge_key = tuple(sorted([source.id, target.id]))
+            for node in [source, target]:   # ...to save some writing.
+                if node.id not in nodes:
+                    # All of the appellations in this text in which this
+                    #  particular concept was the interpretation.
+                    appellation_set = node.appellation_set.all().filter(occursIn_id=text_id)
+                    if user_id:     # ...created by this user.
+                        appellation_set = appellation_set.filter(createdBy_id=user_id)
+                    # We only need IDs. The consumer can do what it pleases
+                    #  from there.
+                    appellation_set = appellation_set.values('id')
+
+                    nodes[node.id] = {
+                        'data': {
+                            'id': node.id,
+                            'label': node.label,
+                            'appellations': [obj['id'] for obj in appellation_set],
+                            'weight': 0.
+                        }
+                    }
+                nodes[node.id]['data']['weight'] += 1.
+            if edge_key not in edges:
+                edges[edge_key] = {
+                    'data': {
+                        'id': len(edges),
+                        'source': source.id,
+                        'target': target.id,
+                        'weight': 0.
+                    }
+                }
+            edges[edge_key]['data']['weight'] += 1.
+
+    return JsonResponse({'elements': nodes.values() + edges.values()})

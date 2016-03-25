@@ -315,6 +315,34 @@ class RelationSet(models.Model):
     createdBy = models.ForeignKey('VogonUser')
     occursIn = models.ForeignKey('Text', related_name='relationsets')
 
+    @property
+    def label(self):
+        return self.template.name
+
+    def appellations(self):
+        """
+        Get all non-predicate appellations in child Relation instances.
+        """
+        appellation_type = ContentType.objects.get_for_model(Appellation)
+
+        appellation_ids = []
+        for relation in self.constituents.all():
+            if relation.source_content_type == appellation_type:
+                appellation_ids.append(relation.source_object_id)
+            if relation.object_content_type == appellation_type:
+                appellation_ids.append(relation.object_object_id)
+        
+        return Appellation.objects.filter(pk__in=appellation_ids)
+
+    def concepts(self):
+        """
+        Get all of the Concept instances connected to non-predicate
+        Appellation instances.
+        """
+
+        return Concept.objects.filter(pk__in=[obj['interpretation_id'] for obj in self.appellations().values('interpretation_id')])
+
+
 
 class Relation(Annotation):
     """

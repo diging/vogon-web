@@ -65,6 +65,7 @@ urlpatterns = [
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/create/$', views.create_from_relationtemplate, name="create_from_relationtemplate"),
     url(r'^relationtemplate[/]?$', views.list_relationtemplate, name='list_relationtemplate'),
     url(r'^network/data/$', views.network_data, name="network-data"),
+    url(r'^network/text/(?P<text_id>[0-9]+)/$', views.network_for_text, name="network_for_text"),
     url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/add/upload/$', views.upload_file, name="file_upload"),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
