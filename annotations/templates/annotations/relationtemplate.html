@@ -39,6 +39,10 @@ angular.module('formApp', [])
                 if ($(this).attr('ng-model')) {
                     attrs['ng-model'] = $(this).attr('ng-model').replace('_' + (total-1) + '_','_' + total + '_');
                 }
+                if ($(this).attr('target')) {
+                    attrs['target'] = $(this).attr('target').replace('-' + (total-1) + '-','-' + total + '-');
+                }
+
                 attrs['id'] = 'id_' + attrs['name'];
 
                 $(this).attr(attrs);
@@ -54,7 +58,7 @@ angular.module('formApp', [])
             newElement.find('li').each(function() {
                 var attrs = {};
                 if ($(this).attr('ng-show')) {
-                    attrs['ng-show'] = $(this).attr('ng-show').replace('_' + (total-1) + '_','_' + total + '_');
+                    attrs['ng-show'] = $(this).attr('ng-show').split('_' + (total-1) + '_').join('_' + total + '_');
                 }
                 $(this).attr(attrs);
 

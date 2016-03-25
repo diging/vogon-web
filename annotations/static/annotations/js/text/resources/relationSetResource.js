@@ -8,7 +8,6 @@ angular.module('annotationApp').factory('RelationSet', function($resource) {
     }, {
         list: {
             method: 'GET',
-            cache: true,
             isArray: false,
             headers: {'Content-Type': 'application/json'}
         },

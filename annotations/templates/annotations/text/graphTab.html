@@ -36,9 +36,11 @@ $('body').ready(function() {
                 }
             });
 
-            minNodeWeight = Number(minNodeWeight.toPrecision(4));
+            // If min and max are the same, cytoscape will throw a TypeError,
+            //  so we decrement the min values just to be safe.
+            minNodeWeight = Number(minNodeWeight.toPrecision(4)) - 1;
             maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
-            minEdgeWeight = Number(minEdgeWeight.toPrecision(4));
+            minEdgeWeight = Number(minEdgeWeight.toPrecision(4)) - 1;
             maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
 
             cy = cytoscape({

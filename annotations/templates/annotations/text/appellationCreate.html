@@ -27,7 +27,7 @@
         </div>
         <ul class="list-group concept-search-results" ng-hide="creatingConcept">
             <a class="list-group-item" ng-repeat="concept in concepts" ng-click="select(concept)">
-                <span class="h5">{{ concept.label }} <label class="label label-primary">{{ concept.type }}</label></span>
+                <span class="h5">{{ concept.label }} <label class="label label-primary">{{ concept.typed_label }}</label></span>
                 <p><span class="text text-muted">{{ concept.description }}</span></p>
             </a>
         </ul>

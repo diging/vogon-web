@@ -51,7 +51,7 @@ angular.module('annotationApp')
     }
 
     $scope.reset = function() {
-        $scope.relation_templates = RelationTemplate.list().$promise.then(function(data) {
+        RelationTemplate.list().$promise.then(function(data) {
             $scope.relation_templates = data.templates;
         });
 
@@ -125,7 +125,6 @@ angular.module('annotationApp')
         $.post('/relationtemplate/' + $scope.relation_template.id + '/create/',
                JSON.stringify($scope.relation_template),
                function(data) {
-                   console.log(data);
                    $scope.reset();
                });
 

@@ -55,6 +55,12 @@ class Concept(HeritableObject):
     concept_state=models.CharField(max_length=10,choices=concept_state_choices, default='Pending')
     merged_with = models.ForeignKey('Concept', related_name='merged_concepts', **optional)
 
+    @property
+    def typed_label(self):
+        if self.typed:
+            return self.typed.label
+        return None
+
 
 class Type(Concept):
     pass

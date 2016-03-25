@@ -510,6 +510,7 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(interpretation_id=concept)
         if text:
             queryset = queryset.filter(occursIn_id=text)
+
         return queryset
 
 
@@ -1195,18 +1196,21 @@ def create_from_relationtemplate(request, template_id):
             node_type = getattr(template_part, '%s_node_type' % field)
 
             appellation_data = {
-                'occursIn_id': field_data['data']['occursIn'],
+                'occursIn_id': data['occursIn'],
                 'createdBy_id': request.user.id,
             }
-            if evidence_required:
+            if evidence_required and field_data:
                 appellation_data.update({
                     'tokenIds': field_data['data']['tokenIds'],
                     'stringRep': field_data['data']['stringRep'],
                 })
+            else:
+                appellation_data.update({'asPredicate': True})
 
             if node_type == RelationTemplatePart.CONCEPT:
                 # The interpretation is already provided.
                 interpretation = getattr(template_part, '%s_concept' % field)
+                print template_part.__dict__
             elif node_type == RelationTemplatePart.TOBE:
                 interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")
             elif node_type == RelationTemplatePart.HAS:
@@ -1214,6 +1218,7 @@ def create_from_relationtemplate(request, template_id):
             if interpretation:
                 appellation_data.update({'interpretation': interpretation})
 
+            print appellation_data
             if field == 'predicate':
                 appellation_data.update({'asPredicate': True})
 
@@ -1235,6 +1240,7 @@ def create_from_relationtemplate(request, template_id):
             relation_id : int
             relation : :class:`.Relation`
             """
+            print part_id
             if part_id in relation_data_processed:
                 return relation_data_processed[part_id]
 
@@ -1243,12 +1249,13 @@ def create_from_relationtemplate(request, template_id):
                 'occursIn_id': data['occursIn']
             }
             for field in ['source', 'predicate', 'object']:
-                field_data = relation_data[part_id][field]
 
                 node_type = getattr(template_part, '%s_node_type' % field)
                 evidence_required = getattr(template_part, '%s_prompt_text' % field)
+                print field, node_type, evidence_required
 
                 if node_type == RelationTemplatePart.TYPE:
+                    field_data = relation_data[part_id][field]
                     part_data['%s_object_id' % field] = int(field_data['appellation']['id'])
                     part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
                 elif node_type == RelationTemplatePart.RELATION:
@@ -1256,6 +1263,8 @@ def create_from_relationtemplate(request, template_id):
                     child_part = getattr(template_part, '%s_relationtemplate' % field)
                     part_data['%s_object_id' % field], part_data['%s_content_type' % field] = process_recurse(child_part.id, child_part)
                 else:   # We will need to create an Appellation.
+                    print relation_data[part_id].keys()
+                    field_data = relation_data[part_id].get(field, None)
                     part_data['%s_object_id' % field] = create_appellation(field_data, template_part, field, evidence_required).id
                     part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
             part_data['predicate_id'] = part_data['predicate_object_id']
@@ -1286,6 +1295,7 @@ def network_for_text(request, text_id):
         relationset_queryset = relationset_queryset.filter(createdBy_id=user_id)
 
     nodes, edges = generate_network_data(relationset_queryset, text_id=text_id)
+    print nodes, edges
     return JsonResponse({'elements': nodes.values() + edges.values()})
 
 

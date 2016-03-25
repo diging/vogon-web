@@ -33,7 +33,6 @@ class VogonUserAdmin(UserAdmin):
     filter_horizontal = ()
 
 
-
 class TextAdmin(admin.ModelAdmin):
     list_display = ('uri', 'title', 'created', 'addedBy', 'added')
 
@@ -46,11 +45,26 @@ class RelationAdmin(admin.ModelAdmin):
         return obj.createdBy
 
 
+class RelationSetAdmin(admin.ModelAdmin):
+    class Meta:
+        model = RelationSet
+
+    list_display = ('id', 'createdBy', 'occursIn', 'created')
+
+
+class AppellationAdmin(admin.ModelAdmin):
+    class Meta:
+        model = Appellation
+    list_display = ('id', 'createdBy', 'occursIn', 'created', 'interpretation',
+                    'asPredicate')
+
+
 admin.site.register(VogonUser, VogonUserAdmin)
-admin.site.register(Appellation)
+admin.site.register(Appellation, AppellationAdmin)
 admin.site.register(Text, TextAdmin)
 admin.site.register(TextCollection)
 admin.site.register(Repository)
 admin.site.register(Relation, RelationAdmin)
+admin.site.register(RelationSet, RelationSetAdmin)
 admin.site.register(RelationTemplate)
 admin.site.register(RelationTemplatePart)
