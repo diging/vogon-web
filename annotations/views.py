@@ -832,9 +832,9 @@ def network_data(request):
             max_edge = edge['data']['weight']
 
     for edge in edges_rebased.values():
-        edge['size'] = 3. * edge['weight']/max_edge
+        edge['size'] = edge['weight']/max_edge
     for node in nodes_rebased.values():
-        node['size'] = (4 + (2 * node['weight']))/max_node
+        node['size'] = (50 + (2 * node['weight']))/max_node
 
     graph = igraph.Graph()
     graph.add_vertices(len(nodes_rebased))
