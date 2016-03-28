@@ -122,7 +122,7 @@ var displayRelation = function(source_data, target_data) {
 
 var displayTexts = function(texts) {
     $('#text-list').empty();
-    texts.results.forEach(function(text) {
+    texts.forEach(function(text) {
         $('#text-list')
             .append('<tr><td class="text-small"><a href="/text/' + text.id + '/">' + text.title + '</a></td></tr>');
     });
