@@ -108,9 +108,11 @@
                             <div>
                                 <span class="label label-default">URI</span> {{ text.uri }}
                             </div>
+                            {% if text.source %}
                             <div>
                                 <span class="label label-default">Source</span> {{ text.source }}
                             </div>
+                            {% endif %}
                             <div>
                                 <span class="label label-default">Created</span> {{ text.created }}
                             </div>

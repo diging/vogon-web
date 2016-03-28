@@ -816,38 +816,43 @@ def network_data(request):
     max_node = 0.
     for i, node in enumerate(nodes.values()):
         ogn_id = copy.deepcopy(node['data']['id'])
-        nodes_rebased[i] = node['data']
-        nodes_rebased[i].update({'id': i})
-        nodes_rebased[i]['concept_id'] = ogn_id
+        nodes_rebased[i] = copy.deepcopy(node)
+        # nodes_rebased[i].update({'id': i})
+        nodes_rebased[i]['data']['id'] = i
+        nodes_rebased[i]['data']['concept_id'] = ogn_id
+
         node_lookup[ogn_id] = i
 
         if node['data']['weight'] > max_node:
             max_node = node['data']['weight']
     for i, edge in enumerate(edges.values()):
         ogn_id = copy.deepcopy(edge['data']['id'])
-        edges_rebased[i] = edge['data']
-        edges_rebased[i].update({'id': i})
-        edges_rebased[i]['source'] = nodes_rebased[node_lookup[edge['data']['source']]]
-        edges_rebased[i]['target'] = nodes_rebased[node_lookup[edge['data']['target']]]
+        edges_rebased[i] = copy.deepcopy(edge)
+        # edges_rebased[i] = edge['data']
+        # edges_rebased[i].update({'id': i + len(nodes_rebased)})
+        edges_rebased[i]['data'].update({'id': i + len(nodes_rebased)})
+        edges_rebased[i]['data']['source'] = nodes_rebased[node_lookup[edge['data']['source']]]['data']['id']
+        edges_rebased[i]['data']['target'] = nodes_rebased[node_lookup[edge['data']['target']]]['data']['id']
         if edge['data']['weight'] > max_edge:
             max_edge = edge['data']['weight']
 
     for edge in edges_rebased.values():
-        edge['size'] = edge['weight']/max_edge
+        edge['data']['weight'] = edge['data']['weight']/max_edge
     for node in nodes_rebased.values():
-        node['size'] = (50 + (2 * node['weight']))/max_node
+        node['data']['weight'] = (50 + (2 * node['data']['weight']))/max_node
 
     graph = igraph.Graph()
     graph.add_vertices(len(nodes_rebased))
 
-    graph.add_edges([(relation['source']['id'], relation['target']['id']) for relation in edges_rebased.values()])
+    graph.add_edges([(relation['data']['source'], relation['data']['target']) for relation in edges_rebased.values()])
     layout = graph.layout_fruchterman_reingold()
-    for i, coords in enumerate(layout._coords):
-        nodes_rebased.values()[i]['x'] = coords[0] * 2
-        nodes_rebased.values()[i]['y'] = coords[1] * 2
 
-
-    return JsonResponse({'nodes': nodes_rebased.values(), 'edges': edges_rebased.values()})
+    for coords, node in zip(layout._coords, nodes_rebased.values()):
+        node['data']['pos'] = {
+            'x': coords[0] * 5,
+            'y': coords[1] * 5
+        }
+    return JsonResponse({'elements': nodes_rebased.values() + edges_rebased.values()})
 
 
 @login_required
@@ -928,18 +933,28 @@ def list_collections(request, *args, **kwargs):
     return HttpResponse(template.render(context))
 
 
-def relation_details(request, concept_a_id, concept_b_id):
-    concept_a = get_object_or_404(Concept, pk=concept_a_id)
-    concept_b = get_object_or_404(Concept, pk=concept_b_id)
+def relation_details(request, source_concept_id, target_concept_id):
+    source_concept = get_object_or_404(Concept, pk=source_concept_id)
+    target_concept = get_object_or_404(Concept, pk=target_concept_id)
 
-    queryset = Relation.objects.filter(
-        Q(source__interpretation__id__in=[concept_a_id, concept_b_id]) \
-        & Q(object__interpretation__id__in=[concept_a_id, concept_b_id]))
+    # Source and target on Relation are now generic, so we need this for lookup.
+    appellation_type = ContentType.objects.get_for_model(Appellation)
+
+    source_appellation_ids = [obj['id'] for obj in source_concept.appellation_set.all().values('id')]
+    target_appellation_ids = [obj['id'] for obj in target_concept.appellation_set.all().values('id')]
+
+    queryset = RelationSet.objects.filter(
+    (Q(constituents__source_object_id__in=source_appellation_ids) & Q(constituents__source_content_type=appellation_type) \
+     & Q(constituents__object_object_id__in=target_appellation_ids) & Q(constituents__object_content_type=appellation_type)) \
+    | (Q(constituents__source_object_id__in=target_appellation_ids) & Q(constituents__source_content_type=appellation_type) \
+       & Q(constituents__object_object_id__in=source_appellation_ids) & Q(constituents__object_content_type=appellation_type)))
 
 
     template = loader.get_template('annotations/relations.html')
     context = RequestContext(request, {
         'user': request.user,
+        'source_concept': source_concept,
+        'target_concept': target_concept,
         'relations': queryset,
     })
     return HttpResponse(template.render(context))
@@ -1300,6 +1315,10 @@ def network_for_text(request, text_id):
 
 
 def generate_network_data(relationset_queryset, text_id=None, user_id=None):
+    """
+    Generate a network of :class:`.Concept` instances based on
+    :class:.`.RelationSet` instances in ``relationset_queryset``.
+    """
     edges = {}
     nodes = {}
     for relationset in relationset_queryset:
@@ -1307,23 +1326,44 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None):
             edge_key = tuple(sorted([source.id, target.id]))
             for node in [source, target]:   # ...to save some writing.
                 if node.id not in nodes:
-                    appellation_set = node.appellation_set.all()
+                    applln_set = node.appellation_set.all()
                     # All of the appellations in this text in which this
                     #  particular concept was the interpretation.
                     if text_id:
-                        appellation_set = appellation_set.filter(occursIn_id=text_id)
+                        applln_set = applln_set.filter(occursIn_id=text_id)
                     if user_id:     # ...created by this user.
-                        appellation_set = appellation_set.filter(createdBy_id=user_id)
+                        applln_set = applln_set.filter(createdBy_id=user_id)
+
+                    # These are useful in the main network view for displaying
+                    #  information about the texts associated with each concept.
+                    texts = {}
+                    for obj in applln_set:
+                        if obj.occursIn.id in texts:     # Avoid duplicates.
+                            continue
+                        texts[obj.occursIn.id] = {
+                            'id': obj.occursIn.id,
+                            'title': obj.occursIn.title
+                        }
+
                     # We only need IDs. The consumer can do what it pleases
                     #  from there.
-                    appellation_set = appellation_set.values('id')
+                    applln_set = applln_set.values('id')
+
+                    if node.typed:
+                        type_id = node.typed.id
+                    else:
+                        type_id = None
 
                     nodes[node.id] = {
                         'data': {
                             'id': node.id,
                             'label': node.label,
-                            'appellations': [obj['id'] for obj in appellation_set],
-                            'weight': 0.
+                            'uri': node.uri,
+                            'description': node.description,
+                            'type': type_id,
+                            'appellations': [obj['id'] for obj in applln_set],
+                            'weight': 0.,
+                            'texts': texts.values()
                         }
                     }
                 nodes[node.id]['data']['weight'] += 1.
@@ -1333,10 +1373,20 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None):
                         'id': len(edges),
                         'source': source.id,
                         'target': target.id,
-                        'weight': 0.
+                        'weight': 0.,
+                        'texts': {}
                     }
                 }
             edges[edge_key]['data']['weight'] += 1.
+            # We use a dict here to avoid dupes.
+            edges[edge_key]['data']['texts'][relationset.occursIn.id] = {
+                'id': relationset.occursIn.id,
+                'title': relationset.occursIn.title
+            }
+
+    # But we want a list (not a dict) in the final data.
+    for edge in edges.values():
+        edge['data']['texts'] = edge['data']['texts'].values()
     return nodes, edges
 
 

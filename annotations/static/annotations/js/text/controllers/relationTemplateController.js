@@ -147,6 +147,7 @@ angular.module('annotationApp').controller('AppellationModalInstanceController',
 
     $scope.selectedText = data.selectedText;
     $scope.selectedWords = data.selectedWords;
+    $scope.conceptType = data.conceptType;
 
     $scope.ok = function () {
         $uibModalInstance.close();
@@ -320,6 +321,7 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
                 var modalData = {
                     selectedWords: data,
                     selectedText: getStringRep(data, ' '),
+                    conceptType: $scope.field.concept_id,
                 }
                 $scope.openAppellationModal(modalData);
             });

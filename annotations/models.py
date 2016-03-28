@@ -327,7 +327,9 @@ class RelationSet(models.Model):
 
     @property
     def label(self):
-        return self.template.name
+        if self.template:
+            return self.template.name
+        return u'Untemplated relation created by %s at %s' % (self.createdBy, self.created)
 
     def appellations(self):
         """

@@ -4,7 +4,7 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
 
     $scope.search = function() {
         if ($scope.query.length > 2 & !$scope.creatingConcept) {
-            var params = {search: $scope.query, pos: 'noun', remote: true}
+            var params = {search: $scope.query, pos: 'noun', typed: $scope.conceptType, remote: true}
             Concept.query(params).$promise.then(function(data){
                 $scope.concepts = data.results;
             });
@@ -20,7 +20,7 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
     $scope.unselectConcept = function() {
         $scope.data.selectedConcept = null;
         $scope.query = '';
-        Concept.list({pos: 'noun'}).$promise.then(function(data) {
+        Concept.list({pos: 'noun', typed: $scope.conceptType}).$promise.then(function(data) {
             $scope.concepts = data.results;
         });
         $scope.concept = null;

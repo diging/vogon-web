@@ -25,7 +25,6 @@ $('body').ready(function() {
             var maxNodeWeight = 0.0;
 
             data.elements.forEach(function(elem) {
-                console.log(elem);
                 var weight = Number(elem.data.weight);
                 if (elem.data.source) {  // Edge.
                     if (weight > maxEdgeWeight) maxEdgeWeight = weight;

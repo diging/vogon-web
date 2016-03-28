@@ -75,7 +75,7 @@ urlpatterns = [
     url(r'^user$', views.list_user, name = 'user'),
     url(r'^user/(?P<userid>[0-9]+)/$', views.user_details, name="user_details"),
     url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
-    url(r'^relations/(?P<concept_a_id>[0-9]+)/(?P<concept_b_id>[0-9]+)/$', views.relation_details, name="relation_details"),
+    url(r'^relations/(?P<source_concept_id>[0-9]+)/(?P<target_concept_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^autocomplete/', include('autocomplete_light.urls')),
     url(r'^$', views.home),
