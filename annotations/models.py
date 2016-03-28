@@ -1,13 +1,25 @@
 from django.db import models
+
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
+
 from concepts.models import Concept
+from django.conf import settings
 import ast
 
 from annotations.managers import repositoryManagers
+
 
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin, Permission
 )
 from django.utils.translation import ugettext_lazy as _
+
+from concepts.models import Concept, Type
+from annotations.managers import repositoryManagers
+
+import ast
 
 
 class VogonUserManager(BaseUserManager):
@@ -50,6 +62,7 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     link = models.URLField(max_length=500, blank=True, null=True)
     full_name = models.CharField(max_length=255, blank=True, null=True)
     conceptpower_uri = models.URLField(max_length=500, blank=True, null=True)
+    imagefile = models.URLField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -117,7 +130,6 @@ class VogonGroup(models.Model):
         return (self.name,)
 
 
-
 class TupleField(models.TextField):
     __metaclass__ = models.SubfieldBase
     description = "Stores a Python tuple of instances of built-in types"
@@ -157,7 +169,8 @@ class TextCollection(models.Model):
     texts = models.ManyToManyField('Text', related_name='partOf',
                                    blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
-    participants = models.ManyToManyField(VogonUser, related_name='contributes_to')
+    participants = models.ManyToManyField(VogonUser,
+                                          related_name='contributes_to')
 
 
 class Text(models.Model):
@@ -228,14 +241,65 @@ class Interpreted(models.Model):
 
     interpretation = models.ForeignKey(Concept)
 
+    @property
+    def interpretation_type(self):
+        if self.interpretation.typed:
+            return self.interpretation.typed.id
+        return None
+
+    @property
+    def interpretation_label(self):
+        return self.interpretation.label
+
+    @property
+    def interpretation_type_label(self):
+        if self.interpretation.typed:
+            return self.interpretation.typed.label
+        return None
+
+
 
 class Appellation(Annotation, Interpreted):
+    """
+    An Appellation represents a user's interpretation of a specific passage of
+    text. In particular, it captures the user's belief that the passage in
+    question refers to a specific concept (e.g. of a person, place, etc).
+    """
+
     tokenIds = models.TextField()
+    """
+    IDs of words (in the tokenizedContent) selected for this Appellation.
+    """
+
     stringRep = models.TextField()
+    """
+    Plain-text snippet spanning the selected text.
+    """
+
     startPos = models.IntegerField(blank=True, null=True)
+    """
+    Character offset from the beginning of the (plain text) document.
+    """
+
     endPos = models.IntegerField(blank=True, null=True)
+    """
+    Character offset from the end of the (plain text) document.
+    """
+
+    # Reverse generic relations to Relation.
+    relationsFrom = GenericRelation('Relation',
+                                    content_type_field='source_content_type',
+                                    object_id_field='source_object_id')
+    relationsTo = GenericRelation('Relation',
+                                    content_type_field='object_content_type',
+                                    object_id_field='object_object_id')
 
     asPredicate = models.BooleanField(default=False)
+    """
+    Indicates whether this Appellation should function as a predicate for a
+    Relation. As of version 0.3, this basically just controls whether or not
+    the Appellation should be displayed in the text annotation view.
+    """
 
     IS = 'is'
     HAS = 'has'
@@ -250,12 +314,175 @@ class Appellation(Annotation, Interpreted):
     Applies only if the Appellation is a predicate.""")
 
 
-class Relation(Annotation):
-    source = models.ForeignKey("Appellation", related_name="relationsFrom")
-    predicate = models.ForeignKey("Appellation", related_name="relationsAs")
-    object = models.ForeignKey("Appellation", related_name="relationsTo")
+class RelationSet(models.Model):
+    """
+    A :class:`.RelationSet` organizes :class:`.Relation`\s into complete
+    statements.
+    """
 
+    template = models.ForeignKey('RelationTemplate', blank=True, null=True, related_name='instantiations')
+    created = models.DateTimeField(auto_now_add=True)
+    createdBy = models.ForeignKey('VogonUser')
+    occursIn = models.ForeignKey('Text', related_name='relationsets')
+
+    @property
+    def label(self):
+        if self.template:
+            return self.template.name
+        return u'Untemplated relation created by %s at %s' % (self.createdBy, self.created)
+
+    def appellations(self):
+        """
+        Get all non-predicate appellations in child Relation instances.
+        """
+        appellation_type = ContentType.objects.get_for_model(Appellation)
+
+        appellation_ids = []
+        for relation in self.constituents.all():
+            if relation.source_content_type == appellation_type:
+                appellation_ids.append(relation.source_object_id)
+            if relation.object_content_type == appellation_type:
+                appellation_ids.append(relation.object_object_id)
+
+        return Appellation.objects.filter(pk__in=appellation_ids)
+
+    def concepts(self):
+        """
+        Get all of the Concept instances connected to non-predicate
+        Appellation instances.
+        """
+
+        return Concept.objects.filter(pk__in=[obj['interpretation_id'] for obj in self.appellations().values('interpretation_id')])
+
+
+
+class Relation(Annotation):
+    """
+    A Relation captures a user's assertion that a passage of text implies a
+    specific relation between two concepts.
+    """
+
+    part_of = models.ForeignKey('RelationSet', blank=True, null=True, related_name='constituents')
+
+    # source = models.ForeignKey("Appellation", related_name="relationsFrom")
+    source_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='as_source_in_relation', null=True, blank=True)
+    source_object_id = models.PositiveIntegerField(null=True, blank=True)
+    source_content_object = GenericForeignKey('source_content_type', 'source_object_id')
+
+    predicate = models.ForeignKey("Appellation", related_name="relationsAs")
+
+    # object = models.ForeignKey("Appellation", related_name="relationsTo")
+    object_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='as_object_in_relation', null=True, blank=True)
+    object_object_id = models.PositiveIntegerField(null=True, blank=True)
+    object_content_object = GenericForeignKey('object_content_type', 'object_object_id')
+
+    # This should be replaced with more Relations.
     bounds = models.ForeignKey("TemporalBounds", blank=True, null=True)
+
+
+class RelationTemplate(models.Model):
+    """
+    Provides a template for complex relations, allowing the user to simply
+    fill in fields without worrying about the structure of the quadruple.
+
+    TODO: add ``created_by`` field, perhaps others.
+    """
+
+    name = models.CharField(max_length=255)
+    """A descriptive name used in menus in the annotation interface."""
+
+    description = models.TextField()
+    """A longer-form description of the relation."""
+
+    expression = models.TextField(null=True)
+    """Pattern for representing the relation in normal language."""
+
+    @property
+    def fields(self):
+        fields = []    # The fields that we need the user to fill go in here.
+        for tpart in self.template_parts.all():
+            for field in ['source', 'predicate', 'object']:
+                evidenceRequired = getattr(tpart, '%s_prompt_text' % field)
+                nodeType = getattr(tpart, '%s_node_type' % field)
+                # The user needs to provide specific concepts for TYPE fields.
+                if nodeType == RelationTemplatePart.TYPE:
+                    fields.append({
+                        'type': 'TP',
+                        'part_id': tpart.id,
+                        'part_field': field,
+                        'concept_id': getattr(tpart, '%s_type' % field).id,
+                        'label': getattr(tpart, '%s_label' % field),
+                        'concept_label': getattr(tpart, '%s_type' % field).label,
+                        'evidence_required': evidenceRequired,
+                        'description': getattr(tpart, '%s_description' % field),
+                    })
+                # Even if there is an explicit concept, we may require textual
+                #  evidence from the user.
+                elif evidenceRequired and nodeType == RelationTemplatePart.CONCEPT:
+                    fields.append({
+                        'type': 'CO',
+                        'part_id': tpart.id,
+                        'part_field': field,
+                        'concept_id': getattr(tpart, '%s_concept' % field).id,
+                        'label': getattr(tpart, '%s_label' % field),
+                        'concept_label': getattr(tpart, '%s_concept' % field).label,
+                        'evidence_required': evidenceRequired,
+                        'description': getattr(tpart, '%s_description' % field),
+                    })
+        return fields
+
+
+class RelationTemplatePart(models.Model):
+    TYPE = 'TP'
+    CONCEPT = 'CO'
+    TOBE = 'IS'
+    HAS = 'HA'
+    RELATION = 'RE'
+    NODE_CHOICES = (
+        (TYPE, 'Concept type'),
+        (CONCEPT, 'Specific concept'),
+        (RELATION, 'Relation'),
+    )
+    PRED_CHOICES = (
+        (TYPE, 'Concept type'),
+        (CONCEPT, 'Specific concept'),
+        (TOBE, 'Is/was'),
+        (HAS, 'Has/had'),
+    )
+
+    part_of = models.ForeignKey('RelationTemplate', related_name="template_parts")
+
+    internal_id = models.IntegerField(default=-1)
+
+    source_node_type = models.CharField(choices=NODE_CHOICES, max_length=2, null=True, blank=True)
+    source_label = models.CharField(max_length=100, null=True, blank=True)
+    source_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_source')
+    source_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_source')
+    source_relationtemplate = models.ForeignKey('RelationTemplatePart',  blank=True, null=True, related_name='used_as_source')
+    source_relationtemplate_internal_id = models.IntegerField(default=-1)
+
+    source_prompt_text = models.BooleanField(default=True)
+    """Indicates whether the user should be asked for evidence for source."""
+    source_description = models.TextField(blank=True, null=True)
+
+    predicate_node_type = models.CharField(choices=PRED_CHOICES, max_length=2, null=True, blank=True)
+    predicate_label = models.CharField(max_length=100, null=True, blank=True)
+    predicate_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_predicate')
+    predicate_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_predicate')
+    predicate_prompt_text = models.BooleanField(default=True)
+    """Indicates whether the user should be asked for evidence for predicate."""
+    predicate_description = models.TextField(blank=True, null=True)
+
+    object_node_type = models.CharField(choices=NODE_CHOICES, max_length=2, null=True, blank=True)
+    object_label = models.CharField(max_length=100, null=True, blank=True)
+    object_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_object')
+    object_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_object')
+    object_relationtemplate = models.ForeignKey('RelationTemplatePart',  blank=True, null=True, related_name='used_as_object')
+    object_relationtemplate_internal_id = models.IntegerField(default=-1)
+    object_prompt_text = models.BooleanField(default=True)
+    """Indicates whether the user should be asked for evidence for object."""
+    object_description = models.TextField(blank=True, null=True)
+
 
 
 class TemporalBounds(models.Model):

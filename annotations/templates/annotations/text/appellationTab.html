@@ -1,0 +1,17 @@
+<!-- The Appellation Tab orchestrates the appellation process. -->
+<div class="tab-pane fade in active" id="tabAppellations" ng-controller="AppellationsController">
+    <p class="text text-info" ng-show="hideAppellationCreate">To create a new tag, click on an untagged word and then click the <span class="glyphicon glyphicon-tag"></span> icon.</p>
+    {% verbatim %}
+    <ul class="list-group appellation-list" ng-show="hideAppellationCreate"><!-- Show the list of appellations when not creating a new one. -->
+        <!-- TODO: this will create problems if legacy appellations have no stringRep. -->
+        <a class="list-group-item appellation-list-item appellation"
+            id="appellation-list-item-{{appellation.id}}"
+            appellation="{{appellation.id}}"
+            ng-repeat="appellation in appellations"
+            ng-click="selectAppellation(appellation)">{{ appellation.stringRep }}</a>
+    </ul>
+    {% endverbatim %}
+    <div ng-hide="hideAppellationCreate">
+        {% include "annotations/text/appellationCreate.html" %}
+    </div>
+</div>

@@ -13,7 +13,7 @@
 <script src="{% static "annotations/js/fisheye.js" %}"></script>
 <script src="{% static "annotations/js/spin.min.js" %}"></script>
 <script src="{% static "annotations/js/jquery.spin.js" %}"></script>
-
+<script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
 <script>
 // While awaiting a response to an ajax request, a spinner is shown in the
 //  network visualization panel.
@@ -40,28 +40,30 @@ var opts = {
 , position: 'absolute' // Element positioning
 }
 
-// $(document)
-//     .ajaxStart(function () {
-//         $('#networkVis').spin(opts);
-//
-//     })
-//     .ajaxStop(function () {
-//         $('#networkVis').spin(false);
-//     });
+
 </script>
+
+<style>
+#text-list-container {
+    max-height: 300px;
+    overflow-y: scroll;
+}
+</style>
 
 <div class="container-fluid">
     <div class="row" style="margin-top: 15px;">
         <div class="col-md-8">
             <div class="panel" id="networkVis" style="height: 600px;"></div>
+            <div class="alert alert-info">Use your mouse scrollwheel our trackpad to zoom in and out. Click and drag to pan.</div>
         </div>
         <div class="col-md-4">
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="panel panel-primary">
+                        <div class="alert alert-info">Select a node or edge for more information</div>
+                        <div class="panel panel-primary selection-details-panel" style="display: none;">
                             <div class="panel-heading">
-                                <h4>Selection</h4>
+                                <span class="h4">Selected <span id="elem-type-selected"></span> represents</span>
                             </div>
                             <div class="panel-body" id="concept-details">
                                 <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
@@ -72,15 +74,16 @@ var opts = {
                         </div>
                     </div>
                     <div class="col-md-12">
-                        <div class="panel panel-primary">
+                        <div class="panel panel-primary selection-details-panel" style="display: none;">
                             <div class="panel-heading">
-                                <h4>Occurs in...</h4>
+                                <span class="h4">Can be found in</span>
                             </div>
-                            <div>
+                            <div id="text-list-container">
                                 <table class="table table-responsive table-hover">
                                     <tbody id="text-list"></tbody>
                                 </table>
                             </div>
+
 
                         </div>
                     </div>
@@ -93,109 +96,26 @@ var opts = {
 
 
 <script>
-$.ajax({
-    type: "GET",
-    contentType: "application/json; charset=utf-8",
-    url: '{% url "network-data" %}',
-    dataType: 'json',
-    async: true,
-    beforeSend: function(data) {
-        $('#networkVis').spin(opts);
-    },
-    success: function (data) {
-        update(data);
-        $('#networkVis').spin(false);
-    },
-    error: function (result) {
-    }
-});
+$('#networkVis').spin(opts);    // Start spinner in the network display panel.
 
-
-var getConcept = function(id, callback) {
-    $.ajax({
-        type: "GET",
-        contentType: "application/json; charset=utf-8",
-        url: "/rest/concept/" + id,
-        dataType: 'json',
-        async: true,
-        success: function (data) {
-            callback(data);
-        },
-        error: function (result) {
-        }
-    });
+var hideConcept = function(data) {
+    $('.selection-details-panel').css("display", "none");
 }
 
-var getRelations = function(concept_a, concept_b, callback) {
-    $.ajax({
-        type: "GET",
-        contentType: "application/json; charset=utf-8",
-        url: "/rest/relation?related_concepts=" + concept_a.concept_id + '&related_concepts=' + concept_b.concept_id,
-        dataType: 'json',
-        async: true,
-        success: function (data) {
-            callback(data);
-        },
-        error: function (result) {
-        }
-    });
+var displayConcept = function(data) {
+    $('.selection-details-panel').css("display", "block");
+    $('#elem-type-selected').text('node');
+    $('#concept-href').attr('href', '/concept/' + data.concept_id + '/');
+    $('#concept-label').text(data.label);
+    $('#concept-uri').text(data.uri);
+    $('#concept-description').text(data.description);
 }
 
-var getTextsForConcept = function(id, callback) {
-    $.ajax({
-        type: "GET",
-        contentType: "application/json; charset=utf-8",
-        url: "/rest/text?concept=" + id,
-        dataType: 'json',
-        async: true,
-        success: function (data) {
-            callback(data);
-        },
-        error: function (result) {
-        }
-    });
-}
-
-var getTextsForConcepts = function(concept_a, concept_b, callback) {
-    $.ajax({
-        type: "GET",
-        contentType: "application/json; charset=utf-8",
-        url: "/rest/text?related_concepts=" + concept_a.concept_id + '&related_concepts=' + concept_b.concept_id,
-        dataType: 'json',
-        async: true,
-        success: function (data) {
-            callback(data);
-        },
-        error: function (result) {
-        }
-    });
-}
-
-var getAppellationsForConcept = function(text_id, concept_id, callback) {
-    $.ajax({
-        type: "GET",
-        contentType: "application/json; charset=utf-8",
-        url: "/rest/appellation?concept=" + concept_id + "&text=" + text_id,
-        dataType: 'json',
-        async: true,
-        success: function (data) {
-            callback(data);
-        },
-        error: function (result) {
-        }
-    });
-}
-
-var displayConcept = function(concept) {
-    $('#concept-href').attr('href', '/concept/' + concept.id + '/');
-    $('#concept-label').text(concept.label);
-    $('#concept-uri').text(concept.uri);
-    $('#concept-description').text(concept.description);
-}
-
-var displayRelation = function(concept_a, concept_b) {
-    $('#concept-href').attr('href', '/relations/' + concept_a.concept_id + '/' + concept_b.concept_id + '/');
-    $('#concept-label').text(concept_a.label + ' & ' + concept_b.label);
+var displayRelation = function(source_data, target_data) {
+    $('.selection-details-panel').css("display", "block");
+    $('#elem-type-selected').text('edge');
+    $('#concept-href').attr('href', '/relations/' + source_data.concept_id + '/' + target_data.concept_id + '/');
+    $('#concept-label').text(source_data.label + ' & ' + target_data.label);
     $('#concept-uri').text('');
     $('#concept-description').text('');
 }
@@ -208,283 +128,206 @@ var displayTexts = function(texts) {
     });
 }
 
-var selected = {
-    id: null,
-    source: {id: null},
-    target: {id: null}
-};
-var node_stroke = "rgba(40, 96, 144, 1.0)";
-var node_stroke_width = "4";
-var linkDistance = 100;
-var height = 600;
-var margin = {top: 0, right: 1, bottom: 0, left: 1}
-    , width = parseInt(d3.select('#networkVis').style('width'), 10)
-    , width = width - margin.left - margin.right
-    , percent = d3.format('%');
 
-function resize() {
-    // Update size of visualization as parent element resizes.
-    width = parseInt(d3.select('#networkVis').style('width'), 10);
-    width = width - margin.left - margin.right;
-    svg.attr('height', (height + margin.top + margin.bottom) + 'px')
-        .attr('width', (width + margin.left + margin.right) + 'px');
-}
 
-var zoom = d3.behavior.zoom()
-    .scaleExtent([0.5, 10])
-    .on("zoom", zoomed);
 
-var svg = d3.select("#networkVis")
-  .append("svg:svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("pointer-events", "all")
-  .append('svg:g')
-    .call(zoom)
-  .append('svg:g');
+$('body').ready(function() {
+    var cy;
+    $.ajax('{% url "network-data" %}', {
+        // When the data is returned, generate an interative visualization
+        //  using Cytoscape.js.
+        success: function(data) {
+            // Stop spinner when the data loads.
+            $('#networkVis').spin(false);
 
-svg.append('svg:rect')
-    .attr('width', width)
-    .attr('height', height)
-    .attr('fill', 'white');
+            // Normalize node and edge weights.
+            var minEdgeWeight = 1.0;
+            var maxEdgeWeight = 0.0;
+            var minNodeWeight = 1.0;
+            var maxNodeWeight = 0.0;
 
-function zoomed() {
-    svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-}
 
-function update(data) {
-    var deselectAllNodes = function() {
-        d3.select('.nodeSelected')
-            .classed("nodeSelected", false);
-
-        d3.select("#node_" + selected.id + ">circle")
-            .attr("stroke", "none");
-        d3.select('#node_' + selected.id + ">.nodeLabel")
-            .style("visibility", "hidden");
-        d3.select("#node_" + selected.source.id + ">circle")
-            .attr("stroke", "none");
-        d3.select('#node_' + selected.source.id + ">.nodeLabel")
-            .style("visibility", "hidden");
-        d3.select("#node_" + selected.target.id + ">circle")
-            .attr("stroke", "none");
-        d3.select('#node_' + selected.target.id + ">.nodeLabel")
-            .style("visibility", "hidden");
-    }
-
-    var deselectAllEdges = function() {
-        d3.select('.edgeSelected').classed("edgeSelected", false);
-        edge.style("stroke", "black")
-            .style("stroke-width", function(d) {
-                return Math.sqrt(d.size) * 2;
+            data.elements.forEach(function(elem) {
+                var weight = Number(elem.data.weight);
+                if (elem.data.source) {  // Edge.
+                    if (weight > maxEdgeWeight) maxEdgeWeight = weight;
+                    if (weight < minEdgeWeight) minEdgeWeight = weight;
+                } else {
+                    if (weight > maxNodeWeight) maxNodeWeight = weight;
+                    if (weight < minNodeWeight) minNodeWeight = weight;
+                }
             });
-    }
 
-    var selectNode = function(n) {
-        selected = n;
-        selected.type = 'node';
-        selected.source = {id: null};
-        selected.target = {id: null};
-        d3.select('#node_' + n.id).classed("nodeSelected", true);
-    }
+            // If min and max are the same, cytoscape will throw a TypeError,
+            //  so we decrement the min values just to be safe.
+            minNodeWeight = Number(minNodeWeight.toPrecision(4)) - 1;
+            maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
+            minEdgeWeight = Number(minEdgeWeight.toPrecision(4)) - 1;
+            maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
 
-    var selectEdge = function(e) {
-        selected = e;
-        selected.type = 'edge';
-        highlightEdge(e);
-    }
-
-    var highlightNode = function(n) {
-        d3.select('#node_' + n.id + ">.nodeLabel")
-            .style("visibility", "visible");
-
-        d3.select("#node_" + n.id + ">circle")
-            .attr("stroke", "orange")
-            .attr("stroke-width", 3);
-    }
-
-    var highlightEdge = function(e) {
-        d3.select("#edge_" + e.id)
-            .style("stroke-width", Math.sqrt(e.size) * 6)
-            .style("stroke", "orange");
-
-        highlightNode(e.source);
-        highlightNode(e.target);
-    }
-
-    var unhighlightEdge = function(e) {
-        d3.select("#edge_" + e.id)
-            .style("stroke-width", Math.sqrt(e.size) * 3)
-            .style("stroke", "black");
-    }
-
-    var unhighlightNode = function(n) {
-        d3.select('#node_' + n.id + ">.nodeLabel")
-            .style("visibility", "hidden");
-        d3.select("#node_" + n.id + ">circle")
-            .attr("stroke", node_stroke)
-            .attr("stroke-width", node_stroke_width);
-    }
-
-    svg.selectAll('*').remove();
-
-    var fisheye = d3.fisheye.circular()
-        .radius(200)
-        .distortion(1);
-
-    svg.on("mousemove", function() {
-        fisheye.focus(d3.mouse(this));
-
-        edge.each(function(d) {
-                d.source.fisheye = fisheye(d.source);
-                d.target.fisheye = fisheye(d.target);
-            })
-            .attr("x1", function(d) { return d.source.fisheye.x; })
-            .attr("y1", function(d) { return d.source.fisheye.y; })
-            .attr("x2", function(d) { return d.target.fisheye.x; })
-            .attr("y2", function(d) { return d.target.fisheye.y; });
-        node.each(function(d) {
-            d.fisheye = fisheye(d);
-            d3.select('#node_' + d.id + '>circle')
-            .attr("r", d.fisheye.z * d.size * 6);
-        })
-        .attr("transform", function(d) {
-            return "translate(" + d.fisheye.x +  "," + d.fisheye.y + ")";
-        });
-
-    }).append('rect')
-      .attr('class', 'click-capture')
-      .style('visibility', 'hidden')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', width*2)
-      .attr('height', height*2);
-
-    var edge = svg.selectAll(".edge")
-        .data(data.edges)
-        .enter().append("svg:line")
-        .attr("class", "edge")
-        .attr("id", function(d) { return 'edge_'+d.id; })
-        .style("stroke", "black")
-        .style("stroke-width", function(d) { return Math.sqrt(d.size) * 3; });
-
-    var node = svg.selectAll(".node")
-        .data(data.nodes)
-        .enter().append("g")
-        .attr("class", "node")
-        .attr("id", function(d) { return 'node_'+d.id; });
-
-    node.append("svg:circle")
-        .attr("r", function(d) { return d.size * 6; })
-        .attr("stroke", node_stroke)
-        .attr("stroke-width", node_stroke_width)
-        .attr("class", "node");
-
-    node.append("text")
-        .attr('dx', 12)
-        .attr('dy', "0.35em")
-        .attr("class", "nodeLabel")
-        .text(function(d) { return d.label; });
+            cy = cytoscape({
+                container: $('#networkVis'),
+                elements: data.elements,
+                zoom: 1,
+                minZoom: 0.25,
+                maxZoom: 3,
+                panningEnabled: true,
+                style: [    // The stylesheet for the graph.
+                    {
+                        // Node size is a function of topic prevalence.
+                        selector: 'node',
+                        style: {
+                            'background-color': '#B74934',
+                            'label': 'data(label)',
+                            'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                            'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                            'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 36)'
+                        }
+                    },
+                    {
+                        selector: 'node.connectedNodes',
+                        style: {
+                            'opacity': 1.0,
+                            'border-color': '#AA9A66',
+                            'border-width': 2,
+                            'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                            'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                            'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 18, 52)'
+                        }
+                    },
+                    {
+                        selector: 'node.nonConnectedNodes',
+                        style: {
+                            'opacity': 0.5,
+                        }
+                    },
+                    {
+                        // When a node is selected, it should be slightly larger
+                        //  and have a colored border.
+                        selector: 'node:selected',
+                        style: {
+                            'border-color': '#AA9A66',
+                            'border-width': 4,
+                            'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 35, 75)',
+                            'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                            'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                        }
+                    },
+                    {
+                        // Active nodes should be slightly larger.
+                        selector: 'node:active',
+                        style: {
+                            'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                            'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                        }
+                    },
+                    {
+                        // Edge weight is a function of nPMI.
+                        selector: 'edge',
+                        style: {
+                            'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 0.5, 6)',
+                            'opacity': 'mapData(weight, 0.01, 0.5, 0.1, 1)',
+                            'line-color': '#67655D',
+                            'target-arrow-color': '#ccc',
+                        },
+                    },
+                    {
+                        selector: 'edge.connectedEdge',
+                        style: {
+                            'opacity': 1,
+                            'line-color': '#AA9A66',
+                            'z-index': 500,
+                            'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 1, 12)',
+                        }
+                    },
+                    {
+                        selector: 'edge.nonConnected',
+                        style: {
+                            'opacity': 0.2,
+                        }
+                    },
+                    {
+                        // A selected edge should be slightly thicker, and be colored a brighter color.
+                        selector: 'edge:selected',
+                        style: {
+                            'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 2, 8)',
+                            'opacity': 1,
+                            'line-color': '#AA9A66',
+                        }
+                    },
+                ],
 
 
-    node.on("click", function(n) {
-        if (n === selected) return;
-        deselectAllNodes();
-        deselectAllEdges();
 
-        selectNode(n);
-        getConcept(n.concept_id, displayConcept);
-        getTextsForConcept(n.concept_id, displayTexts);
-    });
+                layout: {
+                  name: 'preset',
+                  positions: function(n) { return n._private.data.pos; },
+                }
+            });
 
-
-    node.on("mouseover", function(n) {
-        if (selected.source.id != n.id & selected.target.id != n.id) {
-            d3.select("#node_" + n.id + ">circle")
-                .attr("stroke", "orange")
-                .attr("stroke-width", 3);
-            d3.select('#node_' + n.id + ">.nodeLabel")
-                .style("visibility", "visible");
-        }
-    });
-
-    node.on("mouseout", function(n) {
-        if (selected.id != n.id & selected.source.id != n.id & selected.target.id != n.id) {
-            d3.select("#node_" + n.id + ">circle")
-                .attr("stroke", "null");
-            d3.select('#node_' + n.id + ">.nodeLabel")
-                .style("visibility", "hidden");
-        }
-    });
-
-    edge.on("click", function(e) {
-        if (e === selected) return;
-        deselectAllNodes();
-        deselectAllEdges();
-
-        selectEdge(e);
-
-        getRelations(e.source, e.target, function(data) {
-            displayRelation(e.source, e.target);
-        });
-        getTextsForConcepts(e.source, e.target, displayTexts);
-        // getTextsForConcept(n.concept_id, displayTexts);
-    })
-
-    edge.on("mouseover", function(e) {
-        highlightEdge(e);
-    });
-
-    edge.on("mouseout", function(e) {
-
-        if (!selected.type) {
-            unhighlightEdge(e);
-            unhighlightNode(e.source);
-            unhighlightNode(e.target);
-        }
-        if (selected.type == 'edge') {
-
-            if (selected.id != e.id) {
-
-                unhighlightEdge(e);
+            var clearConnected = function() {
+                cy.elements('edge').edges().removeClass('connectedEdge');
+                cy.elements('edge').edges().removeClass('nonConnected');
+                // cy.elements('edge').edges().unselect();
+                cy.elements('node').nodes().removeClass('connectedNodes');
+                cy.elements('node').nodes().removeClass('nonConnectedNodes');
+                // cy.elements('node').nodes().unselect();
             }
-            if (selected.source.id != e.source.id & selected.target.id != e.source.id) {
-                unhighlightNode(e.source);
-            }
-            if (selected.source.id != e.target.id & selected.target.id != e.target.id) {
-                unhighlightNode(e.target);
-            }
+
+            cy.on('select', 'node', function(event) {
+                var node = event.cyTarget;
+                displayConcept(node._private.data);
+                displayTexts(node._private.data.texts);
+
+                // Highlight connected nodes and edges.
+                clearConnected();
+                var directlyConnected = node.neighborhood();
+                var nonConnected = cy.elements().difference( directlyConnected );
+
+                directlyConnected.nodes().addClass('connectedNodes');
+                nonConnected.nodes().addClass('nonConnectedNodes');
+                nonConnected.edges().addClass('nonConnected');
+                node.removeClass('nonConnectedNodes');
+                node.neighborhood('edge').edges().addClass('connectedEdge');
+
+
+            });
+
+            cy.on('select', 'edge', function(event) {
+                var edge = event.cyTarget;
+                var source = edge._private.source,
+                    target = edge._private.target;
+
+                displayRelation(source._private.data, target._private.data);
+                displayTexts(edge._private.data.texts);
+
+                clearConnected();
+            });
+            cy.on('unselect', 'node', function(event) {
+                hideConcept();
+
+                clearConnected();
+            });
+            cy.on('unselect', 'edge', function(event) {
+                hideConcept();
+
+                clearConnected();
+            });
+
         }
-        if (selected.type == 'node') {
-            unhighlightEdge(e);
-            if (selected.id != e.source.id) {
-                unhighlightNode(e.source);
-            }
-            if (selected.id != e.target.id) {
-                unhighlightNode(e.target);
-            }
-        }
+
     });
+    var resizeGraph = function() {
+        // var targetHeight = Number($('.action-body').css('max-height').replace('px', ''));
+        // $('#networkVis').height(targetHeight - 10);
+        cy.resize();
+        cy.fit();
+    }
+    $(window).resize(resizeGraph);
 
-    edge.each(function(d) {
-            d.source.x += width/2;
-            d.source.y += height/2;
-            d.target.x += width/2;
-            d.target.y += height/2;
-        })
-        .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+});
 
-    node.each(function(d) {
-            d.x += width/2;
-            d.y += height/2;
-        })
-        .attr("transform", function(d) {
-            return "translate(" + d.x +  "," + d.y + ")";
-        });
 
-}
 </script>
 
 {% endblock %}

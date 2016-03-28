@@ -3,6 +3,7 @@
 <div id="header">
 	<nav class="navbar navbar-inverse">
 		<div class="container">
+
 			<div class="navbar-header">
 				<a class="navbar-brand" href="{% url "home" %}">
 					<img alt="Brand" src="{% static "annotations/img/VogonTiny.png" %}" height="100%" />
@@ -15,6 +16,7 @@
 				</button>
 			</div>
 
+
 			<div id="navbar" class="collapse navbar-collapse">
 				<ul class="nav navbar-nav">
 					<li><a href="{% url "dashboard" %}">Dashboard</a></li>
@@ -24,7 +26,8 @@
 							<li><a href="{% url "list_texts" %}">All Texts</a></li>
 							<li><a href="{% url "collection_list" %}">Collections</a></li>
 						</ul>
-					</li>					
+
+					</li>
 					<li><a href="{% url "network" %}">Network</a></li>
 					<li><a href="{% url "user" %}">Contributors</a></li>
 					<li><a href="{% url "about" %}">About</a></li>

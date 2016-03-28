@@ -1,0 +1,250 @@
+{% extends "annotations/base.html" %}
+
+
+{% block main %}
+<script>
+
+angular.module('formApp', [])
+    .controller('TemplateFormController', ['$scope', '$compile', function($scope, $compile) {
+        $scope.relation_options = ['---------'];
+        $('.form_table_row').each(function() {
+            $scope.relation_options.push($(this).attr('id'));
+        });
+
+        $scope.cloneMore = function(selector, type) {
+            var newElement = $(selector).clone(false);
+            var total = Number($('#id_' + type + '-TOTAL_FORMS').val());
+
+            newElement.find('div').each(function() {
+                var attrs = {};
+                console.log(this);
+                if ($(this).attr('id')) {
+                     attrs['id'] = $(this).attr('id').replace('-' + (total-1) + '-','-' + total + '-');
+                     attrs['selected-object'] = 'searchStr_' + total;
+                }
+                if ($(this).attr('name')) {
+                     attrs['name'] = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
+                }
+
+                $(this).attr(attrs);
+            });
+
+            newElement.find(':input').each(function() {
+                console.log(this);
+                var attrs = {};
+                if ($(this).attr('name')) {
+                     attrs['name'] = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
+                }
+                //
+                if ($(this).attr('ng-model')) {
+                    attrs['ng-model'] = $(this).attr('ng-model').replace('_' + (total-1) + '_','_' + total + '_');
+                }
+                if ($(this).attr('target')) {
+                    attrs['target'] = $(this).attr('target').replace('-' + (total-1) + '-','-' + total + '-');
+                }
+
+                attrs['id'] = 'id_' + attrs['name'];
+
+                $(this).attr(attrs);
+
+                // Increment internal_id.
+                if ($(this).attr('name').indexOf('internal_id') > -1) {
+                    $(this).val(total);
+                } else {
+                    $(this).val('');
+                }
+            });
+
+            newElement.find('li').each(function() {
+                var attrs = {};
+                if ($(this).attr('ng-show')) {
+                    attrs['ng-show'] = $(this).attr('ng-show').split('_' + (total-1) + '_').join('_' + total + '_');
+                }
+                $(this).attr(attrs);
+
+            })
+            newElement.find('label').each(function() {
+                if ($(this).attr('for')) {
+                    var newFor = $(this).attr('for').replace('-' + (total-1) + '-','-' + total + '-');
+                    $(this).attr('for', newFor);
+                }
+            });
+            newElement.find('#form_ident').each(function() {
+                $(this).text(total);
+            });
+
+            total++;
+            $('#id_' + type + '-TOTAL_FORMS').val(total);
+            $compile(newElement)($scope);
+            $('#add_form_row').before(newElement);
+
+            $scope.relation_options.push(total - 1);
+
+        }
+
+        $scope.addRelation = function() {
+            // Appends another Relation row, and corresponding formset.
+            $scope.cloneMore('.form_table_row:last', 'form');
+            $('.autocomplete').each(function() {
+                var pos = 'noun';
+                if (this.id.indexOf('predicate') > -1) {
+                    pos = 'verb';
+                }
+                bindAutocomplete('#' + this.id, pos);
+            });
+        }
+
+        $scope.removeRelation = function(relation_id) {
+            // TODO: implement me!
+        }
+    }]);
+
+
+
+</script>
+<style>
+.angucomplete-dropdown {
+    overflow-y: auto;
+    overflow-x: auto;
+    opacity: 1.0;
+    position: relative;
+    z-index: 15;
+    max-width: 400px;
+    max-height: 200px;
+    background-color: white;
+    border: 1px solid gray;
+}
+
+.autocomplete-holder {
+    max-width: 200px;
+}
+</style>
+<div class="container" id="main">
+    <div class="row col-sm-12">
+        <h2 class="h2">Create a New Relation Template</h2>
+        <div ng-app='formApp'>
+            <div ng-controller="TemplateFormController">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+
+                    <p>
+                        <input class="form-control" name="name" type="text" placeholder="What is this relation called?"{% if template_name %} value="{{ template_name}}"{% endif %} />
+                    </p>
+                    <p>
+                        <textarea class="form-control" name="description" placeholder="Please describe this relation.">{% if template_description %}{{ template_description }}{% endif %}</textarea>
+                    </p>
+                    <p>
+                        <textarea class="form-control" name="expression" placeholder="Enter an expression pattern for this relation.">{% if template_expression %}{{ template_expression }}{% endif %}</textarea>
+                    </p>
+                    <table id="form_table" class="table table-condensed table-striped table-bordered table-responsive">
+                        <thead>
+                            <tr class="text-center info">
+                                <td>Relation ID</td>
+                                <td>Subject</td>
+                                <td>Predicate</td>
+                                <td>Object</td>
+
+                            </tr>
+                        </thead>
+                        {% for form in formset %}
+                        <tr class="form_table_row" id="{{form.ident}}">
+                            <td class="text-center" style="vertical-align: middle;">
+                                <span class="badge" id="form_ident" style="font-size: 18pt;">{{ form.ident }}</span>
+                                {{ form.internal_id }}
+                            </td>
+                            <td>
+                                <ul class="list-group">
+                                    <li class="list-group-item">{{ form.source_node_type }}</li>
+
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP'">{{ form.source_type }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'CO'">{{ form.source_concept_text }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'RE'">{{ form.source_relationtemplate_internal_id }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP' || selection_{{ form.safe_prefix }}_source_node_type == 'CO'">
+                                        <label>Label</label>
+                                        {{ form.source_label }}
+                                    </li>
+
+                                    {{ form.source_concept }}
+                                    {{ form.source_relationtemplate }}
+
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP' || selection_{{ form.safe_prefix }}_source_node_type == 'CO'">
+                                        <label>Description</label>
+                                        {{ form.source_description }}
+                                    </li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_source_node_type == 'TP' || selection_{{ form.safe_prefix }}_source_node_type == 'CO'">{{ form.source_prompt_text }} Prompt for evidence</li>
+
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="list-group">
+                                    <li class="list-group-item">{{ form.predicate_node_type }}</li>
+
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'TP'">{{ form.predicate_type }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'CO'">{{ form.predicate_concept_text }}</li>
+                                    {{ form.predicate_concept }}
+
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'TP' || selection_{{ form.safe_prefix }}_predicate_node_type == 'CO'">
+                                        <label>Label</label>
+                                        {{ form.predicate_label }}
+                                    </li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'TP' || selection_{{ form.safe_prefix }}_predicate_node_type == 'CO'">
+                                        <label>Description</label>
+                                        {{ form.predicate_description }}
+                                    </li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_predicate_node_type == 'TP' || selection_{{ form.safe_prefix }}_predicate_node_type == 'CO'">{{ form.predicate_prompt_text }} Prompt for evidence</li>
+
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="list-group">
+                                    <li class="list-group-item">{{ form.object_node_type }}</li>
+
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'TP'">{{ form.object_type }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'CO'">{{ form.object_concept_text }}</li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'RE'">{{ form.object_relationtemplate_internal_id }}</li>
+                                    {{ form.object_concept }}
+                                    {{ form.object_relationtemplate }}
+
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'TP' || selection_{{ form.safe_prefix }}_object_node_type == 'CO'">
+                                        <label>Label</label>
+                                        {{ form.object_label }}
+                                    </li>
+
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'TP' || selection_{{ form.safe_prefix }}_object_node_type == 'CO'">
+                                        <label>Description</label>
+                                        {{ form.object_description }}
+                                    </li>
+                                    <li class="list-group-item" ng-show="selection_{{ form.safe_prefix }}_object_node_type == 'TP' || selection_{{ form.safe_prefix }}_object_node_type == 'CO'">{{ form.object_prompt_text }} Prompt for evidence</li>
+
+                                </ul>
+                            </td>
+                        </tr>
+                        {{ form.media }}
+                        {% endfor %}
+                        <tr id="add_form_row">
+                            <td colspan="4" class="text-center">
+                                <button type="button" class="btn btn-primary" aria-label="Add Relation" ng-click="addRelation();">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                    <button class="btn btn-primary pull-right" type="submit" value="Submit">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$('.autocomplete').each(function() {
+    var pos = 'noun';
+    if (this.id.indexOf('predicate') > -1) {
+        pos = 'verb';
+    }
+    bindAutocomplete('#' + this.id, pos);
+});
+</script>
+
+{% endblock %}

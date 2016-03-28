@@ -1,0 +1,35 @@
+{% extends "annotations/base.html" %}
+
+
+{% block main %}
+
+<div class="container" id="main">
+    <div class="row col-sm-12">
+        <div class="h2">{{ data.name }}</div>
+        <p>{{ data.description }}</p>
+        <table class="table table-condensed table-responsive">
+            <thead>
+                <tr>
+                    <th class="col-sm-1">ID</th>
+                    <th class="col-sm-3">Label</th>
+                    <th>Description</th>
+                    <th class="col-sm-1">Type</th>
+                    <th class="col-sm-1">Evidence</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for field in data.fields %}
+                <tr>
+                    <td>{{ field.part_id }}: <label class="label label-info">{{ field.part_field.0 }}</label></td>
+                    <td>{{ field.label}}</td>
+                    <td>{{ field.description }}</td>
+                    <td><label class="label label-primary">{{ field.type }}<label></td>
+                    <td><span class="glyphicon glyphicon-{% if field.evidence_required %}ok{% else %}remove{% endif %}" aria-hidden="true" style="color: {% if field.evidence_required %}green{% else %}red{% endif %};"></span></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

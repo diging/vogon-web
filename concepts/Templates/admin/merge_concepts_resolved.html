@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n l10n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../">{{ app_label|capfirst }}</a> &rsaquo;
+     <a href="./">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+     {% trans 'Merge Concepts' %}
+</div>
+{% endblock %}
+
+{% block content %}
+
+<h1>Are you sure?</h1>
+
+<p>{% blocktrans with object as escaped_object %}Are you sure you want to merge unresolved concepts into resolved concept?{% endblocktrans %}</p>
+
+    <h3>ResolvedConcepts</h3>
+    <ul>
+        <li>Concept: <b> {{resolvedConcept}} </b> </li>
+    </ul>
+
+    <h3>UnResolvedConcepts</h3>
+    <ul >
+    {% for concept in unResolvedConcepts %}
+        <li>Concept: <b> {{concept.label}} </b> </li>
+    {% endfor %}
+    </ul>
+
+    <br>
+    <form action="" method="post">{% csrf_token %}
+    <div>
+    <input type="hidden" name="post" value="yes" />
+    <input type="submit" value="Yes, I'm sure" />
+    <a href="#" onclick="window.history.back(); return false;" class="button cancel-link">No, take me back</a>
+    </div>
+    </form>
+
+{% endblock %}
