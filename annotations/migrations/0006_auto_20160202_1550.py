@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('annotations', '0003_auto_relation_generic_fields'),
+        ('annotations', '0005_relation_remove_source_and_object'),
     ]
 
     operations = [
