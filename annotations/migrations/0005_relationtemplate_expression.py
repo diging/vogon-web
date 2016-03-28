@@ -7,13 +7,13 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('annotations', '0003_vogonuser_imagefile'),
+        ('annotations', '0004_auto_20160202_1550'),
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='vogonuser',
-            name='imagefile',
-            field=models.URLField(null=True, blank=True),
+        migrations.AddField(
+            model_name='relationtemplate',
+            name='expression',
+            field=models.TextField(null=True),
         ),
     ]

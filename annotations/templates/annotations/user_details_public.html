@@ -10,11 +10,17 @@
 		  <span class="h2">User details for: {{ detail_user.full_name}}</span>
 	  </div>
       	<div class="panel-body">
-      		<img src="" width="200px" height="200px"></img>
+      		<img src={% if detail_user.imagefile %}
+											{{detail_user.imagefile}}
+									 {% else %}
+									 		{{default_user_image}}
+									 {% endif %}
+									 width="200px" height="200px">
+					</img>
       		<br>
       		<br>
 			<ul class="list-group">
-				
+
 				<li class="list-group-item"><strong>Affiliation: </strong>{{ detail_user.affiliation }}</li>
 				<li class="list-group-item"><strong>Location: </strong>{{ detail_user.location }}</li>
 				{% if  detail_user.conceptpower_uri  %}

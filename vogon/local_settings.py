@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
+    'autocomplete_light',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,6 +45,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'guardian',
     'djcelery',
+
 )
 
 MIDDLEWARE_CLASSES = (
@@ -171,6 +173,10 @@ LOGGING = {
         },
     },
 }
+
+
+import djcelery
+djcelery.setup_loader()
 
 # AWS Access Key and Secret Key credentials
 AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)

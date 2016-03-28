@@ -5,10 +5,23 @@ from annotations.models import VogonUser
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.decorators import login_required
+from django.core.files import File
+from django.core.serializers import serialize
+
 from django.contrib.auth import login,authenticate
+from django.contrib.auth.models import Group
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.http import require_http_methods
+from django.views.generic.edit import FormView
+
 from django.conf import settings
+
+from django.forms import formset_factory
+
+
 from django.core.serializers import serialize
 from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
@@ -28,6 +41,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 
+from guardian.shortcuts import get_objects_for_user
+
 from concepts.models import Concept
 from concepts.authorities import search
 from concepts.tasks import search_concept
@@ -38,7 +53,7 @@ from serializers import *
 from tasks import *
 import hmac
 import hashlib
-from itertools import chain
+from itertools import chain, combinations
 from collections import OrderedDict
 import requests
 import re
@@ -46,9 +61,12 @@ from urlnorm import norm
 from itertools import chain
 import uuid
 import igraph
+import copy
+
 import os
 from urlparse import urlparse
 import urllib
+
 import json
 import time
 from django.shortcuts import render
@@ -170,7 +188,7 @@ def json_response(func):
 @login_required
 def user_settings(request):
     """ User profile settings"""
-    
+
     if request.method == 'POST':
         form = UserChangeForm(request.POST,instance=request.user)
         if form.is_valid():
@@ -550,6 +568,7 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(interpretation_id=concept)
         if text:
             queryset = queryset.filter(occursIn_id=text)
+
         return queryset
 
 
@@ -557,6 +576,31 @@ class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=True)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+
+
+class RelationSetViewSet(viewsets.ModelViewSet):
+    queryset = RelationSet.objects.all()
+    serializer_class = RelationSetSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(RelationSetViewSet, self).get_queryset(*args, **kwargs)
+
+        textid = self.request.query_params.getlist('text')
+        userid = self.request.query_params.getlist('user')
+
+        if len(textid) > 0:
+            queryset = queryset.filter(occursIn__in=[int(t) for t in textid])
+        if len(userid) > 0:
+            queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
+        elif userid is not None and type(userid) is not list:
+            queryset = queryset.filter(createdBy__pk=self.request.user.id)
+
+        thisuser = self.request.query_params.get('thisuser', False)
+        if thisuser:
+            queryset = queryset.filter(createdBy_id=self.request.user.id)
+
+        return queryset
 
 
 class RelationViewSet(viewsets.ModelViewSet):
@@ -682,7 +726,6 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
                         headers=headers)
 
 
-
 class TypeViewSet(viewsets.ModelViewSet):
     queryset = Type.objects.all()
     serializer_class = TypeSerializer
@@ -726,6 +769,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
         query = self.request.query_params.get('search', None)
         remote = self.request.query_params.get('remote', False)
         uri = self.request.query_params.get('uri', None)
+        type_id = self.request.query_params.get('typed', None)
+        type_strict = self.request.query_params.get('strict', None)
         type_uri = self.request.query_params.get('type_uri', None)
         max_results = self.request.query_params.get('max', None)
 
@@ -733,6 +778,11 @@ class ConceptViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(uri=uri)
         if type_uri:
             queryset = queryset.filter(type__uri=uri)
+        if type_id:
+            if type_strict:
+                queryset = queryset.filter(typed_id=type_id)
+            else:
+                queryset = queryset.filter(Q(typed_id=type_id) | Q(typed=None))
         if query:
             if pos == 'all':
                 pos = None
@@ -808,7 +858,7 @@ def network_data(request):
     user = request.GET.get('user', None)
     text = request.GET.get('text', None)
 
-    queryset = Relation.objects.all()
+    queryset = RelationSet.objects.all()
     if project:
         queryset = queryset.filter(occursIn__partOf_id=project)
     if user:
@@ -816,57 +866,51 @@ def network_data(request):
     if text:
         queryset = queryset.filter(occursIn_id=text)
 
-
-    nodes = OrderedDict()
-    relations = OrderedDict()
-    N = queryset.count()
-    max_relation = 0.
+    nodes, edges = generate_network_data(queryset)
+    nodes_rebased = {}
+    edges_rebased = {}
+    node_lookup = {}
+    max_edge = 0.
     max_node = 0.
-    for relation in queryset:
-        source = relation.source.interpretation
-        target = relation.object.interpretation
-        key = tuple(sorted([source.id, target.id]))
-        ids = {}
-        for node in [source, target]:
-            if node.id not in nodes:
-                nodes[node.id] = {
-                    'id': len(nodes),
-                    'concept_id': node.id,
-                    'label': node.label,
-                    'weight': 1.,
-                }
-            else:
-                nodes[node.id]['weight'] += 1.
-            if nodes[node.id]['weight'] > max_node:
-                max_node = nodes[node.id]['weight']
+    for i, node in enumerate(nodes.values()):
+        ogn_id = copy.deepcopy(node['data']['id'])
+        nodes_rebased[i] = copy.deepcopy(node)
+        # nodes_rebased[i].update({'id': i})
+        nodes_rebased[i]['data']['id'] = i
+        nodes_rebased[i]['data']['concept_id'] = ogn_id
 
-        if key in relations:
-            relations[key]['weight'] += 1.
-        else:
-            relations[key] = {
-                'source': nodes[source.id],
-                'target': nodes[target.id],
-                'id': relation.id,
-                'weight': 1.,
-            }
-        if relations[key]['weight'] > max_relation:
-            max_relation = relations[key]['weight']
+        node_lookup[ogn_id] = i
 
-    for key, relation in relations.items():
-        relation['size'] = 3. * relation['weight']/max_relation
-    for key, node in nodes.items():
-        node['size'] = (4 + (2 * node['weight']))/max_node
+        if node['data']['weight'] > max_node:
+            max_node = node['data']['weight']
+    for i, edge in enumerate(edges.values()):
+        ogn_id = copy.deepcopy(edge['data']['id'])
+        edges_rebased[i] = copy.deepcopy(edge)
+        # edges_rebased[i] = edge['data']
+        # edges_rebased[i].update({'id': i + len(nodes_rebased)})
+        edges_rebased[i]['data'].update({'id': i + len(nodes_rebased)})
+        edges_rebased[i]['data']['source'] = nodes_rebased[node_lookup[edge['data']['source']]]['data']['id']
+        edges_rebased[i]['data']['target'] = nodes_rebased[node_lookup[edge['data']['target']]]['data']['id']
+        if edge['data']['weight'] > max_edge:
+            max_edge = edge['data']['weight']
+
+    for edge in edges_rebased.values():
+        edge['data']['weight'] = edge['data']['weight']/max_edge
+    for node in nodes_rebased.values():
+        node['data']['weight'] = (50 + (2 * node['data']['weight']))/max_node
 
     graph = igraph.Graph()
-    graph.add_vertices(len(nodes))
-    graph.add_edges([(relation['source']['id'], relation['target']['id']) for relation in relations.values()])
+    graph.add_vertices(len(nodes_rebased))
+
+    graph.add_edges([(relation['data']['source'], relation['data']['target']) for relation in edges_rebased.values()])
     layout = graph.layout_fruchterman_reingold()
-    for i, coords in enumerate(layout._coords):
-        nodes.values()[i]['x'] = coords[0] * 2
-        nodes.values()[i]['y'] = coords[1] * 2
 
-
-    return JsonResponse({'nodes': nodes.values(), 'edges': relations.values()})
+    for coords, node in zip(layout._coords, nodes_rebased.values()):
+        node['data']['pos'] = {
+            'x': coords[0] * 5,
+            'y': coords[1] * 5
+        }
+    return JsonResponse({'elements': nodes_rebased.values() + edges_rebased.values()})
 
 
 @login_required
@@ -920,7 +964,8 @@ def user_details(request, userid, *args, **kwargs):
             'detail_user': user,
             'textCount': textCount,
             'relation_count': relation_count,
-            'textAnnotated': textAnnotated
+            'textAnnotated': textAnnotated,
+            'default_user_image' : settings.DEFAULT_USER_IMAGE
         })
     return HttpResponse(template.render(context))
 
@@ -947,18 +992,28 @@ def list_collections(request, *args, **kwargs):
     return HttpResponse(template.render(context))
 
 
-def relation_details(request, concept_a_id, concept_b_id):
-    concept_a = get_object_or_404(Concept, pk=concept_a_id)
-    concept_b = get_object_or_404(Concept, pk=concept_b_id)
+def relation_details(request, source_concept_id, target_concept_id):
+    source_concept = get_object_or_404(Concept, pk=source_concept_id)
+    target_concept = get_object_or_404(Concept, pk=target_concept_id)
 
-    queryset = Relation.objects.filter(
-        Q(source__interpretation__id__in=[concept_a_id, concept_b_id]) \
-        & Q(object__interpretation__id__in=[concept_a_id, concept_b_id]))
+    # Source and target on Relation are now generic, so we need this for lookup.
+    appellation_type = ContentType.objects.get_for_model(Appellation)
+
+    source_appellation_ids = [obj['id'] for obj in source_concept.appellation_set.all().values('id')]
+    target_appellation_ids = [obj['id'] for obj in target_concept.appellation_set.all().values('id')]
+
+    queryset = RelationSet.objects.filter(
+    (Q(constituents__source_object_id__in=source_appellation_ids) & Q(constituents__source_content_type=appellation_type) \
+     & Q(constituents__object_object_id__in=target_appellation_ids) & Q(constituents__object_content_type=appellation_type)) \
+    | (Q(constituents__source_object_id__in=target_appellation_ids) & Q(constituents__source_content_type=appellation_type) \
+       & Q(constituents__object_object_id__in=source_appellation_ids) & Q(constituents__object_content_type=appellation_type)))
 
 
     template = loader.get_template('annotations/relations.html')
     context = RequestContext(request, {
         'user': request.user,
+        'source_concept': source_concept,
+        'target_concept': target_concept,
         'relations': queryset,
     })
     return HttpResponse(template.render(context))
@@ -985,6 +1040,413 @@ def concept_details(request, conceptid):
     })
 
     return HttpResponse(template.render(context))
+
+
+@staff_member_required
+def add_relationtemplate(request):
+    """
+    Staff can use this view to create :class:`.RelationTemplate`\s.
+    """
+
+    # Each RelationTemplatePart is a "triple", the subject or object of which
+    #  might be another RelationTemplatePart.
+    formset = formset_factory(RelationTemplatePartForm)
+    form_class = RelationTemplateForm   # e.g. Name, Description.
+
+    context = {}
+    error = None    # TODO: <-- make this less hacky.
+    if request.POST:
+        # Instatiate both form(set)s with data.
+        relationtemplatepart_formset = formset(request.POST)
+        context['formset'] = relationtemplatepart_formset
+        relationtemplate_form = form_class(request.POST)
+
+        if relationtemplatepart_formset.is_valid() and relationtemplate_form.is_valid():
+            # We commit the RelationTemplate to the database first, so that we
+            #  can use it in the FK relation ``RelationTemplatePart.part_of``.
+            relationTemplate = relationtemplate_form.save()
+
+            # We index RTPs so that we can fill FK references among them.
+            relationTemplateParts = {}
+            dependency_order = {}    # Source RTP index -> target RTP index.
+            for form in relationtemplatepart_formset:
+                relationTemplatePart = RelationTemplatePart()
+                relationTemplatePart.part_of = relationTemplate
+                relationTemplatePart.internal_id = form.cleaned_data['internal_id']
+
+                # Since many field names are shared for source, predicate, and
+                #  object, this approach should cut down on a lot of repetitive
+                #  code.
+                for part in ['source', 'predicate', 'object']:
+                    setattr(relationTemplatePart, part + '_node_type',
+                            form.cleaned_data[part + '_node_type'])
+                    setattr(relationTemplatePart, part + '_prompt_text',
+                            form.cleaned_data[part + '_prompt_text'])
+                    setattr(relationTemplatePart, part + '_label',
+                            form.cleaned_data[part + '_label'])
+
+
+                    # Node is a concept Type. e.g. ``E20 Person``.
+                    if form.cleaned_data[part + '_node_type'] == 'TP':
+                        setattr(relationTemplatePart, part + '_type',
+                                form.cleaned_data[part + '_type'])
+                        setattr(relationTemplatePart, part + '_description',
+                                form.cleaned_data[part + '_description'])
+
+                    # Node is a specific Concept, e.g. ``employ``.
+                    elif form.cleaned_data[part + '_node_type'] == 'CO':
+                        setattr(relationTemplatePart, part + '_concept',
+                                form.cleaned_data[part + '_concept'])
+
+                    # Node is another RelationTemplatePart.
+                    elif form.cleaned_data[part + '_node_type'] == 'RE':
+                        target_id = form.cleaned_data[part + '_relationtemplate_internal_id']
+                        setattr(relationTemplatePart,
+                                part + '_relationtemplate_internal_id',
+                                target_id)
+                        if target_id > -1:
+                            # This will help us to figure out the order in
+                            #  which to save RTPs.
+                            dependency_order[relationTemplatePart.internal_id] = target_id
+
+                # Index so that we can fill FK references among RTPs.
+                relationTemplateParts[relationTemplatePart.internal_id] = relationTemplatePart
+
+            # If there is interdependency among RTPs, determine and execute
+            #  the correct save order.
+            if len(dependency_order) > 0:
+                # Find the relation template furthest downstream.
+                # TODO: is this really better than hitting the database twice?
+                start_rtp = copy.deepcopy(dependency_order.keys()[0])
+                this_rtp = copy.deepcopy(start_rtp)
+                save_order = [this_rtp]
+                iteration = 0
+                while True:
+                    this_rtp = copy.deepcopy(dependency_order[this_rtp])
+                    if this_rtp not in save_order:
+                        save_order.insert(0, copy.deepcopy(this_rtp))
+                    if this_rtp in dependency_order:
+                        iteration += 1
+                    else:   # Found the downstream relation template.
+                        break
+
+                    # Make sure that we're not in an endless loop.
+                    # TODO: This is kind of a hacky way to handle the situation.
+                    #  Maybe we should move this logic to the validation phase,
+                    #  so that we can handle errors in a Django-esque fashion.
+                    if iteration > 0 and this_rtp == start_rtp:
+                        error = 'Endless loop'
+                        break
+                if not error:
+                    # Resolve internal ids for RTP references into instance pks,
+                    #  and populate the RTP _relationtemplate fields.
+                    for i in save_order:
+                        for part in ['source', 'object']:
+                            dep = getattr(relationTemplateParts[i],
+                                          part + '_relationtemplate_internal_id')
+                            if dep > -1:
+                                setattr(relationTemplateParts[i],
+                                        part + '_relationtemplate',
+                                        relationTemplateParts[dep])
+                        if not relationTemplateParts[i].id:
+                            relationTemplateParts[i].save()
+
+            # Otherwise, just save the (one and only) RTP.
+            elif len(relationTemplateParts) == 1:
+                relationTemplateParts.values()[0].save()
+
+            if not error:
+                # TODO: when the list view for RTs is implemented, we should
+                #  direct the user there.
+                return HttpResponseRedirect(reverse('list_relationtemplate'))
+
+            else:
+                # For now, we can render this view-wide error separately. But
+                #  we should probably make this part of the normal validation
+                #  process in the future. See comments above.
+                context['error'] = error
+    else:   # No data, start with a fresh formset.
+        context['formset'] = formset()
+
+    return render(request, 'annotations/relationtemplate.html', context)
+
+
+@login_required
+def list_relationtemplate(request):
+    """
+    Returns a list of all :class:`.RelationTemplate`\s.
+    """
+    queryset = RelationTemplate.objects.all()
+    search = request.GET.get('search', None)
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search) |
+            Q(description__icontains=search)
+        )
+
+    data = {
+        'templates': [{
+            'id': rt.id,
+            'name': rt.name,
+            'description': rt.description,
+            'fields': rt.fields,
+            } for rt in queryset]
+        }
+
+    response_format = request.GET.get('format', None)
+    if response_format == 'json':
+        return JsonResponse(data)
+
+    template = loader.get_template('annotations/relationtemplate_list.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'data': data,
+    })
+
+    return HttpResponse(template.render(context))
+
+
+
+@login_required
+def get_relationtemplate(request, template_id):
+    """
+    Returns data on fillable fields in a :class:`.RelationTemplate`\.
+    """
+
+    relation_template = get_object_or_404(RelationTemplate, pk=template_id)
+
+    data = {
+        'fields': relation_template.fields,
+        'name': relation_template.name,
+        'description': relation_template.description,
+        'id': template_id,
+        'expression': relation_template.expression,
+    }
+    response_format = request.GET.get('format', None)
+    if response_format == 'json':
+        return JsonResponse(data)
+    template = loader.get_template('annotations/relationtemplate_show.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'data': data,
+    })
+
+    return HttpResponse(template.render(context))
+
+
+@login_required
+def create_from_relationtemplate(request, template_id):
+    """
+    Create a :class:`.RelationSet` and constituent :class:`.Relation`\s from
+    a :class:`.RelationTemplate` and user annotations.
+
+    This is mainly used by the RelationTemplateController in the text
+    annotation  view.
+    """
+
+    template = get_object_or_404(RelationTemplate, pk=template_id)
+
+    # Index RelationTemplateParts by ID.
+    template_parts = {part.id: part for part in template.template_parts.all()}
+
+    if request.POST:
+        relations = {}
+        data = json.loads(request.body)
+
+        relation_data = {}
+        for field in data['fields']:
+            if field['part_id'] not in relation_data:
+                relation_data[int(field['part_id'])] = {}
+            relation_data[int(field['part_id'])][field['part_field']] = field
+
+        relation_set = RelationSet(
+            template=template,
+            createdBy=request.user,
+            occursIn_id=data['occursIn'],
+        )
+        relation_set.save()
+
+        def create_appellation(field_data, template_part, field, evidence_required=True):
+            node_type = getattr(template_part, '%s_node_type' % field)
+
+            appellation_data = {
+                'occursIn_id': data['occursIn'],
+                'createdBy_id': request.user.id,
+            }
+            if evidence_required and field_data:
+                appellation_data.update({
+                    'tokenIds': field_data['data']['tokenIds'],
+                    'stringRep': field_data['data']['stringRep'],
+                })
+            else:
+                appellation_data.update({'asPredicate': True})
+
+            if node_type == RelationTemplatePart.CONCEPT:
+                # The interpretation is already provided.
+                interpretation = getattr(template_part, '%s_concept' % field)
+                print template_part.__dict__
+            elif node_type == RelationTemplatePart.TOBE:
+                interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")
+            elif node_type == RelationTemplatePart.HAS:
+                interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9")
+            if interpretation:
+                appellation_data.update({'interpretation': interpretation})
+
+            print appellation_data
+            if field == 'predicate':
+                appellation_data.update({'asPredicate': True})
+
+            appellation = Appellation(**appellation_data)
+            appellation.save()
+            return appellation
+
+        # Since we don't know anything about the structure of the
+        #  RelationTemplate, we watch for nodes that expect to be Relation
+        #  instances and recurse to create them as needed. We store the results
+        #  for each Relation in ``relation_data_processed`` so that we don't
+        #  create duplicate Relation instances.
+        relation_data_processed = {}
+        def process_recurse(part_id, template_part):
+            """
+
+            Returns
+            -------
+            relation_id : int
+            relation : :class:`.Relation`
+            """
+            print part_id
+            if part_id in relation_data_processed:
+                return relation_data_processed[part_id]
+
+            part_data = {
+                'createdBy': request.user,
+                'occursIn_id': data['occursIn']
+            }
+            for field in ['source', 'predicate', 'object']:
+
+                node_type = getattr(template_part, '%s_node_type' % field)
+                evidence_required = getattr(template_part, '%s_prompt_text' % field)
+                print field, node_type, evidence_required
+
+                if node_type == RelationTemplatePart.TYPE:
+                    field_data = relation_data[part_id][field]
+                    part_data['%s_object_id' % field] = int(field_data['appellation']['id'])
+                    part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
+                elif node_type == RelationTemplatePart.RELATION:
+                    # -vv- Recusion happens here! -vv-
+                    child_part = getattr(template_part, '%s_relationtemplate' % field)
+                    part_data['%s_object_id' % field], part_data['%s_content_type' % field] = process_recurse(child_part.id, child_part)
+                else:   # We will need to create an Appellation.
+                    print relation_data[part_id].keys()
+                    field_data = relation_data[part_id].get(field, None)
+                    part_data['%s_object_id' % field] = create_appellation(field_data, template_part, field, evidence_required).id
+                    part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
+            part_data['predicate_id'] = part_data['predicate_object_id']
+            del part_data['predicate_object_id']
+            del part_data['predicate_content_type']
+            part_data['part_of'] = relation_set
+
+            relation = Relation(**part_data)
+            relation.save()
+            relation_data_processed[part_id] = (relation.id, ContentType.objects.get_for_model(Relation))
+            return (relation.id, ContentType.objects.get_for_model(Relation))
+
+        for part_id, template_part in template_parts.iteritems():
+            process_recurse(part_id, template_part)
+
+        response_data = {'relationset': relation_set.id}
+    else:   # Not sure if we want to do anything for GET requests at this point.
+        response_data = {}
+
+    return JsonResponse(response_data)
+
+
+def network_for_text(request, text_id):
+    relationset_queryset = RelationSet.objects.filter(occursIn_id=text_id)
+
+    user_id = request.GET.get('user', None)
+    if user_id:
+        relationset_queryset = relationset_queryset.filter(createdBy_id=user_id)
+
+    nodes, edges = generate_network_data(relationset_queryset, text_id=text_id)
+    print nodes, edges
+    return JsonResponse({'elements': nodes.values() + edges.values()})
+
+
+def generate_network_data(relationset_queryset, text_id=None, user_id=None):
+    """
+    Generate a network of :class:`.Concept` instances based on
+    :class:.`.RelationSet` instances in ``relationset_queryset``.
+    """
+    edges = {}
+    nodes = {}
+    for relationset in relationset_queryset:
+        for source, target in combinations(relationset.concepts(), 2):
+            edge_key = tuple(sorted([source.id, target.id]))
+            for node in [source, target]:   # ...to save some writing.
+                if node.id not in nodes:
+                    applln_set = node.appellation_set.all()
+                    # All of the appellations in this text in which this
+                    #  particular concept was the interpretation.
+                    if text_id:
+                        applln_set = applln_set.filter(occursIn_id=text_id)
+                    if user_id:     # ...created by this user.
+                        applln_set = applln_set.filter(createdBy_id=user_id)
+
+                    # These are useful in the main network view for displaying
+                    #  information about the texts associated with each concept.
+                    texts = {}
+                    for obj in applln_set:
+                        if obj.occursIn.id in texts:     # Avoid duplicates.
+                            continue
+                        texts[obj.occursIn.id] = {
+                            'id': obj.occursIn.id,
+                            'title': obj.occursIn.title
+                        }
+
+                    # We only need IDs. The consumer can do what it pleases
+                    #  from there.
+                    applln_set = applln_set.values('id')
+
+                    if node.typed:
+                        type_id = node.typed.id
+                    else:
+                        type_id = None
+
+                    nodes[node.id] = {
+                        'data': {
+                            'id': node.id,
+                            'label': node.label,
+                            'uri': node.uri,
+                            'description': node.description,
+                            'type': type_id,
+                            'appellations': [obj['id'] for obj in applln_set],
+                            'weight': 0.,
+                            'texts': texts.values()
+                        }
+                    }
+                nodes[node.id]['data']['weight'] += 1.
+            if edge_key not in edges:
+                edges[edge_key] = {
+                    'data': {
+                        'id': len(edges),
+                        'source': source.id,
+                        'target': target.id,
+                        'weight': 0.,
+                        'texts': {}
+                    }
+                }
+            edges[edge_key]['data']['weight'] += 1.
+            # We use a dict here to avoid dupes.
+            edges[edge_key]['data']['texts'][relationset.occursIn.id] = {
+                'id': relationset.occursIn.id,
+                'title': relationset.occursIn.title
+            }
+
+    # But we want a list (not a dict) in the final data.
+    for edge in edges.values():
+        edge['data']['texts'] = edge['data']['texts'].values()
+    return nodes, edges
 
 
 @login_required

@@ -27,6 +27,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'appellation', views.AppellationViewSet)
 router.register(r'predicate', views.PredicateViewSet)
 router.register(r'relation', views.RelationViewSet)
+router.register(r'relationset', views.RelationSetViewSet)
 router.register(r'text', views.TextViewSet)
 router.register(r'repository', views.RepositoryViewSet)
 router.register(r'temporalbounds', views.TemporalBoundsViewSet)
@@ -61,7 +62,12 @@ urlpatterns = [
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
     url(r'^network/$', views.network, name="network"),
+    url(r'^relationtemplate/add/$', views.add_relationtemplate, name="add_relationtemplate"),
+    url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.get_relationtemplate, name="get_relationtemplate"),
+    url(r'^relationtemplate/(?P<template_id>[0-9]+)/create/$', views.create_from_relationtemplate, name="create_from_relationtemplate"),
+    url(r'^relationtemplate[/]?$', views.list_relationtemplate, name='list_relationtemplate'),
     url(r'^network/data/$', views.network_data, name="network-data"),
+    url(r'^network/text/(?P<text_id>[0-9]+)/$', views.network_for_text, name="network_for_text"),
     url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/add/upload/$', views.upload_file, name="file_upload"),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
@@ -71,8 +77,9 @@ urlpatterns = [
     url(r'^user$', views.list_user, name = 'user'),
     url(r'^user/(?P<userid>[0-9]+)/$', views.user_details, name="user_details"),
     url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
-    url(r'^relations/(?P<concept_a_id>[0-9]+)/(?P<concept_b_id>[0-9]+)/$', views.relation_details, name="relation_details"),
+    url(r'^relations/(?P<source_concept_id>[0-9]+)/(?P<target_concept_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^autocomplete/', include('autocomplete_light.urls')),
     url(r'^$', views.home),
     url(r'^sign_s3$', views.sign_s3, name="sign_s3")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -7,13 +7,18 @@
 <div id="main" class="container-fluid">
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
-            <ul class="list-group">
-                {% for relation in relations %}
-                <li class="list-group-item">
-                    {{ relation.source.interpretation.label }} ; {{ relation.object.interpretation.label}}
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span class="h3">Relations involving both <span class="label label-success">{{ source_concept.label }}</span> and <span class="label label-success">{{ target_concept.label }}</span></span>
+                </div>
+                <ul class="list-group">
+                    {% for relation in relations %}
+                    <li class="list-group-item">
+                        {{ relation.label}} ; {{ relation.object.interpretation.label}}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
 </div>

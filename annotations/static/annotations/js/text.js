@@ -21,177 +21,177 @@ app.config(function($httpProvider){
 
 
 
-app.factory('Appellation', function($resource) {
-    return $resource(BASELOCATION + '/rest/appellation/:id/', {
-        text: TEXTID,
-        thisuser: true
-    }, {
-        list: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        },
-        query: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        },
-        get: {
-            method: 'GET',
-            cache: true,
-            headers: {'Content-Type': 'application/json'},
-        },
-        save: {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'}
-        }
-    });
-});
+  app.factory('Appellation', function($resource) {
+      return $resource(BASELOCATION + '/rest/appellation/:id/', {
+          text: TEXTID,
+          thisuser: true
+      }, {
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          get: {
+              method: 'GET',
+              cache: true,
+              headers: {'Content-Type': 'application/json'},
+          },
+          save: {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'}
+          }
+      });
+  });
 
 
-app.factory('Relation', function($resource) {
-    return $resource(BASELOCATION + '/rest/relation/:id/', {
-        text: TEXTID,
-        thisuser: true
-    }, {
-        list: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        },
-        query: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        },
-    });
-});
+  app.factory('Relation', function($resource) {
+      return $resource(BASELOCATION + '/rest/relation/:id/', {
+          text: TEXTID,
+          thisuser: true
+      }, {
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+      });
+  });
 
 
-app.factory('Predicate', function($resource) {
-    return $resource(BASELOCATION + '/rest/predicate/:id/', {
-        text: TEXTID
-    }, {
-        list: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        },
-        query: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        },
-    });
-});
+  app.factory('Predicate', function($resource) {
+      return $resource(BASELOCATION + '/rest/predicate/:id/', {
+          text: TEXTID
+      }, {
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+      });
+  });
 
 
-app.factory('TemporalBounds', function($resource) {
-    return $resource(BASELOCATION + '/rest/temporalbounds/:id/');
-});
+  app.factory('TemporalBounds', function($resource) {
+      return $resource(BASELOCATION + '/rest/temporalbounds/:id/');
+  });
 
 
-app.factory('Concept', function($resource) {
-    return $resource(BASELOCATION + '/rest/concept/:id/', {}, {
-        list: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        },
-        query: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        }
-    });
-});
+  app.factory('Concept', function($resource) {
+      return $resource(BASELOCATION + '/rest/concept/:id/', {}, {
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          }
+      });
+  });
 
 
-app.factory('Type', function($resource) {
-    return $resource(BASELOCATION + '/rest/type/:id/', {}, {
+  app.factory('Type', function($resource) {
+      return $resource(BASELOCATION + '/rest/type/:id/', {}, {
 
-        list: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        },
-        query: {
-            method: 'GET',
-            cache: true,
-            isArray: true,
-            headers: {'Content-Type': 'application/json'},
-            transformResponse: function(data, headersGetter) {
-                // For now, just return the first page.
-                // TODO: implement real pagination.
-                data = angular.fromJson(data);
-                return data.results;
-            }
-        }
-    });
-});
+          list: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          },
+          query: {
+              method: 'GET',
+              cache: true,
+              isArray: true,
+              headers: {'Content-Type': 'application/json'},
+              transformResponse: function(data, headersGetter) {
+                  // For now, just return the first page.
+                  // TODO: implement real pagination.
+                  data = angular.fromJson(data);
+                  return data.results;
+              }
+          }
+      });
+  });
 
 
 app.factory('messageService', function($rootScope) {
