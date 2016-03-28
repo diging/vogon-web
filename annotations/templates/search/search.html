@@ -29,6 +29,38 @@
             {% empty %}
                 <p>No results found.</p>
             {% endfor %}
+            <table class="table table-hover table-responsive table-condensed">
+                <thead>
+                    <th class="col-sm-8">
+                        <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-title' %}?order_by=title{% else %}?order_by=-title{% endif %}" id="order_title">Title</a>
+                        <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-title' %}?order_by=title{% else %}?order_by=-title{% endif %}">
+                            <span class="glyphicon glyphicon-sort-by-alphabet{% if order_by != '-title' %}-alt{% endif %}" aria-hidden="true"></span>
+                        </a>
+                    </th>
+                    <th class="col-sm-2">
+                        <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}" id="order_publication">Published</a>
+                        <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}">
+                            <span class="glyphicon glyphicon-sort-by-order{% if order_by != '-created' %}-alt{% endif %}" aria-hidden="true"></span>
+                        </a>
+                    </th>
+                    <th class="col-sm-2">
+                        <span class="h4" style="text-decoration: none; vertical-align: middle;">Relations</span>
+                        <!-- <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-relation_count' %}?order_by=relation_count{% else %}?order_by=-relation_count{% endif %}" id="order_publication">Relations</a>
+                        <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-relation_count' %}?order_by=relation_count{% else %}?order_by=-relation_count{% endif %}">
+                            <span class="glyphicon glyphicon-sort-by-order{% if order_by != '-relation_count' %}-alt{% endif %}" aria-hidden="true"></span>
+                        </a> -->
+                    </th>
+                </thead>
+            {% for text in page.object_list %}
+                <tbody>
+                    <tr>
+                        <td><a href="{% url "text" text.object.id %}">{{ text.object.title }}</a></td>
+                        <td>{{ text.object.created }}</td>
+                        <td><span class="badge">{{ text.object.relation_count }}</span></td>
+                    </tr>
+                </tbody>
+            {% endfor %}
+            </table>
             {% if page.has_previous or page.has_next %}
                 <div>
                     {% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}

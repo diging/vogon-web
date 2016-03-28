@@ -2,3 +2,5 @@
 {{ object.addedBy.get_full_name}}
 {{ object.tokenizedContent }}
 {{ object.id }}
+{{ object.created }}
+{{ object.relation_count }}
