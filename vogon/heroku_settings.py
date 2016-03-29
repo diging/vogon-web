@@ -163,3 +163,5 @@ TEMPORAL_PREDICATES = {
     'end': 'http://www.digitalhps.org/concepts/CONbfd1fc2d-0393-4bdb-92f5-7500cdc507f8',
     'occur': 'http://www.digitalhps.org/concepts/ba626314-5d54-41b6-8f41-0013be5269be'
 }
+
+BROKER_POOL_LIMIT = 0
