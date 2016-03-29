@@ -33,6 +33,7 @@ def populate_relation_generic_fields(apps, schema_editor):
     for relation in Relation.objects.all():
         relationSet = RelationSet(
             createdBy_id = relation.createdBy.id,
+            occursIn = relation.occursIn,
         )
         relationSet.save()
         # Need to look at the controlling_verb, and if set create nested
