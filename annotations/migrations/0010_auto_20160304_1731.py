@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 
 
+def fake(*args, **kwargs):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,9 +15,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='vogonuser',
-            name='imagefile',
-            field=models.URLField(null=True, blank=True),
-        ),
+        migrations.RunPython(fake, fake),
+        # migrations.AlterField(
+        #     model_name='vogonuser',
+        #     name='imagefile',
+        #     field=models.URLField(null=True, blank=True),
+        # ),
     ]
