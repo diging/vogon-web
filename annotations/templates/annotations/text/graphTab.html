@@ -12,7 +12,12 @@
 
 </div>
 <script>
-$('body').ready(function() {
+
+/**
+  *  We wrap this in a function so that we can reload the graph data after
+  *   creating a new appellation or relation.
+  */
+var reloadGraph = function() {
     var cy;
     $.ajax('{% url "network_for_text" text.id %}?user={{ user.id }}', {
         // When the data is returned, generate an interative visualization
@@ -187,8 +192,9 @@ $('body').ready(function() {
         cy.fit();
     }
     $(window).resize(resizeGraph);
-
-
+}
+$('body').ready(function() {
+    reloadGraph();
 });
 
 </script>

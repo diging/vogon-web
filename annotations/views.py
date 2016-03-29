@@ -1043,6 +1043,10 @@ def add_relationtemplate(request):
                     elif form.cleaned_data[part + '_node_type'] == 'CO':
                         setattr(relationTemplatePart, part + '_concept',
                                 form.cleaned_data[part + '_concept'])
+                        # We may still want to provide instructions to the user
+                        #  via the description field.
+                        setattr(relationTemplatePart, part + '_description',
+                                form.cleaned_data[part + '_description'])
 
                     # Node is another RelationTemplatePart.
                     elif form.cleaned_data[part + '_node_type'] == 'RE':
@@ -1208,6 +1212,7 @@ def create_from_relationtemplate(request, template_id):
 
         relation_data = {}
         for field in data['fields']:
+
             if field['part_id'] not in relation_data:
                 relation_data[int(field['part_id'])] = {}
             relation_data[int(field['part_id'])][field['part_field']] = field
@@ -1237,7 +1242,6 @@ def create_from_relationtemplate(request, template_id):
             if node_type == RelationTemplatePart.CONCEPT:
                 # The interpretation is already provided.
                 interpretation = getattr(template_part, '%s_concept' % field)
-                print template_part.__dict__
             elif node_type == RelationTemplatePart.TOBE:
                 interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")
             elif node_type == RelationTemplatePart.HAS:
@@ -1245,13 +1249,13 @@ def create_from_relationtemplate(request, template_id):
             if interpretation:
                 appellation_data.update({'interpretation': interpretation})
 
-            print appellation_data
             if field == 'predicate':
                 appellation_data.update({'asPredicate': True})
-
             appellation = Appellation(**appellation_data)
             appellation.save()
             return appellation
+
+        relation_dependency_graph = nx.DiGraph()
 
         # Since we don't know anything about the structure of the
         #  RelationTemplate, we watch for nodes that expect to be Relation
@@ -1267,7 +1271,7 @@ def create_from_relationtemplate(request, template_id):
             relation_id : int
             relation : :class:`.Relation`
             """
-            print part_id
+
             if part_id in relation_data_processed:
                 return relation_data_processed[part_id]
 
@@ -1279,7 +1283,6 @@ def create_from_relationtemplate(request, template_id):
 
                 node_type = getattr(template_part, '%s_node_type' % field)
                 evidence_required = getattr(template_part, '%s_prompt_text' % field)
-                print field, node_type, evidence_required
 
                 if node_type == RelationTemplatePart.TYPE:
                     field_data = relation_data[part_id][field]
@@ -1289,11 +1292,12 @@ def create_from_relationtemplate(request, template_id):
                     # -vv- Recusion happens here! -vv-
                     child_part = getattr(template_part, '%s_relationtemplate' % field)
                     part_data['%s_object_id' % field], part_data['%s_content_type' % field] = process_recurse(child_part.id, child_part)
+                    relation_dependency_graph.add_edge(part_id, part_data['%s_object_id' % field])
                 else:   # We will need to create an Appellation.
-                    print relation_data[part_id].keys()
                     field_data = relation_data[part_id].get(field, None)
                     part_data['%s_object_id' % field] = create_appellation(field_data, template_part, field, evidence_required).id
                     part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
+
             part_data['predicate_id'] = part_data['predicate_object_id']
             del part_data['predicate_object_id']
             del part_data['predicate_content_type']
@@ -1307,6 +1311,55 @@ def create_from_relationtemplate(request, template_id):
         for part_id, template_part in template_parts.iteritems():
             process_recurse(part_id, template_part)
 
+        # The first element should be the root of the graph. This is where we
+        #  need to "attach" the temporal relations.
+        root = nx.topological_sort(relation_dependency_graph)[0]
+        for temporalType in ['start', 'end', 'occur']:
+            temporalData = data.get(temporalType, None)
+            if temporalData:
+
+                # The predicate indicates the type of temporal dimension.
+                predicate_uri = settings.TEMPORAL_PREDICATES.get(temporalType)
+                if not predicate_uri:
+                    continue
+                predicate_concept = Concept.objects.get_or_create(uri=predicate_uri, defaults={'authority': 'Conceptpower'})[0]
+                predicate_data = {
+                    'occursIn_id': data['occursIn'],
+                    'createdBy_id': request.user.id,
+                    'interpretation': predicate_concept,
+                    'asPredicate': True,
+                }
+                predicate_appellation = Appellation(**predicate_data)
+                predicate_appellation.save()
+
+                # The object need not have a URI (concept) interpretation; we
+                #  use an ISO8601 date literal instead. This non-concept
+                #  appellation is represented internally as a DateAppellation.
+                object_data = {
+                    'occursIn_id': data['occursIn'],
+                    'createdBy_id': request.user.id,
+                }
+                for field in ['year', 'month', 'day']:
+                    value = temporalData.get(field)
+                    if not value:
+                        continue
+                    object_data[field] = value
+
+                object_appellation = DateAppellation(**object_data)
+                object_appellation.save()
+
+                temporalRelation = Relation(**{
+                    'source_content_type': ContentType.objects.get_for_model(Relation),
+                    'source_object_id': root,
+                    'part_of': relation_set,
+                    'predicate': predicate_appellation,
+                    'object_content_type': ContentType.objects.get_for_model(DateAppellation),
+                    'object_object_id': object_appellation.id,
+                    'occursIn_id': data['occursIn'],
+                    'createdBy_id': request.user.id,
+                })
+                temporalRelation.save()
+
         response_data = {'relationset': relation_set.id}
     else:   # Not sure if we want to do anything for GET requests at this point.
         response_data = {}
@@ -1315,24 +1368,79 @@ def create_from_relationtemplate(request, template_id):
 
 
 def network_for_text(request, text_id):
-    relationset_queryset = RelationSet.objects.filter(occursIn_id=text_id)
+    """
+    Provides network data for the graph tab in the text annotation view.
+    """
+    relationsets = RelationSet.objects.filter(occursIn_id=text_id)
+    apppellations = Appellation.objects.filter(asPredicate=False,
+                                               occursIn_id=text_id)
 
+    # We may want to show this graph on the public (non-annotation) text view,
+    #  and thus want to load appellations created by everyone.
     user_id = request.GET.get('user', None)
     if user_id:
-        relationset_queryset = relationset_queryset.filter(createdBy_id=user_id)
+        relationsets = relationsets.filter(createdBy_id=user_id)
+        apppellations = apppellations.filter(createdBy_id=user_id)
 
-    nodes, edges = generate_network_data(relationset_queryset, text_id=text_id)
-    print nodes, edges
+    nodes, edges = generate_network_data(relationsets, text_id=text_id,
+                                         appellation_queryset=apppellations)
+
     return JsonResponse({'elements': nodes.values() + edges.values()})
 
 
-def generate_network_data(relationset_queryset, text_id=None, user_id=None):
+def generate_network_data(relationset_queryset, text_id=None, user_id=None,
+                          appellation_queryset=None):
     """
     Generate a network of :class:`.Concept` instances based on
     :class:.`.RelationSet` instances in ``relationset_queryset``.
     """
     edges = {}
     nodes = {}
+
+    # If we want to show any non-related appellations, we can include them
+    #  in this separate appellation_queryset.
+    if appellation_queryset:
+        for appellation in appellation_queryset:
+            node = appellation.interpretation
+            if node.id not in nodes:
+                applln_set = node.appellation_set.all()
+
+                # These are useful in the main network view for displaying
+                #  information about the texts associated with each concept.
+                texts = {}
+                for obj in applln_set:
+                    if obj.occursIn.id in texts:     # Avoid duplicates.
+                        continue
+                    texts[obj.occursIn.id] = {
+                        'id': obj.occursIn.id,
+                        'title': obj.occursIn.title
+                    }
+
+                # We only need IDs. The consumer can do what it pleases
+                #  from there.
+                applln_set = applln_set.values('id')
+
+                if node.typed:
+                    type_id = node.typed.id
+                else:
+                    type_id = None
+
+                nodes[node.id] = {
+                    'data': {
+                        'id': node.id,
+                        'label': node.label,
+                        'uri': node.uri,
+                        'description': node.description,
+                        'type': type_id,
+                        'appellations': [obj['id'] for obj in applln_set],
+                        'weight': 0.,
+                        'texts': texts.values()
+                    }
+                }
+
+            # Node is already in the network, so we just increment weight.
+            nodes[node.id]['data']['weight'] += 1.
+
     for relationset in relationset_queryset:
         for source, target in combinations(relationset.concepts(), 2):
             edge_key = tuple(sorted([source.id, target.id]))

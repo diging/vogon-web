@@ -55,6 +55,7 @@ angular.module('annotationApp')
         appellationService.createAppellation(data).then(function(appellation) {
             $scope.selectAppellation(appellation);
             $scope.$emit('appellationCreated');
+            reloadGraph();  // Wait until the appellation is actually created.
         });
         $scope.reset();
     }

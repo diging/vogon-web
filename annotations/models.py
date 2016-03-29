@@ -258,6 +258,25 @@ class Interpreted(models.Model):
         return None
 
 
+class DateAppellation(Annotation):
+    """
+    Dates can be represented as ISO-8601 literals, with variable precision.
+    """
+    year = models.PositiveIntegerField(default=1)
+    month = models.IntegerField(default=0)
+    day = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return u'-'.join([unicode(part) for part in [self.year, self.month, self.day] if part > 0])
+
+    @property
+    def precision(self):
+        if self.day > 0:
+            return 'day'
+        elif self.month > 0:
+            return 'month'
+        return 'year'
+
 
 class Appellation(Annotation, Interpreted):
     """
@@ -353,7 +372,6 @@ class RelationSet(models.Model):
         """
 
         return Concept.objects.filter(pk__in=[obj['interpretation_id'] for obj in self.appellations().values('interpretation_id')])
-
 
 
 class Relation(Annotation):

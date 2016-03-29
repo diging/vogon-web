@@ -183,3 +183,10 @@ AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
 AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
 S3_BUCKET = 'vogonweb-test'
 DEFAULT_USER_IMAGE = 'https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png'
+
+
+TEMPORAL_PREDICATES = {
+    'start': 'http://www.digitalhps.org/concepts/CONbbbb0940-84be-4450-b92f-557a78249ebd',
+    'end': 'http://www.digitalhps.org/concepts/CONbfd1fc2d-0393-4bdb-92f5-7500cdc507f8',
+    'occur': 'http://www.digitalhps.org/concepts/ba626314-5d54-41b6-8f41-0013be5269be'
+}
