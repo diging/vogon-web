@@ -3,13 +3,15 @@ from annotations.models import *
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django import forms
-from django.forms import widgets
+from django.forms import widgets, BaseFormSet
 from crispy_forms.helper import FormHelper
 
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 import autocomplete_light
+
+import networkx as nx
 
 # class CrispyUserChangeForm(UserChangeForm):
 # 	password = None		# This field was set in the Form ancestor, so exclude
@@ -225,9 +227,39 @@ class ChoiceIntegerField(forms.IntegerField):
 
 
 class RelationTemplateForm(forms.ModelForm):
+	name = forms.CharField(widget=forms.TextInput(attrs={
+			'class': 'form-control',
+			'placeholder': 'What is this relation called?'
+		}))
+	description = forms.CharField(widget=forms.Textarea(attrs={
+			'class': 'form-control',
+			'rows': 2,
+			'placeholder': 'Please describe this relation.',
+		}))
+	expression = forms.CharField(widget=forms.Textarea(attrs={
+			'class': 'form-control',
+			'rows': 2,
+			'placeholder': 'Enter an expression pattern for this relation.'
+		}))
+
 	class Meta:
 		model = RelationTemplate
 		exclude = []
+
+
+class UberCheckboxInput(forms.CheckboxInput):
+	def value_from_datadict(self, data, files, name):
+		"""
+		For some stupid reason, some checked checkboxes are getting passed as
+		'', and :class:`forms.CheckboxInput` stupidly calls these values False.
+		So, we fix that. If the field is present in the POST data, then it is
+		True. Grrrr.
+		"""
+		if name not in data:
+		# A missing value means False because HTML form submission does not
+		# send results for unselected checkboxes.
+			return False
+		return True
 
 
 class RelationTemplatePartForm(forms.ModelForm):
@@ -236,13 +268,23 @@ class RelationTemplatePartForm(forms.ModelForm):
 	TODO: make sure that there are no self-loops in inter-part references.
 	"""
 	source_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
+	source_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.NODE_CHOICES), required=True,
+										 widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'source'}))
+
 	source_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'source_concept'}), required=False)
+	source_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
 
 	predicate_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
+	predicate_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.PRED_CHOICES), required=True,
+											widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'predicate'}))
 	predicate_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'predicate_concept'}), required=False)
+	predicate_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
 
 	object_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
+	object_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.NODE_CHOICES), required=True,
+										 widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'object'}))
 	object_concept_text= forms.CharField(widget=AutocompleteWidget(attrs={'target': 'object_concept'}), required=False)
+	object_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
 
 	source_relationtemplate_internal_id = ChoiceIntegerField(required=False)
 	object_relationtemplate_internal_id = ChoiceIntegerField(required=False)
@@ -269,36 +311,62 @@ class RelationTemplatePartForm(forms.ModelForm):
 			)
 
 	def __init__(self, *args, **kwargs):
+
+
 		super(RelationTemplatePartForm, self).__init__(*args, **kwargs)
 
 		# We need a bit of set-up for angular data bindings to work properly
 		#  on the form.
 		# Angular can't handle hyphens, so we use underscores.
+		print self.prefix
 		self.safe_prefix = self.prefix.replace('-', '_')
 
 		self.ident = self.prefix.split('-')[-1]
-		self.fields['source_node_type'].widget = widgets.Select(choices=self.fields['source_node_type'].widget.choices, attrs={'ng-model': "selection_{id}_source_node_type".format(id=self.safe_prefix)})
-		self.fields['predicate_node_type'].widget = widgets.Select(choices=self.fields['predicate_node_type'].widget.choices, attrs={'ng-model': "selection_{id}_predicate_node_type".format(id=self.safe_prefix)})
-		self.fields['object_node_type'].widget = widgets.Select(choices=self.fields['object_node_type'].widget.choices, attrs={'ng-model': "selection_{id}_object_node_type".format(id=self.safe_prefix)})
-
-		self.fields['source_relationtemplate_internal_id'].widget = widgets.Select(attrs={'ng-init': "selection_{id}_subject_relationtemplate = relation_options[0]".format(id=self.safe_prefix), 'ng-options': 'item as item for item in relation_options', 'ng-model': "selection_{id}_subject_relationtemplate".format(id=self.safe_prefix)})
-		self.fields['object_relationtemplate_internal_id'].widget = widgets.Select(attrs={'ng-init': "selection_{id}_object_relationtemplate = relation_options[0]".format(id=self.safe_prefix), 'ng-options': 'item as item for item in relation_options', 'ng-model': "selection_{id}_object_relationtemplate".format(id=self.safe_prefix)})
-
 		self.fields['internal_id'].initial = self.ident
 
 		for fname, field in self.fields.iteritems():
 			if 'prompt_text' in fname:
 				continue
-			field.widget.attrs.update({'class': 'form-control'})
+			if 'class' not in field.widget.attrs:
+				field.widget.attrs.update({'class': 'form-control'})
 
 			if 'target' in field.widget.attrs:
-				field.widget.attrs['target'] = 'id_form-{0}-'.format(self.ident) + field.widget.attrs['target']
-
-		# self.fields['source_type'].widget = widgets.Select(choices=self.fields['source_type'].widget.choices, attrs={'ng-show': "source_node_type_{id} == 'TP'".format(id=inst)})
-		# self.fields['source_concept'].widget = widgets.Select(choices=self.fields['source_concept'].widget.choices, attrs={'ng-show': "source_node_type_{id} == 'CO'".format(id=inst)})
-		# self.fields['source_relationtemplate'].widget = widgets.Select(choices=self.fields['source_relationtemplate'].widget.choices, attrs={'ng-show': "source_node_type_{id} == 'RE'".format(id=inst)})
+				field.widget.attrs['target'] = 'id_{0}-'.format(self.prefix) + field.widget.attrs['target']
 
 	def clean(self, *args, **kwargs):
 		super(RelationTemplatePartForm, self).clean(*args, **kwargs)
 
-		# print self.cleaned_data
+		for field in ['source', 'object']:
+			selected_node_type = self.cleaned_data.get('%s_node_type' % field)
+			# If the user has selected the "Concept type" field, then they must
+			#  also provide a specific concept type.
+			if selected_node_type == 'TP':
+				if not self.cleaned_data.get('%s_type' % field, None):
+					self.add_error('%s_type' % field, 'Must select a concept type')
+
+
+class RelationTemplatePartFormSet(BaseFormSet):
+	"""
+	Ensure that the structure of the links among relation template parts is
+	coherent: it must be acyclic, and the parts must all be connected.
+	"""
+	def clean(self):
+		if any(self.errors):
+			return
+
+		formGraph = nx.DiGraph()	# Dependency graph among parts.
+		for form in self.forms:
+			formGraph.add_node(form.cleaned_data['internal_id'])
+			for field in ['source', 'object']:
+				fieldname = '%s_relationtemplate_internal_id' % field
+				target = form.cleaned_data[fieldname]
+				if target > -1:
+					formGraph.add_edge(form.cleaned_data['internal_id'], target)
+
+		if not nx.is_directed_acyclic_graph(formGraph):
+			for form in self.forms:
+				form.add_error(None, 'Circular reference among relation parts.')
+
+		if not nx.is_connected(formGraph.to_undirected()):
+			for form in self.forms:
+				form.add_error(None, 'At least one relation part is disconnected from the rest of the relation.')

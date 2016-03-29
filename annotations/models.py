@@ -410,9 +410,9 @@ class RelationTemplate(models.Model):
                         'type': 'TP',
                         'part_id': tpart.id,
                         'part_field': field,
-                        'concept_id': getattr(tpart, '%s_type' % field).id,
+                        'concept_id': getattr(getattr(tpart, '%s_type' % field), 'id', None),
                         'label': getattr(tpart, '%s_label' % field),
-                        'concept_label': getattr(tpart, '%s_type' % field).label,
+                        'concept_label': getattr(getattr(tpart, '%s_type' % field), 'label', None),
                         'evidence_required': evidenceRequired,
                         'description': getattr(tpart, '%s_description' % field),
                     })
@@ -423,9 +423,9 @@ class RelationTemplate(models.Model):
                         'type': 'CO',
                         'part_id': tpart.id,
                         'part_field': field,
-                        'concept_id': getattr(tpart, '%s_concept' % field).id,
+                        'concept_id': getattr(getattr(tpart, '%s_concept' % field), 'id', None),
                         'label': getattr(tpart, '%s_label' % field),
-                        'concept_label': getattr(tpart, '%s_concept' % field).label,
+                        'concept_label': getattr(getattr(tpart, '%s_concept' % field), 'label', None),
                         'evidence_required': evidenceRequired,
                         'description': getattr(tpart, '%s_description' % field),
                     })

@@ -72,6 +72,7 @@ from hashlib import sha1
 import base64
 import logging
 logger = logging.getLogger(__name__)
+logger.setLevel('ERROR')
 
 
 def home(request):
@@ -992,18 +993,22 @@ def add_relationtemplate(request):
 
     # Each RelationTemplatePart is a "triple", the subject or object of which
     #  might be another RelationTemplatePart.
-    formset = formset_factory(RelationTemplatePartForm)
+    formset = formset_factory(RelationTemplatePartForm, formset=RelationTemplatePartFormSet)
     form_class = RelationTemplateForm   # e.g. Name, Description.
 
     context = {}
     error = None    # TODO: <-- make this less hacky.
     if request.POST:
+        logger.debug('add_relationtemplate: post request')
+
         # Instatiate both form(set)s with data.
-        relationtemplatepart_formset = formset(request.POST)
-        context['formset'] = relationtemplatepart_formset
+        relationtemplatepart_formset = formset(request.POST, prefix='parts')
         relationtemplate_form = form_class(request.POST)
+        context['formset'] = relationtemplatepart_formset
+        context['templateform'] = relationtemplate_form
 
         if relationtemplatepart_formset.is_valid() and relationtemplate_form.is_valid():
+            logger.debug('add_relationtemplate: both forms are valid')
             # We commit the RelationTemplate to the database first, so that we
             #  can use it in the FK relation ``RelationTemplatePart.part_of``.
             relationTemplate = relationtemplate_form.save()
@@ -1026,7 +1031,6 @@ def add_relationtemplate(request):
                             form.cleaned_data[part + '_prompt_text'])
                     setattr(relationTemplatePart, part + '_label',
                             form.cleaned_data[part + '_label'])
-
 
                     # Node is a concept Type. e.g. ``E20 Person``.
                     if form.cleaned_data[part + '_node_type'] == 'TP':
@@ -1090,6 +1094,7 @@ def add_relationtemplate(request):
                                 setattr(relationTemplateParts[i],
                                         part + '_relationtemplate',
                                         relationTemplateParts[dep])
+                        # Only save non-committed instances.
                         if not relationTemplateParts[i].id:
                             relationTemplateParts[i].save()
 
@@ -1107,8 +1112,14 @@ def add_relationtemplate(request):
                 #  we should probably make this part of the normal validation
                 #  process in the future. See comments above.
                 context['error'] = error
+        else:
+            logger.debug('add_relationtemplate: forms not valid')
+            context['formset'] = relationtemplatepart_formset
+            context['templateform'] = relationtemplate_form
+
     else:   # No data, start with a fresh formset.
-        context['formset'] = formset()
+        context['formset'] = formset(prefix='parts')
+        context['templateform'] = form_class()
 
     return render(request, 'annotations/relationtemplate.html', context)
 

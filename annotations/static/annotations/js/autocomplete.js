@@ -49,7 +49,7 @@ var bindAutocomplete = function(selector, pos) {
                 })
                 .autocomplete( "instance" )._renderItem = function( ul, item ) {
                     ul.addClass('list-group');
-                    return $( "<a class='list-group-item'>" )
+                    return $( "<a class='list-group-item' style='cursor: pointer;'>" )
                         .append( "" + item.label + "<br><span class='text-muted'>" + item.description + "</span>" )
                         .appendTo( ul );
                 };
