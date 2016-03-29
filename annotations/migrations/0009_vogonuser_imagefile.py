@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 
+def fake(*args, **kwargs):
+    pass
+
 
 class Migration(migrations.Migration):
 
@@ -11,9 +14,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='vogonuser',
-            name='imagefile',
-            field=models.FileField(default=b'', null=True, upload_to=b'uploads/', blank=True),
-        ),
+        migrations.RunPython(fake, fake),
+        # migrations.AddField(
+        #     model_name='vogonuser',
+        #     name='imagefile',
+        #     field=models.FileField(default=b'', null=True, upload_to=b'uploads/', blank=True),
+        # ),
     ]
