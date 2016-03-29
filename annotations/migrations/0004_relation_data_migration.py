@@ -43,12 +43,14 @@ def populate_relation_generic_fields(apps, schema_editor):
             haveAppellation = Appellation(
                 occursIn = relation.occursIn,
                 createdBy_id = relation.createdBy.id,
+                asPredicate = True,
             )
             haveAppellation.interpretation = have
             haveAppellation.save()
             beAppellation = Appellation(
                 occursIn = relation.occursIn,
                 createdBy_id = relation.createdBy.id,
+                asPredicate = True,
             )
             beAppellation.interpretation = be
             beAppellation.save()
