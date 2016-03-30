@@ -1372,18 +1372,18 @@ def network_for_text(request, text_id):
     Provides network data for the graph tab in the text annotation view.
     """
     relationsets = RelationSet.objects.filter(occursIn_id=text_id)
-    apppellations = Appellation.objects.filter(asPredicate=False,
-                                               occursIn_id=text_id)
+    appellations = Appellation.objects.filter(asPredicate=False,
+                                              occursIn_id=text_id)
 
     # We may want to show this graph on the public (non-annotation) text view,
     #  and thus want to load appellations created by everyone.
     user_id = request.GET.get('user', None)
     if user_id:
         relationsets = relationsets.filter(createdBy_id=user_id)
-        appellations = apppellations.filter(createdBy_id=user_id)
+        appellations = appellations.filter(createdBy_id=user_id)
 
     nodes, edges = generate_network_data(relationsets, text_id=text_id,
-                                         appellation_queryset=apppellations)
+                                         appellation_queryset=appellations)
 
     return JsonResponse({'elements': nodes.values() + edges.values()})
 
@@ -1404,7 +1404,7 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
         related_fields = ['interpretation', 'interpretation__appellation',
                           'interpretation__appellation__occursIn',
                           'interpretation__typed', 'occursIn']
-        appellation_queryset = appellation_queryset.select_related(*related_fields)
+        appellation_queryset = appellation_queryset.filter(asPredicate=False).select_related(*related_fields)
 
         # Load only these fields, for performance.
         fields = ['interpretation__id',  'interpretation__label',
@@ -1413,8 +1413,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                   'interpretation__appellation__id',
                   'interpretation__appellation__occursIn__id',
                   'interpretation__appellation__occursIn__title']
-
-
 
         # This will yield one object per text, so we will see the same
         #  appellation and corresponding interpretations several times.
@@ -1437,7 +1435,7 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                         'description': node_description,
                         'type': node_type,
                         'appellations': set([]),
-                        'weight': 0.,
+                        'weight': 1.,
                         'texts': set([])
                     }
                 }
@@ -1462,6 +1460,7 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
 
     related_fields = ['id', 'occursIn__id', 'occursIn__title',
                       'constituents__source_appellations__id', 'constituents__object_appellations__id',
+                      'constituents__source_appellations__asPredicate', 'constituents__object_appellations__asPredicate',
                       'constituents__source_appellations__interpretation__id', 'constituents__object_appellations__interpretation__id',
                       'constituents__source_appellations__interpretation__label', 'constituents__object_appellations__interpretation__label',
                       'constituents__source_appellations__interpretation__uri', 'constituents__object_appellations__interpretation__uri',
@@ -1473,11 +1472,12 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
     for obj in relationset_queryset.values(*related_fields):
         for field in ['source', 'object']:
             appell_id = obj.get('constituents__%s_appellations__id' % field)
+            appell_asPredicate = obj.get('constituents__%s_appellations__asPredicate' % field)
             node_id = obj.get('constituents__%s_appellations__interpretation__id' % field)
-
+            
             # Node may be a Relation or a DateAppellation, which we don't want
             #  in the network.
-            if node_id is None:
+            if node_id is None or appell_asPredicate:
                 continue
 
             node_label = obj.get('constituents__%s_appellations__interpretation__label' % field)
@@ -1494,7 +1494,7 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                         'description': node_description,
                         'type': node_type,
                         'appellations': set([]),
-                        'weight': 0.,
+                        'weight': 1.,
                         'texts': set([])
                     }
                 }
@@ -1518,14 +1518,16 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             nodes[node_id]['data']['appellations'].add(interp_app_id)
 
         source_id = obj.get('constituents__source_appellations__interpretation__id')
+        source_asPredicate = obj.get('constituents__source_appellations__asPredicate')
         object_id = obj.get('constituents__object_appellations__interpretation__id')
+        object_asPredicate = obj.get('constituents__object_appellations__asPredicate')
 
         relationset_id = obj.get('id')
         if relationset_id not in relationset_nodes:
             relationset_nodes[relationset_id] = set([])
-        if source_id:
+        if source_id and not source_asPredicate:
             relationset_nodes[relationset_id].add(source_id)
-        if object_id:
+        if object_id and not object_asPredicate:
             relationset_nodes[relationset_id].add(object_id)
 
         # We use a set here to avoid dupes.
@@ -1534,7 +1536,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
         relationset_texts[relationset_id] = (text_id, text_title)
 
     for relationset_id, relation_nodes in relationset_nodes.iteritems():
-
         for source_id, object_id in combinations(relation_nodes, 2):
             edge_key = tuple(sorted((source_id, object_id)))
             if edge_key not in edges:
@@ -1604,6 +1605,7 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
         node['data']['texts'] = [{'id': text[0], 'title': text[1]}
                                   for text in list(node['data']['texts'])]
         node['data']['appellations'] = list(node['data']['appellations'])
+
 
     for edge in edges.values():
         edge['data']['texts'] = [{'id': text[0], 'title': text[1]}
