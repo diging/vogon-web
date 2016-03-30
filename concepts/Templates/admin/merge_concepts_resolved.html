@@ -5,8 +5,7 @@
 {% block breadcrumbs %}
 <div class="breadcrumbs">
      <a href="../../">{% trans "Home" %}</a> &rsaquo;
-     <a href="../">{{ app_label|capfirst }}</a> &rsaquo;
-     <a href="./">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+
      {% trans 'Merge Concepts' %}
 </div>
 {% endblock %}
@@ -30,11 +29,13 @@
     </ul>
 
     <br>
-    <form  method="post">{% csrf_token %}
+    <form  method="POST" action="{{path}}">{% csrf_token %}
+
+     {{form}}
 
 
     <input type="hidden" name="action" value="merge_concepts" />
-    <input type="submit" name="post" value="Yes, I'm sure" />
+    <input type="submit" name="submitmergeaction" value="Yes, I'm sure" />
 
     <a href="#" onclick="window.history.back(); return false;" class="button cancel-link">No, take me back</a>
     </form>
