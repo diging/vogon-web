@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.files import File
 from django.core.serializers import serialize
+from django.core.cache import caches
 
 from django.contrib.auth import login,authenticate
 from django.contrib.auth.models import Group
@@ -801,59 +802,67 @@ def network_data(request):
     user = request.GET.get('user', None)
     text = request.GET.get('text', None)
 
-    queryset = RelationSet.objects.all()
-    if project:
-        queryset = queryset.filter(occursIn__partOf_id=project)
-    if user:
-        queryset = queryset.filter(createdBy_id=user)
-    if text:
-        queryset = queryset.filter(occursIn_id=text)
+    cache_key = '::'.join(['network_data', str(project), str(user), str(text)])
+    cache = caches['default']
 
-    nodes, edges = generate_network_data(queryset)
-    nodes_rebased = {}
-    edges_rebased = {}
-    node_lookup = {}
-    max_edge = 0.
-    max_node = 0.
-    for i, node in enumerate(nodes.values()):
-        ogn_id = copy.deepcopy(node['data']['id'])
-        nodes_rebased[i] = copy.deepcopy(node)
-        # nodes_rebased[i].update({'id': i})
-        nodes_rebased[i]['data']['id'] = i
-        nodes_rebased[i]['data']['concept_id'] = ogn_id
+    response_data = cache.get(cache_key)
+    if not response_data:
+        queryset = RelationSet.objects.all()
+        if project:
+            queryset = queryset.filter(occursIn__partOf_id=project)
+        if user:
+            queryset = queryset.filter(createdBy_id=user)
+        if text:
+            queryset = queryset.filter(occursIn_id=text)
 
-        node_lookup[ogn_id] = i
+        nodes, edges = generate_network_data(queryset)
+        nodes_rebased = {}
+        edges_rebased = {}
+        node_lookup = {}
+        max_edge = 0.
+        max_node = 0.
+        for i, node in enumerate(nodes.values()):
+            ogn_id = copy.deepcopy(node['data']['id'])
+            nodes_rebased[i] = copy.deepcopy(node)
+            # nodes_rebased[i].update({'id': i})
+            nodes_rebased[i]['data']['id'] = i
+            nodes_rebased[i]['data']['concept_id'] = ogn_id
 
-        if node['data']['weight'] > max_node:
-            max_node = node['data']['weight']
-    for i, edge in enumerate(edges.values()):
-        ogn_id = copy.deepcopy(edge['data']['id'])
-        edges_rebased[i] = copy.deepcopy(edge)
-        # edges_rebased[i] = edge['data']
-        # edges_rebased[i].update({'id': i + len(nodes_rebased)})
-        edges_rebased[i]['data'].update({'id': i + len(nodes_rebased)})
-        edges_rebased[i]['data']['source'] = nodes_rebased[node_lookup[edge['data']['source']]]['data']['id']
-        edges_rebased[i]['data']['target'] = nodes_rebased[node_lookup[edge['data']['target']]]['data']['id']
-        if edge['data']['weight'] > max_edge:
-            max_edge = edge['data']['weight']
+            node_lookup[ogn_id] = i
 
-    for edge in edges_rebased.values():
-        edge['data']['weight'] = edge['data']['weight']/max_edge
-    for node in nodes_rebased.values():
-        node['data']['weight'] = (50 + (2 * node['data']['weight']))/max_node
+            if node['data']['weight'] > max_node:
+                max_node = node['data']['weight']
+        for i, edge in enumerate(edges.values()):
+            ogn_id = copy.deepcopy(edge['data']['id'])
+            edges_rebased[i] = copy.deepcopy(edge)
+            # edges_rebased[i] = edge['data']
+            # edges_rebased[i].update({'id': i + len(nodes_rebased)})
+            edges_rebased[i]['data'].update({'id': i + len(nodes_rebased)})
+            edges_rebased[i]['data']['source'] = nodes_rebased[node_lookup[edge['data']['source']]]['data']['id']
+            edges_rebased[i]['data']['target'] = nodes_rebased[node_lookup[edge['data']['target']]]['data']['id']
+            if edge['data']['weight'] > max_edge:
+                max_edge = edge['data']['weight']
 
-    graph = igraph.Graph()
-    graph.add_vertices(len(nodes_rebased))
+        for edge in edges_rebased.values():
+            edge['data']['weight'] = edge['data']['weight']/max_edge
+        for node in nodes_rebased.values():
+            node['data']['weight'] = (50 + (2 * node['data']['weight']))/max_node
 
-    graph.add_edges([(relation['data']['source'], relation['data']['target']) for relation in edges_rebased.values()])
-    layout = graph.layout_fruchterman_reingold()
+        graph = igraph.Graph()
+        graph.add_vertices(len(nodes_rebased))
 
-    for coords, node in zip(layout._coords, nodes_rebased.values()):
-        node['data']['pos'] = {
-            'x': coords[0] * 5,
-            'y': coords[1] * 5
-        }
-    return JsonResponse({'elements': nodes_rebased.values() + edges_rebased.values()})
+        graph.add_edges([(relation['data']['source'], relation['data']['target']) for relation in edges_rebased.values()])
+        layout = graph.layout_fruchterman_reingold()
+
+        for coords, node in zip(layout._coords, nodes_rebased.values()):
+            node['data']['pos'] = {
+                'x': coords[0] * 5,
+                'y': coords[1] * 5
+            }
+
+        response_data = {'elements': nodes_rebased.values() + edges_rebased.values()}
+        cache.set(cache_key, response_data, 300)
+    return JsonResponse(response_data)
 
 
 @login_required
@@ -1474,7 +1483,7 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             appell_id = obj.get('constituents__%s_appellations__id' % field)
             appell_asPredicate = obj.get('constituents__%s_appellations__asPredicate' % field)
             node_id = obj.get('constituents__%s_appellations__interpretation__id' % field)
-            
+
             # Node may be a Relation or a DateAppellation, which we don't want
             #  in the network.
             if node_id is None or appell_asPredicate:
