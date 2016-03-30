@@ -308,10 +308,12 @@ class Appellation(Annotation, Interpreted):
     # Reverse generic relations to Relation.
     relationsFrom = GenericRelation('Relation',
                                     content_type_field='source_content_type',
-                                    object_id_field='source_object_id')
+                                    object_id_field='source_object_id',
+                                    related_query_name='source_appellations')
     relationsTo = GenericRelation('Relation',
                                     content_type_field='object_content_type',
-                                    object_id_field='object_object_id')
+                                    object_id_field='object_object_id',
+                                    related_query_name='object_appellations')
 
     asPredicate = models.BooleanField(default=False)
     """

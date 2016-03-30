@@ -1380,7 +1380,7 @@ def network_for_text(request, text_id):
     user_id = request.GET.get('user', None)
     if user_id:
         relationsets = relationsets.filter(createdBy_id=user_id)
-        apppellations = apppellations.filter(createdBy_id=user_id)
+        appellations = apppellations.filter(createdBy_id=user_id)
 
     nodes, edges = generate_network_data(relationsets, text_id=text_id,
                                          appellation_queryset=apppellations)
@@ -1396,117 +1396,218 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
     """
     edges = {}
     nodes = {}
+    seen = set([])      # Appellation ids.
 
     # If we want to show any non-related appellations, we can include them
     #  in this separate appellation_queryset.
     if appellation_queryset:
-        for appellation in appellation_queryset:
-            node = appellation.interpretation
-            if node.id not in nodes:
-                applln_set = node.appellation_set.all()
+        related_fields = ['interpretation', 'interpretation__appellation',
+                          'interpretation__appellation__occursIn',
+                          'interpretation__typed', 'occursIn']
+        appellation_queryset = appellation_queryset.select_related(*related_fields)
 
-                # These are useful in the main network view for displaying
-                #  information about the texts associated with each concept.
-                texts = {}
-                for obj in applln_set:
-                    if obj.occursIn.id in texts:     # Avoid duplicates.
-                        continue
-                    texts[obj.occursIn.id] = {
-                        'id': obj.occursIn.id,
-                        'title': obj.occursIn.title
-                    }
+        # Load only these fields, for performance.
+        fields = ['interpretation__id',  'interpretation__label',
+                  'interpretation__uri', 'interpretation__description',
+                  'interpretation__typed__id', 'id',
+                  'interpretation__appellation__id',
+                  'interpretation__appellation__occursIn__id',
+                  'interpretation__appellation__occursIn__title']
 
-                # We only need IDs. The consumer can do what it pleases
-                #  from there.
-                applln_set = applln_set.values('id')
 
-                if node.typed:
-                    type_id = node.typed.id
-                else:
-                    type_id = None
 
-                nodes[node.id] = {
+        # This will yield one object per text, so we will see the same
+        #  appellation and corresponding interpretations several times.
+        for obj in appellation_queryset.values(*fields):
+            appell_id = obj.get('id')
+
+            # Nodes represent concepts (target of interpretation).
+            node_id = obj.get('interpretation__id')
+            node_type = obj.get('interpretation__typed__id')
+            node_label = obj.get('interpretation__label')
+            node_uri = obj.get('interpretation__uri')
+            node_description = obj.get('interpretation__description')
+
+            if node_id not in nodes:    # Only one node per concept.
+                nodes[node_id] = {
                     'data': {
-                        'id': node.id,
-                        'label': node.label,
-                        'uri': node.uri,
-                        'description': node.description,
-                        'type': type_id,
-                        'appellations': [obj['id'] for obj in applln_set],
+                        'id': node_id,
+                        'label': node_label,
+                        'uri': node_uri,
+                        'description': node_description,
+                        'type': node_type,
+                        'appellations': set([]),
                         'weight': 0.,
-                        'texts': texts.values()
+                        'texts': set([])
                     }
                 }
+            else:   # Don't need to add it again.
+                # Node is already in the network, so we just increment weight.
+                if appell_id not in seen:   # But only once per appellation.
+                    nodes[node_id]['data']['weight'] += 1.
+                    seen.add(appell_id)
 
-            # Node is already in the network, so we just increment weight.
-            nodes[node.id]['data']['weight'] += 1.
+            # These are useful in the main network view for displaying
+            #  information about the texts associated with each concept.
+            text_id = obj.get('interpretation__appellation__occursIn__id')
+            text_title = obj.get('interpretation__appellation__occursIn__title')
 
-    for relationset in relationset_queryset:
-        for source, target in combinations(relationset.concepts(), 2):
-            edge_key = tuple(sorted([source.id, target.id]))
-            for node in [source, target]:   # ...to save some writing.
-                if node.id not in nodes:
-                    applln_set = node.appellation_set.all()
-                    # All of the appellations in this text in which this
-                    #  particular concept was the interpretation.
-                    if text_id:
-                        applln_set = applln_set.filter(occursIn_id=text_id)
-                    if user_id:     # ...created by this user.
-                        applln_set = applln_set.filter(createdBy_id=user_id)
+            # We avoid duplicates by using a set; this needs to be recast to
+            #  a dict before we return the data.
+            nodes[node_id]['data']['texts'].add((text_id, text_title))
 
-                    # These are useful in the main network view for displaying
-                    #  information about the texts associated with each concept.
-                    texts = {}
-                    for obj in applln_set:
-                        if obj.occursIn.id in texts:     # Avoid duplicates.
-                            continue
-                        texts[obj.occursIn.id] = {
-                            'id': obj.occursIn.id,
-                            'title': obj.occursIn.title
-                        }
+            # A set again; must recast to list.
+            interp_app_id = obj.get('interpretation__appellation__id')
+            nodes[node_id]['data']['appellations'].add(interp_app_id)
 
-                    # We only need IDs. The consumer can do what it pleases
-                    #  from there.
-                    applln_set = applln_set.values('id')
+    related_fields = ['id', 'occursIn__id', 'occursIn__title',
+                      'constituents__source_appellations__id', 'constituents__object_appellations__id',
+                      'constituents__source_appellations__interpretation__id', 'constituents__object_appellations__interpretation__id',
+                      'constituents__source_appellations__interpretation__label', 'constituents__object_appellations__interpretation__label',
+                      'constituents__source_appellations__interpretation__uri', 'constituents__object_appellations__interpretation__uri',
+                      'constituents__source_appellations__interpretation__description', 'constituents__object_appellations__interpretation__description',
+                      'constituents__source_appellations__interpretation__typed__id', 'constituents__object_appellations__interpretation__typed__id',]
 
-                    if node.typed:
-                        type_id = node.typed.id
-                    else:
-                        type_id = None
+    relationset_nodes = {}
+    relationset_texts = {}
+    for obj in relationset_queryset.values(*related_fields):
+        for field in ['source', 'object']:
+            appell_id = obj.get('constituents__%s_appellations__id' % field)
+            node_id = obj.get('constituents__%s_appellations__interpretation__id' % field)
 
-                    nodes[node.id] = {
-                        'data': {
-                            'id': node.id,
-                            'label': node.label,
-                            'uri': node.uri,
-                            'description': node.description,
-                            'type': type_id,
-                            'appellations': [obj['id'] for obj in applln_set],
-                            'weight': 0.,
-                            'texts': texts.values()
-                        }
+            # Node may be a Relation or a DateAppellation, which we don't want
+            #  in the network.
+            if node_id is None:
+                continue
+
+            node_label = obj.get('constituents__%s_appellations__interpretation__label' % field)
+            node_uri = obj.get('constituents__%s_appellations__interpretation__uri' % field)
+            node_description = obj.get('constituents__%s_appellations__interpretation__description' % field)
+            node_type = obj.get('constituents__%s_appellations__interpretation__typed__id' % field)
+
+            if node_id not in nodes:    # Only one node per concept.
+                nodes[node_id] = {
+                    'data': {
+                        'id': node_id,
+                        'label': node_label,
+                        'uri': node_uri,
+                        'description': node_description,
+                        'type': node_type,
+                        'appellations': set([]),
+                        'weight': 0.,
+                        'texts': set([])
                     }
-                nodes[node.id]['data']['weight'] += 1.
+                }
+            else:   # Don't need to add it again.
+                # Node is already in the network, so we just increment weight.
+                if appell_id not in seen:   # But only once per appellation.
+                    nodes[node_id]['data']['weight'] += 1.
+                    seen.add(appell_id)
+
+            # These are useful in the main network view for displaying
+            #  information about the texts associated with each concept.
+            text_id = obj.get('occursIn__id')
+            text_title = obj.get('occursIn__title')
+
+            # We avoid duplicates by using a set; this needs to be recast to
+            #  a dict before we return the data.
+            nodes[node_id]['data']['texts'].add((text_id, text_title))
+
+            # A set again; must recast to list.
+            interp_app_id = obj.get('constituents__%s_appellations__id' % field)
+            nodes[node_id]['data']['appellations'].add(interp_app_id)
+
+        source_id = obj.get('constituents__source_appellations__interpretation__id')
+        object_id = obj.get('constituents__object_appellations__interpretation__id')
+
+        relationset_id = obj.get('id')
+        if relationset_id not in relationset_nodes:
+            relationset_nodes[relationset_id] = set([])
+        if source_id:
+            relationset_nodes[relationset_id].add(source_id)
+        if object_id:
+            relationset_nodes[relationset_id].add(object_id)
+
+        # We use a set here to avoid dupes.
+        text_id = obj.get('occursIn__id')
+        text_title = obj.get('occursIn__title')
+        relationset_texts[relationset_id] = (text_id, text_title)
+
+    for relationset_id, relation_nodes in relationset_nodes.iteritems():
+
+        for source_id, object_id in combinations(relation_nodes, 2):
+            edge_key = tuple(sorted((source_id, object_id)))
             if edge_key not in edges:
                 edges[edge_key] = {
                     'data': {
                         'id': len(edges),
-                        'source': source.id,
-                        'target': target.id,
+                        'source': source_id,
+                        'target': object_id,
                         'weight': 0.,
-                        'texts': {}
+                        'texts': set([])
                     }
                 }
+            edges[edge_key]['data']['texts'].add(relationset_texts[relationset_id])
             edges[edge_key]['data']['weight'] += 1.
-            # We use a dict here to avoid dupes.
-            edges[edge_key]['data']['texts'][relationset.occursIn.id] = {
-                'id': relationset.occursIn.id,
-                'title': relationset.occursIn.title
-            }
 
-    # But we want a list (not a dict) in the final data.
+
+
+    # for relationset in relationset_queryset:
+    #     for source, target in combinations(relationset.concepts(), 2):
+    #         edge_key = tuple(sorted([source.id, target.id]))
+    #         for node in [source, target]:   # ...to save some writing.
+    #             if node.id not in nodes:
+    #                 applln_set = node.appellation_set.all().select_related('occursIn')
+    #                 # All of the appellations in this text in which this
+    #                 #  particular concept was the interpretation.
+    #                 if text_id:
+    #                     applln_set = applln_set.filter(occursIn_id=text_id)
+    #                 if user_id:     # ...created by this user.
+    #                     applln_set = applln_set.filter(createdBy_id=user_id)
+    #
+    #                 # These are useful in the main network view for displaying
+    #                 #  information about the texts associated with each concept.
+    #                 texts = {}
+    #                 for obj in applln_set:
+    #                     if obj.occursIn.id in texts:     # Avoid duplicates.
+    #                         continue
+    #                     texts[obj.occursIn.id] = {
+    #                         'id': obj.occursIn.id,
+    #                         'title': obj.occursIn.title
+    #                     }
+    #
+    #                 # We only need IDs. The consumer can do what it pleases
+    #                 #  from there.
+    #                 applln_set = applln_set.values('id')
+    #
+    #                 if node.typed:
+    #                     type_id = node.typed.id
+    #                 else:
+    #                     type_id = None
+    #
+    #                 nodes[node.id] = {
+    #                     'data': {
+    #                         'id': node.id,
+    #                         'label': node.label,
+    #                         'uri': node.uri,
+    #                         'description': node.description,
+    #                         'type': type_id,
+    #                         'appellations': [obj['id'] for obj in applln_set],
+    #                         'weight': 0.,
+    #                         'texts': texts.values()
+    #                     }
+    #                 }
+    #             nodes[node.id]['data']['weight'] += 1.
+
+
+    for node in nodes.values():
+        node['data']['texts'] = [{'id': text[0], 'title': text[1]}
+                                  for text in list(node['data']['texts'])]
+        node['data']['appellations'] = list(node['data']['appellations'])
+
     for edge in edges.values():
-        edge['data']['texts'] = edge['data']['texts'].values()
+        edge['data']['texts'] = [{'id': text[0], 'title': text[1]}
+                                  for text in list(edge['data']['texts'])]
     return nodes, edges
 
 
