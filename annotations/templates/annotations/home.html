@@ -1,0 +1,100 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% load i18n admin_static %}
+{% load addcss %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static " admin/css/login_.css" %}" />{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block main %}
+<script src="{% static "annotations/js/spin.min.js" %}"></script>
+<script src="{% static "annotations/js/jquery.spin.js" %}"></script>
+
+<script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
+<script>
+var networkEndpoint = '{% url "network-data" %}',
+    networkContainerSelector = '#networkViewport';
+</script>
+<div class="container-fluid" style="margin-top: 15px;">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <div class="container">
+                    <h1 class="text-right">Build the <strong>Epistemic Web</strong></h1>
+                    <p>
+                        Knowledge is more than a collection of documents. What we know about our culture and our history
+                        depends on our ability to read and interpret texts. The epistemic web moves knowledge-making out
+                        of the library and into the public domain. Use VogonWeb to encode your interpretation of scholarly
+                        texts, and help build the epistemic web.
+                    </p>
+                    <a class="pull-right btn btn-success" href="{% url "about" %}">Learn more</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel" id="networkPanel">
+                    <div id="networkViewport"></div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="alert alert-success text-small" id="networkAlert">
+                        Click on a node or edge for details. Use your mousewheel or trackpad to zoom. Click and drag to pan.
+                    </div>
+                    <div class="panel selection-details-panel" style="display: none;">
+                        <div class="panel-body" id="concept-details">
+                            <!-- <span class="h4">Selected <span id="elem-type-selected"></span> represents</span> -->
+                            <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
+                            <div id="concept-uri" class="text text-muted text-tiny"></div>
+                            <div id="concept-description" class="text text-small"></div>
+                            <div id="concept-occurrence" class="text text-small"></div>
+
+                        </div>
+                        <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
+                        <div id="text-list-container">
+                            <table class="table table-responsive table-hover">
+                                <tbody id="text-list"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="main " class="container">
+
+    <div class="row">
+        <!--<div class="col-md-4">
+             <h2>Details</h2>
+             <p>Total number of users: <b>{{user_count}}</b></p>
+             <p>Total text added: <b>{{text_count}}</b></p>
+             <p>Total number of relations added: <b>{{relation_count}}</b></p>
+         </div>-->
+        <div class="col-md-4">
+            <h3>Users</h3>
+            <h4>{{user_count}}</h4>
+
+        </div>
+        <div class="col-md-4">
+            <h3>Text Added</h3>
+            <h4> {{text_count}}</h4>
+        </div>
+        <div class="col-md-4">
+            <h3>Relation Created</h3>
+            <h4> {{relation_count}}</h4>
+
+        </div>
+
+    </div>
+</div>
+<script src="{% static "annotations/js/network_cytoscape.js" %}"></script>
+{% endblock %}

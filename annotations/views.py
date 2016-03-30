@@ -43,21 +43,22 @@ from rest_framework.pagination import LimitOffsetPagination, PageNumberPaginatio
 from guardian.shortcuts import get_objects_for_user
 
 from concepts.models import Concept
+from annotations.models import VogonUser
 from concepts.authorities import search
 from concepts.tasks import search_concept
-from annotations.models import VogonUser
+
 from models import *
 from forms import *
 from serializers import *
 from tasks import *
+
 import hmac
 import hashlib
 from itertools import chain, combinations
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict, Counter
 import requests
 import re
 from urlnorm import norm
-from itertools import chain
 import uuid
 import igraph
 import copy
@@ -92,7 +93,7 @@ def home(request):
         Renders landing page for non-loggedin user and
         dashboard view for loggedin users.
     """
-    template = loader.get_template('registration/home.html')
+    template = loader.get_template('annotations/home.html')
     user_count = VogonUser.objects.filter(is_active=True).count()
     text_count = Text.objects.all().count()
     relation_count = Relation.objects.count()
@@ -805,7 +806,7 @@ def network_data(request):
     cache_key = '::'.join(['network_data', str(project), str(user), str(text)])
     cache = caches['default']
 
-    response_data = cache.get(cache_key)
+    response_data = None#cache.get(cache_key)
     if not response_data:
         queryset = RelationSet.objects.all()
         if project:
@@ -1410,12 +1411,19 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
     # If we want to show any non-related appellations, we can include them
     #  in this separate appellation_queryset.
     if appellation_queryset:
+        # Using select_related gathers all of our database queries related to
+        #  this queryset into a single call; this is way more performant than
+        #  performing queries each time we access a related field.
         related_fields = ['interpretation', 'interpretation__appellation',
                           'interpretation__appellation__occursIn',
                           'interpretation__typed', 'occursIn']
         appellation_queryset = appellation_queryset.filter(asPredicate=False).select_related(*related_fields)
 
-        # Load only these fields, for performance.
+        # Rather than load whole objects, we only load the fields from the
+        #  related models that we actually need. This expands the resultset
+        #  quite a bit, because we will get a result object for each target of
+        #  the furthest downstream M2M relation (Concept.appellation_set in
+        #  this case). But it cuts down our database overhead enormously.
         fields = ['interpretation__id',  'interpretation__label',
                   'interpretation__uri', 'interpretation__description',
                   'interpretation__typed__id', 'id',
@@ -1467,17 +1475,56 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             interp_app_id = obj.get('interpretation__appellation__id')
             nodes[node_id]['data']['appellations'].add(interp_app_id)
 
-    related_fields = ['id', 'occursIn__id', 'occursIn__title',
-                      'constituents__source_appellations__id', 'constituents__object_appellations__id',
-                      'constituents__source_appellations__asPredicate', 'constituents__object_appellations__asPredicate',
-                      'constituents__source_appellations__interpretation__id', 'constituents__object_appellations__interpretation__id',
-                      'constituents__source_appellations__interpretation__label', 'constituents__object_appellations__interpretation__label',
-                      'constituents__source_appellations__interpretation__uri', 'constituents__object_appellations__interpretation__uri',
-                      'constituents__source_appellations__interpretation__description', 'constituents__object_appellations__interpretation__description',
-                      'constituents__source_appellations__interpretation__typed__id', 'constituents__object_appellations__interpretation__typed__id',]
+    # Rather than load whole objects, we only load the fields from the
+    #  related models that we actually need. This expands the resultset
+    #  quite a bit, because we will get a result object for each target of
+    #  the furthest downstream M2M relation. But it cuts down our database
+    #  overhead enormously.
+    related_fields = [
+        'id', 'occursIn__id', 'occursIn__title',
+        'constituents__predicate__interpretation__id',
+        'constituents__predicate__interpretation__label',
+        'constituents__predicate__interpretation__uri',
+        'constituents__predicate__interpretation__description',
+        'constituents__source_appellations__id',
+        'constituents__object_appellations__id',
+        'constituents__source_appellations__asPredicate',
+        'constituents__object_appellations__asPredicate',
+        'constituents__source_appellations__interpretation__id',
+        'constituents__object_appellations__interpretation__id',
+        'constituents__source_appellations__interpretation__label',
+        'constituents__object_appellations__interpretation__label',
+        'constituents__source_appellations__interpretation__uri',
+        'constituents__object_appellations__interpretation__uri',
+        'constituents__source_appellations__interpretation__description',
+        'constituents__object_appellations__interpretation__description',
+        'constituents__source_appellations__interpretation__typed__id',
+        'constituents__object_appellations__interpretation__typed__id',]
 
-    relationset_nodes = {}
-    relationset_texts = {}
+    # We're agnostic about the structure and meaning of the RelationSet, and so
+    #  are simply adding edges between any non-predicate concepts that occur
+    #  together in a RelationSet. Since we aren't accessing the RelationSet
+    #  object directly (only via fields, as described above) we can't get all
+    #  of its concepts at once, so we gather them together here in sets. Later
+    #  on we iterate over pairs of concepts within each RelationSet using
+    #  combinations() to fill in the graph edges.
+    relationset_nodes = defaultdict(set)    # Holds Concept (node) ids.
+
+    # Hold on to text ID and title for each RelationSet, so that we can populate
+    #  each edge's ``data.texts`` property later on.
+    relationset_texts = defaultdict(set)
+
+    # We want to display how each pair of concepts is related. Since we're
+    #  agnostic about the structure and meaning of the RelationSet, we simply
+    #  gather together all non-generic concepts (i.e. not "be" or "have") used
+    #  as "predicates" in the RelationSet. We use the Counter (one per concept)
+    #  to keep track of the number of RelationSets that used that predicate for
+    #  each pair of concepts.
+    relationset_predicates = defaultdict(Counter)
+
+    concept_descriptions = {}   # For ease of access, later.
+
+    # We get one result per constituent Relation in the RelationSet.
     for obj in relationset_queryset.values(*related_fields):
         for field in ['source', 'object']:
             appell_id = obj.get('constituents__%s_appellations__id' % field)
@@ -1528,20 +1575,42 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
 
         source_id = obj.get('constituents__source_appellations__interpretation__id')
         source_asPredicate = obj.get('constituents__source_appellations__asPredicate')
+        source_label = obj.get('constituents__source_appellations__interpretation__label')
+        source_uri = obj.get('constituents__source_appellations__interpretation__uri')
         object_id = obj.get('constituents__object_appellations__interpretation__id')
         object_asPredicate = obj.get('constituents__object_appellations__asPredicate')
-
-        relationset_id = obj.get('id')
-        if relationset_id not in relationset_nodes:
-            relationset_nodes[relationset_id] = set([])
-        if source_id and not source_asPredicate:
-            relationset_nodes[relationset_id].add(source_id)
-        if object_id and not object_asPredicate:
-            relationset_nodes[relationset_id].add(object_id)
-
-        # We use a set here to avoid dupes.
+        object_label = obj.get('constituents__object_appellations__interpretation__label')
+        object_uri = obj.get('constituents__object_appellations__interpretation__uri')
         text_id = obj.get('occursIn__id')
         text_title = obj.get('occursIn__title')
+
+        predicate_id = obj.get('constituents__predicate__interpretation__id')
+        predicate_label = obj.get('constituents__predicate__interpretation__label')
+        predicate_uri = obj.get('constituents__predicate__interpretation__uri')
+
+        relationset_id = obj.get('id')
+
+        if source_id:
+            if not source_asPredicate:
+                relationset_nodes[relationset_id].add(source_id)
+            elif source_uri not in settings.PREDICATES.values():
+                concept_descriptions[source_id] = obj.get('constituents__source_appellations__interpretation__description')
+                relationset_predicates[relationset_id][(source_id, source_label)] += 1.
+
+        if object_id:
+            if not object_asPredicate:
+                relationset_nodes[relationset_id].add(object_id)
+            elif object_uri not in settings.PREDICATES.values():
+                concept_descriptions[object_id] = obj.get('constituents__object_appellations__interpretation__description')
+                relationset_predicates[relationset_id][(object_id, object_label)] += 1.
+
+        if predicate_id and predicate_uri not in settings.PREDICATES.values():
+            concept_descriptions[predicate_id] = obj.get('constituents__predicate__interpretation__description')
+            relationset_predicates[relationset_id][(predicate_id, predicate_label)] += 1
+
+
+        # We use a set here to avoid dupes.
+
         relationset_texts[relationset_id] = (text_id, text_title)
 
     for relationset_id, relation_nodes in relationset_nodes.iteritems():
@@ -1554,60 +1623,14 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                         'source': source_id,
                         'target': object_id,
                         'weight': 0.,
-                        'texts': set([])
+                        'texts': set([]),
+                        'relations': Counter(),
                     }
                 }
             edges[edge_key]['data']['texts'].add(relationset_texts[relationset_id])
+            for key, value in relationset_predicates[relationset_id].items():
+                edges[edge_key]['data']['relations'][key] += value
             edges[edge_key]['data']['weight'] += 1.
-
-
-
-    # for relationset in relationset_queryset:
-    #     for source, target in combinations(relationset.concepts(), 2):
-    #         edge_key = tuple(sorted([source.id, target.id]))
-    #         for node in [source, target]:   # ...to save some writing.
-    #             if node.id not in nodes:
-    #                 applln_set = node.appellation_set.all().select_related('occursIn')
-    #                 # All of the appellations in this text in which this
-    #                 #  particular concept was the interpretation.
-    #                 if text_id:
-    #                     applln_set = applln_set.filter(occursIn_id=text_id)
-    #                 if user_id:     # ...created by this user.
-    #                     applln_set = applln_set.filter(createdBy_id=user_id)
-    #
-    #                 # These are useful in the main network view for displaying
-    #                 #  information about the texts associated with each concept.
-    #                 texts = {}
-    #                 for obj in applln_set:
-    #                     if obj.occursIn.id in texts:     # Avoid duplicates.
-    #                         continue
-    #                     texts[obj.occursIn.id] = {
-    #                         'id': obj.occursIn.id,
-    #                         'title': obj.occursIn.title
-    #                     }
-    #
-    #                 # We only need IDs. The consumer can do what it pleases
-    #                 #  from there.
-    #                 applln_set = applln_set.values('id')
-    #
-    #                 if node.typed:
-    #                     type_id = node.typed.id
-    #                 else:
-    #                     type_id = None
-    #
-    #                 nodes[node.id] = {
-    #                     'data': {
-    #                         'id': node.id,
-    #                         'label': node.label,
-    #                         'uri': node.uri,
-    #                         'description': node.description,
-    #                         'type': type_id,
-    #                         'appellations': [obj['id'] for obj in applln_set],
-    #                         'weight': 0.,
-    #                         'texts': texts.values()
-    #                     }
-    #                 }
-    #             nodes[node.id]['data']['weight'] += 1.
 
 
     for node in nodes.values():
@@ -1619,6 +1642,13 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
     for edge in edges.values():
         edge['data']['texts'] = [{'id': text[0], 'title': text[1]}
                                   for text in list(edge['data']['texts'])]
+        edge['data']['relations'] = [{
+            'concept_id': relkey[0],
+            'concept_label': relkey[1],
+            'count': count,
+            'description': concept_descriptions[relkey[0]],
+        } for relkey, count in edge['data']['relations'].items()]
+
     return nodes, edges
 
 

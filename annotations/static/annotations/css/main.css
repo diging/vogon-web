@@ -411,3 +411,19 @@ a.appellation-list-item.selected {
 .relation-list-item {
     cursor: pointer;
 }
+
+.equal, .equal > div[class*='col-'] {
+    display: -webkit-flex;
+    display: flex;
+    flex:1 1 auto;
+}
+
+
+#networkPanel {
+    padding: 0px;
+}
+
+
+#networkViewport {
+    height: 300px;
+}

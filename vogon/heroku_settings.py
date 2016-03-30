@@ -165,3 +165,16 @@ TEMPORAL_PREDICATES = {
 }
 
 BROKER_POOL_LIMIT = 0
+
+PREDICATES = {
+    'have': 'http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9',
+    'be': 'http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316'
+}
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'default_cache_table',
+    }
+}

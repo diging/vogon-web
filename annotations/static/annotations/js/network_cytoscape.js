@@ -23,7 +23,7 @@ var opts = {
 , position: 'absolute' // Element positioning
 }
 
-$('#networkVis').spin(opts);    // Start spinner in the network display panel.
+$(networkContainerSelector).spin(opts);    // Start spinner in the network display panel.
 
 var hideConcept = function(data) {
     $('.selection-details-panel').css("display", "none");
@@ -49,9 +49,24 @@ var displayRelation = function(source_data, target_data) {
 
 var displayTexts = function(texts) {
     $('#text-list').empty();
+    $('#concept-text-list-title').text('Occurs in the following texts');
     texts.forEach(function(text) {
         $('#text-list')
             .append('<tr><td class="text-small"><a href="/text/' + text.id + '/">' + text.title + '</a></td></tr>');
+    });
+}
+
+var displayRelations = function(relations) {
+    $('#text-list').empty();
+    $('#concept-text-list-title').text('Are related in the following ways');
+    relations.forEach(function(relation) {
+
+        // var concept_id = relation[0][0][0],
+        //     concept_label = relation[0][0][1],
+        //     count = relation[0][1];
+
+        $('#text-list')
+            .append('<tr><td class="text-small"><a href="">' + relation.concept_label + ' </a><span class="label label-default">' + relation.count + '</span><p class="text text-muted text-small">'+ relation.description +'</p></td></tr>');
     });
 }
 
@@ -66,7 +81,7 @@ $('body').ready(function() {
         //  using Cytoscape.js.
         success: function(data) {
             // Stop spinner when the data loads.
-            $('#networkVis').spin(false);
+            $(networkContainerSelector).spin(false);
 
             // Normalize node and edge weights.
             var minEdgeWeight = 1.0;
@@ -94,11 +109,12 @@ $('body').ready(function() {
             maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
 
             cy = cytoscape({
-                container: $('#networkVis'),
+                container: $(networkContainerSelector),
                 elements: data.elements,
-                zoom: 1,
-                minZoom: 0.25,
+
+                minZoom: 0.2,
                 maxZoom: 3,
+                zoom: 1,
                 panningEnabled: true,
                 style: [    // The stylesheet for the graph.
                     {
@@ -218,7 +234,7 @@ $('body').ready(function() {
                 node.removeClass('nonConnectedNodes');
                 node.neighborhood('edge').edges().addClass('connectedEdge');
 
-
+                $('#networkAlert').css('display', 'none');
             });
 
             cy.on('select', 'edge', function(event) {
@@ -227,19 +243,22 @@ $('body').ready(function() {
                     target = edge._private.target;
 
                 displayRelation(source._private.data, target._private.data);
-                displayTexts(edge._private.data.texts);
+                displayRelations(edge._private.data.relations);
 
+                $('#networkAlert').css('display', 'none');
                 clearConnected();
             });
             cy.on('unselect', 'node', function(event) {
                 hideConcept();
 
                 clearConnected();
+                $('#networkAlert').css('display', 'block');
             });
             cy.on('unselect', 'edge', function(event) {
                 hideConcept();
 
                 clearConnected();
+                $('#networkAlert').css('display', 'block');
             });
 
         }

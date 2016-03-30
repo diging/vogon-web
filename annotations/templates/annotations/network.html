@@ -22,7 +22,8 @@
 }
 </style>
 <script>
-var networkEndpoint = '{% url "network-data" %}';
+var networkEndpoint = '{% url "network-data" %}',
+    networkContainerSelector = '#networkVis';
 </script>
 
 <div class="container-fluid">
@@ -70,6 +71,6 @@ var networkEndpoint = '{% url "network-data" %}';
 
 
 
-<script src="{% static "annotations/js/network_cytoscape.js" "%}"></script>
+<script src="{% static "annotations/js/network_cytoscape.js" %}"></script>
 
 {% endblock %}
