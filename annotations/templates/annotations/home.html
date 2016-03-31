@@ -14,6 +14,103 @@
 
 {% block breadcrumbs %}{% endblock %}
 
+{% block header %}
+
+<div id="header" class="navbar-home">
+	<nav class="navbar navbar-inverse navbar-inverse-transparent">
+		<div class="container">
+
+			<div class="navbar-header">
+				<a class="navbar-brand" href="{% url "home" %}">
+					<img alt="Brand" src="{% static "annotations/img/VogonTiny.png" %}" height="100%" />
+				</a>
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+			</div>
+
+
+			<div id="navbar" class="collapse navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li><a href="{% url "dashboard" %}">Dashboard</a></li>
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Texts <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li><a href="{% url "list_texts" %}">All Texts</a></li>
+							<li><a href="{% url "collection_list" %}">Collections</a></li>
+						</ul>
+
+					</li>
+					<li><a href="{% url "network" %}">Network</a></li>
+					<li><a href="{% url "user" %}">Contributors</a></li>
+					<li><a href="{% url "about" %}">About</a></li>
+				</ul>
+				<div class="dropdown pull-right" id="userdropdown">
+					{% if user.is_authenticated  %}
+					<button class="btn btn-default dropdown-toggler" type="button" id="usermenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+						{{ user.username }}
+						<span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu" aria-labelledby="usermenu">
+						<li><a href="/accounts/profile/">Dashboard</a></li>
+						<li><a href="/accounts/settings/">Settings</a></li>
+						<li><a href="/accounts/logout/">Log Out</a></li>
+						{% if user.is_staff %}
+							<li><a href="/admin/">Admin Site</a></li>
+						{% endif %}
+					</ul>
+					{% else %}
+					<div class="btn-group" role="group" aria-label="usermgmt">
+						<a href="/accounts/register/" class="btn btn-primary" id="registerButton">Register</a>
+						<a href="/accounts/login/" class="btn btn-primary" id="loginButton">Log In</a>
+					</div>
+					{% endif %}
+				</div>
+			</div><!--/.nav-collapse -->
+		</div>
+	</nav>
+
+    <div class="container-fluid" style="margin-top: 15px;">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="jumbotron jumbotron-transparent">
+                    <div class="container">
+                        <h1 class="text-center">Build the Epistemic Web</h1>
+                        <p class="text-center">
+                            Knowledge is more than a collection of documents. What we know about our culture and our history
+                            depends on our ability to read and interpret texts. The epistemic web moves knowledge-making out
+                            of the library and into the public domain. Use VogonWeb to encode your interpretation of scholarly
+                            texts, and help build the epistemic web.
+                        </p>
+                        <p class="text-center">
+                            <a class="btn btn-success" href="{% url "about" %}">Learn more</a>
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="container-fluid brand-footer">
+        <div class="row">
+            <div class="col-sm-12">
+                <a href="http://devo-evo.lab.asu.edu" target="_blank">
+                    <img class="img img-responsive pull-right" src="{% static "annotations/img/devoevolab.png" %}">
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+{% endblock %}
+
 {% block main %}
 <script src="{% static "annotations/js/spin.min.js" %}"></script>
 <script src="{% static "annotations/js/jquery.spin.js" %}"></script>
@@ -23,55 +120,39 @@
 var networkEndpoint = '{% url "network-data" %}',
     networkContainerSelector = '#networkViewport';
 </script>
-<div class="container-fluid" style="margin-top: 15px;">
+
+
+<div id="main " class="container-fluid" style="margin-top: 15px;">
     <div class="row">
-        <div class="col-md-6">
-            <div class="jumbotron">
-                <div class="container">
-                    <h1 class="text-right">Build the <strong>Epistemic Web</strong></h1>
-                    <p>
-                        Knowledge is more than a collection of documents. What we know about our culture and our history
-                        depends on our ability to read and interpret texts. The epistemic web moves knowledge-making out
-                        of the library and into the public domain. Use VogonWeb to encode your interpretation of scholarly
-                        texts, and help build the epistemic web.
-                    </p>
-                    <a class="pull-right btn btn-success" href="{% url "about" %}">Learn more</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
+        <div class="col-sm-8">
             <div class="panel" id="networkPanel">
                     <div id="networkViewport"></div>
             </div>
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="alert alert-success text-small" id="networkAlert">
-                        Click on a node or edge for details. Use your mousewheel or trackpad to zoom. Click and drag to pan.
-                    </div>
-                    <div class="panel selection-details-panel" style="display: none;">
-                        <div class="panel-body" id="concept-details">
-                            <!-- <span class="h4">Selected <span id="elem-type-selected"></span> represents</span> -->
-                            <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
-                            <div id="concept-uri" class="text text-muted text-tiny"></div>
-                            <div id="concept-description" class="text text-small"></div>
-                            <div id="concept-occurrence" class="text text-small"></div>
+        </div>
+            <!-- <div class="row"> -->
+        <div class="col-sm-4">
+            <div class="alert alert-success text-small" id="networkAlert">
+                Click on a node or edge for details. Use your mousewheel or trackpad to zoom. Click and drag to pan.
+            </div>
+            <div class="panel selection-details-panel" style="display: none;">
+                <div class="panel-body" id="concept-details">
+                    <!-- <span class="h4">Selected <span id="elem-type-selected"></span> represents</span> -->
+                    <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
+                    <div id="concept-uri" class="text text-muted text-tiny"></div>
+                    <div id="concept-description" class="text text-small"></div>
+                    <div id="concept-occurrence" class="text text-small"></div>
 
-                        </div>
-                        <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
-                        <div id="text-list-container">
-                            <table class="table table-responsive table-hover">
-                                <tbody id="text-list"></tbody>
-                            </table>
-                        </div>
-                    </div>
+                </div>
+                <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
+                <div id="text-list-container">
+                    <table class="table table-responsive table-hover">
+                        <tbody id="text-list"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
+            
     </div>
-</div>
-
-<div id="main " class="container">
-
     <div class="row">
         <!--<div class="col-md-4">
              <h2>Details</h2>
@@ -79,16 +160,16 @@ var networkEndpoint = '{% url "network-data" %}',
              <p>Total text added: <b>{{text_count}}</b></p>
              <p>Total number of relations added: <b>{{relation_count}}</b></p>
          </div>-->
-        <div class="col-md-4">
+        <div class="col-sm-4">
             <h3>Users</h3>
             <h4>{{user_count}}</h4>
 
         </div>
-        <div class="col-md-4">
+        <div class="col-sm-4">
             <h3>Text Added</h3>
             <h4> {{text_count}}</h4>
         </div>
-        <div class="col-md-4">
+        <div class="col-sm-4">
             <h3>Relation Created</h3>
             <h4> {{relation_count}}</h4>
 
