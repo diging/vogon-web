@@ -156,6 +156,7 @@ def get_namespace(uri):
 
     return "{" + namespace + "}"
 
+
 def get_by_namespace(namespace):
     """
     Retrieve a registered :class:`AuthorityManager` by its namespace.
