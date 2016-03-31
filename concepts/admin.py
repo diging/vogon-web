@@ -58,7 +58,7 @@ def merge_concepts(modeladmin, request, queryset):
 class ConceptAdmin(admin.ModelAdmin):
     model = Concept
     search_fields = ('label',)
-    list_display = ('label', 'resolved', 'concept_state', 'typed',)
+    list_display = ('label', 'description', 'resolved', 'concept_state', 'typed',)
     actions = (resolve,merge_concepts)
     list_filter=('concept_state', 'typed',)
     #opts = modeladmin.model._meta
