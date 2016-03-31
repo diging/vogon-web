@@ -471,8 +471,14 @@ a.appellation-list-item.selected {
     position: relative;
 }
 
-.navbar-home .brand-footer {
+.navbar-home .brand-footer-right {
     position: absolute;
     bottom: 0;
     right: 0;
+}
+
+.navbar-home .brand-footer-left {
+    position: absolute;
+    bottom: 0;
+    left: 0;
 }
