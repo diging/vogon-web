@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 
 optional = { 'blank': True, 'null': True }
 
+
 class HeritableObject(models.Model):
     """
     An object that is aware of its "real" type, i.e. the subclass that it
@@ -13,7 +14,7 @@ class HeritableObject(models.Model):
     label = models.CharField(max_length=255, **optional)
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.id or not self.real_type:
             self.real_type = self._get_real_type()
         super(HeritableObject, self).save(*args, **kwargs)
 
@@ -32,6 +33,7 @@ class HeritableObject(models.Model):
 
     class Meta:
         abstract = True
+
 
 class Concept(HeritableObject):
     uri = models.CharField(max_length=255, unique=True)
@@ -52,6 +54,13 @@ class Concept(HeritableObject):
     )
     concept_state=models.CharField(max_length=10,choices=concept_state_choices, default='Pending')
     merged_with = models.ForeignKey('Concept', related_name='merged_concepts', **optional)
+
+    @property
+    def typed_label(self):
+        if self.typed:
+            return self.typed.label
+        return None
+
 
 class Type(Concept):
     pass

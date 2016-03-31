@@ -1,0 +1,478 @@
+{% extends "annotations/base.html" %}
+
+
+{% block main %}
+
+<style>
+.angucomplete-dropdown {
+    overflow-y: auto;
+    overflow-x: auto;
+    opacity: 1.0;
+    position: relative;
+    z-index: 15;
+    max-width: 400px;
+    max-height: 200px;
+    background-color: white;
+    border: 1px solid gray;
+}
+
+.autocomplete-holder {
+    max-width: 200px;
+}
+
+.type-dependent-container {
+    display: none;
+}
+</style>
+<div class="container" id="main">
+    <div class="row col-sm-12">
+        <h2 class="h2">Create a New Relation Template</h2>
+        <div><!-- ng-app='formApp' -->
+            <div><!-- ng-controller="TemplateFormController"> -->
+                <form method="post" action="">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+                    {% if templateform.non_field_errors %}
+                    <p>
+                        {% for error in templateform.non_field_errors %}
+                        <div class="alert alert warning">{{ error }}</div>
+                        {% endfor %}
+                    </p>
+                    {% endif %}
+                    <p>
+                        {% if templateform.name.errors %}
+                            {% for error in templateform.name.errors %}
+                            <div class="alert alert-warning">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        {{ templateform.name }}
+                    </p>
+                    <p>
+                        {% if templateform.description.errors %}
+                            {% for error in templateform.description.errors %}
+                            <div class="alert alert-warning">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        {{ templateform.description }}
+                    </p>
+                    <p>
+                        {% if templateform.expression.errors %}
+                            {% for error in templateform.expression.errors %}
+                            <div class="alert alert-warning">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        {{ templateform.expression }}
+                    </p>
+                    <table id="form_table" class="table table-condensed table-striped table-bordered table-responsive">
+                        <thead>
+                            <tr class="text-center info">
+                                <td>Relation ID</td>
+                                <td>Source</td>
+                                <td>Predicate</td>
+                                <td>Object</td>
+
+                            </tr>
+                        </thead>
+                        {% for form in formset %}
+                        <tr class="form_table_row" id="{{form.ident}}">
+                            {% if form.non_field_errors %}
+                            <tr>
+                                <td colspan="4">
+                                    {% for error in form.non_field_errors %}
+                                    <div class="alert alert-warning">{{ error }}</div>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            <td class="text-center" style="vertical-align: middle;">
+                                <span class="badge" id="form_ident" style="font-size: 18pt;">{{ form.ident }}</span>
+                                {{ form.internal_id }}
+                            </td>
+                            <td>
+                                <ul class="list-group">
+                                    <li class="list-group-item" id="{{ form.prefix }}-source_node_type_container">
+                                        {% if form.source_node_type.errors %}
+                                            {% for error in form.source_node_type.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.source_node_type }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-source_type_container">
+                                        {% if form.source_type.errors %}
+                                            {% for error in form.source_type.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.source_type }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-source_concept_text_container">
+                                        {% if form.source_concept_text.errors %}
+                                            {% for error in form.source_concept_text.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.source_concept_text }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-source_relationtemplate_internal_id_container">
+                                        {% if form.source_concept_text.errors %}
+                                            {% for error in form.source_relationtemplate_internal_id.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.source_relationtemplate_internal_id }}
+                                    </li>
+
+
+                                    {{ form.source_concept }}
+                                    {{ form.source_relationtemplate }}
+
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-source_label_container">
+                                        <label>Label</label>
+                                        {% if form.source_label.errors %}
+                                            {% for error in form.source_label.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.source_label }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-source_description_container">
+                                        <label>Description</label>
+                                        {% if form.source_description.errors %}
+                                            {% for error in form.source_description.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.source_description }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-source_prompt_text_container">
+                                        {% if form.source_prompt_text.errors %}
+                                            {% for error in form.source_prompt_text.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.source_prompt_text }} Prompt for evidence
+                                    </li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="list-group">
+                                    <li class="list-group-item" id="{{ form.prefix }}-predicate_node_type_container">
+                                        {% if form.predicate_node_type.errors %}
+                                            {% for error in form.predicate_node_type.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.predicate_node_type }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-predicate_type_container">
+                                        {% if form.predicate_type.errors %}
+                                            {% for error in form.predicate_type.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.predicate_type }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-predicate_concept_text_container">
+                                        {% if form.predicate_concept_text.errors %}
+                                            {% for error in form.predicate_concept_text.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.predicate_concept_text }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-predicate_relationtemplate_internal_id_container">
+                                        {% if form.predicate_concept_text.errors %}
+                                            {% for error in form.predicate_relationtemplate_internal_id.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.predicate_relationtemplate_internal_id }}
+                                    </li>
+
+
+                                    {{ form.predicate_concept }}
+
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-predicate_label_container">
+                                        <label>Label</label>
+                                        {% if form.predicate_label.errors %}
+                                            {% for error in form.predicate_label.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.predicate_label }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-predicate_description_container">
+                                        <label>Description</label>
+                                        {% if form.predicate_description.errors %}
+                                            {% for error in form.predicate_description.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.predicate_description }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-predicate_prompt_text_container">
+                                        {% if form.predicate_prompt_text.errors %}
+                                            {% for error in form.predicate_prompt_text.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.predicate_prompt_text }} Prompt for evidence
+                                    </li>
+                                </ul>
+                            </td>
+                            <td>
+                                <ul class="list-group">
+                                    <li class="list-group-item" id="{{ form.prefix }}-object_node_type_container">
+                                        {% if form.object_node_type.errors %}
+                                            {% for error in form.object_node_type.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.object_node_type }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-object_type_container">
+                                        {% if form.object_type.errors %}
+                                            {% for error in form.object_type.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.object_type }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-object_concept_text_container">
+                                        {% if form.object_concept_text.errors %}
+                                            {% for error in form.object_concept_text.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.object_concept_text }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-object_relationtemplate_internal_id_container">
+                                        {% if form.object_concept_text.errors %}
+                                            {% for error in form.object_relationtemplate_internal_id.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.object_relationtemplate_internal_id }}
+                                    </li>
+
+
+                                    {{ form.object_concept }}
+                                    {{ form.object_relationtemplate }}
+
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-object_label_container">
+                                        <label>Label</label>
+                                        {% if form.object_label.errors %}
+                                            {% for error in form.object_label.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.object_label }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-object_description_container">
+                                        <label>Description</label>
+                                        {% if form.object_description.errors %}
+                                            {% for error in form.object_description.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.object_description }}
+                                    </li>
+                                    <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-object_prompt_text_container">
+                                        {% if form.object_prompt_text.errors %}
+                                            {% for error in form.object_prompt_text.errors %}
+                                                <div class="alert alert-warning">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ form.object_prompt_text }} Prompt for evidence
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                        {{ form.media }}
+                        {% endfor %}
+                        <tr id="add_form_row">
+                            <td colspan="4" class="text-center">
+                                <button type="button" class="btn btn-primary" aria-label="Add Relation" id="add-relation-button">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                    <button class="btn btn-primary pull-right" type="submit" value="Submit">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+var evaluateNodeType = function(elem) {
+    var id = elem.attr('id'),
+        part = elem.attr('part'),
+        name = elem.attr('name'),
+        value = elem.val();
+
+
+
+    var prefix_parts = name.split('-');
+    var prefix = prefix_parts.slice(0, prefix_parts.length - 1).join('-');
+
+
+    if (value == 'TP') {
+        $('#' + prefix + '-' + part + '_type_container').css('display', 'block');
+        $('#' + prefix + '-' + part + '_concept_text_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_relationtemplate_internal_id_container').css('display', 'none');
+    } else if (value == 'CO') {
+        $('#' + prefix + '-' + part + '_type_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_concept_text_container').css('display', 'block');
+        $('#' + prefix + '-' + part + '_relationtemplate_internal_id_container').css('display', 'none');
+    } else if (value == 'RE') {
+        $('#' + prefix + '-' + part + '_type_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_concept_text_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_relationtemplate_internal_id_container').css('display', 'block');
+
+        $('#' + prefix + '-' + part + '_description_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_label_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_prompt_text_container').css('display', 'none');
+    } else {
+        $('#' + prefix + '-' + part + '_type_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_concept_text_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_relationtemplate_internal_id_container').css('display', 'none');
+
+        $('#' + prefix + '-' + part + '_description_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_label_container').css('display', 'none');
+        $('#' + prefix + '-' + part + '_prompt_text_container').css('display', 'none');
+    }
+
+    if (value == 'TP' | value == 'CO') {
+        $('#' + prefix + '-' + part + '_description_container').css('display', 'block');
+        $('#' + prefix + '-' + part + '_label_container').css('display', 'block');
+        $('#' + prefix + '-' + part + '_prompt_text_container').css('display', 'block');
+    }
+}
+
+
+var cloneMore = function(selector, type) {
+    var newElement = $(selector).clone(false);
+    var total = Number($('#id_parts-TOTAL_FORMS').val());
+
+    newElement.find('div').each(function() {
+        var attrs = {};
+        if ($(this).attr('id')) {
+             attrs['id'] = $(this).attr('id').replace('-' + (total-1) + '-','-' + total + '-');
+             attrs['selected-object'] = 'searchStr_' + total;
+        }
+        if ($(this).attr('name')) {
+             attrs['name'] = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
+        }
+
+        $(this).attr(attrs);
+    });
+
+    newElement.find(':input').each(function() {
+        var attrs = {};
+        if ($(this).attr('name')) {
+             attrs['name'] = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
+        }
+        if ($(this).attr('ng-model')) {
+            attrs['ng-model'] = $(this).attr('ng-model').replace('_' + (total-1) + '_','_' + total + '_');
+        }
+        if ($(this).attr('target')) {
+            attrs['target'] = $(this).attr('target').replace('-' + (total-1) + '-','-' + total + '-');
+        }
+
+        if ($(this).attr('type') == 'checkbox') {   // For prompt-text fields.
+            $(this).prop('checked', true);
+
+        }
+        if ($(this).attr('id')) {
+            attrs['id'] = $(this).attr('id').replace('-' + (total-1) + '-','-' + total + '-');
+        }
+
+        if ($(this).attr('concept_id')) {   // For specific concept fields.
+            attrs['concept_id'] = '';
+        }
+
+        $(this).attr(attrs);
+
+        // Increment internal_id, but avoid messing with the relation_internal_id fields.
+        if ($(this).attr('name').indexOf('internal_id') > -1 & $(this).attr('name').indexOf('relation') == -1) {
+            $(this).val(total);
+        } else {
+            // This might be overkill....
+            $(this).val('');
+            $(this).removeAttr('value');
+            $(this).removeProp('value');
+        }
+    });
+
+    newElement.find('li').each(function() {
+        var attrs = {};
+        if ($(this).attr('id')) {
+            attrs['id'] = $(this).attr('id').split('-' + (total-1) + '-').join('-' + total + '-');
+        }
+        $(this).attr(attrs);
+
+    })
+    newElement.find('label').each(function() {
+        if ($(this).attr('for')) {
+            var newFor = $(this).attr('for').replace('-' + (total-1) + '-','-' + total + '-');
+            $(this).attr('for', newFor);
+        }
+    });
+    newElement.find('#form_ident').each(function() {
+        $(this).text(total);
+    });
+
+    total++;
+    $('#id_parts-TOTAL_FORMS').val(total);
+
+    $('#add_form_row').before(newElement);
+    // $scope.relation_options.push(total - 1);
+
+}
+
+var bindTypeField = function() {
+    $('.node_type_field').each(function(i, elem) {
+        evaluateNodeType($(elem));
+    });
+    $('.node_type_field').on('change', function() {
+        evaluateNodeType($(this));
+    });
+}
+
+var addRelation = function() {
+    // Appends another Relation row, and corresponding formset.
+    cloneMore('.form_table_row:last', 'form');
+    $('.autocomplete').each(function() {
+        var pos = 'noun';
+        if (this.id.indexOf('predicate') > -1) {
+            pos = 'verb';
+        }
+        bindAutocomplete('#' + this.id, pos);
+    });
+
+
+    bindTypeField();
+
+}
+
+bindTypeField();
+
+$('#add-relation-button').on('click', function() {
+    addRelation();
+})
+
+$('.autocomplete').each(function() {
+    var pos = 'noun';
+    if (this.id.indexOf('predicate') > -1) {
+        pos = 'verb';
+    }
+    bindAutocomplete('#' + this.id, pos);
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,447 @@
+{% load staticfiles %}
+{% load app_filters %}
+
+<html ng-app="annotationApp">
+    <head>
+        <script type="text/javascript" src="https://diging.atlassian.net/s/feb56a6b15dfe1c4dce860c5ec0d0c12-T/en_USugtsph-ren-off/70107/dd3ed69607618acd4f2d9e33519d4b21/2.0.7/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=da09a5cd"></script>
+        <script>
+        function stripTrailingSlash(str) {
+            if(str.substr(-1) === '/') {
+                return str.substr(0, str.length - 1);
+            }
+            return str;
+        }
+        var BASELOCATION = stripTrailingSlash("{{baselocation}}");
+
+        </script>
+
+        {% include "annotations/stylesheets.html" %}
+        {% include "annotations/angular.html" %}
+        {% include "annotations/scripts.html" %}
+
+
+        <script src="{% static "annotations/js/network.js" %}"></script>
+
+        <script>
+        var TEXTID = {{ textid }};
+        var USERID = {{ userid }};
+        </script>
+
+        {% include "annotations/textApp.html" %}
+        <style>
+        .relationtemplate-field-search {
+            max-height: 200px;
+            overflow-y: scroll;
+        }
+        .relationtemplate-field-search > .list-group-item {
+            cursor: pointer;
+        }
+        </style>
+        <title>{{ title }}</title>
+
+    </head>
+    <body escape-key>
+        {% include "annotations/header.html" %}
+        <div id="main" class="container">
+            <div class="row col-sm-12">
+                <div id="left" class="col-sm-6">
+                    <div class="row">
+                        <!-- Alerts can go here. -->
+                    </div>
+                    <div class="row">
+                        <div id="text" class="panel panel-primary">
+                            <div id="textTitle" class="panel-heading">
+                                <span class="h3">{{ text.title }}</span>
+
+                                {% if text.originalResource %}
+                                <a href="{{ text.originalResource }}" type="button" class="btn btn-primary pull-right">
+                                    <span class="glyphicon glyphicon-new-window "></span>
+                                </a>
+                                {% endif %}
+                            </div>
+                            <div id="textContent" class="panel-body" textid="{{ textid }}">
+                                <div id="textContentInner" bind-text>{{ text.tokenizedContent|safe_text }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="right" class="col-sm-6">
+                    <div id="rightTools">
+                        <div class="panel panel-default">
+                            <tabset justified="true">
+                                <tab heading="Network" active="true">
+                                    <div id="networkVis" class="panel panel-default">
+                                        <div d3-network class="panel-body" id="network"></div>
+                                    </div>
+                                    <div class="panel">
+                                        <div class="panel-body">
+                                            Nodes and edges will be added to the graph as you create new relations.
+                                            Each node corresponds to a single concept; so if several appellations
+                                            share a single interpretation (e.g. if two phrases refer to the same
+                                            person), then they will be represented by a single node.
+                                        </div>
+                                    </div>
+                                </tab>
+                                <tab heading="Appellations">
+                                    <div id="annotations" ng-controller="AppellationsController" class="panel-body">
+                                        <div class="list-group list-group-annotations">
+                                            <a href="#" ng-repeat="appellation in appellations" class="list-group-item" ng-click="appellationClick(appellation.id)">
+                                                {% verbatim %}
+                                                <span class="quotedText">{{ appellation.stringRep }}</span> ({{ appellationLabels[appellation.id] }})
+                                                <span class="btn-group btn-group-xs pull-right">
+                                                    <span class="btn btn-danger" ng-click="deleteAppellation(appellation)">
+                                                        <span class="glyphicon glyphicon-remove"></span>
+                                                        Delete
+                                                    </span>
+                                                </span>
+                                                {% endverbatim %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="panel">
+                                        <div class="panel-body">
+                                            Appellations will be added to this list as you create them.
+                                        </div>
+                                    </div>
+                                </tab>
+                                <tab heading="Relations">
+                                    <div id="relations" ng-controller="RelationsController" class="panel-body">
+                                        <div class="list-group list-group-annotations">
+                                            <a href="#" ng-repeat="relation in relations" class="list-group-item" ng-click="relationClick(relation)">
+                                                {% verbatim %}
+                                                {{ relationLabels[relation.id].source }} - <span class="quotedText">{{ relationLabels[relation.id].predicate }}</span> - {{ relationLabels[relation.id].target }}
+                                                <span class="btn-group btn-group-xs pull-right">
+                                                    <span class="btn btn-danger" ng-click="deleteRelation(relation)">
+                                                        <span class="glyphicon glyphicon-remove"></span>
+                                                        Delete
+                                                    </span>
+                                                </span>
+                                                {% endverbatim %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="panel">
+                                        <div class="panel-body">
+                                            Relations will be added to this list as you create them.
+                                        </div>
+                                    </div>
+                                    <div  ng-controller="RelationTemplateSearchController">
+                                        {% verbatim %}
+                                        <div id="relationtemplate-search">
+                                            <input
+                                                type="text"
+                                                name="search"
+                                                id="relationtemplate-search-field"
+                                                ng-model="query"
+                                                ng-change="search()"
+                                                class="form-control"
+                                                placeholder="Search for a relation template">
+                                            </input>
+
+                                            <li class="list-group-item" ng-repeat="template in relation_templates" ng-click="select(template)">
+                                                <span class="h5">{{ template.name }}</span>
+                                                <p>{{ template.description }}</p>
+                                                <p>
+                                                    <label class="label label-primary" ng-repeat="field in template.fields" ng-if="field.type == 'TP'" style="margin-right: 7px;">{{ field.concept_label }}</label>
+                                                </p>
+                                            </li>
+
+                                        </div>
+                                        <div id="relationtemplate-create" ng-show="relation_create">
+                                            <span class="h4">{{ relation_template.name }}</span>
+                                            <p>{{ relation_template.description }}</p>
+
+                                            <div class="form-group" ng-repeat="field in relation_template.fields">
+                                                <label for="{{ field.part_id }}_{{ field.part_field }}">{{ field.label }}.</label> <span class="text text-muted">{{ field.description }}</span>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" ng-readonly="isReadOnly(field)" ng-change="conceptSearch(field)" ng-model="field.query" id="{{ field.part_id }}_{{ field.part_field }}" placeholder="{{ field.placeholder }}"></input>
+                                                    <div class="input-group-addon"><span class="glyphicon glyphicon-edit"></span></div>
+                                                </div>
+                                                <div ng-show="isSearching(field)" class="relationtemplate-field-search">
+                                                    <a class="list-group-item" ng-click="selectConcept(field, option)" ng-repeat="option in field.options"><span class="text text-primary strong">{{ option.label }}</span>. <span class="text text-muted">{{ option.description }}</span></a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        {% endverbatim %}
+                                    </div>
+
+                                </tab>
+
+                            </tabset>
+                        </div>
+                        <div class="alert alert-warning">Press the <kbd>esc</kbd> key to deselect words or appellations</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% verbatim %}
+        <div id="modalConcept" ng-controller="ModalConceptControl">
+            <script type="text/ng-template" id="modalConcept.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">{{ data.title }}</h3>
+                </div>
+                <div class="modal-body">
+                    <p>You selected <span class="quotedText">{{ data.text.stringRep }}</span></p>
+                    <p>{{ data.instructions }}</p>
+
+                    <div angucomplete-alt field-required="true" id="concepts" placeholder="{{ data.placeholder }}" pause="100" search-str="search" selected-object="selectConcept" remote-url="{{data.baselocation}}/rest/concept?pos={{ data.pos }}&search=" remote-url-data-field="" title-field="label" description-field="description" input-class="form-control form-control-small">
+                    </div>
+                    <div class="clearfix" style="margin-top: 5px;">
+                        <div class="btn-group btn-group-sm pull-right">
+                            <button class="btn btn-primary" ng-disabled="createConceptDisabled" ng-click="startCreateConcept()">Create Concept</button>
+                        </div>
+                    </div>
+                    <div class="panel" ng-hide="createConceptHidden">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" ng-model="assertUnique" ng-change="assertUniqueChange()">
+                                I've tried my hardest, but I can't find this concept in any search results.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="panel" ng-hide="createConceptDetailsHidden">
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" name="description" required="true" ng-model="newConcept.description" id="description" placeholder="Describe this concept in as much detail as you can."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="type">Type</label>
+                            <select class="form-control" ng-model="newConcept.typed" required="true" ng-options="t.label for t in data.types">
+                                <option></option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()" ng-disabled="okDisabled">OK</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+
+            </script>
+        </div>
+        {% endverbatim %}
+
+        {% verbatim %}
+        <div id="modalPredicate" ng-controller="ModalPredicateControl">
+            <script type="text/ng-template" id="modalPredicate.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">How is {{ data.source_interpretation.label }} related to {{ data.target_interpretation.label }}?</h3>
+                </div>
+                <div class="modal-body">
+                    <p>You selected the text <span class="quotedText">{{ data.text.stringRep }}</span></p>
+                    <p>{{ data.instructions }}</p>
+
+                    <div style="margin-top: 15px;" ng-init="bindHelpPopover()">
+                        <label>Controlling verb
+                            <span
+                                class="glyphicon glyphicon-question-sign help-popover"
+                                data-toggle="popover"
+                                data-placement="right"
+                                data-content="For example, if {{ data.source_interpretation.label }} was the
+                                              mother of {{ data.target_interpretation.label }}, then you should
+                                              select the controlling verb 'is/was' and the concept 'mother'. But
+                                              if {{ data.source_interpretation.label }} <em>employed</em>
+                                              {{ data.target_interpretation.label }}, leave this field blank and
+                                              select the concept 'employ'."
+                                data-template='<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content small-text"></div></div>'
+                                title="First, select the controlling verb for this relation.">
+                            </span>
+                        </label>
+                        <select ng-model="controlling_verb" class="form-control">
+                            <option value=''></option>
+                            <option value='is'>is/was ... of/for/to</option>
+                            <option value='has'>has/had ... that is/was</option>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label>Concept
+                            <span
+                                class="glyphicon glyphicon-question-sign help-popover"
+                                data-toggle="popover"
+                                data-placement="right"
+                                data-content="Start typing the name of a concept, and Vogon will attempt to find
+                                              existing concepts with that name. If you cannot find an existing
+                                              concept that captures the relationship between
+                                              {{ data.source_interpretation.label }} and
+                                              {{ data.target_interpretation.label }}, then create a new concept."
+                                data-template='<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content small-text"></div></div>'
+                                title="Select the concept for this predicate.">
+                            </span>
+                        </label>
+                        <div angucomplete-alt
+                            field-required="true"
+                            id="concepts"
+                            placeholder="{{ data.placeholder }}"
+                            pause="100"
+                            search-str="search"
+                            selected-object="selectConcept"
+                            remote-url="{{data.baselocation}}/rest/concept?pos={{ data.pos }}&search="
+                            remote-url-data-field=""
+                            title-field="label"
+                            description-field="description"
+                            input-class="form-control form-control-small">
+                        </div>
+                    </div>
+                    <div class="clearfix">
+                        <div class="btn-group btn-group-sm pull-right">
+                            <button class="btn btn-primary" ng-disabled="createConceptDisabled" ng-click="startCreateConcept()">Create Concept</button>
+                        </div>
+                    </div>
+                    <div class="panel" ng-hide="createConceptHidden">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" ng-model="assertUnique" ng-change="assertUniqueChange()">
+                                I've tried my hardest, but I can't find this concept in any search results.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="panel" ng-hide="createConceptDetailsHidden">
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" name="description" required="true" ng-model="newConcept.description" id="description" placeholder="Describe this concept in as much detail as you can."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="type">Type</label>
+                            <select class="form-control" ng-model="newConcept.typed" required="true" ng-options="t.label for t in data.types">
+                                <option></option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()" ng-disabled="okDisabled">OK</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+        </div>
+        {% endverbatim %}
+
+        {% verbatim %}
+        <div id="modalTemporalBounds" ng-controller="ModalTemporalBoundsControl">
+            <script type="text/ng-template" id="modalTemporalBounds.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">{{ title }}</h3>
+                </div>
+                <div class="modal-body">
+                {{ contextData}}
+                    <p>You asserted that <span class="quotedText">{{ contextData.sourceConcept.label }} - {{ contextData.predicateConcept.label }} - {{ contextData.targetConcept.label }}</span></p>
+                    <p>{{ instructions }}</p>
+
+                    <form name="temporalForm">
+                        <table>
+                            <tr>
+                                <td>Started:</td>
+                                <td>
+                                    <input class="temporalInput" ng-model="started.year" type="number" name="startedYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
+                                    <input class="temporalInput" style="width: 70px;" ng-model="started.month" type="number" name="startedMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" style="width: 50px;" ng-model="started.day" type="number" name="startedDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <span class="glyphicon glyphicon-question-sign" popover="The date on which this relationship commenced, or your assertion (above) became true." popover-trigger="mouseenter"></span>
+                                    <div role="alert">
+                                      <span class="error" ng-show="temporalForm.startedYear.$error.minlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.startedYear.$error.maxlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.startedMonth.$error.minlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.startedMonth.$error.maxlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.startedDay.$error.minlength">Enter a one or two-digit day of the month.</span>
+                                      <span class="error" ng-show="temporalForm.startedDay.$error.maxlength">Enter a one or two-digit day of the month.</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Ended:</td>
+                                <td>
+                                    <input class="temporalInput" ng-model="ended.year" type="number" name="endedYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
+                                    <input class="temporalInput" style="width: 70px;" ng-model="ended.month" type="number" name="endedMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" style="width: 50px;" ng-model="ended.day" type="number" name="endedDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <span class="glyphicon glyphicon-question-sign" popover="The date on which this relationship ended, or your assertion (above) ceased to be true." popover-trigger="mouseenter"></span>
+                                    <div role="alert">
+                                      <span class="error" ng-show="temporalForm.endedYear.$error.minlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.endedYear.$error.maxlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.endedMonth.$error.minlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.endedMonth.$error.maxlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.endedDay.$error.minlength">Enter a one or two-digit day of the month.</span>
+                                      <span class="error" ng-show="temporalForm.endedDay.$error.maxlength">Enter a one or two-digit day of the month.</span>
+                                    </div>
+                                <td>
+                            </tr>
+                            <tr>
+                                <td>Occurred:</td>
+                                <td>
+                                    <input class="temporalInput" ng-model="occurred.year" type="number" name="occurredYear" ng-minlength="4" ng-maxlength="4" placeholder="Year">
+                                    <input class="temporalInput" style="width: 70px;" ng-model="occurred.month" type="number" name="occurredMonth" min="1" max="12" ng-minlength="1" ng-maxlength="2" placeholder="Month">
+                                    <input class="temporalInput" style="width: 50px;" ng-model="occurred.day" type="number" name="occurredDay" min="1" max="31" ng-minlength="1" ng-maxlength="2" placeholder="Day">
+                                    <span class="glyphicon glyphicon-question-sign" popover="A date on which you know this relationship to have existed (or your assertion (above) to have been true) regardless of when it commenced or ended." popover-trigger="mouseenter"></span>
+                                    <div role="alert">
+                                      <span class="error" ng-show="temporalForm.occurredYear.$error.minlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.occurredYear.$error.maxlength">Enter a four-digit year.</span>
+                                      <span class="error" ng-show="temporalForm.occurredMonth.$error.minlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.occurredMonth.$error.maxlength">Enter a one or two-digit month.</span>
+                                      <span class="error" ng-show="temporalForm.occurredDay.$error.minlength">Enter a one or two-digit day of the month.</span>
+                                      <span class="error" ng-show="temporalForm.occurredDay.$error.maxlength">Enter a one or two-digit day of the month.</span>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </table>
+                    </form>
+                </div>
+                {% endverbatim %}
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary" ng-enter="ok()" ng-click="ok()">OK</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+            </script>
+        </div>
+
+        <div ng-controller="deleteConfirmModalController" id="deleteAppellationModal">
+            {% verbatim %}
+            <script type="text/ng-template" id="deleteAppellationModalContent.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">Are you sure?</h3>
+                </div>
+                <div class="modal-body">
+                    <p>
+                    You have selected the appellation <span class="quotedText">{{data.appellation.stringRep}}</span>
+                    for deletion. If you delete this appellation, then all of its associated relations will also be deleted.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+
+            </script>
+            {% endverbatim %}
+        </div>
+
+        <div ng-controller="deleteConfirmModalController" id="deleteRelationModal">
+            {% verbatim %}
+            <script type="text/ng-template" id="deleteRelationModalContent.html">
+                <div class="modal-header">
+                    <h3 class="modal-title">Are you sure?</h3>
+                </div>
+                <div class="modal-body">
+                    <p>
+                    Are you sure that you want to delete this relation?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-danger" ng-enter="ok(data)" ng-click="ok(data)">Delete Forever</button>
+                    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+                </div>
+
+            </script>
+            {% endverbatim %}
+        </div>
+        <script>
+
+        </script>
+    </body>
+
+</html>
