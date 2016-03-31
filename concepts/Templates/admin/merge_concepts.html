@@ -1,25 +1,24 @@
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-<!-- jQuery library -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-<!-- Latest compiled JavaScript -->
-<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 {% extends "admin/base_site.html" %}
+
+{% load staticfiles %}
+
 {% block content %}
-<p><h2>Merge will be applied to the following concepts</h2></p>
-<form action="" method="post">
-<div class="panel panel-default">
-<!-- Default panel contents -->
-<div class="panel-heading"><b>Concepts to merge</b></div>
-<table class="table">
-<tr><td><h1>Label</h1></td><td><h1>Description</h1></td></tr>
-{% for concept in concepts %}
-<tr class="{% cycle 'row1' 'row2' %}">
-<td>{{concept.label}}</td>
-<td>{{concept.description}}</td>
-</tr>
-{% endfor %}
-</table>
-</div>
+<link rel="stylesheet" href="{% static "admin/css/forms.css" %}" />
+
+<h1>Select master concept</h1>
+<p>
+    All of the concepts that you selected are unresolved. Please select the
+    concept into which all other concepts should be merged.
+</p>
+
+<form action="{% url "admin:concepts_concept_changelist" %}" method="POST">
+    {% csrf_token %}
+    {{ form }}
+
+    <div class="submit-row">
+        <input type="submit" class="button default" value="Merge">
+        <a class="button default" href="#" onclick="window.history.back(); return false;">No, take me back</a>
+    </div>
+
 </form>
 {% endblock %}
