@@ -916,6 +916,13 @@ def user_details(request, userid, *args, **kwargs):
         for e in annotation_by_user:
             date = datetime.datetime.strptime(e['date'], time_format)
             result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%Y')] += e['count']
+        annotation_per_week = list()
+        for r in result:
+            new_format = dict()
+            new_format["date"] = r
+            new_format["count"] = result[r]
+            annotation_per_week.append(new_format)
+        print annotation_per_week
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
@@ -923,7 +930,7 @@ def user_details(request, userid, *args, **kwargs):
             'relation_count': relation_count,
             'textAnnotated': textAnnotated,
             'default_user_image' : settings.DEFAULT_USER_IMAGE,
-            'annotation_per_week' : result
+            'annotation_per_week' : annotation_per_week
         })
     return HttpResponse(template.render(context))
 

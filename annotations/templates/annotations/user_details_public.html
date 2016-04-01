@@ -37,7 +37,8 @@
 		</div>
 		<div class = "centered"><link rel="stylesheet" href="{% static "annotations/css/d3.css" %}" />
 		<script src="//d3js.org/d3.v3.min.js"></script>
-		<script src="{% static "annotations/js/bar_d3.js" %}"></script></div>
+		<script src="{% static "annotations/js/bar_d3.js" %}"> render();</script></div>
+		<div onload="render()"></div>
     </div>
 	</div>
 </div>

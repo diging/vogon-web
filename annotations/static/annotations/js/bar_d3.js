@@ -17,17 +17,22 @@ var yAxis = d3.svg.axis()
     .orient("left")
     .ticks(10, "%");
 
-    
-
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.json("http://codepen.io/superpikar/pen/kcJDf.js", function(error, data){
-		  x.domain(data.map(function(d){ return d.letter}));
-		  y.domain([0, d3.max(data, function(d){return d.frequency})]);
+
+
+
+//d3.json("http://codepen.io/superpikar/pen/kcJDf.js", function(error, data){
+function render(){
+  var json = '[{"letter":"A","frequency":".08167"}, {"letter":"B","frequency":".01492"}]';
+  data = JSON.parse(json);
+  console.log(data);
+  x.domain(data.map(function(d){ return d.letter}));
+  y.domain([0, d3.max(data, function(d){return d.frequency})]);
 
 
   x.domain(data.map(function(d) { return d.letter; }));
@@ -56,9 +61,8 @@ d3.json("http://codepen.io/superpikar/pen/kcJDf.js", function(error, data){
       .attr("width", x.rangeBand())
       .attr("y", function(d) { return y(d.frequency); })
       .attr("height", function(d) { return height - y(d.frequency); });
-
-
-});
+}
+//});
 
 function type(d) {
   d.frequency = +d.frequency;
