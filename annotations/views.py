@@ -913,19 +913,14 @@ def user_details(request, userid, *args, **kwargs):
         current_week = datetime.datetime.now() + d7
         #Find out the weeks and their last date in the past 90 days
         while start_date <= current_week:
-            weeks_last_date_map[start_date.isocalendar()[1]] = \
-            (Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%Y')
-            result[start_date.isocalendar()[1]] = 0
+            result[(Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%Y')] = 0
             start_date += d7
         time_format = '%Y-%m-%d'
         #Count annotations for each week
         for e in annotation_by_user:
             date = datetime.datetime.strptime(e['date'], time_format)
-            result[ date.isocalendar()[1] ] += e['count']
-        annotation_per_week = dict()
-        for r in result:
-            annotation_per_week[weeks_last_date_map[r]] = result[r]
-        print annotation_per_week
+            result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%Y')] += e['count']
+        print result
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
@@ -933,7 +928,7 @@ def user_details(request, userid, *args, **kwargs):
             'relation_count': relation_count,
             'textAnnotated': textAnnotated,
             'default_user_image' : settings.DEFAULT_USER_IMAGE,
-            'annotation_per_week' : annotation_per_week
+            'annotation_per_week' : result
         })
     return HttpResponse(template.render(context))
 
