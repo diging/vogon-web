@@ -59,6 +59,9 @@ import requests
 import re
 from urlnorm import norm
 from itertools import chain
+from datetime import datetime
+from django.db.models.expressions import DateTime
+import pytz
 import uuid
 import igraph
 import copy
@@ -379,8 +382,9 @@ def recent_activity(request):
     time_threshold = datetime.now() - timedelta(days=1)
     text_list = list(Text.objects.filter(added__gt=time_threshold).order_by('-added')[:10])
 
-    activity_data={}
-
+    activity_data = {}
+    result = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
+    print result
     if text_list:
         for initialHour in range(1, 25):
             for item in text_list:
@@ -397,10 +401,9 @@ def recent_activity(request):
                         activity = userDict.get(username)
                         activity.text +=1
                 text_list.remove(item)
-
     appellation_list = list(Appellation.objects.filter(created__gt=time_threshold).order_by('-created')[:10])
     if appellation_list:
-        for initialHour in range(1,25):
+        for initialHour in range(1, 25):
             for appellation in appellation_list:
                 username = appellation.createdBy.username
                 if not activity_data.get(initialHour):
