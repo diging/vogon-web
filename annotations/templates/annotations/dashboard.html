@@ -2,8 +2,15 @@
 {% load staticfiles %}
 
 {% block main %}
+
+<script src="{% static "annotations/js/angular-resource.min.js" %}"></script>
+<script src="{% static "annotations/js/angular-sanitize.js" %}"></script>
+<script src="{% static "annotations/js/angular-sanitize.min.js" %}"></script>
+<script src="{% static "annotations/js/angular-route.min.js" %}"></script>
+<script src="{% static "annotations/js/ui-bootstrap-1.2.5.min.js" %}"></script>
+<script src="{% static "annotations/js/ui-bootstrap-tpls-1.2.5.min.js" %}"></script>
 <script>
-var app = angular.module('collectionsApp', ['ngResource', 'ngSanitize', 'ui.bootstrap']);
+var app = angular.module('collectionsApp', ['ngResource', 'ngSanitize', 'ui.bootstrap', 'ngRoute']);
 
 app.config(['$httpProvider', function($httpProvider){
 	$httpProvider.defaults.xsrfCookieName = 'csrftoken';
@@ -152,19 +159,19 @@ app.controller('textCollectionsController',
 	}
 }]);
 
-app.controller('ModalInstanceController', function ($scope, $modalInstance, data) {
+app.controller('ModalInstanceController', function ($scope, $uibModalInstance, data) {
 	$scope.data = data;
 
 	$scope.ok = function (data) {
-		$modalInstance.close(data);
+		$uibModalInstance.close(data);
 	};
 
 	$scope.cancel = function () {
-		$modalInstance.dismiss('cancel');
+		$uibModalInstance.dismiss('cancel');
 	};
 });
 
-app.controller('deleteCollectionModalController', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+app.controller('deleteCollectionModalController', ['$scope', '$uibModal', '$log', function($scope, $modal, $log) {
 	$scope.animationsEnabled = true;
 
 	$scope.open = function(data, callback) {
@@ -185,7 +192,7 @@ app.controller('deleteCollectionModalController', ['$scope', '$modal', '$log', f
 	}
 }]);
 
-app.controller('addCollectionModalController', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+app.controller('addCollectionModalController', ['$scope', '$uibModal', '$log', function($scope, $modal, $log) {
 	$scope.animationsEnabled = true;
 
 	$scope.open = function(data, callback) {
@@ -286,7 +293,7 @@ app.controller('textController',
 	return $scope;
 }]);
 
-app.controller('addTextsModalController', ['$scope', '$modal', '$log', '$http', 'TextCollection', function($scope, $modal, $log, $http, TextCollection) {
+app.controller('addTextsModalController', ['$scope', '$uibModal', '$log', '$http', 'TextCollection', function($scope, $modal, $log, $http, TextCollection) {
 	$scope.animationsEnabled = true;
 	$scope.repositories = [];
 	$scope.toAdd = [];
@@ -363,4 +370,6 @@ app.controller('addTextsModalController', ['$scope', '$modal', '$log', '$http', 
 		</div>
 	</div>
 </div>
+
+
 {% endblock %}
