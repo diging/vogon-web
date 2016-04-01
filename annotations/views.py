@@ -920,7 +920,7 @@ def concept_details(request, conceptid):
 # Not complete yet (threadsafe search)
 class TextSearchView(SearchView):
     template = 'templates/search/search.html'
-    queryset = SearchQuerySet().all()
+    queryset = SearchQuerySet().order_by('title')
 
     def get_queryset(self):
         queryset = super(TextSearchView, self).get_queryset()
