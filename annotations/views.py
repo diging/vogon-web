@@ -893,12 +893,8 @@ def user_details(request, userid, *args, **kwargs):
     """
 
     user = get_object_or_404(VogonUser, pk=userid)
-    if request.user.is_authenticated() and request.user.id == userid:
-        template = loader.get_template('annotations/user_details.html')
-        context = RequestContext(request, {
-            'user': request.user,
-            'detail_user': user,
-        })
+    if request.user.is_authenticated() and request.user.id == int(userid):
+        return HttpResponseRedirect("/accounts/settings/")
     else:
         textCount = Text.objects.filter(addedBy=user).count()
         textAnnotated = Text.objects.filter(annotators=user).distinct().count()
@@ -920,7 +916,6 @@ def user_details(request, userid, *args, **kwargs):
         for e in annotation_by_user:
             date = datetime.datetime.strptime(e['date'], time_format)
             result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%Y')] += e['count']
-        print result
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
