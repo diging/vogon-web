@@ -27,16 +27,13 @@ var svg = d3.select("body").append("svg")
 
 
 //d3.json("http://codepen.io/superpikar/pen/kcJDf.js", function(error, data){
-function render(){
-  var json = '[{"letter":"A","frequency":".08167"}, {"letter":"B","frequency":".01492"}]';
-  data = JSON.parse(json);
-  console.log(data);
-  x.domain(data.map(function(d){ return d.letter}));
-  y.domain([0, d3.max(data, function(d){return d.frequency})]);
+function render(data){
+  x.domain(data.map(function(d){ return d.date}));
+  y.domain([0, d3.max(data, function(d){return d.count})]);
 
 
-  x.domain(data.map(function(d) { return d.letter; }));
-  y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+  x.domain(data.map(function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.count; })]);
 
   svg.append("g")
       .attr("class", "x axis")
@@ -57,14 +54,14 @@ function render(){
       .data(data)
     .enter().append("rect")
       .attr("class", "bar")
-      .attr("x", function(d) { return x(d.letter); })
+      .attr("x", function(d) { return x(d.date); })
       .attr("width", x.rangeBand())
-      .attr("y", function(d) { return y(d.frequency); })
-      .attr("height", function(d) { return height - y(d.frequency); });
+      .attr("y", function(d) { return y(d.count); })
+      .attr("height", function(d) { return height - y(d.count); });
 }
 //});
 
 function type(d) {
-  d.frequency = +d.frequency;
+  d.count = +d.count;
   return d;
 }

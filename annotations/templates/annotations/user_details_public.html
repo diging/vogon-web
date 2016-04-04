@@ -33,12 +33,19 @@
 				{% endif %}
 				<li class="list-group-item">User has added <strong>{{textCount}}</strong> texts</li>
 				<li class="list-group-item">Contributed to <strong>{{ relation_count }}</strong> relations out of <strong>{{textAnnotated}}</strong> texts</li>
+				<li class="list-group-item">any work
+					<div class = "centered"><link rel="stylesheet" href="{% static "annotations/css/d3.css" %}" />
+						<script src="//d3js.org/d3.v3.min.js"></script>
+						<script src="{% static "annotations/js/bar_d3.js" %}"></script>
+						<script>
+						  var annotations = JSON.parse('{{annotation_per_week|safe}}');
+							render(annotations);
+						</script>
+					</div>
+				</li>
 			</ul>
 		</div>
-		<div class = "centered"><link rel="stylesheet" href="{% static "annotations/css/d3.css" %}" />
-		<script src="//d3js.org/d3.v3.min.js"></script>
-		<script src="{% static "annotations/js/bar_d3.js" %}"> render();</script></div>
-		<div onload="render()"></div>
+
     </div>
 	</div>
 </div>

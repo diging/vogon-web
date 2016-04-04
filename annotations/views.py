@@ -922,6 +922,7 @@ def user_details(request, userid, *args, **kwargs):
             new_format["date"] = r
             new_format["count"] = result[r]
             annotation_per_week.append(new_format)
+        annotation_per_week = str(annotation_per_week).replace("'", "\"")
         print annotation_per_week
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
