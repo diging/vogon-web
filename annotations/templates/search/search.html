@@ -45,7 +45,7 @@
                         </a> -->
                     </th>
                 </thead>
-            {% for text in page.object_list %}
+            {% for text in object_list %}
                 <tbody>
                     <tr>
                         <td><a href="{% url "text" text.object.id %}">{{ text.object.title }}</a></td>

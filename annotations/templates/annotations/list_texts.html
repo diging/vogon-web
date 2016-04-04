@@ -17,7 +17,7 @@
             <hr></hr>
             {% endblock %}
         </div>
-        <form class="navbar-form" role="search" action="/search/">
+        <form class="navbar-form" role="search" action="{% url "haystack_search" %}">
           <div class="input-group col-sm-3 col-sm-offset-1">
             <input type="text" class="form-control" placeholder= {% if q %}"{{q}}"{% else %}"Search texts" {% endif %}name="q" id="q">
             <div class="input-group-btn">

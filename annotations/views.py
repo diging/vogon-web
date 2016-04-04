@@ -923,9 +923,20 @@ class TextSearchView(SearchView):
     queryset = SearchQuerySet().order_by('title')
 
     def get_queryset(self):
-        queryset = super(TextSearchView, self).get_queryset()
+        #import pdb; pdb.set_trace()
+        queryset = super(TextSearchView, self).get_queryset().order_by('title')
         return queryset
 
     def get_context_data(self, *args, **kwargs):
         context = super(TextSearchView, self).get_context_data(*args, **kwargs)
         return context
+
+    def form_valid(self, form):
+        self.queryset = form.search()
+        context = self.get_context_data(**{
+            self.form_name: form,
+            'query': form.cleaned_data.get(self.search_field),
+            'object_list': self.queryset.order_by('title')
+        })
+        import pdb; pdb.set_trace()
+        return self.render_to_response(context)

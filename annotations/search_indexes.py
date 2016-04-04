@@ -13,4 +13,17 @@ class TextIndex(indexes.SearchIndex, indexes.Indexable):
         return Text
 
     def index_queryset(self, using=None):
-        return self.get_model().objects.all()
+        x = self.get_model()
+        y = x.objects
+        z = y.get_queryset().order_by('title')
+        return z
+
+    def read_queryset(self, using=None):
+        x = self.index_queryset(using=using).order_by('title')
+        return x
+
+    def load_all_queryset(self):
+        x = self.get_model()
+        y = x.objects
+        z = y.get_queryset().order_by('title')
+        return z
