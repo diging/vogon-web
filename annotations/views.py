@@ -375,42 +375,12 @@ class RecentActivity(models.Model):
 
 
 def recent_activity(request):
-    from datetime import datetime, timedelta
-    from django.utils import timezone
     template = loader.get_template('annotations/recent_activity.html')
-    time_threshold = datetime.now() - timedelta(days=1)
-    text_list = list(Text.objects.filter(added__gt=time_threshold).order_by('-added')[:10])
-
-    activity_data = {}
-    result_text = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
-
-    if result_text:
-        for item in result_text:
-            print item
-            print item['addedBy__username'], item['hour']
-
-    appellation_text = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(created_count=Count('id')).order_by("-hour", "createdBy")
-    appellation_list = list(Appellation.objects.filter(created__gt=time_threshold).order_by('-created')[:10])
-    if appellation_list:
-        for initialHour in range(1, 25):
-            for appellation in appellation_list:
-                username = appellation.createdBy.username
-                if not activity_data.get(initialHour):
-                    activity_data[initialHour] = {}
-                if appellation.created > timezone.now() - timedelta(hours=initialHour):
-                    userDict = activity_data[initialHour]
-                    if not userDict.get(username):
-                        activity = RecentActivity()
-                        activity.appellation +=1
-                        userDict[username] = activity
-                    else:
-                        activity = userDict.get(username)
-                        activity.appellation +=1
-                appellation_list.remove(appellation)
-
+    recent_texts = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
+    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(created_count=Count('id')).order_by("-hour", "createdBy")
     context = {
-        'recent_activity': result_text,
-        'appelation_list': appellation_text
+        'recent_texts': recent_texts,
+        'recent_appellations': recent_appellations
     }
     return HttpResponse(template.render(context))
 

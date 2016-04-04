@@ -18,26 +18,10 @@
     </div>
     <div class="row">
         <div class="col-sm-10 col-sm-offset-1">
-            {% if recent_activity|length > 0 %}
-
-            {% comment %}<div>
-                <ul class="pagination pagination-sm">
-                    <h1>{{ recent_activity|length }}</h1>
-                    {% for hour,detail in recent_activity.items%}
-                        {% for user,data in detail.items%}
-                            <li>User {{ user }} added {% if data.text != 0 %}{{data.text }} texts{% endif %}
-                            {% if data.appellation != 0 %} and {{data.appellation }} appellation {% endif %} {{ hour }} hours ago
-                            </li>
-                           <br>
-                        {% endfor %}
-                    {% endfor %}
-
-                </ul>
-            </div>{% endcomment %}
-
+            {% if recent_texts|length > 0 %}
                 <div>
                 <ul class="pagination pagination-sm">
-                    <h1>{{ recent_activity|length }}</h1>
+                    <h1>Recent Texts </h1>
                     {% for item in recent_activity%}
                             <li>User {{ item.addedBy__username }} added {% if item.created_count != 0 %}{{item.created_count }} texts{% endif %}
                             {{ item.hour|timesince }}
@@ -49,7 +33,27 @@
             </div>
 
             {% else %}
-            <p>No recent activities to display.</p>
+            <p>No recent texts added</p>
+            {% endif %}
+
+        </div>
+     <div class="col-sm-10 col-sm-offset-1">
+            {% if recent_appellations|length > 0 %}
+                <div>
+                <ul class="pagination pagination-sm">
+                    <h1>Recent Appellations </h1>
+                    {% for item in recent_appellations%}
+                            <li>User {{ item.createdBy__username }} added {% if item.created_count != 0 %}{{item.created_count }} appellations{% endif %}
+                            {{ item.hour|timesince }}
+                            </li>
+                           <br>
+                    {% endfor %}
+
+                </ul>
+            </div>
+
+            {% else %}
+            <p>No recent Appellations added</p>
             {% endif %}
 
         </div>
