@@ -372,10 +372,19 @@ def collection_texts(request, collectionid):
 
 
 def recent_activity(request):
+    """
+    Provides summary of activities performed on the system.
+    Currently on text addition, Appellation additions are shown.
+    Args:
+        request: HttpRequest()
+
+    Returns:
+        HttpResponse()
+
+    """
     template = loader.get_template('annotations/recent_activity.html')
     recent_texts = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
     recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(created_count=Count('id')).order_by("-hour", "createdBy")
-    Relation.objects.all()
     context = {
         'recent_texts': recent_texts,
         'recent_appellations': recent_appellations
