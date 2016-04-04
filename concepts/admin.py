@@ -1,9 +1,15 @@
 from django.contrib import admin
+from django.contrib.admin import helpers
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
+from django.template.context_processors import csrf
+from django.template import RequestContext
+from django.views.decorators.csrf import csrf_protect
+from django.db.models import Q
 from .models import *
 from . import authorities
+import django.forms as forms
 
 
 def resolve(modeladmin, request, queryset):
@@ -11,47 +17,188 @@ def resolve(modeladmin, request, queryset):
         authorities.resolve(type(obj), obj)
 resolve.verbose_name = 'resolve selected concepts'
 
+
+class ConceptActionForm(forms.Form):
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    action = forms.CharField(widget=forms.HiddenInput())
+    confirmed = forms.BooleanField(initial=False, widget=forms.HiddenInput())
+
+
+class ConceptMergeForm(forms.Form):
+    """
+    The administrator can select one :class:`.Concept` instance into which all
+    other selected :class:`.Concept` instances will be merged.
+    """
+    master_concept = forms.ModelChoiceField(required=False, queryset=Concept.objects.all(), widget=forms.RadioSelect(), empty_label=None)
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    action = forms.CharField(widget=forms.HiddenInput())
+
+
+def traverse_mergers(concept):
+    """
+    Recursively collect all IDs for concepts that have been merged into
+    ``concept``.
+    """
+
+    id_list = [concept.id]
+    if concept.merged_concepts.count() > 0:
+        for child in concept.merged_concepts.all():
+            id_list += traverse_mergers(child)
+    return id_list
+
+
+def perform_merge(unresolved_concepts, master_concept):
+    """
+    Merge a set of unresolved concepts into a single master concept.
+    """
+
+    unresolved_concepts.update(concept_state=Concept.REJECTED)
+
+    # merged_with indicates that a rejected concept has been merged with
+    #  another concept.
+    unresolved_concepts.update(merged_with=master_concept)
+
+    # It may be the case that other concepts have been merged into these
+    #  unresolved concepts. Therefore, we recursively collect all of
+    #  these "child" concepts, and point them to the master concept.
+    children = []
+    for concept in unresolved_concepts:
+        children += traverse_mergers(concept)
+    children_queryset = Concept.objects.filter(pk__in=children)
+    children_queryset.update(merged_with=master_concept)
+
+
 def merge_concepts(modeladmin, request, queryset):
     """
-    This method gets called when we click on "Merge Concepts" action after we select the concepts
-    from the list of concepts
-    :param modeladmin:
-    :param request:
-    :param queryset:
-    :return:
+    An administrator should be able to merge concepts in the concept change list
+    view.
+
+    Parameters
+    ----------
+    modeladmin : :class:`.ConceptAdmin`
+    request : :class:`HttpRequest`
+    queryset : :class:`QuerySet`
+        Should contain two or more :class:.`Concept` instances.
+
+
+    Returns
+    -------
+    HttpResponse
+        POST request.
     """
-    
-    opts = modeladmin.model._meta
-    app_label = opts.app_label
-    RESOLVED_STATUS = Concept.RESOLVED
-    resolvedConceptCount = queryset.filter(concept_state = RESOLVED_STATUS).count()
 
-    #VGNWB-121 gets called only when there is only one resolved concept
-    if resolvedConceptCount == 1:
-        resolvedConceptsList = queryset.filter(concept_state = RESOLVED_STATUS).values()
-        unResolvedConceptsList = queryset.exclude(concept_state = RESOLVED_STATUS).values()
+    # There must be at least two concepts to perform a merge action (merging a
+    #  concept into itself doesn't make any sense).
+    if queryset.count() < 2:
+        # This will display a green message above the list of concepts.
+        modeladmin.message_user(request, 'Please select at least two concepts')
+        return
 
-        #As there will be only one element in the list
-        resolvedConcept = resolvedConceptsList[0]
-        resolvedConceptName = resolvedConcept['label']
+    # Approved concepts should be treated just like resolved concepts; the
+    #  only difference is that they have not yet been added to the remote
+    #  authority service.
+    resolved_condition = Q(concept_state=Concept.RESOLVED) | \
+                         Q(concept_state=Concept.APPROVED)
+    resolved_concepts = queryset.filter(resolved_condition)
 
-        context = {
-        "resolvedConcept": resolvedConceptName,
-        "opts": opts,
-        "app_label": app_label,
-        "unResolvedConcepts": unResolvedConceptsList
-        }
-        return render_to_response('admin/merge_concepts_resolved.html', context)
+    # Once a concept is resolved, it is immutable: it cannot be changed, merged,
+    #  deleted, etc.
+    if resolved_concepts.count() > 1:
+        # Again, green message to the user at the top of the page.
+        modeladmin.message_user(request, "You cannot select more than one"
+                                         " resolved concept.")
+        return
 
-    return render_to_response('admin/merge_concepts.html', {'concepts': queryset})
+    # Allows us to pass around the Concept queryset between steps.
+    _selected_action_ids = [obj['id'] for obj in queryset.values('id')]
 
+    # When there is only one resolved concept, we direct the user to an
+    #  intermediate form for confirmation to resolve unresolvedConcepts into
+    #  resolved Concept.
+    if resolved_concepts.count() == 1:
+        merged_condition = Q(merged_with__isnull=False)
+
+        # It is OK to merge a Rejected concept, but only if it is not already
+        #  merged into another concept.
+        unresolved_condition = Q(concept_state=Concept.PENDING) | \
+                               Q(Q(merged_with__isnull=True) & \
+                                 Q(concept_state=Concept.REJECTED))
+        unresolved_concepts = queryset.filter(unresolved_condition)
+
+        action_form = ConceptActionForm(request.POST)
+
+        # If the user confirms the merge action, then we should proceed with
+        #  merging the unresolved concepts into the resolved (master) concept.
+        if action_form.is_valid() and action_form.cleaned_data['confirmed']:
+            try:
+                perform_merge(unresolved_concepts, resolved_concepts.first())
+            except Exception as E:
+                error_message = 'Encountered unhandled exception: %s' % str(E)
+                modeladmin.message_user(request, error_message)
+
+            modeladmin.message_user(request, "Concepts merged successfully")
+            return
+
+        else:
+
+            action_form = ConceptActionForm({
+                '_selected_action': _selected_action_ids,
+                'action': 'merge_concepts',
+                'confirmed': True,
+            })
+
+            context = {
+                "resolvedConcept": resolved_concepts.first(),
+                "opts": modeladmin.model._meta,
+                "app_label": modeladmin.model._meta.app_label,
+                "unResolvedConcepts": unresolved_concepts ,
+                "path" : request.get_full_path(),
+                "action_form": action_form,
+            }
+
+            return render(request, 'admin/merge_concepts_resolved.html', context)
+
+    # When there is no resolved concept, we display a form asking the user to
+    #  select which concept should be the master concept (into which the other
+    #  concepts will be merged).
+    elif resolved_concepts.count() == 0:
+        merge_form = ConceptMergeForm(request.POST)
+
+        # If the user has selected a master concept, then we need to execute the
+        #  merge action.
+        if merge_form.is_valid() and merge_form.cleaned_data['master_concept']:
+            master_concept = merge_form.cleaned_data['master_concept']
+            unresolved_concepts = queryset.exclude(pk=master_concept.id)
+            try:
+                perform_merge(unresolved_concepts, master_concept)
+            except Exception as E:
+                error_message = 'Encountered unhandled exception: %s' % str(E)
+                modeladmin.message_user(request, error_message)
+
+            modeladmin.message_user(request, "Concepts merged successfully")
+            return
+
+        # We must prompt the user to select a master concept.
+        else:
+            merge_form = ConceptMergeForm({
+                '_selected_action': _selected_action_ids,
+                'action': 'merge_concepts',
+            })
+            merge_form.fields['master_concept'].queryset = queryset
+            context = {
+                'form': merge_form,
+            }
+            # merge_form.fields['master_concept'].
+            return render(request, 'admin/merge_concepts.html', context)
+            
 
 class ConceptAdmin(admin.ModelAdmin):
     model = Concept
     search_fields = ('label',)
-    list_display = ('label', 'resolved', 'concept_state', 'typed',)
-    actions = (resolve, merge_concepts,)
+    list_display = ('label', 'description', 'resolved', 'concept_state', 'typed',)
+    actions = (resolve, merge_concepts)
     list_filter=('concept_state', 'typed',)
+    #opts = modeladmin.model._meta
 
 class TypeAdmin(admin.ModelAdmin):
     model = Type

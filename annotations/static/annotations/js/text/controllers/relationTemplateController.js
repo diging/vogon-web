@@ -32,6 +32,10 @@ angular.module('annotationApp')
     }
 
     $scope.startCreatingRelation = function() {
+        $scope.relation_template.start = {};
+        $scope.relation_template.end = {};
+        $scope.relation_template.occur = {};
+
         // TODO: do we need both of these?
         $scope.relation_create = true;
         $scope.hideRelationCreate = false;
@@ -126,6 +130,7 @@ angular.module('annotationApp')
                JSON.stringify($scope.relation_template),
                function(data) {
                    $scope.reset();
+                   reloadGraph();
                });
 
         // Update relation list.
