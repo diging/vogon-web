@@ -21,7 +21,6 @@ from django.conf import settings
 
 from django.forms import formset_factory
 
-
 from django.core.serializers import serialize
 from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
@@ -383,24 +382,14 @@ def recent_activity(request):
     text_list = list(Text.objects.filter(added__gt=time_threshold).order_by('-added')[:10])
 
     activity_data = {}
-    result = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
-    print result
-    if text_list:
-        for initialHour in range(1, 25):
-            for item in text_list:
-                username = item.addedBy.username
-                if not activity_data.get(initialHour):
-                    activity_data[initialHour] = {}
-                if item.added > timezone.now() - timedelta(hours=initialHour):
-                    userDict = activity_data[initialHour]
-                    if not userDict.get(username):
-                        activity = RecentActivity()
-                        activity.text +=1
-                        userDict[username] = activity
-                    else:
-                        activity = userDict.get(username)
-                        activity.text +=1
-                text_list.remove(item)
+    result_text = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
+
+    if result_text:
+        for item in result_text:
+            print item
+            print item['addedBy__username'], item['hour']
+
+    appellation_text = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(created_count=Count('id')).order_by("-hour", "createdBy")
     appellation_list = list(Appellation.objects.filter(created__gt=time_threshold).order_by('-created')[:10])
     if appellation_list:
         for initialHour in range(1, 25):
@@ -420,7 +409,8 @@ def recent_activity(request):
                 appellation_list.remove(appellation)
 
     context = {
-        'recent_activity': activity_data
+        'recent_activity': result_text,
+        'appelation_list': appellation_text
     }
     return HttpResponse(template.render(context))
 

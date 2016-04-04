@@ -20,7 +20,7 @@
         <div class="col-sm-10 col-sm-offset-1">
             {% if recent_activity|length > 0 %}
 
-            <div>
+            {% comment %}<div>
                 <ul class="pagination pagination-sm">
                     <h1>{{ recent_activity|length }}</h1>
                     {% for hour,detail in recent_activity.items%}
@@ -33,7 +33,21 @@
                     {% endfor %}
 
                 </ul>
+            </div>{% endcomment %}
+
+                <div>
+                <ul class="pagination pagination-sm">
+                    <h1>{{ recent_activity|length }}</h1>
+                    {% for item in recent_activity%}
+                            <li>User {{ item.addedBy__username }} added {% if item.created_count != 0 %}{{item.created_count }} texts{% endif %}
+                            {{ item.hour|timesince }}
+                            </li>
+                           <br>
+                    {% endfor %}
+
+                </ul>
             </div>
+
             {% else %}
             <p>No recent activities to display.</p>
             {% endif %}
