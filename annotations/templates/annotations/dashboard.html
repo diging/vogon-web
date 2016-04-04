@@ -24,6 +24,8 @@ app.factory('Text', ['$resource', function($resource) {
 	return $resource(BASELOCATION + '/rest/text/:id');
 }]);
 
+//The below commented block is repeated in this file
+/*
 app.factory('TextCollection', ['$resource', '$http', 'Text',
 							   function($resource, $http, Text) {
 	var TextCollection = $resource(BASELOCATION + '/rest/textcollection/:id', {}, {
@@ -64,6 +66,7 @@ app.factory('TextCollection', ['$resource', '$http', 'Text',
 
 	return TextCollection;
 }]);
+*/
 
 app.controller('textCollectionsController',
 			   ['$scope', 'TextCollection', '$http', '$q',
@@ -225,7 +228,11 @@ app.factory('TextCollection', ['$resource', '$http', 'Text',
 		update_remote: {
 			method:'PUT',
 			headers: {'Content-Type': 'application/json'}
-		}
+		},
+		query: {
+                    method: 'GET',
+                   
+        }
 	});
 
 	angular.extend(TextCollection.prototype, {
