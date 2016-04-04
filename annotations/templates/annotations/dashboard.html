@@ -75,22 +75,22 @@ app.controller('textCollectionsController',
 	$scope.oneAtATime = false;
 
 	$scope.update = function(tcid) {
-		$scope.textcollections = TextCollection.query().$promise.then(function(textcollections) {
-			$scope.textcollections = textcollections;
+		$scope.textcollections = TextCollection.query().$promise.then(function(response) {
+			$scope.textcollections = response.results;
+			console.log(response);
 
-			textcollections.forEach(function(textcollection, index) {
-				textcollection.update().then(function(texts) {
-					if (textcollection.id == tcid) {
-						textcollection.open = true;
-						if(!$scope.$$phase) $scope.$apply();
-					}
-					$scope.$watch('textcollections['+index+'].open', function(isOpen){
-						if (isOpen) {
-							textcollection.select();
-						}
-					});
+			$scope.textcollections.forEach(function(textcollection, index) {
+
+				if (textcollection.id == tcid) {
+					textcollection.open = true;
 					if(!$scope.$$phase) $scope.$apply();
+				}
+				$scope.$watch('textcollections['+index+'].open', function(isOpen){
+					if (isOpen) {
+						textcollection.select();
+					}
 				});
+				if(!$scope.$$phase) $scope.$apply();
 			});
 		});
 	}
@@ -230,8 +230,8 @@ app.factory('TextCollection', ['$resource', '$http', 'Text',
 			headers: {'Content-Type': 'application/json'}
 		},
 		query: {
-                    method: 'GET',
-                   
+			isArray: false,
+            method: 'GET',
         }
 	});
 
@@ -268,7 +268,6 @@ app.controller('textController',
 			   	function($scope, TextCollection, $http, $q) {
 
 
-	console.log('asdf');
 	$scope.addTextToCollection = function(text) {
 		console.log(text);
 		var data = {
@@ -305,8 +304,8 @@ app.controller('addTextsModalController', ['$scope', '$uibModal', '$log', '$http
 	$scope.repositories = [];
 	$scope.toAdd = [];
 
-	$scope.textcollections = TextCollection.query().$promise.then(function(textcollections) {
-		$scope.textcollections = textcollections;
+	$scope.textcollections = TextCollection.query().$promise.then(function(response) {
+		$scope.textcollections = response.results;
 	});
 
 	$scope.open = function(data, callback) {

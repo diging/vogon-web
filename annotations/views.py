@@ -21,7 +21,6 @@ from django.conf import settings
 
 from django.forms import formset_factory
 
-
 from django.core.serializers import serialize
 from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
@@ -644,9 +643,9 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
 
         userid = self.request.query_params.get('user', None)
         if userid:
-            queryset = queryset.filter(ownedBy__pk=self.userid)
+            queryset = queryset.filter(ownedBy__pk=userid)
         else:
-            queryset = queryset.filter(ownedBy__pk=self.request.user.id)
+            queryset = queryset.filter(Q(ownedBy__pk=self.request.user.id) | Q(participants=self.request.user.id))
         return queryset
 
     def create(self, request, *args, **kwargs):
