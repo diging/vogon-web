@@ -21,7 +21,13 @@ app.config(['$httpProvider', function($httpProvider){
 }]);
 
 app.factory('Text', ['$resource', function($resource) {
-	return $resource(BASELOCATION + '/rest/text/:id');
+	
+	return $resource(BASELOCATION + '/rest/text/:id', {}, {
+		query: {
+      method: 'GET',
+      isArray: false,
+    }
+	});
 }]);
 
 //The below commented block is repeated in this file
