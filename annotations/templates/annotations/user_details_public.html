@@ -5,47 +5,45 @@
 	<div class="row col-sm-8 col-sm-offset-2">
     <div class="panel panel-default narrow">
       <div class="panel-heading">
-		  <span class="h2">User details for: {{ detail_user.full_name}}</span>
-	  </div>
-      	<div class="panel-body">
-      		<img src={% if detail_user.imagefile %}
-											{{detail_user.imagefile}}
-									 {% else %}
-									 		{{default_user_image}}
-									 {% endif %}
-									 width="200px" height="200px">
-					</img>
-      		<br>
-      		<br>
-			<ul class="list-group">
-
-				<li class="list-group-item"><strong>Affiliation: </strong>{{ detail_user.affiliation }}</li>
-				<li class="list-group-item"><strong>Location: </strong>{{ detail_user.location }}</li>
-				{% if  detail_user.conceptpower_uri  %}
+		    <span class="h2">User details for: {{ detail_user.full_name}}</span>
+	    </div>
+    	<div class="panel-body">
+      	<img src={% if detail_user.imagefile %}
+										{{detail_user.imagefile}}
+							 		{% else %}
+							 			{{default_user_image}}
+							 		{% endif %}
+							 	width="200px" height="200px">
+				</img>
+      	<br>
+      	<br>
+				<ul class="list-group">
+					<li class="list-group-item"><strong>Affiliation: </strong>{{ detail_user.affiliation }}</li>
+					<li class="list-group-item"><strong>Location: </strong>{{ detail_user.location }}</li>
+					{% if  detail_user.conceptpower_uri  %}
 					<li class="list-group-item"><strong>Concept power URI: </strong><a href="{{ detail_user.conceptpower_uri }}">{{ detail_user.conceptpower_uri }}</a></li>
-				{%  else %}
+					{%  else %}
 					<li class="list-group-item"><strong>Concept power URI: </strong>{{ detail_user.conceptpower_uri }}</li>
-				{% endif %}
-				{% if  detail_user.link  %}
-				<li class="list-group-item"><strong>Link: </strong><a href="{{ detail_user.link}}">{{ detail_user.link}}</a></li>
-				{%  else %}
+					{% endif %}
+					{% if  detail_user.link  %}
+					<li class="list-group-item"><strong>Link: </strong><a href="{{ detail_user.link}}">{{ detail_user.link}}</a></li>
+					{%  else %}
 					<li class="list-group-item"><strong>Link: </strong>{{ detail_user.link }}</li>
-				{% endif %}
-				<li class="list-group-item">User has added <strong>{{textCount}}</strong> texts</li>
-				<li class="list-group-item">Contributed to <strong>{{ relation_count }}</strong> relations out of <strong>{{textAnnotated}}</strong> texts</li>
-				<li class="list-group-item">any work
-					<div class = "centered"><link rel="stylesheet" href="{% static "annotations/css/d3.css" %}" />
-						<script src="//d3js.org/d3.v3.min.js"></script>
-						<script src="{% static "annotations/js/bar_d3.js" %}"></script>
-						<script>
-						  var annotations = JSON.parse('{{annotation_per_week|safe}}');
-							render(annotations);
-						</script>
-					</div>
-				</li>
-			</ul>
-		</div>
-
+					{% endif %}
+					<li class="list-group-item">User has added <strong>{{textCount}}</strong> texts</li>
+					<li class="list-group-item">Contributed to <strong>{{ relation_count }}</strong> relations out of <strong>{{textAnnotated}}</strong> texts</li>
+					<li class="list-group-item">
+						<div id = "barchart"><link rel="stylesheet" href="{% static "annotations/css/d3.css" %}" />
+							<script src="//d3js.org/d3.v3.min.js"></script>
+							<script src="{% static "annotations/js/bar_d3.js" %}"></script>
+							<script>
+						  	var annotations = JSON.parse('{{annotation_per_week|safe}}');
+								render(annotations);
+							</script>
+						</div>
+					</li>
+				</ul>
+			</div>
     </div>
 	</div>
 </div>
