@@ -509,3 +509,4 @@ class TemporalBounds(models.Model):
     start = TupleField(blank=True, null=True)
     occur = TupleField(blank=True, null=True)
     end = TupleField(blank=True, null=True)
+

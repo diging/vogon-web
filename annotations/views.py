@@ -22,7 +22,6 @@ from django.conf import settings
 
 from django.forms import formset_factory
 
-
 from django.core.serializers import serialize
 from django.db.models import Q, Count
 from django.utils.safestring import mark_safe
@@ -32,6 +31,8 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from django.db import models
+from django.db.models.query import QuerySet
 
 from rest_framework import viewsets, exceptions, status
 from rest_framework.authentication import SessionAuthentication
@@ -59,6 +60,9 @@ from collections import OrderedDict, defaultdict, Counter
 import requests
 import re
 from urlnorm import norm
+from itertools import chain
+import pytz
+from django.db.models.expressions import DateTime
 import uuid
 import igraph
 import copy
@@ -363,6 +367,27 @@ def collection_texts(request, collectionid):
         'N_relations': N_relations,
         'N_appellations': N_appellations,
         'collection': TextCollection.objects.get(pk=collectionid)
+    }
+    return HttpResponse(template.render(context))
+
+
+def recent_activity(request):
+    """
+    Provides summary of activities performed on the system.
+    Currently on text addition, Appellation additions are shown.
+    Args:
+        request: HttpRequest()
+
+    Returns:
+        HttpResponse()
+
+    """
+    template = loader.get_template('annotations/recent_activity.html')
+    recent_texts = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
+    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(created_count=Count('id')).order_by("-hour", "createdBy")
+    context = {
+        'recent_texts': recent_texts,
+        'recent_appellations': recent_appellations
     }
     return HttpResponse(template.render(context))
 
