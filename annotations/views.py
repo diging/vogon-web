@@ -324,6 +324,10 @@ def list_user(request):
 
 
 def collection_texts(request, collectionid):
+    
+    form = TextCollectionForm()
+    form.save()
+    
     """
     List all of the texts that the user can see, with links to annotate them.
     """

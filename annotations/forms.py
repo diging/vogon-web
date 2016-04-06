@@ -302,3 +302,15 @@ class RelationTemplatePartForm(forms.ModelForm):
 		super(RelationTemplatePartForm, self).clean(*args, **kwargs)
 
 		# print self.cleaned_data
+
+
+
+class TextCollectionForm(forms.ModelForm):
+	queryset = VogonUser.objects.all()
+	contributors = forms.ModelMultipleChoiceField(queryset)
+
+	class Meta:
+		model = TextCollection
+		exclude = ['name', 'description', 'ownedBy', 'texts']
+		#fields = ('name', 'description', 'ownedBy', 'texts', 'participants')
+	
