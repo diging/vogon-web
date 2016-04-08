@@ -13,15 +13,15 @@
                 ng-model="query"
                 ng-change="search()"
                 class="form-control"
-                ng-disabled="inputLocked()"
+                ng-disabled="data.selectedConcept"
                 placeholder="To what does this passage refer?">
             </input>
             <!-- Until a Concept is selected, show a green search icon. -->
-            <span class="input-group-addon btn btn-sm btn-success" ng-show="!conceptSelected()">
+            <span class="input-group-addon btn btn-sm btn-success" ng-show="!data.selectedConcept">
                 <span class="glyphicon glyphicon-search"></span>
             </span>
             <!-- When a Concept is selected, show a red X that allows the user to deselect the Concept. -->
-            <span class="input-group-addon btn btn-sm btn-danger" ng-click="unselectConcept()" ng-show="conceptSelected()">
+            <span class="input-group-addon btn btn-sm btn-danger" ng-click="unselectConcept()" ng-show="data.selectedConcept">
                 <span class="glyphicon glyphicon-remove"></span>
             </span>
         </div>

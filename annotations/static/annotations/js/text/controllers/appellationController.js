@@ -56,8 +56,9 @@ angular.module('annotationApp')
             $scope.selectAppellation(appellation);
             $scope.$emit('appellationCreated');
             reloadGraph();  // Wait until the appellation is actually created.
+            $scope.reset();
         });
-        $scope.reset();
+
     }
 
     $scope.reset = function() {
@@ -82,7 +83,6 @@ angular.module('annotationApp')
         });
 
         selectionService.releaseWords();
-        selectionService.reset
 
         // Make sure that all of the children know.
         $scope.$broadcast('reset');
