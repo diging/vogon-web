@@ -933,10 +933,10 @@ class TextSearchView(SearchView):
 
     def form_valid(self, form):
         self.queryset = form.search()
+        self.queryset = self.queryset.order_by('title')
         context = self.get_context_data(**{
             self.form_name: form,
             'query': form.cleaned_data.get(self.search_field),
             'object_list': self.queryset.order_by('title')
         })
-        import pdb; pdb.set_trace()
         return self.render_to_response(context)
