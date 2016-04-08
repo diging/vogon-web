@@ -384,7 +384,15 @@ def recent_activity(request):
     """
     template = loader.get_template('annotations/recent_activity.html')
     recent_texts = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
-    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(created_count=Count('id')).order_by("-hour", "createdBy")
+    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(appelation_count=Count('id')).order_by("-hour", "createdBy")
+    recent_relations = Relation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(relation_count=Count('id')).order_by("-hour", "createdBy")
+    combined_data={}
+    for event in recent_appellations:
+        combined_data[(event['hour'], event['createdBy__username'])] = Counter(appelation_count=0, relation_count=0)
+    for event in recent_relations:
+        combined_data[(event['hour'], event['createdBy__username'])] = Counter(appelation_count=0, relation_count=0)
+
+    print combined_data
     context = {
         'recent_texts': recent_texts,
         'recent_appellations': recent_appellations
