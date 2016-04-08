@@ -902,7 +902,6 @@ def user_details(request, userid, *args, **kwargs):
     :HTTPResponse:
         Renders an user details view based on user's authentication status.
     """
-
     user = get_object_or_404(VogonUser, pk=userid)
     if request.user.is_authenticated() and request.user.id == int(userid):
         return HttpResponseRedirect("/accounts/settings/")
@@ -910,7 +909,7 @@ def user_details(request, userid, *args, **kwargs):
         textCount = Text.objects.filter(addedBy=user).count()
         textAnnotated = Text.objects.filter(annotators=user).distinct().count()
         relation_count = user.relation_set.count()
-        start_date = datetime.datetime.now() + datetime.timedelta(-90)
+        start_date = datetime.datetime.now() + datetime.timedelta(-60)
 
         #Count annotations for user by date
         annotation_by_user = Relation.objects.filter(createdBy = user, created__gt = start_date)\
@@ -919,6 +918,8 @@ def user_details(request, userid, *args, **kwargs):
         weeks_last_date_map = dict()
         d7 = datetime.timedelta( days = 7)
         current_week = datetime.datetime.now() + d7
+        print annotation_by_user
+        print user.username
 
         #Find out the weeks and their last date in the past 90 days
         while start_date <= current_week:
@@ -935,13 +936,13 @@ def user_details(request, userid, *args, **kwargs):
         #Sort the date and format the data in the format required by d3.js
         keys = (result.keys())
         keys.sort()
-        for r in keys:
+        for key in keys:
             new_format = dict()
-            new_format["date"] = r
-            new_format["count"] = result[r]
+            new_format["date"] = key
+            new_format["count"] = result[key]
             annotation_per_week.append(new_format)
         annotation_per_week = str(annotation_per_week).replace("'", "\"")
-        
+
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,

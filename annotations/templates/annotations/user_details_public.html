@@ -39,6 +39,11 @@
 							<script>
 						  	var annotations = JSON.parse('{{annotation_per_week|safe}}');
 								render(annotations);
+								$(window).resize(function() {
+								var chart = document.getElementById("barchart")
+   						  var width = $(chart).width();
+    						render(annotations);
+								});
 							</script>
 						</div>
 					</li>
