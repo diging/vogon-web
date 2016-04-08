@@ -904,7 +904,7 @@ def user_details(request, userid, *args, **kwargs):
     """
     user = get_object_or_404(VogonUser, pk=userid)
     if request.user.is_authenticated() and request.user.id == int(userid):
-        return HttpResponseRedirect("/accounts/settings/")
+        return HttpResponseRedirect(reverse('settings'))
     else:
         textCount = Text.objects.filter(addedBy=user).count()
         textAnnotated = Text.objects.filter(annotators=user).distinct().count()
@@ -912,8 +912,15 @@ def user_details(request, userid, *args, **kwargs):
         start_date = datetime.datetime.now() + datetime.timedelta(-60)
 
         #Count annotations for user by date
-        annotation_by_user = Relation.objects.filter(createdBy = user, created__gt = start_date)\
-        .extra({'date' : 'date(created)'}).values('date').annotate(count = Count('created'))
+        relations_by_user = Relation.objects.filter(createdBy = user, created__gt = start_date)\
+            .extra({'date' : 'date(created)'}).values('date').annotate(count = Count('created'))
+
+        appelations_by_user = Appellation.objects.filter(createdBy = user, created__gt = start_date)\
+            .extra({'date' : 'date(created)'}).values('date').annotate(count = Count('created'))
+
+        annotation_by_user = list(relations_by_user)
+        annotation_by_user.extend(list(appelations_by_user))
+        
         result = dict()
         weeks_last_date_map = dict()
         d7 = datetime.timedelta( days = 7)
