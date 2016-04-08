@@ -930,7 +930,7 @@ def user_details(request, userid, *args, **kwargs):
             if(isinstance(count_per_day['date'], unicode)):
                 date = datetime.datetime.strptime(count_per_day['date'], time_format)
             else:
-                date = count_per_day['data']
+                date = count_per_day['date']
             result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] += count_per_day['count']
         annotation_per_week = list()
 
