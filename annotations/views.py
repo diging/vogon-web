@@ -918,19 +918,20 @@ def user_details(request, userid, *args, **kwargs):
         weeks_last_date_map = dict()
         d7 = datetime.timedelta( days = 7)
         current_week = datetime.datetime.now() + d7
-        print annotation_by_user
-        print user.username
 
         #Find out the weeks and their last date in the past 90 days
         while start_date <= current_week:
-            result[(Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%Y')] = 0
+            result[(Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] = 0
             start_date += d7
         time_format = '%Y-%m-%d'
 
         #Count annotations for each week
-        for e in annotation_by_user:
-            date = datetime.datetime.strptime(e['date'], time_format)
-            result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%Y')] += e['count']
+        for count_per_day in annotation_by_user:
+            if(isinstance(count_per_day['date'], unicode)):
+                date = datetime.datetime.strptime(count_per_day['date'], time_format)
+            else:
+                date = count_per_day['data']
+            result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] += count_per_day['count']
         annotation_per_week = list()
 
         #Sort the date and format the data in the format required by d3.js
