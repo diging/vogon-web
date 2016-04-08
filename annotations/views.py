@@ -323,10 +323,11 @@ def list_user(request):
     return HttpResponse(template.render(context))
 
 
+
 def collection_texts(request, collectionid):
+    textcollectioninstance = TextCollection.objects.get(pk=1)
     
-    form = TextCollectionForm()
-    form.save()
+
     
     """
     List all of the texts that the user can see, with links to annotate them.
@@ -362,7 +363,8 @@ def collection_texts(request, collectionid):
         'order_by': order_by,
         'N_relations': N_relations,
         'N_appellations': N_appellations,
-        'collection': TextCollection.objects.get(pk=collectionid)
+        'collection': TextCollection.objects.get(pk=collectionid),
+        'form': TextCollectionForm(instance=textcollectioninstance)
     }
     return HttpResponse(template.render(context))
 
@@ -740,6 +742,12 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return queryset[:max_results]
         return queryset
 
+@login_required
+def check(request):
+    if request.method == 'POST':
+       form = TextCollectionForm(request.POST)
+       if form.is_valid():
+        form.save()
 
 @login_required
 def upload_file(request):
@@ -758,7 +766,9 @@ def upload_file(request):
             text = handle_file_upload(request, form)
             return HttpResponseRedirect(reverse('text', args=[text.id]))
 
+
     else:
+
         form = UploadFileForm()
 
     template = loader.get_template('annotations/upload_file.html')

@@ -79,7 +79,8 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^autocomplete/', include('autocomplete_light.urls')),
     url(r'^$', views.home),
-    url(r'^sign_s3$', views.sign_s3, name="sign_s3")
+    url(r'^sign_s3$', views.sign_s3, name="sign_s3"),
+    url(r'^text/add/test/$', views.check, name="check")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:

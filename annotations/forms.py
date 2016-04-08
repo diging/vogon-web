@@ -306,11 +306,11 @@ class RelationTemplatePartForm(forms.ModelForm):
 
 
 class TextCollectionForm(forms.ModelForm):
-	queryset = VogonUser.objects.all()
-	contributors = forms.ModelMultipleChoiceField(queryset)
+	#queryset = VogonUser.objects.all()
+	#contributors = forms.ModelMultipleChoiceField(queryset)
 
 	class Meta:
 		model = TextCollection
-		#exclude = ['name', 'description', 'ownedBy', 'texts']
-		fields = ('name', 'description', 'ownedBy', 'texts', 'participants')
+		exclude = ['name', 'description', 'ownedBy', 'texts']
+		#fields = ('name', 'description', 'ownedBy', 'texts', 'participants')
 	
