@@ -66,6 +66,8 @@ from django.db.models.expressions import DateTime
 import uuid
 import igraph
 import copy
+import datetime
+from isoweek import Week
 
 import os
 from urlparse import urlparse
@@ -925,25 +927,63 @@ def user_details(request, userid, *args, **kwargs):
     :HTTPResponse:
         Renders an user details view based on user's authentication status.
     """
-
     user = get_object_or_404(VogonUser, pk=userid)
-    if request.user.is_authenticated() and request.user.id == userid:
-        template = loader.get_template('annotations/user_details.html')
-        context = RequestContext(request, {
-            'user': request.user,
-            'detail_user': user,
-        })
+    if request.user.is_authenticated() and request.user.id == int(userid):
+        return HttpResponseRedirect(reverse('settings'))
     else:
         textCount = Text.objects.filter(addedBy=user).count()
         textAnnotated = Text.objects.filter(annotators=user).distinct().count()
         relation_count = user.relation_set.count()
+        start_date = datetime.datetime.now() + datetime.timedelta(-60)
+
+        #Count annotations for user by date
+        relations_by_user = Relation.objects.filter(createdBy = user, created__gt = start_date)\
+            .extra({'date' : 'date(created)'}).values('date').annotate(count = Count('created'))
+
+        appelations_by_user = Appellation.objects.filter(createdBy = user, created__gt = start_date)\
+            .extra({'date' : 'date(created)'}).values('date').annotate(count = Count('created'))
+
+        annotation_by_user = list(relations_by_user)
+        annotation_by_user.extend(list(appelations_by_user))
+        
+        result = dict()
+        weeks_last_date_map = dict()
+        d7 = datetime.timedelta( days = 7)
+        current_week = datetime.datetime.now() + d7
+
+        #Find out the weeks and their last date in the past 90 days
+        while start_date <= current_week:
+            result[(Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] = 0
+            start_date += d7
+        time_format = '%Y-%m-%d'
+
+        #Count annotations for each week
+        for count_per_day in annotation_by_user:
+            if(isinstance(count_per_day['date'], unicode)):
+                date = datetime.datetime.strptime(count_per_day['date'], time_format)
+            else:
+                date = count_per_day['date']
+            result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] += count_per_day['count']
+        annotation_per_week = list()
+
+        #Sort the date and format the data in the format required by d3.js
+        keys = (result.keys())
+        keys.sort()
+        for key in keys:
+            new_format = dict()
+            new_format["date"] = key
+            new_format["count"] = result[key]
+            annotation_per_week.append(new_format)
+        annotation_per_week = str(annotation_per_week).replace("'", "\"")
+
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
             'textCount': textCount,
             'relation_count': relation_count,
             'textAnnotated': textAnnotated,
-            'default_user_image' : settings.DEFAULT_USER_IMAGE
+            'default_user_image' : settings.DEFAULT_USER_IMAGE,
+            'annotation_per_week' : annotation_per_week
         })
     return HttpResponse(template.render(context))
 

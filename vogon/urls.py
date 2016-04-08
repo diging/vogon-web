@@ -50,7 +50,7 @@ urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^about/$', views.about, name='about'),
     url(r'^accounts/profile/', views.dashboard, name='dashboard'),
-    url(r'^accounts/settings/$', views.user_settings),
+    url(r'^accounts/settings/$', views.user_settings, name = 'settings'),
     url(r'^accounts/register/$', views.register),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
                           {'next_page': '/accounts/login/'}),
