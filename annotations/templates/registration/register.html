@@ -97,6 +97,14 @@
 									</div>
 									<input type="hidden" name="next" value="{{ next }}" />
 								</div>
+                            <div class="form-group">
+								{{ form.link.errors }}
+									<label for="link" class="required control-label col-sm-4">{% trans 'Link:' %}</label>
+									<div class="col-sm-6">
+										{{ form.link | addcss:"form-control"}}
+									</div>
+									<input type="hidden" name="next" value="{{ next }}" />
+								</div>
 
 							<script type="text/javascript">
 							document.getElementById('id_username').focus()
