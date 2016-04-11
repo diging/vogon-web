@@ -323,15 +323,16 @@ def list_user(request):
     return HttpResponse(template.render(context))
 
 @csrf_exempt
-def check(request):
-    if request.method == 'POST':
-       form = TextCollectionForm(request.POST)
-       #if form.is_valid():
-       form.save()    
-
-@csrf_exempt
 def collection_texts(request, collectionid):
     textcollectioninstance = TextCollection.objects.get(pk=1)
+    if request.method == 'POST':
+        form = TextCollectionForm(request.POST,instance=textcollectioninstance)
+        if form.is_valid():
+            form.save()
+    else:
+        
+        form=TextCollectionForm(instance=textcollectioninstance);
+    
     
 
     """
@@ -369,7 +370,7 @@ def collection_texts(request, collectionid):
         'N_relations': N_relations,
         'N_appellations': N_appellations,
         'collection': TextCollection.objects.get(pk=collectionid),
-        'form': TextCollectionForm(instance=textcollectioninstance)
+        'form': form
     }
     return HttpResponse(template.render(context))
 
