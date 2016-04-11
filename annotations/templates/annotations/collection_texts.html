@@ -1,6 +1,6 @@
 {% extends "annotations/list_texts.html" %}
 {% load app_filters %}
-
+{% load staticfiles %}
     
 {% block title %}
 <div class="panel panel-default">
@@ -11,27 +11,28 @@
         </div>
     </div>
     <div class="panel-body">
-
-
-
         <span class="label label-default">{{ N_appellations }}</span> appellations | <span class="label label-default">{{ N_relations }}</span> relations | <span class="label label-default">{{ collection.texts.count }}</span> total texts.
     </div>
 
-<form  action="#" method="post" enctype='multipart/form-data'>
-{% csrf_token %}
-{{ form }}
- <a href="{% url 'check' %}" class="btn btn-sm btn-primary">Submit Text</a>
+
+    <form  action="#" method="post" enctype='multipart/form-data'>
+        {{form}}     
+        {{ form.errors }}
+        {{ form.non_field_errors }}
+             
+             
+        <span class="pull-right">
+            <input action="{% url 'check' %}"  type="submit" class="btn btn-primary" value="btn1" />
+        </span>
     </form>
-
-
 
 
     <div class="panel-footer clearfix">
         <span class="btn-group pull-right">
-            <a href="{% url 'file_upload' %}" class="btn btn-sm btn-primary">Upload Text</a>
+            <a href="{% url 'file_upload' %}"  class="btn btn-sm btn-primary">Upload Text</a>
         </span>
     </div>
 
-   
+  
 </div>
 {% endblock %}

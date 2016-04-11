@@ -13,7 +13,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import FormView
 
@@ -322,13 +322,18 @@ def list_user(request):
     }
     return HttpResponse(template.render(context))
 
+@csrf_exempt
+def check(request):
+    if request.method == 'POST':
+       form = TextCollectionForm(request.POST)
+       #if form.is_valid():
+       form.save()    
 
-
+@csrf_exempt
 def collection_texts(request, collectionid):
     textcollectioninstance = TextCollection.objects.get(pk=1)
     
 
-    
     """
     List all of the texts that the user can see, with links to annotate them.
     """
@@ -742,12 +747,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return queryset[:max_results]
         return queryset
 
-@login_required
-def check(request):
-    if request.method == 'POST':
-       form = TextCollectionForm(request.POST)
-       if form.is_valid():
-        form.save()
+
 
 @login_required
 def upload_file(request):
