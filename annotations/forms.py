@@ -44,6 +44,7 @@ class RegistrationForm(forms.Form):
                                                                       render_value=False)), label=_("Password (again)"))
 	affiliation = forms.CharField(required=True, max_length=30, label=_("Affliation"))
 	location = forms.CharField(required=True, max_length=30, label=_("Location"))
+	link = forms.CharField(required=True, max_length=30, label=_("Link"))
 
 
 	def clean_username(self):

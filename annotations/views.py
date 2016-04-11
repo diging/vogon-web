@@ -149,6 +149,7 @@ def register(request):
             full_name=form.cleaned_data['full_name'],
             affiliation=form.cleaned_data['affiliation'],
             location=form.cleaned_data['location'],
+            link=form.cleaned_data['link'],
             )
 
             g = Group.objects.get_or_create(name='Public')[0]
