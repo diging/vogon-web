@@ -126,7 +126,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location','imagefile')
+        fields = ('full_name', 'email', 'affiliation', 'location','imagefile','link')
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
