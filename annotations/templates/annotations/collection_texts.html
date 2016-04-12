@@ -14,10 +14,7 @@
         <span class="label label-default">{{ N_appellations }}</span> appellations | <span class="label label-default">{{ N_relations }}</span> relations | <span class="label label-default">{{ collection.texts.count }}</span> total texts.
     </div>
 
-console.log({{collection.ownedBy}})
-owner is {{collection.ownedBy}}
-{%  with owner="register"  %}
-{% if owner == "register" %}
+
     <form  action="#" method="post" enctype='multipart/form-data'>
         {% csrf_token %}
         {{form}}     
@@ -33,8 +30,7 @@ owner is {{collection.ownedBy}}
             <input  type="submit" class="btn btn-primary" value="Remove" />
         </span>
     </form>
-{% endif %}
-{% endwith %}
+
 
     <div class="panel-footer clearfix">
         <span class="btn-group pull-right">
