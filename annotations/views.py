@@ -386,10 +386,21 @@ def recent_activity(request):
     """
     template = loader.get_template('annotations/recent_activity.html')
     recent_texts = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
-    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(created_count=Count('id')).order_by("-hour", "createdBy")
+    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(appelation_count=Count('id')).order_by("-hour", "createdBy")
+    recent_relations = Relation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(relation_count=Count('id')).order_by("-hour", "createdBy")
+    combined_data={}
+    for event in recent_appellations:
+        if (event['hour'], event['createdBy__username']) not in combined_data:
+            combined_data[(event['hour'], event['createdBy__username'])] = {'appelation_count' : event['appelation_count'], 'relation_count': 0}
+        combined_data[(event['hour'], event['createdBy__username'])]['appelation_count'] =combined_data[(event['hour'], event['createdBy__username'])]['appelation_count'] + event['appelation_count']
+    for event in recent_relations:
+        if (event['hour'], event['createdBy__username']) not in combined_data:
+            combined_data[(event['hour'], event['createdBy__username'])] = {'appelation_count' :0, 'relation_count': event['relation_count']}
+        combined_data[(event['hour'], event['createdBy__username'])]['relation_count'] =combined_data[(event['hour'], event['createdBy__username'])]['relation_count'] + event['relation_count']
+
     context = {
         'recent_texts': recent_texts,
-        'recent_appellations': recent_appellations
+        'recent_combination': combined_data
     }
     return HttpResponse(template.render(context))
 
