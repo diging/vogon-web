@@ -23,7 +23,7 @@ import ast
 
 
 class VogonUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None):
+    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None, link=None):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -32,7 +32,8 @@ class VogonUserManager(BaseUserManager):
             email=self.normalize_email(email),
             full_name=full_name,
             affiliation=affiliation,
-            location=location
+            location=location,
+            link=link
         )
 
         user.set_password(password)

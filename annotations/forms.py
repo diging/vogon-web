@@ -44,6 +44,7 @@ class RegistrationForm(forms.Form):
                                                                       render_value=False)), label=_("Password (again)"))
 	affiliation = forms.CharField(required=True, max_length=30, label=_("Affliation"))
 	location = forms.CharField(required=True, max_length=30, label=_("Location"))
+	link = forms.URLField(required=True, max_length=500, label=_("Link"))
 
 
 	def clean_username(self):
@@ -125,7 +126,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location','imagefile')
+        fields = ('full_name', 'email', 'affiliation', 'location','imagefile','link')
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
