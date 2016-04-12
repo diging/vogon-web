@@ -64,14 +64,14 @@
             {% endif %}
             <div>
                 <ul class="pagination pagination-sm">
-                    {% if p1 %}
+                    {% if search_results %}
                     <li>
-                        <a href="?q={{ query }}&amp;page={{ p1.previous_page_number }}">
+                        <a href="?q={{ query }}&amp;page={{ search_results.previous_page_number }}">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
                     </li>
                     {% endif %}
-                    {% for p in p1.page_range %}
+                    {% for p in search_results.page_range %}
                     <li{% if p == object_list.number %} class="active"{% endif %}>
                         <a href="?q={{ query }}&amp;page={{p}}{%if order_by%}&order_by={{order_by}}{%endif%}">{{p}}</a>
                     </li>

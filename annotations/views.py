@@ -920,26 +920,19 @@ def concept_details(request, conceptid):
 class TextSearchView(SearchView):
     template = 'templates/search/search.html'
     queryset = SearchQuerySet()
-    """
-    def get_queryset(self):
-        queryset = super(TextSearchView, self).get_queryset()
-        return queryset
-    """
+
     def get_context_data(self, *args, **kwargs):
         context = super(TextSearchView, self).get_context_data(*args, **kwargs)
         return context
 
     def form_valid(self, form):
         self.queryset = form.search()
-<<<<<<< HEAD
-        p = Paginator(self.queryset, 20)
-=======
-        self.queryset = self.queryset.order_by('title')
->>>>>>> d9e8a16b10ff9ae11b0cda257bbebbb76b7cffbd
+        search_results = Paginator(self.queryset, 20)
+        
         context = self.get_context_data(**{
             self.form_name: form,
             'query': form.cleaned_data.get(self.search_field),
             'object_list': self.queryset.order_by('title'),
-            'p1' : p,
+            'search_results' : search_results,
         })
         return self.render_to_response(context)
