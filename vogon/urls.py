@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from rest_framework import routers
 from rest_framework_nested import routers as nrouters
 from annotations import views
+from haystack.generic_views import SearchView
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -58,7 +59,7 @@ urlpatterns = [
     url(r'^rest/', include(router.urls)),
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
-    url(r'^search/', include('haystack.urls')),
+    url(r'^search/$', views.TextSearchView.as_view(), name='haystack_search'),
     url(r'^network/$', views.network, name="network"),
     url(r'^network/data/$', views.network_data, name="network-data"),
     url(r'^text/$', views.list_texts, name="list_texts"),

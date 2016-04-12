@@ -1,3 +1,1 @@
 {{ object.title }}
-{{ object.addedBy.get_full_name}}
-{{ object.tokenizedContent }}

@@ -52,6 +52,9 @@ from django.shortcuts import render
 import logging
 logger = logging.getLogger(__name__)
 
+from haystack.generic_views import SearchView
+from haystack.query import SearchQuerySet
+
 
 def home(request):
     """
@@ -308,7 +311,7 @@ def collection_texts(request, collectionid):
         occursIn__partOf__id=collectionid).count()
 
     # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 10)
+    paginator = Paginator(text_list, 20)
 
     page = request.GET.get('page')
     try:
@@ -912,3 +915,24 @@ def concept_details(request, conceptid):
     })
 
     return HttpResponse(template.render(context))
+
+
+class TextSearchView(SearchView):
+    template = 'templates/search/search.html'
+    queryset = SearchQuerySet()
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(TextSearchView, self).get_context_data(*args, **kwargs)
+        return context
+
+    def form_valid(self, form):
+        self.queryset = form.search()
+        search_results = Paginator(self.queryset, 20)
+        
+        context = self.get_context_data(**{
+            self.form_name: form,
+            'query': form.cleaned_data.get(self.search_field),
+            'object_list': self.queryset.order_by('title'),
+            'search_results' : search_results,
+        })
+        return self.render_to_response(context)
