@@ -931,7 +931,11 @@ class TextSearchView(SearchView):
 
     def form_valid(self, form):
         self.queryset = form.search()
+<<<<<<< HEAD
         p = Paginator(self.queryset, 20)
+=======
+        self.queryset = self.queryset.order_by('title')
+>>>>>>> d9e8a16b10ff9ae11b0cda257bbebbb76b7cffbd
         context = self.get_context_data(**{
             self.form_name: form,
             'query': form.cleaned_data.get(self.search_field),
