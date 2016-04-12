@@ -311,7 +311,7 @@ def collection_texts(request, collectionid):
         occursIn__partOf__id=collectionid).count()
 
     # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 10)
+    paginator = Paginator(text_list, 20)
 
     page = request.GET.get('page')
     try:
@@ -917,26 +917,25 @@ def concept_details(request, conceptid):
     return HttpResponse(template.render(context))
 
 
-# Not complete yet (threadsafe search)
 class TextSearchView(SearchView):
     template = 'templates/search/search.html'
-    queryset = SearchQuerySet().order_by('title')
-
+    queryset = SearchQuerySet()
+    """
     def get_queryset(self):
-        #import pdb; pdb.set_trace()
-        queryset = super(TextSearchView, self).get_queryset().order_by('title')
+        queryset = super(TextSearchView, self).get_queryset()
         return queryset
-
+    """
     def get_context_data(self, *args, **kwargs):
         context = super(TextSearchView, self).get_context_data(*args, **kwargs)
         return context
 
     def form_valid(self, form):
         self.queryset = form.search()
+        p = Paginator(self.queryset, 20)
         context = self.get_context_data(**{
             self.form_name: form,
             'query': form.cleaned_data.get(self.search_field),
-            'object_list': self.queryset.order_by('title')
+            'object_list': self.queryset.order_by('title'),
+            'p1' : p,
         })
-        import pdb; pdb.set_trace()
         return self.render_to_response(context)

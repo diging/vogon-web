@@ -55,29 +55,6 @@
                 </tbody>
             {% endfor %}
             </table>
-            <div>
-                <ul class="pagination pagination-sm">
-                    {% if page.has_previous %}
-                    <li>
-                        <a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </lu>
-                    {% endif %}
-                    {% for p in page.paginator.page_range %}
-                    <li{% if p == page.number %} class="active"{% endif %}>
-                        <a href="?q={{ query }}&amp;page={{p}}{%if order_by%}&order_by={{order_by}}{%endif%}">{{p}}</a>
-                    </li>
-                    {% endfor %}
-                    {% if page.has_next %}
-                    <li>
-                        <a href="?page={{ page.next_page_number }}">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </lu>
-                    {% endif %}
-                </ul>
-            </div>
             {% if page.has_previous or page.has_next %}
                 <div>
                     {% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}
@@ -85,6 +62,29 @@
                     {% if page.has_next %}<a href="?q={{ query }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
                 </div>
             {% endif %}
+            <div>
+                <ul class="pagination pagination-sm">
+                    {% if p1 %}
+                    <li>
+                        <a href="?q={{ query }}&amp;page={{ p1.previous_page_number }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% for p in p1.page_range %}
+                    <li{% if p == object_list.number %} class="active"{% endif %}>
+                        <a href="?q={{ query }}&amp;page={{p}}{%if order_by%}&order_by={{order_by}}{%endif%}">{{p}}</a>
+                    </li>
+                    {% endfor %}
+                    {% if object_list.has_next %}
+                    <li>
+                        <a href="?q={{ query }}&amp;page={{ object_list.next_page_number }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
         {% else %}
             {# Show some example queries to run, maybe query syntax, something else? #}
         {% endif %}

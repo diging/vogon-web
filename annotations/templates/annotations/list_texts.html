@@ -69,7 +69,7 @@
                         <a href="?page={{ texts.previous_page_number }}">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
-                    </lu>
+                    </li>
                     {% endif %}
                     {% for p in texts.paginator.page_range %}
                     <li{% if p == texts.number %} class="active"{% endif %}>
@@ -81,7 +81,7 @@
                         <a href="?page={{ texts.next_page_number }}">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
-                    </lu>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
