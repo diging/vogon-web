@@ -312,5 +312,4 @@ class TextCollectionForm(forms.ModelForm):
 	class Meta:
 		model = TextCollection
 		exclude = ['name', 'description', 'ownedBy', 'texts']
-		#fields = ('name', 'description', 'ownedBy', 'texts', 'participants')
 	

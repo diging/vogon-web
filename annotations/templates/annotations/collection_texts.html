@@ -14,22 +14,23 @@
         <span class="label label-default">{{ N_appellations }}</span> appellations | <span class="label label-default">{{ N_relations }}</span> relations | <span class="label label-default">{{ collection.texts.count }}</span> total texts.
     </div>
 
+    {% with owner=collection.ownedBy%}
+    {% if user|stringformat:"s" == owner|stringformat:"s" %}
+        <form  action="#" method="post" enctype='multipart/form-data'>
+            {% csrf_token %}
+            {{form}}     
+            {{ form.errors }}
+            {{ form.non_field_errors }}
+            <span >
+                <input  type="submit" class="btn btn-primary" value="Add" />
+            </span>
+            <span >
+                <input  type="submit" class="btn btn-primary" value="Remove" />
+            </span>
+        </form>
+    {% endif %}
+    {% endwith %}
 
-    <form  action="#" method="post" enctype='multipart/form-data'>
-        {% csrf_token %}
-        {{form}}     
-        {{ form.errors }}
-        {{ form.non_field_errors }}
-             
-             
-        <span >
-            <input  type="submit" class="btn btn-primary" value="Add" />
-        </span>
-
-         <span >
-            <input  type="submit" class="btn btn-primary" value="Remove" />
-        </span>
-    </form>
 
 
     <div class="panel-footer clearfix">

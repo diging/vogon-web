@@ -327,6 +327,7 @@ def collection_texts(request, collectionid):
     textcollectioninstance = TextCollection.objects.get(pk=1)
     if request.method == 'POST':
         form = TextCollectionForm(request.POST,instance=textcollectioninstance)
+        
         if form.is_valid():
             form.save()
     else:
