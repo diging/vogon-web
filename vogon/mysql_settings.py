@@ -125,3 +125,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 sys.path.append('/diging/wwwnginx/vogon')
 from secrets import ERATOSTHENES_TOKEN
 ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
+
+# SuperUser Credentials
+USER_ID = 'test'
+PASSWORD = 'test'

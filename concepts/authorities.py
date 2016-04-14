@@ -2,6 +2,7 @@ from .models import Concept, Type
 
 from conceptpower import Conceptpower
 from urlparse import urlparse
+from django.conf import settings
 
 import logging
 logging.basicConfig()
@@ -164,3 +165,13 @@ def get_by_namespace(namespace):
 
     return [ manager for manager in authority_managers
                 if manager.namespace == namespace ]
+
+def add_concept(instance):
+    """
+    Adding the approved concept to Conceptpower
+    :param instance:
+    :return:
+    """
+
+    Conceptpower.create(settings.USER_ID,settings.PASSWORD,instance.label,instance.pos,
+                        instance.description,instance.typed)

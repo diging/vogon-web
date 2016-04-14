@@ -203,3 +203,7 @@ CACHES = {
         'LOCATION': 'default_cache_table',
     }
 }
+
+# SuperUser Credentials
+USER_ID = 'test'
+PASSWORD = 'test'

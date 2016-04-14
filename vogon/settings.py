@@ -137,3 +137,7 @@ ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
 import socket
 
 SUBPATH = '/vogon'
+
+# SuperUser Credentials
+USER_ID = 'test'
+PASSWORD = 'test'
