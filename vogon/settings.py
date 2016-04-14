@@ -138,6 +138,6 @@ import socket
 
 SUBPATH = '/vogon'
 
-# SuperUser Credentials
-USER_ID = 'test'
-PASSWORD = 'test'
+# VOGON ADMIN USER Credentials
+VOGONADMIN_USER_ID = os.environ.get('ADMIN_ACCESS_KEY', None)
+VOGONADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', None)

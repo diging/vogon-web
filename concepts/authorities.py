@@ -169,9 +169,11 @@ def get_by_namespace(namespace):
 def add_concept(instance):
     """
     Adding the approved concept to Conceptpower
-    :param instance:
-    :return:
+
+    Parameters
+    -----------
+    instance: :class: '.Concept'
     """
 
-    Conceptpower.create(settings.USER_ID,settings.PASSWORD,instance.label,instance.pos,
-                        instance.description,instance.typed)
+    Conceptpower().create(settings.USER_ID, settings.PASSWORD, instance.label, instance.pos,
+                        'VogonWeb Concepts', instance.description, instance.typed)

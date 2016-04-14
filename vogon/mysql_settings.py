@@ -126,6 +126,6 @@ sys.path.append('/diging/wwwnginx/vogon')
 from secrets import ERATOSTHENES_TOKEN
 ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
 
-# SuperUser Credentials
-USER_ID = 'test'
-PASSWORD = 'test'
+# VOGON ADMIN USER Credentials
+VOGONADMIN_USER_ID = os.environ.get('ADMIN_ACCESS_KEY', None)
+VOGONADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', None)
