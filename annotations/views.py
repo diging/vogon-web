@@ -918,17 +918,20 @@ def concept_details(request, conceptid):
 
 
 class TextSearchView(SearchView):
+    """Class based view for thread-safe search."""
     template = 'templates/search/search.html'
     queryset = SearchQuerySet()
 
     def get_context_data(self, *args, **kwargs):
+        """Return context data."""
         context = super(TextSearchView, self).get_context_data(*args, **kwargs)
         return context
 
     def form_valid(self, form):
+        """Return search results ordered by title."""
         self.queryset = form.search()
         search_results = Paginator(self.queryset, 20)
-        
+
         context = self.get_context_data(**{
             self.form_name: form,
             'query': form.cleaned_data.get(self.search_field),
