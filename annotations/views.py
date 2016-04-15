@@ -945,7 +945,7 @@ def user_details(request, userid, *args, **kwargs):
 
         annotation_by_user = list(relations_by_user)
         annotation_by_user.extend(list(appelations_by_user))
-        
+
         result = dict()
         weeks_last_date_map = dict()
         d7 = datetime.timedelta( days = 7)
@@ -1040,24 +1040,42 @@ def relation_details(request, source_concept_id, target_concept_id):
 def concept_details(request, conceptid):
     concept = get_object_or_404(Concept, pk=conceptid)
     appellations = Appellation.objects.filter(interpretation_id=conceptid)
-    texts = set()
-    appellations_by_text = OrderedDict()
-    for appellation in appellations:
-        text = appellation.occursIn
-        texts.add(text)
-        if text.id not in appellations_by_text:
-            appellations_by_text[text.id] = []
-        appellations_by_text[text.id].append(appellation)
 
-    template = loader.get_template('annotations/concept_details.html')
-    context = RequestContext(request, {
-        'user': request.user,
-        'concept': concept,
-        'appellations': appellations_by_text,
-        'texts': texts,
-    })
+    response_format = request.GET.get('format', None)
+    print response_format
+    if response_format != 'json':
+        texts = set()
+        appellations_by_text = OrderedDict()
+        for appellation in appellations:
+            text = appellation.occursIn
+            texts.add(text)
+            if text.id not in appellations_by_text:
+                appellations_by_text[text.id] = []
+            appellations_by_text[text.id].append(appellation)
 
-    return HttpResponse(template.render(context))
+        template = loader.get_template('annotations/concept_details.html')
+        context = RequestContext(request, {
+            'user': request.user,
+            'concept': concept,
+            'appellations': appellations_by_text,
+            'texts': texts,
+        })
+        return HttpResponse(template.render(context))
+    else:
+        response = dict()
+        response['concept'] = concept
+        json = []
+        appellations_by_text = dict()
+        for appellation in appellations:
+            result = dict()
+            text = appellation.occursIn
+            result["text"] = text
+            result["annotator"] = appellation.createdBy
+            result["created"] = appellation.created
+            json.append(result)
+        #if text.id not in appellations_by_text:
+        #    appellations_by_text[text.id] = []
+        #appellations_by_text[text.id].append(appellation)
 
 
 @staff_member_required
