@@ -304,12 +304,20 @@ class RelationTemplatePartForm(forms.ModelForm):
 		# print self.cleaned_data
 
 
-
+# 
 class TextCollectionForm(forms.ModelForm):
-	#queryset = VogonUser.objects.all()
-	#contributors = forms.ModelMultipleChoiceField(queryset)
+	"""
+	Gives the participants list for every collection.
+	"""
 
 	class Meta:
 		model = TextCollection
 		exclude = ['name', 'description', 'ownedBy', 'texts']
+		widgets = {
+		'participants' : forms.CheckboxSelectMultiple(),
+		}
+
+
+
+
 	
