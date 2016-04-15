@@ -21,7 +21,6 @@ from django.conf.urls.static import static
 from rest_framework import routers
 from rest_framework_nested import routers as nrouters
 from annotations import views
-from haystack.generic_views import SearchView
 
 
 router = routers.DefaultRouter(trailing_slash=False)

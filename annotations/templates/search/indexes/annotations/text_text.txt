@@ -1,1 +1,3 @@
 {{ object.title }}
+{{object.addedBy}}
+{{object.tokenizedContent}}
