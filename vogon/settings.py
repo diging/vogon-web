@@ -138,6 +138,5 @@ import socket
 
 SUBPATH = '/vogon'
 
-# VOGON ADMIN USER Credentials
-VOGONADMIN_USER_ID = os.environ.get('ADMIN_ACCESS_KEY', None)
-VOGONADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', None)
+CONCEPTPOWER_USERID = os.environ.get('ADMIN_ACCESS_KEY', None)
+CONCEPTPOWER_PASSWORD = os.environ.get('ADMIN_PASSWORD', None)
