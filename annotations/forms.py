@@ -304,8 +304,8 @@ class RelationTemplatePartForm(forms.ModelForm):
 		# print self.cleaned_data
 
 
-# 
 class TextCollectionForm(forms.ModelForm):
+
 	"""
 	Gives the participants list for every collection.
 	"""
@@ -316,6 +316,10 @@ class TextCollectionForm(forms.ModelForm):
 		widgets = {
 		'participants' : forms.CheckboxSelectMultiple(),
 		}
+
+	def __init__(self, *args, **kwargs):
+		super(TextCollectionForm, self).__init__(*args, **kwargs)
+
 
 
 
