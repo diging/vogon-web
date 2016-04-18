@@ -313,12 +313,12 @@ class TextCollectionForm(forms.ModelForm):
 	class Meta:
 		model = TextCollection
 		exclude = ['name', 'description', 'ownedBy', 'texts']
-		widgets = {
-		'participants' : forms.CheckboxSelectMultiple(),
-		}
 
 	def __init__(self, *args, **kwargs):
 		super(TextCollectionForm, self).__init__(*args, **kwargs)
+		self.fields["participants"].widget = forms.CheckboxSelectMultiple()
+		self.fields["participants"].queryset = VogonUser.objects.order_by('username')
+
 
 
 
