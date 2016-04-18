@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from rest_framework import routers
 from rest_framework_nested import routers as nrouters
 from annotations import views
+from concepts import views as conceptViews
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -80,7 +81,9 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^autocomplete/', include('autocomplete_light.urls')),
     url(r'^$', views.home),
-    url(r'^sign_s3$', views.sign_s3, name="sign_s3")
+    url(r'^sign_s3$', views.sign_s3, name="sign_s3"),
+    url(r'^concept/types$', conceptViews.list_concept_types),
+    url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type)
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
