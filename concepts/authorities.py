@@ -127,8 +127,8 @@ def resolve(sender, instance):
 
             # Try each AuthorityManager...
             for manager_class in managers:
-                if instance.resolved: break # ...until success.
 
+                if instance.resolved: break # ...until success.
 
                 manager = manager_class()
                 method = getattr(manager, get_method)
@@ -166,7 +166,8 @@ def get_by_namespace(namespace):
     return [ manager for manager in authority_managers
                 if manager.namespace == namespace ]
 
-def add_concept(instance):
+
+def add(instance):
     """
     Adding the approved concept to Conceptpower
 
