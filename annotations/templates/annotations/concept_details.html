@@ -23,12 +23,16 @@
                     <span class="h2">Occurs in the following texts...</span>
                 </div>
                 <div class="list-group" id="accordion" role="tablist" aria-multiselectable="true">
-                    {% for text in texts %}
+                    {% for concept_detail in concept_details %}
                     <div class="list-group-item">
-                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#{{ text.id }}_appellations" aria-expanded="false" aria-controls="appellations">{{ text.title }}</a>
-                        <div id="{{ text.id }}_appellations" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-                            test
-                        </div>
+                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#{{ concept_detail.text_id }}_appellations" aria-expanded="false" aria-controls="appellations">{{ concept_detail.text_title }}</a>
+                        <div id= "{{ concept_detail.text_id }}_appellations">
+                          <div id="{{ concept_detail.annotator }}_appellations" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne"><b>Author</b> - {{concept_detail.annotator}}</div>
+                          <div id="date_appellations" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne"><b>Annotated On</b> - {{concept_detail.created}}</div>
+                          <div id="{{ concept_detail.text_id }}_snippet" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                              {{ concept_detail.text_snippet | safe}}
+                          </div>
+                      </div>
                     </div>
                     {% endfor %}
                 </div>
