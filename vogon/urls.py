@@ -83,7 +83,7 @@ urlpatterns = [
     url(r'^$', views.home),
     url(r'^sign_s3$', views.sign_s3, name="sign_s3"),
     url(r'^concept/types$', conceptViews.list_concept_types),
-    url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type,name="type")
+    url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
