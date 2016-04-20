@@ -9,7 +9,7 @@ def list_concept_types(request):
     """
     List all of the concept types
     """
-    types = Concept.objects.all().values('typed__label','typed').distinct()
+    types = Concept.objects.exclude(typed__isnull=True).values('typed__label','typed').distinct()
 
 
     context = {
