@@ -74,6 +74,7 @@ from urlparse import urlparse
 import urllib
 
 import json
+from lxml import etree
 import time
 from django.shortcuts import render
 from hashlib import sha1
@@ -854,7 +855,6 @@ def network_data(request):
             queryset = queryset.filter(createdBy_id=user)
         if text:
             queryset = queryset.filter(occursIn_id=text)
-
         nodes, edges = generate_network_data(queryset)
         nodes_rebased = {}
         edges_rebased = {}
@@ -957,7 +957,7 @@ def user_details(request, userid, *args, **kwargs):
 
         annotation_by_user = list(relations_by_user)
         annotation_by_user.extend(list(appelations_by_user))
-        
+
         result = dict()
         weeks_last_date_map = dict()
         d7 = datetime.timedelta( days = 7)
@@ -1052,25 +1052,57 @@ def relation_details(request, source_concept_id, target_concept_id):
 def concept_details(request, conceptid):
     concept = get_object_or_404(Concept, pk=conceptid)
     appellations = Appellation.objects.filter(interpretation_id=conceptid)
-    texts = set()
-    appellations_by_text = OrderedDict()
-    for appellation in appellations:
-        text = appellation.occursIn
-        texts.add(text)
-        if text.id not in appellations_by_text:
-            appellations_by_text[text.id] = []
-        appellations_by_text[text.id].append(appellation)
 
-    template = loader.get_template('annotations/concept_details.html')
-    context = RequestContext(request, {
-        'user': request.user,
-        'concept': concept,
-        'appellations': appellations_by_text,
-        'texts': texts,
-    })
+    response_format = request.GET.get('format', None)
+    if response_format != 'json':
+        texts = set()
+        appellations_by_text = OrderedDict()
+        for appellation in appellations:
+            text = appellation.occursIn
+            texts.add(text)
+            if text.id not in appellations_by_text:
+                appellations_by_text[text.id] = []
+            appellations_by_text[text.id].append(appellation)
 
-    return HttpResponse(template.render(context))
-
+        template = loader.get_template('annotations/concept_details.html')
+        context = RequestContext(request, {
+            'user': request.user,
+            'concept': concept,
+            'appellations': appellations_by_text,
+            'texts': texts,
+        })
+        return HttpResponse(template.render(context))
+    else:
+        response = dict()
+        response['concept'] = concept
+        concept_details = []
+        appellations_by_text = dict()
+        text = ""
+        for appellation in appellations:
+            result = dict()
+            text = appellation.occursIn
+            tokenizedContent = text.tokenizedContent
+            annotated_words = appellation.tokenIds.split(',')
+            middle_index = int(annotated_words[len(annotated_words)/2]) if len(annotated_words) > 0 else a[0]
+            start_index = middle_index - 10 if (middle_index - 10) > 0 else 0
+            end_index = middle_index + 10
+            snippet = ""
+            for i in range(start_index, end_index):
+                match = re.search(r'<word id="'+str(i)+'">(.*?)</word>', tokenizedContent, re.M|re.I)
+                word = ""
+                if(str(i) in annotated_words):
+                    word = "<kbd>"+match.group(1)+"</kbd>"
+                else:
+                    word = match.group(1)
+                snippet = snippet + " " + word
+            result["text_id"] = text.id
+            result["text_title"] = text.title
+            result["text_snippet"] = snippet
+            result["annotator"] = appellation.createdBy.full_name
+            result["created"] = appellation.created
+            concept_details.append(result)
+        response["concept_details"] = concept_details
+        return JsonResponse(response)
 
 @staff_member_required
 def add_relationtemplate(request):
@@ -1484,7 +1516,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
     edges = {}
     nodes = {}
     seen = set([])      # Appellation ids.
-
     # If we want to show any non-related appellations, we can include them
     #  in this separate appellation_queryset.
     if appellation_queryset:
@@ -1507,7 +1538,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                   'interpretation__appellation__id',
                   'interpretation__appellation__occursIn__id',
                   'interpretation__appellation__occursIn__title']
-
         # This will yield one object per text, so we will see the same
         #  appellation and corresponding interpretations several times.
         for obj in appellation_queryset.values(*fields):
@@ -1538,7 +1568,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                 if appell_id not in seen:   # But only once per appellation.
                     nodes[node_id]['data']['weight'] += 1.
                     seen.add(appell_id)
-
             # These are useful in the main network view for displaying
             #  information about the texts associated with each concept.
             text_id = obj.get('interpretation__appellation__occursIn__id')
