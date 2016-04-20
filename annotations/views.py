@@ -335,7 +335,11 @@ def list_user(request):
 
 @csrf_exempt
 def collection_texts(request, collectionid):
-    textcollectioninstance = TextCollection.objects.get(pk=1)
+    """
+    List all of the texts that the user can see, with links to annotate them. 
+    It saves/removes participants for every collection.
+    """
+    textcollectioninstance = TextCollection.objects.get(pk=collectionid)
     if request.method == 'POST':
         form = TextCollectionForm(request.POST,instance=textcollectioninstance)
         
@@ -345,11 +349,6 @@ def collection_texts(request, collectionid):
         
         form=TextCollectionForm(instance=textcollectioninstance);
     
-    
-
-    """
-    List all of the texts that the user can see, with links to annotate them.
-    """
     template = loader.get_template('annotations/collection_texts.html')
     order_by = request.GET.get('order_by', 'title')
 
