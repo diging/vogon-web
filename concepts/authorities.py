@@ -176,5 +176,6 @@ def add(instance):
     instance: :class: '.Concept'
     """
 
-    Conceptpower().create(settings.USER_ID, settings.PASSWORD, instance.label, instance.pos,
-                        'VogonWeb Concepts', instance.description, instance.typed)
+    concept_list = 'VogonWeb Concepts'
+    Conceptpower().create(settings.CONCEPTPOWER_USERID, settings.CONCEPTPOWER_PASSWORD, instance.label, instance.pos,
+                       concept_list, instance.description, instance.typed)

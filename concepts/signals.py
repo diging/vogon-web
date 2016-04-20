@@ -3,15 +3,15 @@ from django.dispatch import receiver
 
 from .authorities import resolve
 from .models import Concept, Type
-from concepts.tasks import resolve_concept,add_concept
+from concepts.tasks import resolve_concept, add_concept
 
 import logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
 
-### Handle Concept and Type signals. ###
 
+### Handle Concept and Type signals. ###
 @receiver(post_save, sender=Concept)
 def concept_post_save_receiver(sender, **kwargs):
     """
@@ -23,6 +23,7 @@ def concept_post_save_receiver(sender, **kwargs):
     if instance:
         resolve_concept.delay(sender, instance)
 
+
 @receiver(post_save, sender=Concept)
 def concept_post_save_approve_receiver(sender, **kwargs):
     """
@@ -31,8 +32,9 @@ def concept_post_save_approve_receiver(sender, **kwargs):
     :class:`.Concept` is :prop:`.approved`\.
     """
     instance = kwargs.get('instance', None)
-    if instance and instance.concept_state == 'Approved':
+    if instance and instance.concept_state == Concept.APPROVED:
         add_concept.delay(sender, instance)
+
 
 @receiver(post_save, sender=Type)
 def type_post_save_receiver(sender, **kwargs):
