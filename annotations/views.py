@@ -1063,7 +1063,7 @@ def concept_details(request, conceptid):
     else:
         response = dict()
         response['concept'] = concept
-        json = []
+        concept_details = []
         appellations_by_text = dict()
         text = ""
         for appellation in appellations:
@@ -1088,9 +1088,8 @@ def concept_details(request, conceptid):
             result["text_snippet"] = snippet
             result["annotator"] = appellation.createdBy.full_name
             result["created"] = appellation.created
-            json.append(result)
-        response = dict()
-        response["concept_details"] = json
+            concept_details.append(result)
+        response["concept_details"] = concept_details
         return JsonResponse(response)
 
 @staff_member_required
