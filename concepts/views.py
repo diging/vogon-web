@@ -24,7 +24,6 @@ def type(request, type_id):
     Fetch description about type
     """
     type = Concept.objects.filter(typed__id=type_id).first()
-    print type.description
     template = loader.get_template('annotations/concept_type_detail.html')
     context = {
         'type': type,
