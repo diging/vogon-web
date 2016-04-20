@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('annotations', '0005_relationtemplate_expression'),
+        ('annotations', '0007_relationtemplate_expression'),
     ]
 
     operations = [

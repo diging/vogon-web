@@ -1,33 +1,94 @@
-{% load staticfiles %}
+// While awaiting a response to an ajax request, a spinner is shown in the
+//  network visualization panel.
+var opts = {
+  lines: 13 // The number of lines to draw
+, length: 21 // The length of each line
+, width: 14 // The line thickness
+, radius: 42 // The radius of the inner circle
+, scale: 1 // Scales overall size of the spinner
+, corners: 1 // Corner roundness (0..1)
+, color: '#297CA6' // #rgb or #rrggbb or array of colors
+, opacity: 0.25 // Opacity of the lines
+, rotate: 0 // The rotation offset
+, direction: 1 // 1: clockwise, -1: counterclockwise
+, speed: 1 // Rounds per second
+, trail: 62 // Afterglow percentage
+, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+, zIndex: 2e9 // The z-index (defaults to 2000000000)
+, className: 'spinner' // The CSS class to assign to the spinner
+, top: '50%' // Top position relative to parent
+, left: '50%' // Left position relative to parent
+, shadow: false // Whether to render a shadow
+, hwaccel: false // Whether to use hardware acceleration
+, position: 'absolute' // Element positioning
+}
 
-<script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
+$(networkContainerSelector).spin(opts);    // Start spinner in the network display panel.
+
+var hideConcept = function(data) {
+    $('.selection-details-panel').css("display", "none");
+}
+
+var displayConcept = function(data) {
+    $('.selection-details-panel').css("display", "block");
+    $('#elem-type-selected').text('node');
+    $('#concept-href').attr('href', '/concept/' + data.concept_id + '/');
+    $('#concept-label').text(data.label);
+    $('#concept-uri').text(data.uri);
+    $('#concept-description').text(data.description);
+}
+
+var displayRelation = function(source_data, target_data) {
+    $('.selection-details-panel').css("display", "block");
+    $('#elem-type-selected').text('edge');
+    $('#concept-href').attr('href', '/relations/' + source_data.concept_id + '/' + target_data.concept_id + '/');
+    $('#concept-label').text(source_data.label + ' & ' + target_data.label);
+    $('#concept-uri').text('');
+    $('#concept-description').text('');
+}
+
+var displayTexts = function(texts) {
+    $('#text-list').empty();
+    $('#concept-text-list-title').text('Occurs in the following texts');
+    texts.forEach(function(text) {
+        $('#text-list')
+            .append('<tr><td class="text-small"><a href="/text/' + text.id + '/">' + text.title + '</a></td></tr>');
+    });
+}
+
+var displayRelations = function(relations) {
+    $('#text-list').empty();
+    $('#concept-text-list-title').text('Are related in the following ways');
+    relations.forEach(function(relation) {
+
+        // var concept_id = relation[0][0][0],
+        //     concept_label = relation[0][0][1],
+        //     count = relation[0][1];
+
+        $('#text-list')
+            .append('<tr><td class="text-small"><a href="">' + relation.concept_label + ' </a><span class="label label-default">' + relation.count + '</span><p class="text text-muted text-small">'+ relation.description +'</p></td></tr>');
+    });
+}
 
 
-<div class="tab-pane col-xs-12" id="tabGraph">
-    <div id="graphContainer">
-        <div  style="height: 100%;" id="graph"></div>
 
 
-    </div>
-
-</div>
-<script>
-
-/**
-  *  We wrap this in a function so that we can reload the graph data after
-  *   creating a new appellation or relation.
-  */
-var reloadGraph = function() {
+$('body').ready(function() {
     var cy;
-    $.ajax('{% url "network_for_text" text.id %}?user={{ user.id }}', {
+    // Must set networkEndpoint in the dependant template.
+    $.ajax(networkEndpoint, {
         // When the data is returned, generate an interative visualization
         //  using Cytoscape.js.
         success: function(data) {
+            // Stop spinner when the data loads.
+            $(networkContainerSelector).spin(false);
+
             // Normalize node and edge weights.
             var minEdgeWeight = 1.0;
             var maxEdgeWeight = 0.0;
             var minNodeWeight = 1.0;
             var maxNodeWeight = 0.0;
+
 
             data.elements.forEach(function(elem) {
                 var weight = Number(elem.data.weight);
@@ -48,11 +109,12 @@ var reloadGraph = function() {
             maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
 
             cy = cytoscape({
-                container: $('#graph'),
+                container: $(networkContainerSelector),
                 elements: data.elements,
-                zoom: 0.1,
-                minZoom: 0.1,
+
+                minZoom: 0.2,
                 maxZoom: 3,
+                zoom: 1,
                 panningEnabled: true,
                 style: [    // The stylesheet for the graph.
                     {
@@ -123,6 +185,12 @@ var reloadGraph = function() {
                         }
                     },
                     {
+                        selector: 'edge.nonConnected',
+                        style: {
+                            'opacity': 0.2,
+                        }
+                    },
+                    {
                         // A selected edge should be slightly thicker, and be colored a brighter color.
                         selector: 'edge:selected',
                         style: {
@@ -136,65 +204,72 @@ var reloadGraph = function() {
 
 
                 layout: {
-                  name: 'cose',
-                //   rows: 1,
-                //   ready               : function() {},
-                //   stop                : function() {},
-                //   animate             : true,
-                //   animationThreshold  : 250,
-                //   refresh             : 20,
-                //   fit                 : true,
-                //   padding             : 30,
-                //   boundingBox         :  { x1: 0, y1: 0, w: 10, h: 10},
-                //   componentSpacing    : 100,
-                //   nodeRepulsion       : function( node ){ return 40; },
-                //   nodeOverlap         : 10,
-                //   idealEdgeLength     : function( edge ){ return 10; },
-                //   edgeElasticity      : function( edge ){ return 100; },
-                //   nestingFactor       : 5,
-                //   gravity             : 80,
-                //   numIter             : 1000,
-                //   initialTemp         : 200,
-                //   coolingFactor       : 0.95,
-                //   minTemp             : 1.0,
-                //   useMultitasking     : true
+                  name: 'preset',
+                  positions: function(n) { return n._private.data.pos; },
                 }
             });
 
-            // We just want to give a visual indication of which appellations'
-            //  are related to each node. Selecting appellations doesn't really
-            //  make sense, because there can be several appellations per node
-            //  (nodes represent concepts).
+            var clearConnected = function() {
+                cy.elements('edge').edges().removeClass('connectedEdge');
+                cy.elements('edge').edges().removeClass('nonConnected');
+                // cy.elements('edge').edges().unselect();
+                cy.elements('node').nodes().removeClass('connectedNodes');
+                cy.elements('node').nodes().removeClass('nonConnectedNodes');
+                // cy.elements('node').nodes().unselect();
+            }
+
             cy.on('select', 'node', function(event) {
                 var node = event.cyTarget;
-                node._private.data.appellations.forEach(function(appellation_id) {
-                    $('[appellation='+appellation_id+']').addClass('networkHighlight')
-                });
-            })
+                displayConcept(node._private.data);
+                displayTexts(node._private.data.texts);
+
+                // Highlight connected nodes and edges.
+                clearConnected();
+                var directlyConnected = node.neighborhood();
+                var nonConnected = cy.elements().difference( directlyConnected );
+
+                directlyConnected.nodes().addClass('connectedNodes');
+                nonConnected.nodes().addClass('nonConnectedNodes');
+                nonConnected.edges().addClass('nonConnected');
+                node.removeClass('nonConnectedNodes');
+                node.neighborhood('edge').edges().addClass('connectedEdge');
+
+                $('#networkAlert').css('display', 'none');
+            });
+
+            cy.on('select', 'edge', function(event) {
+                var edge = event.cyTarget;
+                var source = edge._private.source,
+                    target = edge._private.target;
+
+                displayRelation(source._private.data, target._private.data);
+                displayRelations(edge._private.data.relations);
+
+                $('#networkAlert').css('display', 'none');
+                clearConnected();
+            });
             cy.on('unselect', 'node', function(event) {
-                var node = event.cyTarget;
-                node._private.data.appellations.forEach(function(appellation_id) {
-                    $('[appellation='+appellation_id+']').removeClass('networkHighlight')
-                });
-            })
+                hideConcept();
+
+                clearConnected();
+                $('#networkAlert').css('display', 'block');
+            });
+            cy.on('unselect', 'edge', function(event) {
+                hideConcept();
+
+                clearConnected();
+                $('#networkAlert').css('display', 'block');
+            });
 
         }
-    });
-    $('#graphTabAnchor').on('shown.bs.tab', function (e) {
-        resizeGraph();
-        cy.layout({name: 'cose'});
 
     });
     var resizeGraph = function() {
-        var targetHeight = Number($('.action-body').css('max-height').replace('px', ''));
-        $('#graphContainer').height(targetHeight - 10);
+        // var targetHeight = Number($('.action-body').css('max-height').replace('px', ''));
+        // $('#networkVis').height(targetHeight - 10);
         cy.resize();
         cy.fit();
     }
     $(window).resize(resizeGraph);
-}
-$('body').ready(function() {
-    reloadGraph();
-});
 
-</script>
+});

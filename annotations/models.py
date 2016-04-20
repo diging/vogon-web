@@ -23,7 +23,7 @@ import ast
 
 
 class VogonUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None):
+    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None, link=None):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -32,7 +32,8 @@ class VogonUserManager(BaseUserManager):
             email=self.normalize_email(email),
             full_name=full_name,
             affiliation=affiliation,
-            location=location
+            location=location,
+            link=link
         )
 
         user.set_password(password)
@@ -258,6 +259,25 @@ class Interpreted(models.Model):
         return None
 
 
+class DateAppellation(Annotation):
+    """
+    Dates can be represented as ISO-8601 literals, with variable precision.
+    """
+    year = models.PositiveIntegerField(default=1)
+    month = models.IntegerField(default=0)
+    day = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return u'-'.join([unicode(part) for part in [self.year, self.month, self.day] if part > 0])
+
+    @property
+    def precision(self):
+        if self.day > 0:
+            return 'day'
+        elif self.month > 0:
+            return 'month'
+        return 'year'
+
 
 class Appellation(Annotation, Interpreted):
     """
@@ -289,10 +309,12 @@ class Appellation(Annotation, Interpreted):
     # Reverse generic relations to Relation.
     relationsFrom = GenericRelation('Relation',
                                     content_type_field='source_content_type',
-                                    object_id_field='source_object_id')
+                                    object_id_field='source_object_id',
+                                    related_query_name='source_appellations')
     relationsTo = GenericRelation('Relation',
                                     content_type_field='object_content_type',
-                                    object_id_field='object_object_id')
+                                    object_id_field='object_object_id',
+                                    related_query_name='object_appellations')
 
     asPredicate = models.BooleanField(default=False)
     """
@@ -355,7 +377,6 @@ class RelationSet(models.Model):
         return Concept.objects.filter(pk__in=[obj['interpretation_id'] for obj in self.appellations().values('interpretation_id')])
 
 
-
 class Relation(Annotation):
     """
     A Relation captures a user's assertion that a passage of text implies a
@@ -410,9 +431,9 @@ class RelationTemplate(models.Model):
                         'type': 'TP',
                         'part_id': tpart.id,
                         'part_field': field,
-                        'concept_id': getattr(tpart, '%s_type' % field).id,
+                        'concept_id': getattr(getattr(tpart, '%s_type' % field), 'id', None),
                         'label': getattr(tpart, '%s_label' % field),
-                        'concept_label': getattr(tpart, '%s_type' % field).label,
+                        'concept_label': getattr(getattr(tpart, '%s_type' % field), 'label', None),
                         'evidence_required': evidenceRequired,
                         'description': getattr(tpart, '%s_description' % field),
                     })
@@ -423,9 +444,9 @@ class RelationTemplate(models.Model):
                         'type': 'CO',
                         'part_id': tpart.id,
                         'part_field': field,
-                        'concept_id': getattr(tpart, '%s_concept' % field).id,
+                        'concept_id': getattr(getattr(tpart, '%s_concept' % field), 'id', None),
                         'label': getattr(tpart, '%s_label' % field),
-                        'concept_label': getattr(tpart, '%s_concept' % field).label,
+                        'concept_label': getattr(getattr(tpart, '%s_concept' % field), 'label', None),
                         'evidence_required': evidenceRequired,
                         'description': getattr(tpart, '%s_description' % field),
                     })
@@ -489,3 +510,4 @@ class TemporalBounds(models.Model):
     start = TupleField(blank=True, null=True)
     occur = TupleField(blank=True, null=True)
     end = TupleField(blank=True, null=True)
+

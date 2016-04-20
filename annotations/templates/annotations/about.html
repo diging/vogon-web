@@ -2,99 +2,176 @@
 {% load staticfiles %}
 
 {% block main %}
-<div class="container">
 
-        <!-- Introduction Row -->
+<div class="container">
+        <h1 class="page-header">About Vogon <small>and the epistemic web</small></h1>
         <div class="row">
-            <div class="col-lg-12">
-                <h1 class="page-header">About Us
-                    <small>It's Nice to Meet You!</small>
-                </h1>
-                <p>VogonWeb is a web application that allows scholars to annotate texts with contextualized relationship triples, so-called “quadruples.” Quadruples form semantic networks that, when uploaded to a repository, can be used to for example develop advanced search engines. Furthermore, various software tools can be developed to analyze and visualize these networks.</p>
+            <div class="col-sm-8">
+                <p>
+                    In the humanities, making new knowledge involves reading and critically interpreting a wide range
+                    of texts: books, archives, articles, images, interviews, and news clippings. Scholars share their
+                    insights by arranging evidence and interpretation into books and articles that can in turn be read
+                    and critically interpreted by other scholars. Sadly, much of that literature is read by only a small
+                    number of people, and can be hard to find. It's even harder to validate research findings: scholars
+                    cite each others' work, but practices for citing primary sources like archives vary widely. Dozens of
+                    claims about historical actors or events might be covered by a single reference to an enormous archive.
+                </p>
+                <p>
+                    <strong>What if we could do better?</strong> What if the sum of our research was not just a pile of
+                    papers, but a tangible network of historical actors, events, texts, and interpretations? What if we
+                    could find out who claimed that Louis Agassiz disagreed with Charles Darwin, and on the basis of what
+                    evidence, with the click of a mouse? Scholarly publishing has moved online. Our sources&mdash;even
+                    the dusty archives&mdash;are moving online. It's time to rethink the possibilities for making human
+                    knowledge in the digital age.
+                </p>
+                <h2>Building the Epistemic Web</h2>
+                <p>
+                    VogonWeb is a web-based platform for encoding your interpretations of texts. The annotation interface
+                    allows you to tag words or phrases with the concepts to which you believe they refer, and bring
+                    those tags together into relational statements that you believe are supported by the text. These tags
+                    and relations comprise the <a href="http://www.edition-open-access.de/studies/1/36/index.html">epistemic
+                    web</a>: a network of texts, interpretations, and the people who create those interpretations. As
+                    we build the epistemic web we are producing not only a rich knowledge-base for the humanities, but also
+                    documenting the scholarly process itself.
+                </p>
+                <h2>Technology</h2>
+                <p>
+                    VogonWeb is one component in a constellation of web applications and services that comprise a distributed
+                    research infrastructure for digital and computational humanities.
+                </p>
+                <p>
+                    VogonWeb is Python WSGI application developed using the <a href="https://www.djangoproject.com/">Django web framework</a>,
+                    and runs on the <a href="http://heroku.com">Heroku</a> cloud platform.
+                </p>
+                <p>
+
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <div class="panel">
+                    <div class="panel-heading">
+                        <span class="h4">Open-source development</span>
+                    </div>
+                    <div class="panel-body">
+                        <p>
+                            VogonWeb is open source software, released under the <a href="http://www.gnu.org/licenses/gpl-3.0.en.html">GNU General Public
+                            License v3</a>. The <a href="http://diging.asu.edu">Digital Innovation Group </a> at Arizona State University leads the project,
+                            and we want you to get involved!
+                        </p>
+                        <div>
+                            <a href="https://github.com/diging/vogon-web" class="btn btn-xs">
+                                <span class="fa fa-github"></span> GitHub
+                            </a>
+                            <p class="text text-muted text-small">
+                                The VogonWeb source code is completely open source. You can find the latest development source, previous releases,
+                                and deployment documentation in our GitHub repository.
+                            </p>
+                        </div>
+                        <div>
+                            <a href="https://diging.atlassian.net/projects/VGNWB/summary" class="btn btn-xs">
+                                <span class="fa fa-ticket"></span> Atlassian JIRA
+                            </a>
+                            <p class="text text-muted text-small">
+                                We use JIRA to manage the VogonWeb software development project. Go here to see what we're working on right now.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Team Members Row -->
+        <div class="col-sm-12">
+            <h2 class="page-header">Our Team</h2>
+            <p>
+                VogonWeb is an open-source project lead by the <a href="http://diging.asu.edu">Digital Innovation Group</a> at Arizona State University.
+                Our current development team can be found below. For a list of all contributors to the project, check out our
+                <a href="https://github.com/diging/vogon-web/graphs/contributors">GitHub</a> repository.
+            </p>
+        </div>
         <div class="row">
-            <div class="col-lg-12">
-                <h2 class="page-header">Our Team</h2>
-            </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding" >
+            <div class="col-sm-4 text-center div_padding" >
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/erick.jpg"%} alt="">
                 <h3>Erick Peirson
                 </h3>
                 <p>Erick Peirson is an historian of science and software engineer working at Arizona State University.</p>
-                <a href="https://github.com/erickpeirson">View my GitHub page!</a>
+                <a href="https://github.com/erickpeirson" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
             </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/harshaneel.jpg"%} alt="">
                 <h3>Harshaneel Gokhale
 
                 </h3>
                 <p>Harshaneel Gokhale is a masters student in Computer Science</p>
-                <a href="https://github.com/harshaneelhg">View my GitHub page!</a>
+                <a href="https://github.com/harshaneelhg" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
             </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/bhanu.jpg"%} alt="">
                 <h3>Bhanu Teja
 
                 </h3>
                 <p>Bhanu Teja is a Masters student in Computer Science at ASU</p>
-                <a href="https://github.com/allaparthi92">View my GitHub page!</a>
+                <a href="https://github.com/allaparthi92" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
             </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+        </div>
+        <div class="row">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/kelle.jpg"%} alt="">
                 <h3>Kelle Dhein
 
                 </h3>
                 <p>Kelle is a PhD student at Arizona State University.</p>
-                <a href="https://github.com/kdhein">View my GitHub page!</a>
+                <a href="https://github.com/kdhein" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
             </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/viveknarsimha.jpg"%} alt="">
                 <h3>Vivek Narsimha Dondeti
 
                 </h3>
                 <p>Vivek Narsimha Dondeti is Computer Science Graduate student at Arizona State University.</p>
-                <a href="https://github.com/ndondeti">View my GitHub page!</a>
+                <a href="https://github.com/ndondeti" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
             </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/jasdeep.jpg"%} alt="">
                 <h3>Jasdeep Singh
 
                 </h3>
                 <p>Jasdeep is a Computer Science Graduate Student at Arizona State University</p>
-                <a href="https://github.com/jasdeepbhalla">View my GitHub page!</a>
+                <a href="https://github.com/jasdeepbhalla" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
             </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+        </div>
+        <div class="row">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/kamal.jpg"%} alt="">
                <h3>Kamalakannan Hari Krishna Moorthy
                 </h3>
                 <p>Kamal is currently pursuing his Masters in Computer Science at Arizona State University.</p>
-                <a href="https://github.com/erhkamal319">View my GitHub page!</a>
+                <a href="https://github.com/erhkamal319" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
             </div>
 
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/nitin.jpg"%} alt="">
                 <h3>Nitin Karda
                 </h3>
                 <p>Nitin Karda is a Graduate Student in Computer Science.</p>
-                <a href="https://github.com/kardanitin">View my GitHub page!</a>
+                <a href="https://github.com/kardanitin" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
 
             </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/niranjan.jpg"%} alt="">
                 <h3>Niranjan Krishna
                 </h3>
                 <p>Niranjan Krishna is a masters student in Computer Science</p>
-                <p><a href="https://github.com/nravich2">View my GitHub page!</a></p>
+                <p><a href="https://github.com/nravich2" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a></p>
             </div>
-            <div class="col-lg-4 col-sm-6 text-center div_padding">
+        </div>
+        <div class="row">
+            <div class="col-sm-4 text-center div_padding">
                 <img class="img-thumbnail img-responsive img-center" src={% static "annotations/img/team/ankitha.jpg"%} alt="">
                 <h3>Ankita Chandak
                 </h3>
                 <p>Ankita Chandak is a masters student in Computer Science</p>
-                <a href="https://github.com/apchandak24">View my GitHub page!</a>
+                <a href="https://github.com/apchandak24" class="btn btn-xs"><span class="fa fa-github"></span> View my GitHub page!</a>
 
             </div>
         </div>
@@ -102,14 +179,13 @@
         <hr>
 
         <footer class="footer-basic-centered">
-			      <p class="footer-links">
-				        <a href="https://github.com/diging/vogon-web">GitHub</a>
-				        ·
-				        <a href="https://diging.atlassian.net/projects/VGNWB/">Jira</a>
-				        ·
-				        <a href="http://diging.asu.edu/projects/#software">All DigInG software projects</a>
+            <p class="footer-links">
+            <a href="https://github.com/diging/vogon-web">GitHub</a>
+            ·
+            <a href="https://diging.atlassian.net/projects/VGNWB/">JIRA</a>
+            ·
+	        <a href="http://diging.asu.edu/projects/#software">DigInG software projects</a>
             </p>
-			      <p class="footer-company-name">DigInG</p>
-		    </footer>
+	    </footer>
     </div>
 {% endblock %}

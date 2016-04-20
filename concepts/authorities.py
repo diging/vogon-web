@@ -39,6 +39,7 @@ authority_managers = (
     # VogonAuthority,
 )
 
+
 def search(query, pos='noun'):
     results = [r for manager in authority_managers
                for r in manager().search(query, pos=pos)]
@@ -54,6 +55,7 @@ def search(query, pos='noun'):
             instance = update_instance(Concept, instance, r, manager.__name__)
         concepts.append(instance)
     return concepts
+
 
 def update_instance(sender, instance, concept_data, authority):
     # Update description, label, (and typed).
@@ -87,6 +89,7 @@ def update_instance(sender, instance, concept_data, authority):
                             type_instance.uri, instance.uri))
     instance.save()
     return instance
+
 
 def resolve(sender, instance):
     """
@@ -136,8 +139,8 @@ def resolve(sender, instance):
                     'Trying AuthorityManager {0}.'.format(manager.__name__))
 
                 instance.resolved = True
+                instance.concept_state = Concept.RESOLVED
                 update_instance(sender, instance, concept_data, manager.__name__)
-
 
 
 def get_namespace(uri):
@@ -152,6 +155,7 @@ def get_namespace(uri):
         raise ValueError("Could not determine namespace for {0}.".format(uri))
 
     return "{" + namespace + "}"
+
 
 def get_by_namespace(namespace):
     """
