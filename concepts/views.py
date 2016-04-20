@@ -11,12 +11,12 @@ def list_concept_types(request):
     """
     types = Concept.objects.all().values('typed__label','typed').distinct()
 
-
+    template = loader.get_template('annotations/concept_types.html')
     context = {
         'types': types,
         'user': request.user,
     }
-    return HttpResponse(str(context))#template.render(context))
+    return HttpResponse(template.render(context))
 
 
 def type(request, type_id):
