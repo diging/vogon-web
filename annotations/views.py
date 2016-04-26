@@ -82,6 +82,9 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel('ERROR')
 
+from haystack.generic_views import SearchView
+from haystack.query import SearchQuerySet
+
 
 def home(request):
     """
@@ -336,19 +339,19 @@ def list_user(request):
 @csrf_exempt
 def collection_texts(request, collectionid):
     """
-    List all of the texts that the user can see, with links to annotate them. 
+    List all of the texts that the user can see, with links to annotate them.
     It saves/removes participants for every collection.
     """
     textcollectioninstance = TextCollection.objects.get(pk=collectionid)
     if request.method == 'POST':
         form = TextCollectionForm(request.POST,instance=textcollectioninstance)
-        
+
         if form.is_valid():
             form.save()
     else:
-        
+
         form=TextCollectionForm(instance=textcollectioninstance);
-    
+
     template = loader.get_template('annotations/collection_texts.html')
     order_by = request.GET.get('order_by', 'title')
 
@@ -362,7 +365,7 @@ def collection_texts(request, collectionid):
         occursIn__partOf__id=collectionid).count()
 
     # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 10)
+    paginator = Paginator(text_list, 20)
 
     page = request.GET.get('page')
     try:
@@ -1284,6 +1287,29 @@ def list_relationtemplate(request):
 
     return HttpResponse(template.render(context))
 
+
+class TextSearchView(SearchView):
+    """Class based view for thread-safe search."""
+    template = 'templates/search/search.html'
+    queryset = SearchQuerySet()
+
+    def get_context_data(self, *args, **kwargs):
+        """Return context data."""
+        context = super(TextSearchView, self).get_context_data(*args, **kwargs)
+        return context
+
+    def form_valid(self, form):
+        """Return search results ordered by title."""
+        self.queryset = form.search()
+        search_results = Paginator(self.queryset, 20)
+
+        context = self.get_context_data(**{
+            self.form_name: form,
+            'query': form.cleaned_data.get(self.search_field),
+            'object_list': self.queryset.order_by('title'),
+            'search_results' : search_results,
+        })
+        return self.render_to_response(context)
 
 
 @login_required

@@ -61,6 +61,7 @@ urlpatterns = [
     url(r'^rest/', include(router.urls)),
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
+    url(r'^search/$', views.TextSearchView.as_view(), name='haystack_search'),
     url(r'^network/$', views.network, name="network"),
     url(r'^relationtemplate/add/$', views.add_relationtemplate, name="add_relationtemplate"),
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.get_relationtemplate, name="get_relationtemplate"),

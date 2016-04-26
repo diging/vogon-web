@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'guardian',
     'djcelery',
+    'haystack',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -151,6 +152,18 @@ STATICFILES_DIRS = (
 JARS_KEY = '050814a54ac5c81b990140c3c43278031d391676'
 AUTH_USER_MODEL = 'annotations.VogonUser'
 
+
+# Haystack
+# http://django-haystack.readthedocs.org/en/v2.4.0/index.html
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
+    },
+}
+
 # AWS Access Key and Secret Key credentials
 AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
 AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
@@ -177,4 +190,3 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'default_cache_table',
     }
-}
