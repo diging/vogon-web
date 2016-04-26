@@ -1,0 +1,11 @@
+<script type="text/ng-template" id="appellationModalContent.html">
+    <div class="modal-content" ng-controller="AppellationsController">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" ng-click="cancel()"><span aria-hidden="true">&times;</span></button>
+            <h3 class="modal-title">Create a new appellation</h3>
+        </div>
+        <div class="modal-body appellation-modal-body">
+            {% include "annotations/text/appellationCreate.html" %}
+        </div>
+    </div>
+</script>

@@ -27,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'gtl7=k_#_cx5e9!2(khyq3_#u3=8bh97fi_t0e*p#*u66rwg=&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -163,3 +163,30 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'haystack',
     },
 }
+
+# AWS Access Key and Secret Key credentials
+AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
+AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
+S3_BUCKET = 'vogonweb-test'
+DEFAULT_USER_IMAGE = 'https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png'
+
+
+TEMPORAL_PREDICATES = {
+    'start': 'http://www.digitalhps.org/concepts/CONbbbb0940-84be-4450-b92f-557a78249ebd',
+    'end': 'http://www.digitalhps.org/concepts/CONbfd1fc2d-0393-4bdb-92f5-7500cdc507f8',
+    'occur': 'http://www.digitalhps.org/concepts/ba626314-5d54-41b6-8f41-0013be5269be'
+}
+
+BROKER_POOL_LIMIT = 0
+
+PREDICATES = {
+    'have': 'http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9',
+    'be': 'http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316'
+}
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'default_cache_table',
+    }

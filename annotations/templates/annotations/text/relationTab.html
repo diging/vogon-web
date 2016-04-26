@@ -1,0 +1,178 @@
+{% verbatim %}
+<!-- The Appellation Tab orchestrates the appellation process. -->
+<div class="tab-pane fade" id="tabRelations" ng-controller="RelationTemplateSearchController" ng-cloak>
+    <ul class="list-group" ng-show="hideRelationCreate">
+        <a class="list-group-item relation-list-item"
+            ng-repeat="relation in relations"
+            ng-click="highlightAppellations(relation.appellations)">{{ relation.label }} <span class="label label-success" style="margin-right: 5px;" ng-repeat="concept in relation.concepts">{{ concept.label }}</span>
+        </a>
+    </ul>
+
+    <div ng-hide="hideRelationCreate">
+        <p class="h4">Create a new relation
+            <a class="btn btn-sm glyphicon glyphicon-info-sign"
+                tabindex="0"
+                id="relationInfoPopover"
+                data-toggle="popover"
+                data-placement="bottom"
+                data-trigger="focus"
+                data-title="What is a relation?"
+                data-content="A relation is a statement about how two or more concepts (e.g. people, places, organisms) are related to each other.
+                              The project admins have created a variety of templates for creating relations: use the search interface on this panel
+                              to find the template that best matches the relation that you would like to express."></a>
+            <script>
+            $('#relationInfoPopover').popover();
+            </script>
+        </p>
+        <div >
+            {% endverbatim %}
+            {% include "annotations/text/appellationModal.html" %}
+            {% verbatim %}
+
+            <!-- When the user selects a relation template from the search menu, the entire search menu is hidden. -->
+            <div id="relationtemplate-search" ng-hide="hideRelationSearch()">
+                <input
+                    type="text"
+                    name="search"
+                    id="relationtemplate-search-field"
+                    ng-model="query"
+                    ng-change="search()"
+                    class="form-control"
+                    ng-disabled="hideRelationSearch()"
+                    placeholder="Search for a relation template">
+                </input>
+                <ul class="list-group relationtemplate-search-results">
+                    <li class="list-group-item" ng-repeat="template in relation_templates" ng-click="select(template)">
+                        <span class="h5">{{ template.name }}</span>
+                        <p>{{ template.description }}</p>
+                        <p>
+                            <label class="label label-primary"
+                                ng-repeat="field in template.fields"
+                                ng-if="field.type == 'TP'"
+                                style="margin-right: 7px;">{{ field.concept_label }}</label>
+                        </p>
+                    </li>
+                </ul>
+            </div>
+            <div class="clearfix" ng-show="allFieldsFilled()">
+                <div class="alert alert-success text text-success clearfix">All fields have been filled!
+                    <div class="pull-right">
+                        <a class="btn btn-success btn-xs" ng-click="createRelation()">Create</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- When the user selects a relation template, a detailed form is displayed. -->
+            <div id="relationtemplate-create" ng-show="relation_create">
+                <span class="h4">{{ relation_template.name }}</span>
+                <p>{{ relation_template.description }}</p>
+
+                <!-- Temporal information (optional). -->
+                <div ng-show="relation_template.fields" class="panel">
+                <!-- User can click this button to show temporal fields. -->
+                    <div class="panel-heading clearfix">
+                        <a class="btn btn-success btn-xs" data-toggle="collapse" data-target="#dateFields">Show/hide temporal information</a>
+                    </div>
+                    <!-- Temporal fields are hidden by default. -->
+                    <div id="dateFields" class="panel-body collapse">
+                        <div class="well well-sm">
+                            <div class="form-group form-inline text-right">
+                                <a class="btn btn-sm glyphicon glyphicon-info-sign"
+                                    tabindex="0"
+                                    id="startedInfoPopover"
+                                    data-toggle="popover"
+                                    data-placement="bottom"
+                                    data-trigger="focus"
+                                    data-html="true"
+                                    data-title="Started"
+                                    data-content="Use these date fields if you know the year, month, and/or day during which this relationship began. If you
+                                    only know the year in which the relationship started, just enter the year in the first field. If you know the month, too,
+                                    then enter both the year and the month in the first and second fields, and so on. If you only know that this relationship
+                                    was in effect at a particular point in time (not when it actually started), then use the <strong>occur</strong> field."></a>
+                                <span><strong>Started</strong></span>
+                                <input class="form-control" ng-model="relation_template.start.year" name="start-year" type="number" min="1" max="3000" placeholder="YYYY">
+                                <input class="form-control" ng-model="relation_template.start.month" name="start-month" type="number" min="1" max="12" placeholder="MM">
+                                <input class="form-control" ng-model="relation_template.start.day" name="start-day" type="number" min="1" max="31" placeholder="DD">
+                            </div>
+                            <div class="form-group form-inline text-right">
+                                <a class="btn btn-sm glyphicon glyphicon-info-sign"
+                                    tabindex="0"
+                                    id="endedInfoPopover"
+                                    data-toggle="popover"
+                                    data-placement="bottom"
+                                    data-trigger="focus"
+                                    data-html="true"
+                                    data-title="Started"
+                                    data-content="Use these date fields if you know the year, month, and/or day during which this relationship ended. If you
+                                    only know the year in which the relationship ended, just enter the year in the first field. If you know the month, too,
+                                    then enter both the year and the month in the first and second fields, and so on. If you only know that this relationship
+                                    was in effect at a particular point in time (not when it actually ended), then use the <strong>occur</strong> field."></a>
+                                <span><strong>Ended</strong></span>
+                                <input class="form-control" ng-model="relation_template.end.year" name="end-year" type="number" min="1" max="3000" placeholder="YYYY">
+                                <input class="form-control" ng-model="relation_template.end.month" name="end-month" type="number" min="1" max="12" placeholder="MM">
+                                <input class="form-control" ng-model="relation_template.end.day" name="end-day" type="number" min="1" max="31" placeholder="DD">
+                            </div>
+                            <div class="form-group form-inline text-right">
+                                <a class="btn btn-sm glyphicon glyphicon-info-sign"
+                                    tabindex="0"
+                                    id="occurInfoPopover"
+                                    data-toggle="popover"
+                                    data-placement="bottom"
+                                    data-trigger="focus"
+                                    data-html="true"
+                                    data-title="Started"
+                                    data-content="Use these date fields if you know that this relationship was in effect during a particular year, month,
+                                    and/or day, but don't know when the relationship started or ended. You can enter just a year, a year and a month, or
+                                    a year, month, and day."></a>
+                                <span><strong>Occurred</strong></span>
+                                <input class="form-control" ng-model="relation_template.occur.year" name="occur-year" type="number" min="1" max="3000" placeholder="YYYY">
+                                <input class="form-control" ng-model="relation_template.occur.month" name="occur-month" type="number" min="1" max="12" placeholder="MM">
+                                <input class="form-control" ng-model="relation_template.occur.day" type="number" min="1" max="31" placeholder="DD">
+                            </div>
+                        </div>
+                    </div>
+                    <script>$('[data-toggle="popover"]').popover();</script>
+                </div>
+                <div ng-repeat="field in relation_template.fields" ng-controller="RelationTemplateFieldController">
+                    <div class="form-group">
+                        <label for="{{ field.part_id }}_{{ field.part_field }}">{{ field.label }}.</label> <span class="text text-muted">{{ field.description }}</span>
+                        <div class="input-group relation-field-input-group" id="input-group-{{ field.part_id }}_{{ field.part_field }}">
+                            <input type="text"
+                                class="form-control"
+                                ng-readonly="isReadOnly(field)"
+                                ng-change="conceptSearch(field)"
+                                ng-model="label"
+                                id="{{ field.part_id }}_{{ field.part_field }}"
+                                placeholder="{{ field.placeholder }}"></input>
+                            <a class="input-group-addon btn btn-xs" ng-click="expectEvidence()">
+                                <span class="glyphicon evidence-button" ng-class="iconClass()"></span>
+                            </a>
+                        </div>
+                        <!-- TODO: What is this for? -->
+                        <div ng-show="isSearching(field)" class="relationtemplate-field-search">
+                            <a class="list-group-item"
+                                ng-click="selectConcept(field, option)"
+                                ng-repeat="option in field.options">
+                                <span class="text text-primary strong">{{ option.label }}</span>. <span class="text text-muted">{{ option.description }}</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger" ng-show="alert">
+                        <button type="button" class="close" aria-label="Close" ng-click="resetAlert()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        {{ alert }}
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- TODO: there should be a "Create" button down here, that is active when all of the fields are filled. -->
+
+
+        </div>
+    </div>
+</div>
+
+    {% endverbatim %}
