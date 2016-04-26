@@ -17,7 +17,31 @@
             <hr></hr>
             {% endblock %}
         </div>
+
     </div>
+    <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+            <form class="form" role="search" action="{% url "haystack_search" %}">
+                <div class="input-group">
+                    <input type="text"
+                        class="form-control"
+                        placeholder="Search texts"
+                        name="q"
+                        id="q"
+                        value="{{query}}">
+                    <span class="input-group-btn">
+                        <!-- For some reason .glyphicon sets top: 1px; -->
+                        <span
+                            class="btn btn-default glyphicon glyphicon-search"
+                            style="top: 0px;"
+                            type="submit">
+                        </span>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-sm-10 col-sm-offset-1">
             {% if texts|length > 0 %}
@@ -61,7 +85,7 @@
                         <a href="?page={{ texts.previous_page_number }}">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
-                    </lu>
+                    </li>
                     {% endif %}
                     {% for p in texts.paginator.page_range %}
                     <li{% if p == texts.number %} class="active"{% endif %}>
@@ -73,7 +97,7 @@
                         <a href="?page={{ texts.next_page_number }}">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
-                    </lu>
+                    </li>
                     {% endif %}
                 </ul>
             </div>

@@ -178,6 +178,32 @@ var networkEndpoint = '{% url "network-data" %}',
         </div>
 
     </div>
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="panel">
+				<div class="panel-heading">
+					<span class="h2">Recent Annotations </span>
+				</div>
+
+				{% if recent_combination|length > 0 %}
+
+					<ul class="list-group" style="max-height: 400px; overflow-y: scroll;">
+						{% for key, item in recent_combination.items %}
+						<li class="list-group-item"><a href="{% url "user_details" key.2 %}"><b>{{ key.1 }}</b></a> added
+							{% if item.appelation_count > 1 %}<b>{{ item.appelation_count }}</b> appellations{% endif %}
+							{% if item.appelation_count == 1 %}<b>{{ item.appelation_count }}</b> appellation{% endif %}
+							{% if item.relation_count > 0 and item.appelation_count > 0 %}and   {% endif %}
+							 {% if item.relation_count == 1 %}<b>{{ item.relation_count }}</b> relation{% endif %}
+							{% if item.relation_count > 1 %}<b>{{ item.relation_count }}</b> relations{% endif %}
+							<b>{{ key.0 |timesince }}</b> ago
+						</li>
+						{% endfor %}
+					</ul>
+
+				{% endif %}
+
+		</div>
+	</div>
 </div>
 <script src="{% static "annotations/js/network_cytoscape.js" %}"></script>
 {% endblock %}

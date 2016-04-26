@@ -1,33 +1,59 @@
 {% extends "annotations/base.html" %}
 {% load app_filters %}
 
-
-
 {% block main %}
+<style>
+.accordion-toggle:after {
+    /* symbol for "opening" panels */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\e114";    /* adjust as needed, taken from bootstrap.css */
+    float: right;        /* adjust as needed */
+    color: grey;         /* adjust as needed */
+}
+.accordion-toggle.collapsed:after {
+    /* symbol for "collapsed" panels */
+    content: "\e080";    /* adjust as needed, taken from bootstrap.css */
+}
+</style>
 <div id="main" class="container-fluid">
+    <div class="h1">{{ concept.label }} <small>{{ concept.typed }}</small></div>
+
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <span class="h2">{{ concept.label }}</span>
-                    <span class="text pull-right">{{ concept.typed }}</span>
-                </div>
+        <div class="col-xs-12">
+            <div class="panel panel-default">
+
                 <div class="panel-body">
                     <div class="text text-muted text-small">{{ concept.uri }}</div>
                     <div class="h4">Description</div>
                     <div class="text">{{ concept.description }}</div>
                 </div>
             </div>
-            <div class="panel panel-primary">
+            <div class="panel panel-default">
                 <div class="panel-heading">
-                    <span class="h2">Occurs in the following texts...</span>
+                    <span class="h3">Occurs in the following texts...</span>
                 </div>
-                <div class="list-group" id="accordion" role="tablist" aria-multiselectable="true">
+                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                     {% for text in texts %}
-                    <div class="list-group-item">
-                        <a role="button" class="collapsed" data-toggle="collapse" data-parent="#accordion" href="#{{ text.id }}_appellations" aria-expanded="false" aria-controls="appellations">{{ text.title }}</a>
-                        <div id="{{ text.id }}_appellations" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-                            test
+                    <div class="panel">
+                        <div class="panel-heading" role="tab">
+                            <a class="accordion-toggle collapsed"
+                                data-toggle="collapse"
+                                data-parent="#accordion"
+                                href="#{{ text.text_id }}_appellations">
+                                {{ text.text_title }}
+                            </a>
+                        </div>
+                        <div id="{{ text.text_id }}_appellations"
+                            class="panel-collapse collapse"
+                            role="tabpanel">
+
+                                {% for appellation in text.appellations %}
+                                <div class="panel-body">
+                                <div class="text-warning">{{appellation.created}} by <a href="{% url "user_details" appellation.annotator.id %}">{{appellation.annotator}}</a></div>
+                                <div>{{ appellation.text_snippet | safe}}</div>
+                                </div>
+                                {% endfor %}
+
                         </div>
                     </div>
                     {% endfor %}

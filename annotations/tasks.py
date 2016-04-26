@@ -4,11 +4,14 @@ We should probably write some documentation.
 
 
 from django.contrib.auth.models import Group
+from django.utils.safestring import SafeText
+
 import requests
 from bs4 import BeautifulSoup
 from models import Text
 from guardian.shortcuts import assign_perm
 import uuid
+import re
 
 import slate
 from . import managers
@@ -155,3 +158,36 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
         group = Group.objects.get_or_create(name='Public')[0]
         assign_perm('annotations.view_text', group, text)
     return text
+
+
+def get_snippet(appellation):
+    """
+    Extract the text content surrounding (and including) an
+    :class:`.Appellation` instance.
+
+    Parameters
+    ----------
+    appellation : :class:`.Appellation`
+
+    Returns
+    -------
+    snippet : :class:`django.utils.safestring.SafeText`
+        Includes emphasis tags surrounding the :class:`.Appellation`\'s
+        tokens.
+    """
+    tokenizedContent = appellation.occursIn.tokenizedContent
+    annotated_words = appellation.tokenIds.split(',')
+    middle_index = int(annotated_words[max(len(annotated_words)/2, 0)])
+    start_index = max(middle_index - 10, 0)
+    end_index = middle_index + 10
+    snippet = ""
+    for i in range(start_index, end_index):
+        match = re.search(r'<word id="'+str(i)+'">([^<]*)</word>', tokenizedContent, re.M|re.I)
+        word = ""
+
+        if str(i) in annotated_words:
+            word ="<i><b>"+match.group(1)+"</b></i>"
+        else:
+            word = match.group(1)
+        snippet = snippet + " " + word
+    return SafeText(snippet)

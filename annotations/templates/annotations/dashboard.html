@@ -2,8 +2,15 @@
 {% load staticfiles %}
 
 {% block main %}
+
+<script src="{% static "annotations/js/angular-resource.min.js" %}"></script>
+<script src="{% static "annotations/js/angular-sanitize.js" %}"></script>
+<script src="{% static "annotations/js/angular-sanitize.min.js" %}"></script>
+<script src="{% static "annotations/js/angular-route.min.js" %}"></script>
+<script src="{% static "annotations/js/ui-bootstrap-1.2.5.min.js" %}"></script>
+<script src="{% static "annotations/js/ui-bootstrap-tpls-1.2.5.min.js" %}"></script>
 <script>
-var app = angular.module('collectionsApp', ['ngResource', 'ngSanitize', 'ui.bootstrap']);
+var app = angular.module('collectionsApp', ['ngResource', 'ngSanitize', 'ui.bootstrap', 'ngRoute']);
 
 app.config(['$httpProvider', function($httpProvider){
 	$httpProvider.defaults.xsrfCookieName = 'csrftoken';
@@ -14,9 +21,17 @@ app.config(['$httpProvider', function($httpProvider){
 }]);
 
 app.factory('Text', ['$resource', function($resource) {
-	return $resource(BASELOCATION + '/rest/text/:id');
+	
+	return $resource(BASELOCATION + '/rest/text/:id', {}, {
+		query: {
+      method: 'GET',
+      isArray: false,
+    }
+	});
 }]);
 
+//The below commented block is repeated in this file
+/*
 app.factory('TextCollection', ['$resource', '$http', 'Text',
 							   function($resource, $http, Text) {
 	var TextCollection = $resource(BASELOCATION + '/rest/textcollection/:id', {}, {
@@ -57,6 +72,7 @@ app.factory('TextCollection', ['$resource', '$http', 'Text',
 
 	return TextCollection;
 }]);
+*/
 
 app.controller('textCollectionsController',
 			   ['$scope', 'TextCollection', '$http', '$q',
@@ -65,22 +81,22 @@ app.controller('textCollectionsController',
 	$scope.oneAtATime = false;
 
 	$scope.update = function(tcid) {
-		$scope.textcollections = TextCollection.query().$promise.then(function(textcollections) {
-			$scope.textcollections = textcollections;
+		$scope.textcollections = TextCollection.query().$promise.then(function(response) {
+			$scope.textcollections = response.results;
+			console.log(response);
 
-			textcollections.forEach(function(textcollection, index) {
-				textcollection.update().then(function(texts) {
-					if (textcollection.id == tcid) {
-						textcollection.open = true;
-						if(!$scope.$$phase) $scope.$apply();
-					}
-					$scope.$watch('textcollections['+index+'].open', function(isOpen){
-						if (isOpen) {
-							textcollection.select();
-						}
-					});
+			$scope.textcollections.forEach(function(textcollection, index) {
+
+				if (textcollection.id == tcid) {
+					textcollection.open = true;
 					if(!$scope.$$phase) $scope.$apply();
+				}
+				$scope.$watch('textcollections['+index+'].open', function(isOpen){
+					if (isOpen) {
+						textcollection.select();
+					}
 				});
+				if(!$scope.$$phase) $scope.$apply();
 			});
 		});
 	}
@@ -152,19 +168,19 @@ app.controller('textCollectionsController',
 	}
 }]);
 
-app.controller('ModalInstanceController', function ($scope, $modalInstance, data) {
+app.controller('ModalInstanceController', function ($scope, $uibModalInstance, data) {
 	$scope.data = data;
 
 	$scope.ok = function (data) {
-		$modalInstance.close(data);
+		$uibModalInstance.close(data);
 	};
 
 	$scope.cancel = function () {
-		$modalInstance.dismiss('cancel');
+		$uibModalInstance.dismiss('cancel');
 	};
 });
 
-app.controller('deleteCollectionModalController', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+app.controller('deleteCollectionModalController', ['$scope', '$uibModal', '$log', function($scope, $modal, $log) {
 	$scope.animationsEnabled = true;
 
 	$scope.open = function(data, callback) {
@@ -185,7 +201,7 @@ app.controller('deleteCollectionModalController', ['$scope', '$modal', '$log', f
 	}
 }]);
 
-app.controller('addCollectionModalController', ['$scope', '$modal', '$log', function($scope, $modal, $log) {
+app.controller('addCollectionModalController', ['$scope', '$uibModal', '$log', function($scope, $modal, $log) {
 	$scope.animationsEnabled = true;
 
 	$scope.open = function(data, callback) {
@@ -218,7 +234,11 @@ app.factory('TextCollection', ['$resource', '$http', 'Text',
 		update_remote: {
 			method:'PUT',
 			headers: {'Content-Type': 'application/json'}
-		}
+		},
+		query: {
+			isArray: false,
+            method: 'GET',
+        }
 	});
 
 	angular.extend(TextCollection.prototype, {
@@ -254,7 +274,6 @@ app.controller('textController',
 			   	function($scope, TextCollection, $http, $q) {
 
 
-	console.log('asdf');
 	$scope.addTextToCollection = function(text) {
 		console.log(text);
 		var data = {
@@ -286,13 +305,13 @@ app.controller('textController',
 	return $scope;
 }]);
 
-app.controller('addTextsModalController', ['$scope', '$modal', '$log', '$http', 'TextCollection', function($scope, $modal, $log, $http, TextCollection) {
+app.controller('addTextsModalController', ['$scope', '$uibModal', '$log', '$http', 'TextCollection', function($scope, $modal, $log, $http, TextCollection) {
 	$scope.animationsEnabled = true;
 	$scope.repositories = [];
 	$scope.toAdd = [];
 
-	$scope.textcollections = TextCollection.query().$promise.then(function(textcollections) {
-		$scope.textcollections = textcollections;
+	$scope.textcollections = TextCollection.query().$promise.then(function(response) {
+		$scope.textcollections = response.results;
 	});
 
 	$scope.open = function(data, callback) {
@@ -363,4 +382,6 @@ app.controller('addTextsModalController', ['$scope', '$modal', '$log', '$http', 
 		</div>
 	</div>
 </div>
+
+
 {% endblock %}

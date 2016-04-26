@@ -2,6 +2,7 @@ from .models import Concept, Type
 
 from conceptpower import Conceptpower
 from urlparse import urlparse
+from django.conf import settings
 
 import logging
 logging.basicConfig()
@@ -14,8 +15,8 @@ class AuthorityManager(object):
 class ConceptpowerAuthority(AuthorityManager, Conceptpower):
     __name__ = 'ConceptpowerAuthority'
 
-    endpoint = 'http://chps.asu.edu/conceptpower/rest/'
-    namespace = '{http://www.digitalhps.org/}'
+    endpoint = settings.CONCEPTPOWER_ENDPOINT
+    namespace = settings.CONCEPTPOWER_NAMESPACE
 
 #
 # class VogonAuthority(AuthorityManager):
@@ -39,6 +40,7 @@ authority_managers = (
     # VogonAuthority,
 )
 
+
 def search(query, pos='noun'):
     results = [r for manager in authority_managers
                for r in manager().search(query, pos=pos)]
@@ -54,6 +56,7 @@ def search(query, pos='noun'):
             instance = update_instance(Concept, instance, r, manager.__name__)
         concepts.append(instance)
     return concepts
+
 
 def update_instance(sender, instance, concept_data, authority):
     # Update description, label, (and typed).
@@ -87,6 +90,7 @@ def update_instance(sender, instance, concept_data, authority):
                             type_instance.uri, instance.uri))
     instance.save()
     return instance
+
 
 def resolve(sender, instance):
     """
@@ -123,8 +127,8 @@ def resolve(sender, instance):
 
             # Try each AuthorityManager...
             for manager_class in managers:
-                if instance.resolved: break # ...until success.
 
+                if instance.resolved: break # ...until success.
 
                 manager = manager_class()
                 method = getattr(manager, get_method)
@@ -136,8 +140,8 @@ def resolve(sender, instance):
                     'Trying AuthorityManager {0}.'.format(manager.__name__))
 
                 instance.resolved = True
+                instance.concept_state = Concept.RESOLVED
                 update_instance(sender, instance, concept_data, manager.__name__)
-
 
 
 def get_namespace(uri):
@@ -153,6 +157,7 @@ def get_namespace(uri):
 
     return "{" + namespace + "}"
 
+
 def get_by_namespace(namespace):
     """
     Retrieve a registered :class:`AuthorityManager` by its namespace.
@@ -160,3 +165,23 @@ def get_by_namespace(namespace):
 
     return [ manager for manager in authority_managers
                 if manager.namespace == namespace ]
+
+
+def add(instance):
+    """
+    Adding the approved concept to Conceptpower
+
+    Parameters
+    -----------
+    instance: :class: '.Concept'
+    """
+
+    concept_list = 'VogonWeb Concepts'
+    conceptpower = ConceptpowerAuthority()
+    conceptpower.create(settings.CONCEPTPOWER_USERID,
+                        settings.CONCEPTPOWER_PASSWORD,
+                        instance.label,
+                        instance.pos,
+                        concept_list,
+                        instance.description,
+                        instance.typed.uri)

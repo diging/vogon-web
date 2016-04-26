@@ -137,3 +137,6 @@ ERATOSTHENES_ENDPOINT = 'http://diging.asu.edu:9000/eratosthenes'
 import socket
 
 SUBPATH = '/vogon'
+
+CONCEPTPOWER_USERID = os.environ.get('CONCEPTPOWER_USERID', None)
+CONCEPTPOWER_PASSWORD = os.environ.get('CONCEPTPOWER_PASSWORD', None)

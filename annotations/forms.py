@@ -44,6 +44,7 @@ class RegistrationForm(forms.Form):
                                                                       render_value=False)), label=_("Password (again)"))
 	affiliation = forms.CharField(required=True, max_length=30, label=_("Affliation"))
 	location = forms.CharField(required=True, max_length=30, label=_("Location"))
+	link = forms.URLField(required=True, max_length=500, label=_("Link"))
 
 
 	def clean_username(self):
@@ -125,7 +126,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location','imagefile')
+        fields = ('full_name', 'email', 'affiliation', 'location','imagefile','link')
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
@@ -370,3 +371,21 @@ class RelationTemplatePartFormSet(BaseFormSet):
 		if not nx.is_connected(formGraph.to_undirected()):
 			for form in self.forms:
 				form.add_error(None, 'At least one relation part is disconnected from the rest of the relation.')
+
+
+		# print self.cleaned_data
+
+
+class TextCollectionForm(forms.ModelForm):
+	"""
+	Gives the participants list for every collection.
+	"""
+	class Meta:
+		model = TextCollection
+		exclude = ['name', 'description', 'ownedBy', 'texts']
+
+	def __init__(self, *args, **kwargs):
+		super(TextCollectionForm, self).__init__(*args, **kwargs)
+		self.fields["participants"].widget = forms.CheckboxSelectMultiple()
+		self.fields["participants"].queryset = VogonUser.objects.order_by('username')
+

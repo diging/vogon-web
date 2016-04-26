@@ -1,0 +1,38 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+
+
+
+{% block main %}
+<div id="main" class="container-fluid">
+    <div class="row" style="margin-bottom: 10px;">
+        <div class="col-sm-10 col-sm-offset-1">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+            <div>
+                <h2>{{type.label}}</h2>
+                <p>{{type.description}}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+            <div class="h3">Examples</div>
+            <div class="list-group">
+                {% for example in examples %}
+                <a class="list-group-item" href="{% url "concept_details" example.id %}">
+                    <div class="h4">{{ example.label }}</div>
+                    <div class="text-warning text-small">{{ example.description }}</div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<table class="table">
+  <column id='test'/>
+</table>
+{% endblock main %}

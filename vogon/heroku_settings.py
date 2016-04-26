@@ -29,7 +29,7 @@ SECRET_KEY = 'gtl7=k_#_cx5e9!2(khyq3_#u3=8bh97fi_t0e*p#*u66rwg=&'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'guardian',
     'djcelery',
+    'haystack',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -151,6 +152,18 @@ STATICFILES_DIRS = (
 JARS_KEY = '050814a54ac5c81b990140c3c43278031d391676'
 AUTH_USER_MODEL = 'annotations.VogonUser'
 
+
+# Haystack
+# http://django-haystack.readthedocs.org/en/v2.4.0/index.html
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': os.environ.get('SEARCHBOX_URL', 'http://127.0.0.1:9200/'),
+        'INDEX_NAME': 'haystack',
+    },
+}
+
 # AWS Access Key and Secret Key credentials
 AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
 AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
@@ -178,3 +191,8 @@ CACHES = {
         'LOCATION': 'default_cache_table',
     }
 }
+
+CONCEPTPOWER_USERID = os.environ.get('CONCEPTPOWER_USERID', None)
+CONCEPTPOWER_PASSWORD = os.environ.get('CONCEPTPOWER_PASSWORD', None)
+CONCEPTPOWER_ENDPOINT = os.environ.get('CONCEPTPOWER_ENDPOINT', 'http://chps.asu.edu/conceptpower/rest/')
+CONCEPTPOWER_NAMESPACE = os.environ.get('CONCEPTPOWER_NAMESPACE', '{http://www.digitalhps.org/}')

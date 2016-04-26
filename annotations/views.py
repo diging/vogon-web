@@ -14,14 +14,13 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import FormView
 
 from django.conf import settings
 
 from django.forms import formset_factory
-
 
 from django.core.serializers import serialize
 from django.db.models import Q, Count
@@ -32,6 +31,8 @@ from django.contrib.auth.models import Group
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from django.db import models
+from django.db.models.query import QuerySet
 
 from rest_framework import viewsets, exceptions, status
 from rest_framework.authentication import SessionAuthentication
@@ -54,14 +55,19 @@ from tasks import *
 
 import hmac
 import hashlib
-from itertools import chain, combinations
+from itertools import chain, combinations, groupby
 from collections import OrderedDict, defaultdict, Counter
 import requests
 import re
 from urlnorm import norm
+from itertools import chain
+import pytz
+from django.db.models.expressions import DateTime
 import uuid
 import igraph
 import copy
+import datetime
+from isoweek import Week
 
 import os
 from urlparse import urlparse
@@ -75,6 +81,9 @@ import base64
 import logging
 logger = logging.getLogger(__name__)
 logger.setLevel('ERROR')
+
+from haystack.generic_views import SearchView
+from haystack.query import SearchQuerySet
 
 
 def home(request):
@@ -100,7 +109,8 @@ def home(request):
     context = RequestContext(request, {
         'user_count': user_count,
         'text_count': text_count,
-        'relation_count': relation_count
+        'relation_count': relation_count,
+        'recent_combination': _get_recent_annotations()
     })
     return HttpResponse(template.render(context))
 
@@ -143,6 +153,7 @@ def register(request):
             full_name=form.cleaned_data['full_name'],
             affiliation=form.cleaned_data['affiliation'],
             location=form.cleaned_data['location'],
+            link=form.cleaned_data['link'],
             )
 
             g = Group.objects.get_or_create(name='Public')[0]
@@ -326,11 +337,22 @@ def list_user(request):
     }
     return HttpResponse(template.render(context))
 
-
+@csrf_exempt
 def collection_texts(request, collectionid):
     """
     List all of the texts that the user can see, with links to annotate them.
+    It saves/removes participants for every collection.
     """
+    textcollectioninstance = TextCollection.objects.get(pk=collectionid)
+    if request.method == 'POST':
+        form = TextCollectionForm(request.POST,instance=textcollectioninstance)
+
+        if form.is_valid():
+            form.save()
+    else:
+
+        form=TextCollectionForm(instance=textcollectioninstance);
+
     template = loader.get_template('annotations/collection_texts.html')
     order_by = request.GET.get('order_by', 'title')
 
@@ -344,7 +366,7 @@ def collection_texts(request, collectionid):
         occursIn__partOf__id=collectionid).count()
 
     # text_list = Text.objects.all()
-    paginator = Paginator(text_list, 10)
+    paginator = Paginator(text_list, 20)
 
     page = request.GET.get('page')
     try:
@@ -362,7 +384,49 @@ def collection_texts(request, collectionid):
         'order_by': order_by,
         'N_relations': N_relations,
         'N_appellations': N_appellations,
-        'collection': TextCollection.objects.get(pk=collectionid)
+        'collection': TextCollection.objects.get(pk=collectionid),
+        'form': form
+    }
+    return HttpResponse(template.render(context))
+
+
+def _get_recent_annotations():
+    """
+    Generate aggregate activity feed for all annotations.
+    """
+    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username", "createdBy__id").annotate(appelation_count=Count('id')).order_by("-hour", "createdBy")
+    recent_relations = Relation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username", "createdBy__id").annotate(relation_count=Count('id')).order_by("-hour", "createdBy")
+    combined_data={}
+    for event in recent_appellations:
+        key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
+        if key not in combined_data:
+            combined_data[key] = {'appelation_count' : event['appelation_count'], 'relation_count': 0}
+        combined_data[key]['appelation_count'] += event['appelation_count']
+    for event in recent_relations:
+        key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
+        if key not in combined_data:
+            combined_data[key] = {'appelation_count' :0, 'relation_count': event['relation_count']}
+        combined_data[key]['relation_count'] += event['relation_count']
+    return combined_data
+
+
+def recent_activity(request):
+    """
+    Provides summary of activities performed on the system.
+    Currently on text addition, Appellation additions are shown.
+    Args:
+        request: HttpRequest()
+
+    Returns:
+        HttpResponse()
+
+    """
+    template = loader.get_template('annotations/recent_activity.html')
+    recent_texts = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
+
+    context = {
+        'recent_texts': recent_texts,
+        'recent_combination': _get_recent_annotations()
     }
     return HttpResponse(template.render(context))
 
@@ -647,9 +711,9 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
 
         userid = self.request.query_params.get('user', None)
         if userid:
-            queryset = queryset.filter(ownedBy__pk=self.userid)
+            queryset = queryset.filter(ownedBy__pk=userid)
         else:
-            queryset = queryset.filter(ownedBy__pk=self.request.user.id)
+            queryset = queryset.filter(Q(ownedBy__pk=self.request.user.id) | Q(participants=self.request.user.id))
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -741,6 +805,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+
 @login_required
 def upload_file(request):
     """
@@ -758,7 +823,9 @@ def upload_file(request):
             text = handle_file_upload(request, form)
             return HttpResponseRedirect(reverse('text', args=[text.id]))
 
+
     else:
+
         form = UploadFileForm()
 
     template = loader.get_template('annotations/upload_file.html')
@@ -815,7 +882,6 @@ def network_data(request):
             queryset = queryset.filter(createdBy_id=user)
         if text:
             queryset = queryset.filter(occursIn_id=text)
-
         nodes, edges = generate_network_data(queryset)
         nodes_rebased = {}
         edges_rebased = {}
@@ -900,25 +966,63 @@ def user_details(request, userid, *args, **kwargs):
     :HTTPResponse:
         Renders an user details view based on user's authentication status.
     """
-
     user = get_object_or_404(VogonUser, pk=userid)
-    if request.user.is_authenticated() and request.user.id == userid:
-        template = loader.get_template('annotations/user_details.html')
-        context = RequestContext(request, {
-            'user': request.user,
-            'detail_user': user,
-        })
+    if request.user.is_authenticated() and request.user.id == int(userid):
+        return HttpResponseRedirect(reverse('settings'))
     else:
         textCount = Text.objects.filter(addedBy=user).count()
         textAnnotated = Text.objects.filter(annotators=user).distinct().count()
         relation_count = user.relation_set.count()
+        start_date = datetime.datetime.now() + datetime.timedelta(-60)
+
+        #Count annotations for user by date
+        relations_by_user = Relation.objects.filter(createdBy = user, created__gt = start_date)\
+            .extra({'date' : 'date(created)'}).values('date').annotate(count = Count('created'))
+
+        appelations_by_user = Appellation.objects.filter(createdBy = user, created__gt = start_date)\
+            .extra({'date' : 'date(created)'}).values('date').annotate(count = Count('created'))
+
+        annotation_by_user = list(relations_by_user)
+        annotation_by_user.extend(list(appelations_by_user))
+
+        result = dict()
+        weeks_last_date_map = dict()
+        d7 = datetime.timedelta( days = 7)
+        current_week = datetime.datetime.now() + d7
+
+        #Find out the weeks and their last date in the past 90 days
+        while start_date <= current_week:
+            result[(Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] = 0
+            start_date += d7
+        time_format = '%Y-%m-%d'
+
+        #Count annotations for each week
+        for count_per_day in annotation_by_user:
+            if(isinstance(count_per_day['date'], unicode)):
+                date = datetime.datetime.strptime(count_per_day['date'], time_format)
+            else:
+                date = count_per_day['date']
+            result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] += count_per_day['count']
+        annotation_per_week = list()
+
+        #Sort the date and format the data in the format required by d3.js
+        keys = (result.keys())
+        keys.sort()
+        for key in keys:
+            new_format = dict()
+            new_format["date"] = key
+            new_format["count"] = result[key]
+            annotation_per_week.append(new_format)
+        annotation_per_week = str(annotation_per_week).replace("'", "\"")
+
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
             'textCount': textCount,
             'relation_count': relation_count,
             'textAnnotated': textAnnotated,
-            'default_user_image' : settings.DEFAULT_USER_IMAGE
+            'default_user_image' : settings.DEFAULT_USER_IMAGE,
+            'annotation_per_week' : annotation_per_week
         })
     return HttpResponse(template.render(context))
 
@@ -975,25 +1079,34 @@ def relation_details(request, source_concept_id, target_concept_id):
 def concept_details(request, conceptid):
     concept = get_object_or_404(Concept, pk=conceptid)
     appellations = Appellation.objects.filter(interpretation_id=conceptid)
-    texts = set()
-    appellations_by_text = OrderedDict()
-    for appellation in appellations:
-        text = appellation.occursIn
-        texts.add(text)
-        if text.id not in appellations_by_text:
-            appellations_by_text[text.id] = []
-        appellations_by_text[text.id].append(appellation)
 
-    template = loader.get_template('annotations/concept_details.html')
-    context = RequestContext(request, {
-        'user': request.user,
-        'concept': concept,
-        'appellations': appellations_by_text,
-        'texts': texts,
-    })
-
-    return HttpResponse(template.render(context))
-
+    response_format = request.GET.get('format', None)
+    response = dict()
+    concept_details = []
+    appellations_by_text = dict()
+    text = ""
+    for text_id, text_appellations in groupby(appellations, lambda a: a.occursIn.id):
+        text = Text.objects.get(pk=text_id)
+        concept_details.append({
+            "text_id": text.id,
+            "text_title": text.title,
+            "appellations": [{
+                "text_snippet": get_snippet(appellation),
+                "annotator": appellation.createdBy,
+                "created": appellation.created,
+            } for appellation in text_appellations]
+        })
+    response["texts"] = concept_details
+    if response_format == 'json':
+        response["concept_label"] = concept.label
+        response["concept_uri"] = concept.uri
+        response["concept_description"] = concept.description
+        return JsonResponse(response)
+    else:
+        response['concept'] = concept
+        template = loader.get_template('annotations/concept_details.html')
+        context = RequestContext(request, response)
+        return HttpResponse(template.render(context))
 
 @staff_member_required
 def add_relationtemplate(request):
@@ -1172,6 +1285,36 @@ def list_relationtemplate(request):
 
     return HttpResponse(template.render(context))
 
+
+class TextSearchView(SearchView):
+    """Class based view for thread-safe search."""
+    template = 'templates/search/search.html'
+    queryset = SearchQuerySet()
+    results_per_page = 20
+
+    def get_context_data(self, *args, **kwargs):
+        """Return context data."""
+        context = super(TextSearchView, self).get_context_data(*args, **kwargs)
+        sort_base = self.request.get_full_path().split('?')[0] + '?q=' + context['query']
+
+        context.update({
+            'sort_base': sort_base,
+        })
+        return context
+
+    def form_valid(self, form):
+        order_by = self.request.GET.get('order_by', 'title')
+        self.queryset = form.search().order_by(order_by)
+
+        context = self.get_context_data(**{
+            self.form_name: form,
+            'query': form.cleaned_data.get(self.search_field),
+            'object_list': self.queryset,
+            'order_by': order_by,
+            'search_results' : self.queryset,
+        })
+
+        return self.render_to_response(context)
 
 
 @login_required
@@ -1407,7 +1550,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
     edges = {}
     nodes = {}
     seen = set([])      # Appellation ids.
-
     # If we want to show any non-related appellations, we can include them
     #  in this separate appellation_queryset.
     if appellation_queryset:
@@ -1430,7 +1572,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                   'interpretation__appellation__id',
                   'interpretation__appellation__occursIn__id',
                   'interpretation__appellation__occursIn__title']
-
         # This will yield one object per text, so we will see the same
         #  appellation and corresponding interpretations several times.
         for obj in appellation_queryset.values(*fields):
@@ -1461,7 +1602,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                 if appell_id not in seen:   # But only once per appellation.
                     nodes[node_id]['data']['weight'] += 1.
                     seen.add(appell_id)
-
             # These are useful in the main network view for displaying
             #  information about the texts associated with each concept.
             text_id = obj.get('interpretation__appellation__occursIn__id')

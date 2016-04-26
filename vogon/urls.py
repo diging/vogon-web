@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from rest_framework import routers
 from rest_framework_nested import routers as nrouters
 from annotations import views
+from concepts import views as conceptViews
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -50,15 +51,17 @@ urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^about/$', views.about, name='about'),
     url(r'^accounts/profile/', views.dashboard, name='dashboard'),
-    url(r'^accounts/settings/$', views.user_settings),
+    url(r'^accounts/settings/$', views.user_settings, name = 'settings'),
     url(r'^accounts/register/$', views.register),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
                           {'next_page': '/accounts/login/'}),
+    url(r'^activity/$', views.recent_activity),
     url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^rest/', include(router.urls)),
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
+    url(r'^search/$', views.TextSearchView.as_view(), name='haystack_search'),
     url(r'^network/$', views.network, name="network"),
     url(r'^relationtemplate/add/$', views.add_relationtemplate, name="add_relationtemplate"),
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.get_relationtemplate, name="get_relationtemplate"),
@@ -74,12 +77,14 @@ urlpatterns = [
     url(r'^collection/text/add/$', views.add_text_to_collection, name="collection_addtext"),
     url(r'^user$', views.list_user, name = 'user'),
     url(r'^user/(?P<userid>[0-9]+)/$', views.user_details, name="user_details"),
-    url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
     url(r'^relations/(?P<source_concept_id>[0-9]+)/(?P<target_concept_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^autocomplete/', include('autocomplete_light.urls')),
     url(r'^$', views.home),
-    url(r'^sign_s3$', views.sign_s3, name="sign_s3")
+    url(r'^sign_s3$', views.sign_s3, name="sign_s3"),
+    url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
+    url(r'^concept/types$', conceptViews.list_concept_types),
+    url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:

@@ -45,7 +45,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'guardian',
     'djcelery',
-
+    'haystack',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -92,22 +92,22 @@ WSGI_APPLICATION = 'vogon.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 #
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'vogonweb',
-        'USER': 'vogonweb',
-        'PASSWORD': 'vogonweb',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'vogonweb',
+#         'USER': 'vogonweb',
+#         'PASSWORD': 'vogonweb',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # default
@@ -175,6 +175,18 @@ LOGGING = {
 }
 
 
+
+# Haystack
+# http://django-haystack.readthedocs.org/en/v2.4.0/index.html
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'vogon',
+    },
+}
+
 import djcelery
 djcelery.setup_loader()
 
@@ -203,3 +215,8 @@ CACHES = {
         'LOCATION': 'default_cache_table',
     }
 }
+
+CONCEPTPOWER_USERID = os.environ.get('CONCEPTPOWER_USERID', None)
+CONCEPTPOWER_PASSWORD = os.environ.get('CONCEPTPOWER_PASSWORD', None)
+CONCEPTPOWER_ENDPOINT = os.environ.get('CONCEPTPOWER_ENDPOINT', 'http://chps.asu.edu/conceptpower/rest/')
+CONCEPTPOWER_NAMESPACE = os.environ.get('CONCEPTPOWER_NAMESPACE', '{http://www.digitalhps.org/}')

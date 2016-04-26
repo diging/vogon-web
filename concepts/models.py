@@ -42,18 +42,20 @@ class Concept(HeritableObject):
     description = models.TextField(**optional)
     authority = models.CharField(max_length=255)
     pos = models.CharField(max_length=255, **optional)
-    PENDING='Pending'
-    REJECTED='Rejected'
-    APPROVED='Approved'
-    RESOLVED='Resolved'
+    PENDING = 'Pending'
+    REJECTED = 'Rejected'
+    APPROVED = 'Approved'
+    RESOLVED = 'Resolved'
     concept_state_choices=  (
-        (PENDING,'Pending'),
-        (REJECTED,'Rejected'),
-        (APPROVED,'Approved'),
-        (RESOLVED,'Resolved'),
+        (PENDING, 'Pending'),
+        (REJECTED, 'Rejected'),
+        (APPROVED, 'Approved'),
+        (RESOLVED, 'Resolved'),
     )
-    concept_state=models.CharField(max_length=10,choices=concept_state_choices, default='Pending')
-    merged_with = models.ForeignKey('Concept', related_name='merged_concepts', **optional)
+    concept_state=models.CharField(max_length=10, choices=concept_state_choices,
+                                   default='Pending')
+    merged_with = models.ForeignKey('Concept', related_name='merged_concepts',
+                                    **optional)
 
     @property
     def typed_label(self):
