@@ -371,3 +371,21 @@ class RelationTemplatePartFormSet(BaseFormSet):
 		if not nx.is_connected(formGraph.to_undirected()):
 			for form in self.forms:
 				form.add_error(None, 'At least one relation part is disconnected from the rest of the relation.')
+
+
+		# print self.cleaned_data
+
+
+class TextCollectionForm(forms.ModelForm):
+	"""
+	Gives the participants list for every collection.
+	"""
+	class Meta:
+		model = TextCollection
+		exclude = ['name', 'description', 'ownedBy', 'texts']
+
+	def __init__(self, *args, **kwargs):
+		super(TextCollectionForm, self).__init__(*args, **kwargs)
+		self.fields["participants"].widget = forms.CheckboxSelectMultiple()
+		self.fields["participants"].queryset = VogonUser.objects.order_by('username')
+

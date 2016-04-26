@@ -14,7 +14,7 @@ from django.contrib.auth.models import Group
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect, csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.generic.edit import FormView
 
@@ -333,11 +333,22 @@ def list_user(request):
     }
     return HttpResponse(template.render(context))
 
-
+@csrf_exempt
 def collection_texts(request, collectionid):
     """
-    List all of the texts that the user can see, with links to annotate them.
+    List all of the texts that the user can see, with links to annotate them. 
+    It saves/removes participants for every collection.
     """
+    textcollectioninstance = TextCollection.objects.get(pk=collectionid)
+    if request.method == 'POST':
+        form = TextCollectionForm(request.POST,instance=textcollectioninstance)
+        
+        if form.is_valid():
+            form.save()
+    else:
+        
+        form=TextCollectionForm(instance=textcollectioninstance);
+    
     template = loader.get_template('annotations/collection_texts.html')
     order_by = request.GET.get('order_by', 'title')
 
@@ -369,7 +380,8 @@ def collection_texts(request, collectionid):
         'order_by': order_by,
         'N_relations': N_relations,
         'N_appellations': N_appellations,
-        'collection': TextCollection.objects.get(pk=collectionid)
+        'collection': TextCollection.objects.get(pk=collectionid),
+        'form': form
     }
     return HttpResponse(template.render(context))
 
@@ -686,9 +698,9 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
 
         userid = self.request.query_params.get('user', None)
         if userid:
-            queryset = queryset.filter(ownedBy__pk=self.userid)
+            queryset = queryset.filter(ownedBy__pk=userid)
         else:
-            queryset = queryset.filter(ownedBy__pk=self.request.user.id)
+            queryset = queryset.filter(Q(ownedBy__pk=self.request.user.id) | Q(participants=self.request.user.id))
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -780,6 +792,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+
 @login_required
 def upload_file(request):
     """
@@ -797,7 +810,9 @@ def upload_file(request):
             text = handle_file_upload(request, form)
             return HttpResponseRedirect(reverse('text', args=[text.id]))
 
+
     else:
+
         form = UploadFileForm()
 
     template = loader.get_template('annotations/upload_file.html')
