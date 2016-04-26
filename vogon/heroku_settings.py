@@ -191,3 +191,6 @@ CACHES = {
         'LOCATION': 'default_cache_table',
     }
 }
+
+CONCEPTPOWER_USERID = os.environ.get('CONCEPTPOWER_USERID', None)
+CONCEPTPOWER_PASSWORD = os.environ.get('CONCEPTPOWER_PASSWORD', None)
