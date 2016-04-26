@@ -55,7 +55,7 @@ from tasks import *
 
 import hmac
 import hashlib
-from itertools import chain, combinations
+from itertools import chain, combinations, groupby
 from collections import OrderedDict, defaultdict, Counter
 import requests
 import re
@@ -1075,30 +1075,18 @@ def concept_details(request, conceptid):
     concept_details = []
     appellations_by_text = dict()
     text = ""
-    for appellation in appellations:
-        result = dict()
-        text = appellation.occursIn
-        tokenizedContent = text.tokenizedContent
-        annotated_words = appellation.tokenIds.split(',')
-        middle_index = int(annotated_words[len(annotated_words)/2]) if len(annotated_words) > 0 else a[0]
-        start_index = middle_index - 10 if (middle_index - 10) > 0 else 0
-        end_index = middle_index + 10
-        snippet = ""
-        for i in range(start_index, end_index):
-            match = re.search(r'<word id="'+str(i)+'">(.*?)</word>', tokenizedContent, re.M|re.I)
-            word = ""
-            if(str(i) in annotated_words):
-                word ="<i><b>"+match.group(1)+"</b></i>"
-            else:
-                word = match.group(1)
-            snippet = snippet + " " + word
-        result["text_id"] = text.id
-        result["text_title"] = text.title
-        result["text_snippet"] = snippet
-        result["annotator"] = appellation.createdBy.full_name
-        result["created"] = appellation.created
-        concept_details.append(result)
-    response["concept_details"] = concept_details
+    for text_id, text_appellations in groupby(appellations, lambda a: a.occursIn.id):
+        text = Text.objects.get(pk=text_id)
+        concept_details.append({
+            "text_id": text.id,
+            "text_title": text.title,
+            "appellations": [{
+                "text_snippet": get_snippet(appellation),
+                "annotator": unicode(appellation.createdBy),
+                "created": appellation.created,
+            } for appellation in text_appellations]
+        })
+    response["texts"] = concept_details
     if response_format == 'json':
         response["concept_label"] = concept.label
         response["concept_uri"] = concept.uri
