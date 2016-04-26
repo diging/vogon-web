@@ -17,15 +17,31 @@
             <hr></hr>
             {% endblock %}
         </div>
-        <form class="navbar-form" role="search" action="{% url "haystack_search" %}">
-          <div class="input-group col-sm-3 col-sm-offset-1">
-            <input type="text" class="form-control" placeholder= {% if q %}"{{q}}"{% else %}"Search texts" {% endif %}name="q" id="q">
-            <div class="input-group-btn">
-              <button class="btn btn-default" type="submit"><div class="glyphicon glyphicon-search"></div></button>
-            </div>
-          </div>
-        </form>
+
     </div>
+    <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+            <form class="form" role="search" action="{% url "haystack_search" %}">
+                <div class="input-group">
+                    <input type="text"
+                        class="form-control"
+                        placeholder="Search texts"
+                        name="q"
+                        id="q"
+                        value="{{query}}">
+                    <span class="input-group-btn">
+                        <!-- For some reason .glyphicon sets top: 1px; -->
+                        <span
+                            class="btn btn-default glyphicon glyphicon-search"
+                            style="top: 0px;"
+                            type="submit">
+                        </span>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-sm-10 col-sm-offset-1">
             {% if texts|length > 0 %}
