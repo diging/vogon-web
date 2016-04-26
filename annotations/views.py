@@ -74,7 +74,6 @@ from urlparse import urlparse
 import urllib
 
 import json
-from lxml import etree
 import time
 from django.shortcuts import render
 from hashlib import sha1
@@ -1054,55 +1053,44 @@ def concept_details(request, conceptid):
     appellations = Appellation.objects.filter(interpretation_id=conceptid)
 
     response_format = request.GET.get('format', None)
-    if response_format != 'json':
-        texts = set()
-        appellations_by_text = OrderedDict()
-        for appellation in appellations:
-            text = appellation.occursIn
-            texts.add(text)
-            if text.id not in appellations_by_text:
-                appellations_by_text[text.id] = []
-            appellations_by_text[text.id].append(appellation)
-
-        template = loader.get_template('annotations/concept_details.html')
-        context = RequestContext(request, {
-            'user': request.user,
-            'concept': concept,
-            'appellations': appellations_by_text,
-            'texts': texts,
-        })
-        return HttpResponse(template.render(context))
-    else:
-        response = dict()
-        response['concept'] = concept
-        concept_details = []
-        appellations_by_text = dict()
-        text = ""
-        for appellation in appellations:
-            result = dict()
-            text = appellation.occursIn
-            tokenizedContent = text.tokenizedContent
-            annotated_words = appellation.tokenIds.split(',')
-            middle_index = int(annotated_words[len(annotated_words)/2]) if len(annotated_words) > 0 else a[0]
-            start_index = middle_index - 10 if (middle_index - 10) > 0 else 0
-            end_index = middle_index + 10
-            snippet = ""
-            for i in range(start_index, end_index):
-                match = re.search(r'<word id="'+str(i)+'">(.*?)</word>', tokenizedContent, re.M|re.I)
-                word = ""
-                if(str(i) in annotated_words):
-                    word = "<kbd>"+match.group(1)+"</kbd>"
-                else:
-                    word = match.group(1)
-                snippet = snippet + " " + word
-            result["text_id"] = text.id
-            result["text_title"] = text.title
-            result["text_snippet"] = snippet
-            result["annotator"] = appellation.createdBy.full_name
-            result["created"] = appellation.created
-            concept_details.append(result)
-        response["concept_details"] = concept_details
+    response = dict()
+    concept_details = []
+    appellations_by_text = dict()
+    text = ""
+    for appellation in appellations:
+        result = dict()
+        text = appellation.occursIn
+        tokenizedContent = text.tokenizedContent
+        annotated_words = appellation.tokenIds.split(',')
+        middle_index = int(annotated_words[len(annotated_words)/2]) if len(annotated_words) > 0 else a[0]
+        start_index = middle_index - 10 if (middle_index - 10) > 0 else 0
+        end_index = middle_index + 10
+        snippet = ""
+        for i in range(start_index, end_index):
+            match = re.search(r'<word id="'+str(i)+'">(.*?)</word>', tokenizedContent, re.M|re.I)
+            word = ""
+            if(str(i) in annotated_words):
+                word ="<i><b>"+match.group(1)+"</b></i>"
+            else:
+                word = match.group(1)
+            snippet = snippet + " " + word
+        result["text_id"] = text.id
+        result["text_title"] = text.title
+        result["text_snippet"] = snippet
+        result["annotator"] = appellation.createdBy.full_name
+        result["created"] = appellation.created
+        concept_details.append(result)
+    response["concept_details"] = concept_details
+    if response_format == 'json':
+        response["concept_label"] = concept.label
+        response["concept_uri"] = concept.uri
+        response["concept_description"] = concept.description
         return JsonResponse(response)
+    else:
+        response['concept'] = concept
+        template = loader.get_template('annotations/concept_details.html')
+        context = RequestContext(request, response)
+        return HttpResponse(template.render(context))
 
 @staff_member_required
 def add_relationtemplate(request):
