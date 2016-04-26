@@ -20,20 +20,16 @@
             <h2>Recent Texts </h2>
             {% if recent_texts|length > 0 %}
             <div>
-                <ul class="pagination pagination-sm">
-
+                <ul class="list-group">
                     {% for item in recent_texts %}
-                    <li>User <b>{{ item.addedBy__username }}</b> added
+                    <li class="list-group-item">User <b>{{ item.addedBy__username }}</b> added
                         {% if item.created_count == 1 %}<b>{{ item.created_count }}</b> text{% endif %}
                         {% if item.created_count > 1 %}<b>{{ item.created_count }}</b> texts{% endif %}
                         <b>{{ item.hour|timesince }}</b> ago
                     </li>
-                    <br>
                     {% endfor %}
-
                 </ul>
             </div>
-
             {% else %}
             <p>No recent texts added</p>
             {% endif %}
@@ -42,26 +38,21 @@
         <div class="col-md-4">
             <h2>Recent Annotations </h2>
             {% if recent_combination|length > 0 %}
-            <div>
-                <ul class="pagination pagination-sm">
-
+            <div  style="max-height: 400px; overflow-y: scroll;">
+                <ul class="list-group">
                     {% for key, item in recent_combination.items %}
-
-                    <li>User <b>{{ key.1 }}</b> added
+                    <li class="list-group-item">User <b>{{ key.1 }}</b> added
                         {% if item.appelation_count > 1 %}<b>{{ item.appelation_count }}</b> appellations{% endif %}
                         {% if item.appelation_count == 1 %}<b>{{ item.appelation_count }}</b> appellation{% endif %}
-
                         {% if item.relation_count > 0 and item.appelation_count > 0 %}and   {% endif %}
                          {% if item.relation_count == 1 %}<b>{{ item.relation_count }}</b> relation{% endif %}
                         {% if item.relation_count > 1 %}<b>{{ item.relation_count }}</b> relations{% endif %}
-
                         <b>{{ key.0 |timesince }}</b> ago
                     </li>
-                    <br>
                     {% endfor %}
-
                 </ul>
             </div>
+
 
             {% else %}
             <p>No recent Appellations added</p>

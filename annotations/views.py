@@ -109,7 +109,8 @@ def home(request):
     context = RequestContext(request, {
         'user_count': user_count,
         'text_count': text_count,
-        'relation_count': relation_count
+        'relation_count': relation_count,
+        'recent_combination': _get_recent_annotations()
     })
     return HttpResponse(template.render(context))
 
@@ -389,6 +390,26 @@ def collection_texts(request, collectionid):
     return HttpResponse(template.render(context))
 
 
+def _get_recent_annotations():
+    """
+    Generate aggregate activity feed for all annotations.
+    """
+    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username", "createdBy__id").annotate(appelation_count=Count('id')).order_by("-hour", "createdBy")
+    recent_relations = Relation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username", "createdBy__id").annotate(relation_count=Count('id')).order_by("-hour", "createdBy")
+    combined_data={}
+    for event in recent_appellations:
+        key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
+        if key not in combined_data:
+            combined_data[key] = {'appelation_count' : event['appelation_count'], 'relation_count': 0}
+        combined_data[key]['appelation_count'] += event['appelation_count']
+    for event in recent_relations:
+        key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
+        if key not in combined_data:
+            combined_data[key] = {'appelation_count' :0, 'relation_count': event['relation_count']}
+        combined_data[key]['relation_count'] += event['relation_count']
+    return combined_data
+
+
 def recent_activity(request):
     """
     Provides summary of activities performed on the system.
@@ -402,21 +423,10 @@ def recent_activity(request):
     """
     template = loader.get_template('annotations/recent_activity.html')
     recent_texts = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
-    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(appelation_count=Count('id')).order_by("-hour", "createdBy")
-    recent_relations = Relation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username").annotate(relation_count=Count('id')).order_by("-hour", "createdBy")
-    combined_data={}
-    for event in recent_appellations:
-        if (event['hour'], event['createdBy__username']) not in combined_data:
-            combined_data[(event['hour'], event['createdBy__username'])] = {'appelation_count' : event['appelation_count'], 'relation_count': 0}
-        combined_data[(event['hour'], event['createdBy__username'])]['appelation_count'] =combined_data[(event['hour'], event['createdBy__username'])]['appelation_count'] + event['appelation_count']
-    for event in recent_relations:
-        if (event['hour'], event['createdBy__username']) not in combined_data:
-            combined_data[(event['hour'], event['createdBy__username'])] = {'appelation_count' :0, 'relation_count': event['relation_count']}
-        combined_data[(event['hour'], event['createdBy__username'])]['relation_count'] =combined_data[(event['hour'], event['createdBy__username'])]['relation_count'] + event['relation_count']
 
     context = {
         'recent_texts': recent_texts,
-        'recent_combination': combined_data
+        'recent_combination': _get_recent_annotations()
     }
     return HttpResponse(template.render(context))
 
