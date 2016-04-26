@@ -77,12 +77,12 @@ urlpatterns = [
     url(r'^collection/text/add/$', views.add_text_to_collection, name="collection_addtext"),
     url(r'^user$', views.list_user, name = 'user'),
     url(r'^user/(?P<userid>[0-9]+)/$', views.user_details, name="user_details"),
-    url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
     url(r'^relations/(?P<source_concept_id>[0-9]+)/(?P<target_concept_id>[0-9]+)/$', views.relation_details, name="relation_details"),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^autocomplete/', include('autocomplete_light.urls')),
     url(r'^$', views.home),
     url(r'^sign_s3$', views.sign_s3, name="sign_s3"),
+    url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
     url(r'^concept/types$', conceptViews.list_concept_types),
     url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
