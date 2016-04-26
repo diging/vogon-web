@@ -1082,7 +1082,7 @@ def concept_details(request, conceptid):
             "text_title": text.title,
             "appellations": [{
                 "text_snippet": get_snippet(appellation),
-                "annotator": unicode(appellation.createdBy),
+                "annotator": appellation.createdBy,
                 "created": appellation.created,
             } for appellation in text_appellations]
         })
@@ -1280,23 +1280,30 @@ class TextSearchView(SearchView):
     """Class based view for thread-safe search."""
     template = 'templates/search/search.html'
     queryset = SearchQuerySet()
+    results_per_page = 20
 
     def get_context_data(self, *args, **kwargs):
         """Return context data."""
         context = super(TextSearchView, self).get_context_data(*args, **kwargs)
+        sort_base = self.request.get_full_path().split('?')[0] + '?q=' + context['query']
+
+        context.update({
+            'sort_base': sort_base,
+        })
         return context
 
     def form_valid(self, form):
-        """Return search results ordered by title."""
-        self.queryset = form.search()
-        search_results = Paginator(self.queryset, 20)
+        order_by = self.request.GET.get('order_by', 'title')
+        self.queryset = form.search().order_by(order_by)
 
         context = self.get_context_data(**{
             self.form_name: form,
             'query': form.cleaned_data.get(self.search_field),
-            'object_list': self.queryset.order_by('title'),
-            'search_results' : search_results,
+            'object_list': self.queryset,
+            'order_by': order_by,
+            'search_results' : self.queryset,
         })
+
         return self.render_to_response(context)
 
 

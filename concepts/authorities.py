@@ -15,8 +15,8 @@ class AuthorityManager(object):
 class ConceptpowerAuthority(AuthorityManager, Conceptpower):
     __name__ = 'ConceptpowerAuthority'
 
-    endpoint = 'http://chps.asu.edu/conceptpower/rest/'
-    namespace = '{http://www.digitalhps.org/}'
+    endpoint = settings.CONCEPTPOWER_ENDPOINT
+    namespace = settings.CONCEPTPOWER_NAMESPACE
 
 #
 # class VogonAuthority(AuthorityManager):
@@ -177,5 +177,11 @@ def add(instance):
     """
 
     concept_list = 'VogonWeb Concepts'
-    Conceptpower().create(settings.CONCEPTPOWER_USERID, settings.CONCEPTPOWER_PASSWORD, instance.label, instance.pos,
-                       concept_list, instance.description, instance.typed)
+    conceptpower = ConceptpowerAuthority()
+    conceptpower.create(settings.CONCEPTPOWER_USERID,
+                        settings.CONCEPTPOWER_PASSWORD,
+                        instance.label,
+                        instance.pos,
+                        concept_list,
+                        instance.description,
+                        instance.typed.uri)

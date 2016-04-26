@@ -159,7 +159,7 @@ AUTH_USER_MODEL = 'annotations.VogonUser'
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://127.0.0.1:9200/',
+        'URL': os.environ.get('SEARCHBOX_URL', 'http://127.0.0.1:9200/'),
         'INDEX_NAME': 'haystack',
     },
 }

@@ -18,7 +18,11 @@ def resolve_concept(sender, instance):
 @shared_task
 def add_concept(sender, instance):
     try:
-        add(instance)
+        response_data = add(instance)
+
+        raise AttributeError(str(response_data.__dict__))
+        instance.uri = response_data['uri']
+        instance.concept_state = Concept.RESOLVED
     except requests.exceptions.ConnectionError:
         pass
 
