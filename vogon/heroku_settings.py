@@ -190,3 +190,4 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'default_cache_table',
     }
+}
