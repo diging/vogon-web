@@ -394,9 +394,16 @@ def _get_recent_annotations():
     """
     Generate aggregate activity feed for all annotations.
     """
-    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username", "createdBy__id").annotate(appelation_count=Count('id')).order_by("-hour", "createdBy")
-    recent_relations = Relation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC"))).values("hour", "createdBy__username", "createdBy__id").annotate(relation_count=Count('id')).order_by("-hour", "createdBy")
-    combined_data={}
+    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
+        .values("hour", "createdBy__username", "createdBy__id")\
+        .annotate(appelation_count=Count('id'))\
+        .order_by("-hour")
+    recent_relations = Relation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
+        .values("hour", "createdBy__username", "createdBy__id")\
+        .annotate(relation_count=Count('id'))\
+        .order_by("-hour")
+
+    combined_data = OrderedDict()
     for event in recent_appellations:
         key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
         if key not in combined_data:
