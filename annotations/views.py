@@ -105,12 +105,14 @@ def home(request):
     template = loader.get_template('annotations/home.html')
     user_count = VogonUser.objects.filter(is_active=True).count()
     text_count = Text.objects.all().count()
+    appellation_count = Appellation.objects.count()
     relation_count = Relation.objects.count()
     context = RequestContext(request, {
         'user_count': user_count,
         'text_count': text_count,
         'relation_count': relation_count,
-        'recent_combination': _get_recent_annotations()
+        'appellation_count': appellation_count,
+        'recent_combination': _get_recent_annotations(last=10)
     })
     return HttpResponse(template.render(context))
 
@@ -265,9 +267,11 @@ def network(request):
     Provides a network browser view.
     """
     template = loader.get_template('annotations/network.html')
+    form = RelationSetFilterForm(request.GET)
     context = {
         'baselocation': basepath(request),
         'user': request.user,
+        'form': form,
     }
     return HttpResponse(template.render(context))
 
@@ -390,15 +394,22 @@ def collection_texts(request, collectionid):
     return HttpResponse(template.render(context))
 
 
-def _get_recent_annotations():
+def _get_recent_annotations(last=20, user=None):
     """
     Generate aggregate activity feed for all annotations.
     """
-    recent_appellations = Appellation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
+    recent_appellations = Appellation.objects.all()
+    recent_relations = Relation.objects.all()
+
+    if user:
+        recent_appellations = recent_appellations.filter(createdBy_id=user.id)
+        recent_relations = recent_relations.filter(createdBy_id=user.id)
+
+    recent_appellations = recent_appellations.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
         .values("hour", "createdBy__username", "createdBy__id")\
         .annotate(appelation_count=Count('id'))\
         .order_by("-hour")
-    recent_relations = Relation.objects.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
+    recent_relations = recent_relations.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
         .values("hour", "createdBy__username", "createdBy__id")\
         .annotate(relation_count=Count('id'))\
         .order_by("-hour")
@@ -407,14 +418,14 @@ def _get_recent_annotations():
     for event in recent_appellations:
         key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
         if key not in combined_data:
-            combined_data[key] = {'appelation_count' : event['appelation_count'], 'relation_count': 0}
+            combined_data[key] = {'appelation_count': event['appelation_count'], 'relation_count': 0}
         combined_data[key]['appelation_count'] += event['appelation_count']
     for event in recent_relations:
         key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
         if key not in combined_data:
-            combined_data[key] = {'appelation_count' :0, 'relation_count': event['relation_count']}
+            combined_data[key] = {'appelation_count': 0, 'relation_count': event['relation_count']}
         combined_data[key]['relation_count'] += event['relation_count']
-    return combined_data
+    return dict(sorted(combined_data.items(), key=lambda k: k[0][0])[::-1][:last])
 
 
 def recent_activity(request):
@@ -461,11 +472,12 @@ def text(request, textid):
         getattr(request.user, 'is_admin', False),
         text.public,
     ]
-    if not any(access_conditions):
-        # TODO: return a pretty templated response.
-        raise PermissionDenied
+    # if not any(access_conditions):
+    #     # TODO: return a pretty templated response.
+    #     raise PermissionDenied
+    mode = request.GET.get('mode', 'view')
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated() and any(access_conditions) and mode == 'annotate':
         template = loader.get_template('annotations/text.html')
 
         context_data['userid'] = request.user.id
@@ -473,7 +485,46 @@ def text(request, textid):
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
     else:
+        appellations_data = []
+        appellations = Appellation.objects.filter(occursIn_id=textid,
+                                                  asPredicate=False)
+        appellations = appellations.order_by('interpretation_id')
+
+        appellation_creators = set()
+        groupkey = lambda a: a.interpretation.id
+        for concept_id, concept_appellations in groupby(appellations, groupkey):
+            concept = Concept.objects.get(pk=concept_id)
+            if hasattr(concept, 'typed') and getattr(concept, 'typed'):
+                type_label = concept.typed.label
+            else:
+                type_label = u''
+
+            indiv_appellations = []
+            for appellation in concept_appellations:
+                indiv_appellations.append({
+                    "text_snippet": get_snippet(appellation),
+                    "annotator": appellation.createdBy,
+                    "created": appellation.created,
+                })
+                appellation_creators.add(appellation.createdBy)
+
+            num_texts = concept.appellation_set.values_list('occursIn').distinct().count() - 1
+            appellations_data.append({
+                "interpretation_id": concept_id,
+                "interpretation_label": concept.label,
+                "interpretation_type": type_label,
+                "appellations": indiv_appellations,
+                "num_texts": num_texts,
+            })
+
+
+        appellations_data = sorted(appellations_data,
+                                   key=lambda a: a['interpretation_label'])
         template = loader.get_template('annotations/anonymous_text.html')
+        context_data.update({
+            'appellations_data': appellations_data,
+            'annotators': appellation_creators
+        })
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
 
@@ -872,23 +923,63 @@ def handle_file_upload(request, form):
         return save_text_instance(tokenized_content, text_title, date_created, is_public, user)
 
 
-def network_data(request):
-    project = request.GET.get('project', None)
-    user = request.GET.get('user', None)
-    text = request.GET.get('text', None)
+def _filter_relationset(qs, params):
+    parameter_map = [
+        ('text', 'occursIn_id__in'),
+        ('project', 'occursIn__partOf__in'),
+        ('text_published_from', 'occursIn__created__gte'),
+        ('text_published_through', 'occursIn__created__lte'),
+        ('user', 'createdBy__in'),
+        ('created_from', 'created__gte'),
+        ('created_through', 'created__lte'),
+    ]
 
-    cache_key = '::'.join(['network_data', str(project), str(user), str(text)])
+    parameters = {}
+    for param, field in parameter_map:
+        if param in ['text', 'project', 'user']:
+            value = params.getlist(param, [])
+        else:
+            value = params.get(param, None)
+        if value and value[0]:
+            parameters[field] = value
+
+    qs = qs.filter(**parameters)
+
+    node_types = params.getlist('node_types')
+    exclusive = params.get('exclusive', 'off')
+
+    if node_types:
+        print node_types
+        appellations = Appellation.objects.filter(**parameters).filter(interpretation__typed__in=node_types).values_list('id', flat=True)
+        app_ct = ContentType.objects.get_for_model(Appellation)
+        q_source = Q(constituents__source_content_type=app_ct) & Q(constituents__source_object_id__in=appellations)
+        q_object = Q(constituents__object_content_type=app_ct) & Q(constituents__object_object_id__in=appellations)
+        if exclusive == 'on':
+            q = q_source & q_object
+        else:
+            q = q_source | q_object
+        qs = qs.filter(q)
+    return qs
+
+
+def network_data(request):
+    # project = request.GET.get('project', None)
+    # user = request.GET.get('user', None)
+    # text = request.GET.get('text', None)
+
+    cache_key = request.get_full_path()
     cache = caches['default']
 
-    response_data = None#cache.get(cache_key)
+    response_data = cache.get(cache_key)
     if not response_data:
-        queryset = RelationSet.objects.all()
-        if project:
-            queryset = queryset.filter(occursIn__partOf_id=project)
-        if user:
-            queryset = queryset.filter(createdBy_id=user)
-        if text:
-            queryset = queryset.filter(occursIn_id=text)
+        queryset = _filter_relationset(RelationSet.objects.all(), request.GET)
+        # if project:
+        #     queryset = queryset.filter(occursIn__partOf_id=project)
+        # if user:
+        #     queryset = queryset.filter(createdBy_id=user)
+        # if text:
+        #     queryset = queryset.filter(occursIn_id=text)
+
         nodes, edges = generate_network_data(queryset)
         nodes_rebased = {}
         edges_rebased = {}
@@ -909,8 +1000,7 @@ def network_data(request):
         for i, edge in enumerate(edges.values()):
             ogn_id = copy.deepcopy(edge['data']['id'])
             edges_rebased[i] = copy.deepcopy(edge)
-            # edges_rebased[i] = edge['data']
-            # edges_rebased[i].update({'id': i + len(nodes_rebased)})
+
             edges_rebased[i]['data'].update({'id': i + len(nodes_rebased)})
             edges_rebased[i]['data']['source'] = nodes_rebased[node_lookup[edge['data']['source']]]['data']['id']
             edges_rebased[i]['data']['target'] = nodes_rebased[node_lookup[edge['data']['target']]]['data']['id']
@@ -925,8 +1015,10 @@ def network_data(request):
         graph = igraph.Graph()
         graph.add_vertices(len(nodes_rebased))
 
-        graph.add_edges([(relation['data']['source'], relation['data']['target']) for relation in edges_rebased.values()])
-        layout = graph.layout_fruchterman_reingold()
+        graph.add_edges([(relation['data']['source'], relation['data']['target'])
+                         for relation in edges_rebased.values()])
+        layout = graph.layout_graphopt()
+        # layout = graph.layout_fruchterman_reingold(maxiter=500)
 
         for coords, node in zip(layout._coords, nodes_rebased.values()):
             node['data']['pos'] = {
@@ -978,11 +1070,12 @@ def user_details(request, userid, *args, **kwargs):
         return HttpResponseRedirect(reverse('settings'))
     else:
         textCount = Text.objects.filter(addedBy=user).count()
-        textAnnotated = Text.objects.filter(annotators=user).distinct().count()
+        textAnnotated = Text.objects.filter(appellation__createdBy=user).distinct().count()
         relation_count = user.relation_set.count()
+        appellation_count = user.appellation_set.count()
         start_date = datetime.datetime.now() + datetime.timedelta(-60)
 
-        #Count annotations for user by date
+        # Count annotations for user by date.
         relations_by_user = Relation.objects.filter(createdBy = user, created__gt = start_date)\
             .extra({'date' : 'date(created)'}).values('date').annotate(count = Count('created'))
 
@@ -997,13 +1090,13 @@ def user_details(request, userid, *args, **kwargs):
         d7 = datetime.timedelta( days = 7)
         current_week = datetime.datetime.now() + d7
 
-        #Find out the weeks and their last date in the past 90 days
+        # Find out the weeks and their last date in the past 90 days.
         while start_date <= current_week:
             result[(Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] = 0
             start_date += d7
         time_format = '%Y-%m-%d'
 
-        #Count annotations for each week
+        # Count annotations for each week.
         for count_per_day in annotation_by_user:
             if(isinstance(count_per_day['date'], unicode)):
                 date = datetime.datetime.strptime(count_per_day['date'], time_format)
@@ -1012,7 +1105,7 @@ def user_details(request, userid, *args, **kwargs):
             result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] += count_per_day['count']
         annotation_per_week = list()
 
-        #Sort the date and format the data in the format required by d3.js
+        # Sort the date and format the data in the format required by d3.js.
         keys = (result.keys())
         keys.sort()
         for key in keys:
@@ -1027,9 +1120,11 @@ def user_details(request, userid, *args, **kwargs):
             'detail_user': user,
             'textCount': textCount,
             'relation_count': relation_count,
-            'textAnnotated': textAnnotated,
+            'appellation_count': appellation_count,
+            'text_count': textAnnotated,
             'default_user_image' : settings.DEFAULT_USER_IMAGE,
-            'annotation_per_week' : annotation_per_week
+            'annotation_per_week' : annotation_per_week,
+            'recent_activity': _get_recent_annotations(user=user)
         })
     return HttpResponse(template.render(context))
 

@@ -5,6 +5,7 @@ body {
     background-color: rgb(250, 250, 250);
 
     height: 100%;
+    font-family: Palatino Linotype;
 
 }
 
@@ -425,7 +426,7 @@ a.appellation-list-item.selected {
 
 
 #networkViewport {
-    height: 600px;
+    height: 400px;
 }
 
 .navbar-inverse-transparent {
@@ -455,6 +456,8 @@ a.appellation-list-item.selected {
 }
 
 
+
+
 .jumbotron-transparent {
     /*margin-top: 20px;*/
     background-color: rgba(255, 255, 255, 0.7);
@@ -463,7 +466,9 @@ a.appellation-list-item.selected {
 
 
 .jumbotron-transparent p {
-    font-size: 1.2em;
+    font-size: 10pt;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 
@@ -481,4 +486,108 @@ a.appellation-list-item.selected {
     position: absolute;
     bottom: 0;
     left: 0;
+}
+
+#floatingButtons {
+    /*margin-top: 20px;*/
+    padding: 10px;
+    margin-bottom: 20px;
+    vertical-align: middle;
+    z-index: 5000;
+
+}
+
+#floatingButtons p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding: 0px;
+}
+
+#floatingButtons.fixed {
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+#floatingButtons .btn {
+    /*margin-right: 20px;
+    margin-left: 20px;*/
+    /*width: 120px;*/
+}
+
+
+.floatingOffset {
+    left: 0px;
+}
+
+.section {
+    padding-top: 0px;
+    min-height: 500;
+}
+
+.section-alt {
+    background-color: rgba(81, 94, 185, 1.0);
+}
+
+.btn-pur {
+    background-color: rgba(81, 94, 185, 1.0);
+}
+.btn-whi {
+    background-color: rgba(255, 255, 255, 1.0);
+}
+
+.btn-pur:hover {
+    background-color: rgba(81, 94, 185, 0.8);
+}
+
+
+#appellationsContainer {
+    position: relative;
+}
+
+#appellationsContainer div {
+    position: relative;
+}
+
+
+.panel-heading .accordion-toggle:after {
+    /* symbol for "opening" panels */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\e114";    /* adjust as needed, taken from bootstrap.css */
+    float: right;        /* adjust as needed */
+    color: grey;         /* adjust as needed */
+}
+.panel-heading .accordion-toggle.collapsed:after {
+    /* symbol for "collapsed" panels */
+    content: "\e080";    /* adjust as needed, taken from bootstrap.css */
+}
+
+
+.activity-list-item {
+    font-size: 8pt;
+}
+
+.responsive-h2 {
+    margin-top: 20px;
+    font-size: 18pt;
+    margin-bottom: 10px;
+    padding: 0px;
+}
+
+.responsive-p {
+    font-size: 14pt;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 0px;
+    font-weight: 300;
+}
+
+.heavy {
+    font-weight: 400;
+}
+
+
+.multiselect-container.dropdown-menu  {
+    max-width: 100%;
+    overflow-x: hidden;
+    max-height: 300px;
+    overflow-y: scroll;
 }

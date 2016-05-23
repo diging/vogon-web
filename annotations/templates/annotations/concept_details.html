@@ -15,22 +15,19 @@
     content: "\e080";    /* adjust as needed, taken from bootstrap.css */
 }
 </style>
-<div id="main" class="container-fluid">
-    <div class="h1">{{ concept.label }} <small>{{ concept.typed }}</small></div>
+<div id="main" class="container">
+    <div class="h2">{{ concept.label }}
+        <small>{{ concept.typed }}</small>
+    </div>
+    <p class="text text-warning text-small">{{ concept.uri }}</p>
+
+    <p class="text text-muted">{{ concept.description }}</p>
 
     <div class="row">
         <div class="col-xs-12">
             <div class="panel panel-default">
-
-                <div class="panel-body">
-                    <div class="text text-muted text-small">{{ concept.uri }}</div>
-                    <div class="h4">Description</div>
-                    <div class="text">{{ concept.description }}</div>
-                </div>
-            </div>
-            <div class="panel panel-default">
                 <div class="panel-heading">
-                    <span class="h3">Occurs in the following texts...</span>
+                    <span class="h4">Occurs in...</span>
                 </div>
                 <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                     {% for text in texts %}

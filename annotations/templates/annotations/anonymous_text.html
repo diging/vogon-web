@@ -1,71 +1,290 @@
 {% load staticfiles %}
 {% load app_filters %}
 
-<html ng-app="annotationApp">
-<head>
-    <script type="text/javascript" src="https://diging.atlassian.net/s/feb56a6b15dfe1c4dce860c5ec0d0c12-T/en_USugtsph-ren-off/70107/dd3ed69607618acd4f2d9e33519d4b21/2.0.7/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=da09a5cd"></script>
-    <script>
+<html>
+    <head>
+        <script type="text/javascript" src="https://diging.atlassian.net/s/feb56a6b15dfe1c4dce860c5ec0d0c12-T/en_USugtsph-ren-off/70107/dd3ed69607618acd4f2d9e33519d4b21/2.0.7/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=da09a5cd"></script>
+        {% include "annotations/stylesheets.html" %}
+        {% include "annotations/angular.html" %}
+        {% include "annotations/scripts.html" %}
+        <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
 
-        var BASELOCATION = "{{baselocation}}";
+        <title>{{ title }}</title>
+    </head>
+    <body escape-key>
+        {% include "annotations/header.html" %}
+        <script>
+        var cy;
+        /**
+          *  We wrap this in a function so that we can reload the graph data after
+          *   creating a new appellation or relation.
+          */
+        var reloadGraph = function() {
 
-    </script>
+            $.ajax('{% url "network_for_text" text.id %}', {
+                // When the data is returned, generate an interative visualization
+                //  using Cytoscape.js.
+                success: function(data) {
+                    // Normalize node and edge weights.
+                    var minEdgeWeight = 1.0;
+                    var maxEdgeWeight = 0.0;
+                    var minNodeWeight = 1.0;
+                    var maxNodeWeight = 0.0;
 
-    {% include "annotations/stylesheets.html" %}
-    {% include "annotations/angular.html" %}
-    {% include "annotations/scripts.html" %}
+                    data.elements.forEach(function(elem) {
+                        var weight = Number(elem.data.weight);
+                        if (elem.data.source) {  // Edge.
+                            if (weight > maxEdgeWeight) maxEdgeWeight = weight;
+                            if (weight < minEdgeWeight) minEdgeWeight = weight;
+                        } else {
+                            if (weight > maxNodeWeight) maxNodeWeight = weight;
+                            if (weight < minNodeWeight) minNodeWeight = weight;
+                        }
+                    });
 
-    <script src="{% static " annotations/js/network.js" %}"></script>
-    <script src = "{% static "annotations / js / text.js" %}" ></script>
+                    // If min and max are the same, cytoscape will throw a TypeError,
+                    //  so we decrement the min values just to be safe.
+                    minNodeWeight = Number(minNodeWeight.toPrecision(4)) - 1;
+                    maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
+                    minEdgeWeight = Number(minEdgeWeight.toPrecision(4)) - 1;
+                    maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
 
-    <script>
-        var TEXTID = {{ textid }};
-        var USERID = {{ userid }};
-    </script>
-    <title>{{ title }}</title>
-</head>
-<body escape-key>
-{% include "annotations/header.html" %}
-<div id="main" class="container">
-    <div class="row col-md-12">
-        <div id="left" class="col-md-6">
+                    cy = cytoscape({
+                        container: $('#graph'),
+                        elements: data.elements,
+                        zoom: 0.1,
+                        minZoom: 0.1,
+                        maxZoom: 3,
+                        panningEnabled: true,
+                        style: [    // The stylesheet for the graph.
+                            {
+                                // Node size is a function of topic prevalence.
+                                selector: 'node',
+                                style: {
+                                    'background-color': '#B74934',
+                                    'label': 'data(label)',
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 36)'
+                                }
+                            },
+                            {
+                                selector: 'node.connectedNodes',
+                                style: {
+                                    'opacity': 1.0,
+                                    'border-color': '#AA9A66',
+                                    'border-width': 2,
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 18, 52)'
+                                }
+                            },
+                            {
+                                selector: 'node.nonConnectedNodes',
+                                style: {
+                                    'opacity': 0.5,
+                                }
+                            },
+                            {
+                                // When a node is selected, it should be slightly larger
+                                //  and have a colored border.
+                                selector: 'node:selected',
+                                style: {
+                                    'border-color': '#AA9A66',
+                                    'border-width': 4,
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 35, 75)',
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                }
+                            },
+                            {
+                                // Active nodes should be slightly larger.
+                                selector: 'node:active',
+                                style: {
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                }
+                            },
+                            {
+                                // Edge weight is a function of nPMI.
+                                selector: 'edge',
+                                style: {
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 0.5, 6)',
+                                    'opacity': 'mapData(weight, 0.01, 0.5, 0.1, 1)',
+                                    'line-color': '#67655D',
+                                    'target-arrow-color': '#ccc',
+                                },
+                            },
+                            {
+                                selector: 'edge.connectedEdge',
+                                style: {
+                                    'opacity': 1,
+                                    'line-color': '#AA9A66',
+                                    'z-index': 500,
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 1, 12)',
+                                }
+                            },
+                            {
+                                // A selected edge should be slightly thicker, and be colored a brighter color.
+                                selector: 'edge:selected',
+                                style: {
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 2, 8)',
+                                    'opacity': 1,
+                                    'line-color': '#AA9A66',
+                                }
+                            },
+                        ],
 
+
+
+                        layout: {
+                          name: 'cose',
+                        }
+                    });
+
+                    var selectedNode = null;
+
+                    // We just want to give a visual indication of which appellations'
+                    //  are related to each node. Selecting appellations doesn't really
+                    //  make sense, because there can be several appellations per node
+                    //  (nodes represent concepts).
+                    cy.on('select', 'node', function(event) {
+
+                        var node = event.cyTarget;
+                        console.log(node);
+                        selectedNode = node.data.id;
+                        node._private.data.appellations.forEach(function(appellation_id) {
+                            $('[appellation='+appellation_id+']').addClass('networkHighlight')
+                        });
+
+                        $('#' + node._private.data.id + '_trigger').trigger('click');
+                        var appellationTop = $('#appellationsContainer').scrollTop() + $('#' + node._private.data.id + '_panel').position().top;
+
+                        // var targetPosition = $('#appellationsContainer').scrollTop() + appellationTop;
+                        $('#appellationsContainer').animate({'scrollTop': appellationTop});
+                    });
+                    cy.on('unselect', 'node', function(event) {
+                        var node = event.cyTarget;
+                        node._private.data.appellations.forEach(function(appellation_id) {
+                            $('[appellation='+appellation_id+']').removeClass('networkHighlight')
+                        });
+                    });
+
+                    $('.interpretation-toggle').on('show.bs.collapse', function(e) {
+                        var concept_id = $(e.target).attr('concept');
+                        console.log('selected!');
+                        console.log(cy.$('#' + concept_id));
+                        if (concept_id != selectedNode) {
+                            cy.$('#' + concept_id).select();
+                        }
+                    });
+
+
+                }
+            });
+            $('#graphTabAnchor').on('shown.bs.tab', function (e) {
+                resizeGraph();
+                cy.layout({name: 'cose'});
+
+            });
+            var resizeGraph = function() {
+                var targetHeight = Number($('.action-body').css('max-height').replace('px', ''));
+                $('#graphContainer').height(targetHeight - 10);
+                cy.resize();
+                cy.fit();
+            }
+            $(window).resize(resizeGraph);
+        }
+        $('body').ready(function() {
+            reloadGraph();
+        });
+
+        </script>
+        <div class="container-fluid" id="main-container">
+            <div class="row" style="padding: 5px;">
+                <ul class="nav nav-pills">
+                     <li><a href="{% url 'text' text.id %}?mode=annotate">Annotate</a></li>
+                     <li class="active"><a href="{% url 'text' text.id %}">View</a></li>
+                </ul>
+            </div>
+            <div class="h2">
+                {{ text.title }}
+                {% if text.originalResource %}
+                <a href="{{ text.originalResource }}"
+                    type="button"
+                    class="btn"
+                    title="Please click to access the original resource">
+                    <span class="glyphicon glyphicon-new-window "></span>
+                </a>
+                {% endif %}
+                <div class="small">
+                    Created on {{ text.created }}
+                </div>
+            </div>
+            <p class="text-warning">
+                {{ text.uri }}
+            </p>
+            <p class="h5 text-muted">
+                This text was added by <a href="{% url 'user_details' text.addedBy.id %}">{{text.addedBy.username}}</a>
+                on {{ text.added }}. <strong>{{text.annotation_count}}</strong> appellations and
+                <strong>{{text.relation_count}}</strong> relations have been encoded by {{ annotators|length }}
+                user{% if annotators|length > 1 %}s{% endif %} on the basis of this text.
+            </p>
             <div class="row">
-                <div id="text" class="panel panel-primary">
-                    <div id="textTitle" class="panel-heading">
-                        <span class="h3">{{ text.title }}</span>
-                        {% if text.originalResource %}
-                        <a href="{{ text.originalResource }}" type="button" class="btn btn-primary pull-right" title="Please click to access the original resource">
-                            <span class="glyphicon glyphicon-new-window "></span>
-                        </a>
-                        {% endif %}
+                <div class="col-sm-6 col-md-8">
+                    <div id="graphContainer" style="height: 400px;">
+                        <div  style="height: 100%;" id="graph"></div>
+
+
                     </div>
-                    <div id="textContent" class="panel-body" textid="{{ textid }}" ng-controller="TextController">
-                        <div id="textContentInner" bind-text>{{ text.tokenizedContent|safe_text }}</div>
-                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                        <div  style="max-height: 400px; overflow-y: scroll;"
+                            class="panel-group"
+                            id="appellationsContainer"
+                            role="tablist"
+                            aria-multiselectable="true">
+                            {% for interpretation in appellations_data %}
+                            <div class="panel interpretation-toggle"
+                                id="{{ interpretation.interpretation_id }}_panel"
+                                concept="{{ interpretation.interpretation_id }}">
+                                <div class="panel-heading" role="tab">
+                                    <a class="accordion-toggle collapsed"
+                                        id="{{ interpretation.interpretation_id }}_trigger"
+                                        data-toggle="collapse"
+                                        data-parent="#appellationsContainer"
+                                        href="#{{ interpretation.interpretation_id }}_appellations">
+                                        {{ interpretation.interpretation_label }}
+                                        <span class="text-warning">{{interpretation.interpretation_type}}</span>
+                                    </a>
+                                </div>
+                                <div id="{{ interpretation.interpretation_id }}_appellations"
+                                    class="panel-collapse collapse"
+                                    role="tabpanel">
+                                        {% if interpretation.num_texts > 0 %}
+                                        <div class="panel-body text-info text-small">
+                                            <a href="{% url 'concept_details' interpretation.interpretation_id %}">Also occurs in {{ interpretation.num_texts }} other texts...</a>
+                                        </div>
+                                        {% endif %}
+
+                                        {% for appellation in interpretation.appellations %}
+                                        <div class="panel-body">
+                                            <div class="text-warning">{{appellation.created}} by <a href="{% url "user_details" appellation.annotator.id %}">{{appellation.annotator}}</a></div>
+                                            <div class="text-muted">{{ appellation.text_snippet | safe}}</div>
+                                        </div>
+                                        {% endfor %}
+
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
                 </div>
             </div>
         </div>
-        <div id="right" class="col-md-6">
-            <div id="text" class="panel panel-primary">
-                <div id="textTitle" class="panel-heading">
-                    <span class="h3">Information</span>
-                </div>
-                <div class="panel">
-                    <div class="panel-body">
-                        <h4>Created on : {{ text.created }}</h4>
+        <script>
 
-                        <h4>Added By : {{text.addedBy.username}}</h4>
-
-                        <h4>Relations : {{text.relation_count}}</h4>
-
-                        <h4>Annotations : {{text.annotation_count}}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-</body>
+        </script>
+    </body>
 
 </html>

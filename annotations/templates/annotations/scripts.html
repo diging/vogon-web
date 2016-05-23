@@ -1,9 +1,28 @@
 {% load staticfiles %}
-<script src="{% static "annotations/bower_components/jquery/dist/jquery.min.js" %}"></script>
+<script src="{% static "annotations/js/jquery.min.js" %}"></script>
 <script src="{% static "annotations/js/jquery-ui.min.js" %}"></script>
 
 <script src="{% static "annotations/js/bootstrap.min.js" %}"></script>
 <script src="{% static "annotations/js/d3.min.js" %}"></script>
 <script src="{% static "annotations/js/isteven-multi-select.js" %}"></script>
+
+
+<script src="{% static "annotations/js/bootstrap-multiselect.js" %}"></script>
+<script src="{% static "annotations/js/bootstrap-multiselect-collapsible-groups.js" %}"></script>
+
+
+<script>
+var GetURLParameters = function(){
+    var params = {};
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) {
+        var sParameterName = sURLVariables[i].split('=');
+        params[sParameterName[0]] = sParameterName[1];
+
+    }
+    return params;
+}
+</script>
 <!-- <script src="{% static "annotations/js/skel.min.js" %}"></script>
 <script src="{% static "annotations/js/skel-layout.min.js" %}"></script> -->

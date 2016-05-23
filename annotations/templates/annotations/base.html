@@ -3,6 +3,7 @@
 <html>
 	{% block head %}
 	<head>
+		<link href='{% static 'annotations/css/muli.css' %}' rel='stylesheet' type='text/css'>
 		<!-- <script type="text/javascript" src="https://diging.atlassian.net/s/feb56a6b15dfe1c4dce860c5ec0d0c12-T/en_USugtsph-ren-off/70107/dd3ed69607618acd4f2d9e33519d4b21/2.0.7/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=da09a5cd"></script> -->
 		<!-- TODO: is this necessary? -->
 		<script>var BASELOCATION = "{{baselocation}}";</script>
@@ -11,6 +12,8 @@
 		{% include "annotations/scripts.html" %}
 
 		{% include 'autocomplete_light/static.html' %}
+        {% block extrahead %}
+        {% endblock %}
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>{{ title }}</title>
 	</head>

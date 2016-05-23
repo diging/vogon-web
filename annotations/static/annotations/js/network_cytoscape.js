@@ -71,12 +71,16 @@ var displayRelations = function(relations) {
 }
 
 
-
-
-$('body').ready(function() {
+var loadNetwork  = function(e, params) {
+    if (!params) {
+        params = '';
+    } 
     var cy;
     // Must set networkEndpoint in the dependant template.
     $.ajax(networkEndpoint, {
+        // Pass filtering options (e.g. text, creator, date ranges).
+        data: params,
+
         // When the data is returned, generate an interative visualization
         //  using Cytoscape.js.
         success: function(data) {
@@ -272,4 +276,9 @@ $('body').ready(function() {
     }
     $(window).resize(resizeGraph);
 
+}
+
+
+$('body').ready(function(e) {
+    loadNetwork(e, window.location.search.substring(1));
 });

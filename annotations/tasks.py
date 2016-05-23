@@ -175,6 +175,8 @@ def get_snippet(appellation):
         Includes emphasis tags surrounding the :class:`.Appellation`\'s
         tokens.
     """
+    if not appellation.tokenIds:
+        return SafeText('No snippet is available for this appellation')
     tokenizedContent = appellation.occursIn.tokenizedContent
     annotated_words = appellation.tokenIds.split(',')
     middle_index = int(annotated_words[max(len(annotated_words)/2, 0)])
@@ -186,8 +188,8 @@ def get_snippet(appellation):
         word = ""
 
         if str(i) in annotated_words:
-            word ="<i><b>"+match.group(1)+"</b></i>"
+            word = u"<b class='text-warning'>%s</b>" % match.group(1)
         else:
             word = match.group(1)
-        snippet = snippet + " " + word
-    return SafeText(snippet)
+        snippet = u'%s %s' % (snippet, word)
+    return SafeText(u'...%s...' % snippet.strip())
