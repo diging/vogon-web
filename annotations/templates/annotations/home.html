@@ -86,7 +86,7 @@ $('body').on('hide.bs.collapse', function(e) {
 							aria-expanded="false">Texts <span class="caret"></span>
 						</a>
 						<ul class="dropdown-menu">
-							<li><a href="{% url "list_texts" %}">All Texts</a></li>
+							<li><a href="{% url "text_search" %}">All Texts</a></li>
 							<li><a href="{% url "collection_list" %}">Collections</a></li>
 						</ul>
 
@@ -334,17 +334,33 @@ var networkEndpoint = '{% url "network-data" %}',
 
 </div>
 
-<div id="search" class="container-fluid section section-alt" style="margin-top: 15px;">
+<div id="search"
+    class="container-fluid section section-alt"
+    style="margin-top: 15px; padding: 15px;">
+    <div style="color:white;"
+        class="text-center">
+        Start typing in the search bar below to find concepts in the epistemic
+        web.
+    </div>
 	<div class="input-group input-group-lg col-xs-10 col-xs-offset-1"
 		style="margin-top: 10px;">
-	    <input class="form-control" type="text"
-			placeholder="Search the epistemic web..."></input>
-	    <span class="input-group-btn">
-	        <button type="submit" class="btn btn-whi" id="querysubmit"><i class="fa fa-search"></i></button>
-	    </span>
+        <form class="autocomplete" method="GET" action=".">
 
-	    <!--  -->
+                    <input autocomplete="off" maxlength="255" class="form-control" type="text" name="q" placeholder="Search the epistemic web...">
+
+        </form>
+
 	</div>
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-xs-10 col-xs-offset-1">
+            <div class="panel autocomplete-container">
+                <ul class="list-group autocomplete-results"
+                    id="autocomplete-results">
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% include "annotations/autocomplete.html" %}
 </div>
 
 
@@ -385,7 +401,7 @@ var networkEndpoint = '{% url "network-data" %}',
         <div class="col-sm-4 text-muted h4">{{ relation_count }} relations</div>
 		<div class="col-sm-4 text-muted h4">{{text_count}} texts</div>
     </div>
-	<div class="col-xs-6 col-xs-offset-6">
+	<div class="col-xs-2 col-xs-offset-10">
 		<a href="http://devo-evo.lab.asu.edu" target="_blank">
 			<img class="img img-responsive pull-right" src="{% static "annotations/img/devoevolab.png" %}">
 		</a>

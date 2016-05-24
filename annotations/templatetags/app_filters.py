@@ -2,7 +2,10 @@ from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
 
+from annotations.models import TextCollection
+
 register = template.Library()
+
 
 @register.filter
 def safe_text(s):
@@ -23,3 +26,8 @@ def current_fields(form):
 
             fields.append((field.name.title(), value))
     return fields
+
+
+@register.filter
+def get_collection_label(collection_id):
+    return TextCollection.objects.get(pk=collection_id).name

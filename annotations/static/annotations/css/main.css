@@ -591,3 +591,17 @@ a.appellation-list-item.selected {
     max-height: 300px;
     overflow-y: scroll;
 }
+
+
+/* Autocomplete on home page */
+
+.autocomplete-container {
+    visibility: hidden;
+}
+.autocomplete-results {
+    visibility: hidden;
+}
+
+.ac-type {
+    margin-left: 5px;
+}

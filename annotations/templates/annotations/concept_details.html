@@ -24,7 +24,7 @@
 </style>
 <div id="main" class="container">
     <div class="h2">{{ concept.label }}
-        <small>{{ concept.typed }}</small>
+        {% if concept.typed %}<small>{{ concept.typed }}</small>{% endif %}
     </div>
     <p class="text text-warning text-small">{{ concept.uri }}</p>
 

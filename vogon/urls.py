@@ -61,7 +61,7 @@ urlpatterns = [
     url(r'^rest/', include(router.urls)),
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
-    url(r'^search/$', views.TextSearchView.as_view(), name='haystack_search'),
+    url(r'^text/$', views.TextSearchView.as_view(), name='text_search'),
     url(r'^network/$', views.network, name="network"),
     url(r'^relationtemplate/add/$', views.add_relationtemplate, name="add_relationtemplate"),
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.get_relationtemplate, name="get_relationtemplate"),
@@ -69,7 +69,7 @@ urlpatterns = [
     url(r'^relationtemplate[/]?$', views.list_relationtemplate, name='list_relationtemplate'),
     url(r'^network/data/$', views.network_data, name="network-data"),
     url(r'^network/text/(?P<text_id>[0-9]+)/$', views.network_for_text, name="network_for_text"),
-    url(r'^text/$', views.list_texts, name="list_texts"),
+    # url(r'^text/$', views.list_texts, name="list_texts"),
     url(r'^text/add/upload/$', views.upload_file, name="file_upload"),
     url(r'^text/(?P<textid>[0-9]+)/$', views.text, name="text"),
     url(r'^collection/$', views.list_collections, name="collection_list"),
@@ -84,7 +84,8 @@ urlpatterns = [
     url(r'^sign_s3$', views.sign_s3, name="sign_s3"),
     url(r'^concept/(?P<conceptid>[0-9]+)/$', views.concept_details, name='concept_details'),
     url(r'^concept/types$', conceptViews.list_concept_types),
-    url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type")
+    url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type"),
+    url(r'^concept_autocomplete/', views.concept_autocomplete, name='concept_autocomplete'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:

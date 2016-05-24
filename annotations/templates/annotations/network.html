@@ -29,7 +29,7 @@ var networkEndpoint = '{% url "network-data" %}',
 <div class="container-fluid">
     <div class="row" style="margin-top: 15px;">
         <div class="col-md-8">
-            <div class="panel" id="networkVis" style="height: 600px;"></div>
+            <div class="panel" id="networkVis" style="height: 400px;"></div>
             <div class="alert alert-info">
                 Use your mouse scrollwheel our trackpad to zoom in and out.
                 Click and drag to pan.
@@ -111,14 +111,14 @@ var networkEndpoint = '{% url "network-data" %}',
                                 <div id="concept-description" class="text text-small"></div>
                                 <div id="concept-occurrence" class="text text-small"></div>
                             </div>
-                            <div class="panel-body">
-                                <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
-                                <div id="text-list-container">
-                                    <table class="table table-responsive table-hover">
-                                        <tbody id="text-list"></tbody>
-                                    </table>
-                                </div>
+
+                            <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
+                            <div id="text-list-container">
+                                <table class="table table-responsive table-hover">
+                                    <tbody id="text-list"></tbody>
+                                </table>
                             </div>
+
                         </div>
                         <div class="alert alert-info">Select a node or edge for more information</div>
                     </div>

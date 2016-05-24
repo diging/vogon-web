@@ -83,7 +83,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel('ERROR')
 
-from haystack.generic_views import SearchView
+from haystack.generic_views import SearchView, FacetedSearchView
 from haystack.query import SearchQuerySet
 
 
@@ -284,9 +284,8 @@ def list_texts(request):
     template = loader.get_template('annotations/list_texts.html')
 
     text_list = get_objects_for_user(request.user, 'annotations.view_text')
-
     order_by = request.GET.get('order_by', 'title')
-    text_list = text_list.order_by(order_by)
+    text_list = text_list.order_by(order_by).values('id', 'title', 'created')
 
     paginator = Paginator(text_list, 15)
 
@@ -520,29 +519,42 @@ def text(request, textid):
                 "num_texts": num_texts,
             })
 
+        # Organize RelationSets for this text so that we can display them in
+        #  conjunction with edges in the graph. In other words, grouped by
+        #  the "source" and "target" of the simplified graphical representation.
         relationset_qs = RelationSet.objects.filter(occursIn=textid)
-        appellation_type = ContentType.objects.get_for_model(Appellation)
+        app_ct = ContentType.objects.get_for_model(Appellation)
         relationsets_by_interpretation = []
         relationsets = []
-        from itertools import combinations
+
+        # Pull out "focal" concepts from the RelationSet. Usually there will
+        #  be only two, but there could be more.
         for relationset in relationset_qs:
-            interps = []
-            for constituent in relationset.constituents.all():
+            interps = []    # Focal concepts go here.
+            for rel in relationset.constituents.all():
                 for part in ['source', 'object']:
-                    if getattr(constituent, '%s_content_type' % part) == appellation_type:
-                        appellation = getattr(constituent, '%s_content_object' % part)
+                    if getattr(rel, '%s_content_type' % part) == app_ct:
+                        appellation = getattr(rel, '%s_content_object' % part)
                         if appellation.asPredicate:
                             continue
-
                         interps.append(appellation.interpretation)
+
+            # Usually there will be only two Concepts here, but for more complex
+            #  relations there could be more.
             for u, v in combinations(interps, 2):
                 u, v = tuple(sorted([u, v], key=lambda a: a.id))
-                relationsets_by_interpretation.append(((u.id, u.label, v.id, v.label), relationset))
+                # This is kind of hacky, but it lets us access the IDs and
+                #  labels more readily below.
+                rset = ((u.id, u.label, v.id, v.label), relationset)
+                relationsets_by_interpretation.append(rset)
 
+        # Here we sort and group by concept-pairs (u and v, above).
         skey = lambda r: r[0]
-        rsets_sorted = sorted(relationsets_by_interpretation, key=skey)
-        for (u_id, u_label, v_id, v_label), interpretation_relationsets in groupby(rsets_sorted, key=skey):
+        rsets = groupby(sorted(relationsets_by_interpretation, key=skey),
+                        key=skey)
 
+        # Each group will be shown as an accordion panel in the view.
+        for (u_id, u_label, v_id, v_label), i_relationsets in rsets:
             relationsets.append({
                 "source_interpretation_id": u_id,
                 "source_interpretation_label": u_label,
@@ -552,7 +564,7 @@ def text(request, textid):
                     "text_snippet": get_snippet_relation(relationset),
                     "annotator": relationset.createdBy,
                     "created": relationset.created,
-                } for _, relationset in interpretation_relationsets]
+                } for _, relationset in i_relationsets]
             })
 
 
@@ -1028,7 +1040,7 @@ def network_data(request):
     cache_key = request.get_full_path()
     cache = caches['default']
 
-    response_data = None#cache.get(cache_key)
+    response_data = cache.get(cache_key)
     if not response_data:
         queryset = _filter_relationset(RelationSet.objects.all(), request.GET)
         # if project:
@@ -1460,33 +1472,83 @@ def list_relationtemplate(request):
     return HttpResponse(template.render(context))
 
 
-class TextSearchView(SearchView):
+class TextSearchView(FacetedSearchView):
     """Class based view for thread-safe search."""
-    template = 'templates/search/search.html'
-    queryset = SearchQuerySet()
+    facet_fields = ['collections']
+    template_name = 'annotations/list_texts.html'
+    queryset = SearchQuerySet().models(Text)
     results_per_page = 20
+
 
     def get_context_data(self, *args, **kwargs):
         """Return context data."""
         context = super(TextSearchView, self).get_context_data(*args, **kwargs)
-        sort_base = self.request.get_full_path().split('?')[0] + '?q=' + context['query']
+        sort_base = self.request.get_full_path().split('?')[0]
+        if 'query' in context and context['query']:
+            sort_base += '?q=' + context['query']
+
+
 
         context.update({
             'sort_base': sort_base,
+
         })
         return context
 
+
+
     def form_valid(self, form):
         order_by = self.request.GET.get('order_by', 'title')
+
+        # If there is no query, just show all of the texts.
+        q = form.cleaned_data.get(self.search_field)
+        query_for_display = q
+        if not q:
+            q = '*'
+            query_for_display = ''
+        form.cleaned_data[self.search_field] = q
+
         self.queryset = form.search().order_by(order_by)
+        queryset = self.queryset
+        # else:
+        #     params = self.request.GET.getlist('selected_facets')
+        #     queryset = self.get_queryset().order_by(order_by)
 
         context = self.get_context_data(**{
             self.form_name: form,
-            'query': form.cleaned_data.get(self.search_field),
-            'object_list': self.queryset,
+            'query': query_for_display, #form.cleaned_data.get(self.search_field),
+            'object_list': queryset,
             'order_by': order_by,
-            'search_results' : self.queryset,
         })
+
+        return self.render_to_response(context)
+
+    def form_invalid(self, form):
+        """
+        Just return all of the texts.
+        """
+
+        order_by = self.request.GET.get('order_by', 'title')
+        sqs = self.get_queryset()
+
+        # Facet the hell out of those texts.
+        self.selected_facets = self.request.GET.getlist('selected_facets', [])
+        for facet in self.selected_facets:
+            if ":" not in facet:
+                continue
+            field, value = facet.split(":", 1)
+            if value:
+                sqs = sqs.narrow(u'%s:"%s"' % (field, sqs.query.clean(value)))
+
+        context = self.get_context_data(**{
+            self.form_name: form,
+            'query': '',
+            'object_list': sqs.order_by(order_by),
+            'order_by': order_by,
+
+        })
+        # Goddammit.
+        context.update({'facets': sqs.facet_counts()})
 
         return self.render_to_response(context)
 
@@ -1999,3 +2061,23 @@ def sign_s3(request):
             'signed_request': '%s?AWSAccessKeyId=%s&Expires=%s&Signature=%s' % (url, AWS_ACCESS_KEY, expires, signature),
             'url': url,
         })
+
+
+def concept_autocomplete(request):
+
+    query = request.GET.get('q', '')
+
+    if not query:
+        suggestions = []
+    else:
+        sqs = SearchQuerySet().models(Concept).filter(label__icontains=query.lower())[:20]
+        suggestions = [{
+            'label': result.label.title(),
+            'id': result.id,
+            'type': result.typed,
+            'description': result.description,
+            'uri': result.uri
+        } for result in sqs]
+
+    response_data = json.dumps({'results': suggestions})
+    return HttpResponse(response_data, content_type='application/json')

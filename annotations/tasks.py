@@ -2,7 +2,6 @@
 We should probably write some documentation.
 """
 
-
 from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
@@ -17,6 +16,7 @@ import re
 import slate
 from . import managers
 from annotations.models import Appellation
+
 
 def get_manager(name):
     print dir(managers), name
@@ -89,6 +89,7 @@ def scrape(url):
     }
     return textData
 
+
 def extract_text_file(uploaded_file):
     """
     Extract the text file, and return its content
@@ -108,6 +109,7 @@ def extract_text_file(uploaded_file):
     for line in uploaded_file:
         filecontent += line + ' '
     return filecontent
+
 
 def extract_pdf_file(uploaded_file):
     """
@@ -129,6 +131,7 @@ def extract_pdf_file(uploaded_file):
     for content in doc:
         filecontent += content.decode('utf-8') + '\n\n'
     return filecontent
+
 
 def save_text_instance(tokenized_content, text_title, date_created, is_public, user):
     """
@@ -163,6 +166,9 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
 
 
 def get_snippet_relation(relationset):
+    """
+    Get a text snippet for a :class:`.RelationSet` instance.
+    """
     appellation_type = ContentType.objects.get_for_model(Appellation)
     tokenizedContent = relationset.occursIn.tokenizedContent
     annotated_words = []
