@@ -5,6 +5,7 @@ We should probably write some documentation.
 
 from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
+from django.contrib.contenttypes.models import ContentType
 
 import requests
 from bs4 import BeautifulSoup
@@ -15,6 +16,7 @@ import re
 
 import slate
 from . import managers
+from annotations.models import Appellation
 
 def get_manager(name):
     print dir(managers), name
@@ -160,6 +162,74 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
     return text
 
 
+def get_snippet_relation(relationset):
+    appellation_type = ContentType.objects.get_for_model(Appellation)
+    tokenizedContent = relationset.occursIn.tokenizedContent
+    annotated_words = []
+
+    # We'll use this to label highlighted tokens with their interpretations.
+    annotation_map = {}
+
+    # Pull out all Appellations that have a specific textual basis.
+    for relation in relationset.constituents.all():
+        for part in ['source', 'object']:
+            if getattr(relation, '%s_content_type' % part) == appellation_type:
+                appellation = getattr(relation, '%s_content_object' % part)
+                tokenIds = appellation.tokenIds.split(',')
+                annotated_words.append(tokenIds)
+                for t in tokenIds:
+                    annotation_map[t] = appellation
+
+        # Predicates too, since we're interested in evidence for the relation.
+        if relation.predicate.tokenIds:
+            tokenIds = relation.predicate.tokenIds.split(',')
+            annotated_words.append(tokenIds)
+            for t in tokenIds:
+                annotation_map[t] = relation.predicate
+
+    # Group sequences of tokens from appellations together if they are in close
+    #  proximity.
+    grouped_words = []
+    for tokenSeq in sorted(annotated_words, key=lambda s: min([int(t) for t in s])):
+        tokenSeqI = [int(t) for t in tokenSeq]
+        match = False
+        for i, tokensSeqGrouped in enumerate(grouped_words):
+            tokensSeqGroupedI = [int(t) for t in tokensSeqGrouped]
+            # If the current token sequence is contained within or overlaps with
+            #  the token sequence group, then add it to the current group and
+            #  exit.
+            if (min(tokenSeqI) >= min(tokensSeqGroupedI) - 10 and max(tokenSeq) <= max(tokensSeqGroupedI) + 10) or \
+               (min(tokenSeqI) - 10 <= min(tokensSeqGroupedI) <= max(tokenSeqI) + 10) or \
+               (max(tokenSeqI) + 10 >= max(tokensSeqGroupedI) >= min(tokenSeqI) - 10):
+               grouped_words[i] = tokensSeqGrouped + tokenSeq
+               match = True
+               break
+
+        if not match:    # Sequence belongs to its own group (for now).
+            grouped_words.append(tokenSeq)
+
+    # Now build the snippet.
+    combined_snippet = u""
+    for tokenSeq in grouped_words:
+        snippet = u""
+        start_index = max(0, min([int(t) for t in tokenSeq])) - 5
+        end_index = max([int(t) for t in tokenSeq]) + 5
+        for i in range(start_index, end_index):
+            match = re.search(r'<word id="'+str(i)+'">([^<]*)</word>', tokenizedContent, re.M|re.I)
+            if not match:
+                continue
+            word = ""
+            if str(i) in tokenSeq:
+                # Tooltip shows the interpretation (Concept) for this
+                #  Appellation.
+                word = u"<strong data-toggle='tooltip' title='%s' class='text-warning'>%s</strong>" % (annotation_map[str(i)].interpretation.label, match.group(1))
+            else:
+                word = match.group(1)
+            snippet = u'%s %s' % (snippet, word)
+        combined_snippet += u' ...%s... ' % snippet.strip()
+    return SafeText(combined_snippet)
+
+
 def get_snippet(appellation):
     """
     Extract the text content surrounding (and including) an
@@ -188,7 +258,7 @@ def get_snippet(appellation):
         word = ""
 
         if str(i) in annotated_words:
-            word = u"<b class='text-warning'>%s</b>" % match.group(1)
+            word = u"<strong class='text-warning'>%s</strong>" % match.group(1)
         else:
             word = match.group(1)
         snippet = u'%s %s' % (snippet, word)

@@ -84,50 +84,45 @@ var networkEndpoint = '{% url "network-data" %}',
 
 
                               </div>
-                              {% with form|current_fields as current %}
-                              {% if current|length > 0 %}
+
                               <div class="panel-body">
+                                  {% with form|current_fields as current %}
+                                  {% if current|length > 0 %}
                                   <div class="h5">Currently filtering by:</div>
                                   <ul class="list-group text-small">
-                                  {% for field in current %}
-                                      {% if field.value and field.value.0 %}
-                                          <li class="list-group-item">{{ field.label }}</li>
-                                      {% endif %}
+                                  {% for label, value in current %}
+                                      <li class="list-group-item"><strong>{{ label }}:</strong> <span class="text-muted">{{ value }}</span></li>
                                   {% endfor %}
 
                                   </ul>
+                                  {% else %}
+                                  <div class="text-small text-muted">No active filters</div>
+                                  {% endif %}
+                                  {% endwith %}
                               </div>
-                              {% endif %}
-                              {% endwith %}
+
                             </div>
 
-                        <div class="alert alert-info">Select a node or edge for more information</div>
-                        <div class="panel panel-primary selection-details-panel" style="display: none;">
-                            <div class="panel-heading">
-                                <span class="h4">Selected <span id="elem-type-selected"></span> represents</span>
-                            </div>
+
+                        <div class="panel selection-details-panel" style="display: none;">
                             <div class="panel-body" id="concept-details">
                                 <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
                                 <div id="concept-uri" class="text text-muted text-tiny"></div>
-                                <div id="concept-description" class="text"></div>
-                                <div id="concept-occurrence" class="text"></div>
+                                <div id="concept-description" class="text text-small"></div>
+                                <div id="concept-occurrence" class="text text-small"></div>
+                            </div>
+                            <div class="panel-body">
+                                <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
+                                <div id="text-list-container">
+                                    <table class="table table-responsive table-hover">
+                                        <tbody id="text-list"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
+                        <div class="alert alert-info">Select a node or edge for more information</div>
                     </div>
-                    <div class="col-md-12">
-                        <div class="panel panel-primary selection-details-panel" style="display: none;">
-                            <div class="panel-heading">
-                                <span class="h4">Can be found in</span>
-                            </div>
-                            <div id="text-list-container">
-                                <table class="table table-responsive table-hover">
-                                    <tbody id="text-list"></tbody>
-                                </table>
-                            </div>
 
-
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

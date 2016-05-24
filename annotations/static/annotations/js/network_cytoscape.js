@@ -1,3 +1,5 @@
+
+
 // While awaiting a response to an ajax request, a spinner is shown in the
 //  network visualization panel.
 var opts = {
@@ -56,26 +58,23 @@ var displayTexts = function(texts) {
     });
 }
 
-var displayRelations = function(relations) {
+var displayRelations = function(relations, source_data, target_data) {
     $('#text-list').empty();
     $('#concept-text-list-title').text('Are related in the following ways');
     relations.forEach(function(relation) {
-
-        // var concept_id = relation[0][0][0],
-        //     concept_label = relation[0][0][1],
-        //     count = relation[0][1];
-
         $('#text-list')
-            .append('<tr><td class="text-small"><a href="">' + relation.concept_label + ' </a><span class="label label-default">' + relation.count + '</span><p class="text text-muted text-small">'+ relation.description +'</p></td></tr>');
+            .append('<tr><td class="text-small"><a href="/relations/' + source_data.concept_id + '/' + target_data.concept_id + '/">' + relation.concept_label + ' </a><span class="label label-default">' + relation.count + '</span><p class="text text-muted text-small">'+ relation.description +'</p></td></tr>');
     });
 }
 
 
-var loadNetwork  = function(e, params) {
+var loadNetwork  = function(e, params, callback) {
+    var cy;
+
     if (!params) {
         params = '';
-    } 
-    var cy;
+    }
+
     // Must set networkEndpoint in the dependant template.
     $.ajax(networkEndpoint, {
         // Pass filtering options (e.g. text, creator, date ranges).
@@ -247,7 +246,7 @@ var loadNetwork  = function(e, params) {
                     target = edge._private.target;
 
                 displayRelation(source._private.data, target._private.data);
-                displayRelations(edge._private.data.relations);
+                displayRelations(edge._private.data.relations, source._private.data, target._private.data);
 
                 $('#networkAlert').css('display', 'none');
                 clearConnected();
@@ -265,6 +264,10 @@ var loadNetwork  = function(e, params) {
                 $('#networkAlert').css('display', 'block');
             });
 
+            if (callback) {
+                callback(cy);
+            }
+
         }
 
     });
@@ -276,9 +279,19 @@ var loadNetwork  = function(e, params) {
     }
     $(window).resize(resizeGraph);
 
+
+
 }
 
 
 $('body').ready(function(e) {
-    loadNetwork(e, window.location.search.substring(1));
+    if (typeof(networkParams) == 'undefined') {
+        networkParams = window.location.search.substring(1);
+    }
+
+    if (typeof(networkCallback) == 'undefined') {
+        networkCallback = function() {};
+    }
+
+    loadNetwork(e, networkParams, networkCallback);
 });

@@ -255,6 +255,7 @@ $('body').on('hide.bs.collapse', function(e) {
 <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
 <script>
 var networkEndpoint = '{% url "network-data" %}',
+    networkParams = null,
     networkContainerSelector = '#networkViewport';
 </script>
 
@@ -363,29 +364,26 @@ var networkEndpoint = '{% url "network-data" %}',
             </div>
             <div class="panel selection-details-panel" style="display: none;">
                 <div class="panel-body" id="concept-details">
-                    <!-- <span class="h4">Selected <span id="elem-type-selected"></span> represents</span> -->
                     <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
                     <div id="concept-uri" class="text text-muted text-tiny"></div>
                     <div id="concept-description" class="text text-small"></div>
                     <div id="concept-occurrence" class="text text-small"></div>
-
                 </div>
-                <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
-                <div id="text-list-container">
-                    <table class="table table-responsive table-hover">
-                        <tbody id="text-list"></tbody>
-                    </table>
-                </div>
+                    <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
+                    <div id="text-list-container">
+                        <table class="table table-responsive table-hover">
+                            <tbody id="text-list"></tbody>
+                        </table>
+                    </div>
             </div>
         </div>
 
     </div>
 	<!-- System-wide stats -->
     <div class="row text-center">
-		<div class="col-sm-3 text-muted h4">{{ user_count }} users</div>
-		<div class="col-sm-3 text-muted h4">{{ appellation_count }} appellations</div>
-        <div class="col-sm-3 text-muted h4">{{ relation_count }} relations</div>
-		<div class="col-sm-3 text-muted h4">{{text_count}} texts</div>
+		<div class="col-sm-4 text-muted h4">{{ appellation_count }} appellations</div>
+        <div class="col-sm-4 text-muted h4">{{ relation_count }} relations</div>
+		<div class="col-sm-4 text-muted h4">{{text_count}} texts</div>
     </div>
 	<div class="col-xs-6 col-xs-offset-6">
 		<a href="http://devo-evo.lab.asu.edu" target="_blank">

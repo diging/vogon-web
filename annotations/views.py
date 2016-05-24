@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, JsonResponse
+from django.contrib.contenttypes.models import ContentType
 from django.template import RequestContext, loader
 from annotations.models import VogonUser
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -484,6 +485,8 @@ def text(request, textid):
 
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
+    elif mode == 'annotate':
+        return HttpResponseRedirect(reverse('login'))
     else:
         appellations_data = []
         appellations = Appellation.objects.filter(occursIn_id=textid,
@@ -517,13 +520,49 @@ def text(request, textid):
                 "num_texts": num_texts,
             })
 
+        relationset_qs = RelationSet.objects.filter(occursIn=textid)
+        appellation_type = ContentType.objects.get_for_model(Appellation)
+        relationsets_by_interpretation = []
+        relationsets = []
+        from itertools import combinations
+        for relationset in relationset_qs:
+            interps = []
+            for constituent in relationset.constituents.all():
+                for part in ['source', 'object']:
+                    if getattr(constituent, '%s_content_type' % part) == appellation_type:
+                        appellation = getattr(constituent, '%s_content_object' % part)
+                        if appellation.asPredicate:
+                            continue
+
+                        interps.append(appellation.interpretation)
+            for u, v in combinations(interps, 2):
+                u, v = tuple(sorted([u, v], key=lambda a: a.id))
+                relationsets_by_interpretation.append(((u.id, u.label, v.id, v.label), relationset))
+
+        skey = lambda r: r[0]
+        rsets_sorted = sorted(relationsets_by_interpretation, key=skey)
+        for (u_id, u_label, v_id, v_label), interpretation_relationsets in groupby(rsets_sorted, key=skey):
+
+            relationsets.append({
+                "source_interpretation_id": u_id,
+                "source_interpretation_label": u_label,
+                "target_interpretation_id": v_id,
+                "target_interpretation_label": v_label,
+                "relationsets": [{
+                    "text_snippet": get_snippet_relation(relationset),
+                    "annotator": relationset.createdBy,
+                    "created": relationset.created,
+                } for _, relationset in interpretation_relationsets]
+            })
+
 
         appellations_data = sorted(appellations_data,
                                    key=lambda a: a['interpretation_label'])
         template = loader.get_template('annotations/anonymous_text.html')
         context_data.update({
             'appellations_data': appellations_data,
-            'annotators': appellation_creators
+            'annotators': appellation_creators,
+            'relations': relationsets
         })
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
@@ -948,10 +987,14 @@ def _filter_relationset(qs, params):
     node_types = params.getlist('node_types')
     exclusive = params.get('exclusive', 'off')
 
+    # We need this ContentType to filter on Relations, since .source and .object
+    #  are Generic relations.
+    app_ct = ContentType.objects.get_for_model(Appellation)
+
+    # Limit to RelationSets whose Appellations refer to Concepts of a
+    #  specific Type.
     if node_types:
-        print node_types
         appellations = Appellation.objects.filter(**parameters).filter(interpretation__typed__in=node_types).values_list('id', flat=True)
-        app_ct = ContentType.objects.get_for_model(Appellation)
         q_source = Q(constituents__source_content_type=app_ct) & Q(constituents__source_object_id__in=appellations)
         q_object = Q(constituents__object_content_type=app_ct) & Q(constituents__object_object_id__in=appellations)
         if exclusive == 'on':
@@ -959,7 +1002,22 @@ def _filter_relationset(qs, params):
         else:
             q = q_source | q_object
         qs = qs.filter(q)
-    return qs
+
+    # Limit to RelationSets whose Appellations refer to specific Concepts.
+    nodes = params.getlist('nodes')
+
+    if nodes:
+        appellations = Appellation.objects.filter(**parameters).filter(interpretation__in=nodes).values_list('id', flat=True)
+        q = (Q(constituents__source_content_type=app_ct) & Q(constituents__source_object_id__in=appellations)|
+             Q(constituents__object_content_type=app_ct) & Q(constituents__object_object_id__in=appellations))
+        qs = qs.filter(q)
+
+    # We have filtered based on related fields, which means that if we were to
+    #  call values() or values_list() on those related fields we would be
+    #  limited not only to the selected RelationSets but also to the specific
+    #  passing values. Re-filtering based on ID ensures that we can get all of
+    #  the relevant related fields for the RelationSets in our QuerySet.
+    return RelationSet.objects.filter(id__in=qs.values_list('id', flat=True))
 
 
 def network_data(request):
@@ -970,7 +1028,7 @@ def network_data(request):
     cache_key = request.get_full_path()
     cache = caches['default']
 
-    response_data = cache.get(cache_key)
+    response_data = None#cache.get(cache_key)
     if not response_data:
         queryset = _filter_relationset(RelationSet.objects.all(), request.GET)
         # if project:
@@ -1158,22 +1216,36 @@ def relation_details(request, source_concept_id, target_concept_id):
     # Source and target on Relation are now generic, so we need this for lookup.
     appellation_type = ContentType.objects.get_for_model(Appellation)
 
-    source_appellation_ids = [obj['id'] for obj in source_concept.appellation_set.all().values('id')]
-    target_appellation_ids = [obj['id'] for obj in target_concept.appellation_set.all().values('id')]
+    source_appellation_ids = Appellation.objects.filter(interpretation=source_concept.id).values_list('id', flat=True)
+    target_appellation_ids = Appellation.objects.filter(interpretation=target_concept.id).values_list('id', flat=True)
+    q = ((Q(constituents__source_object_id__in=source_appellation_ids) & Q(constituents__source_content_type=appellation_type)) |
+         (Q(constituents__object_object_id__in=source_appellation_ids) & Q(constituents__object_content_type=appellation_type)))
+    source_queryset = RelationSet.objects.filter(id__in=RelationSet.objects.filter(q).values_list('id', flat=True))
 
-    queryset = RelationSet.objects.filter(
-    (Q(constituents__source_object_id__in=source_appellation_ids) & Q(constituents__source_content_type=appellation_type) \
-     & Q(constituents__object_object_id__in=target_appellation_ids) & Q(constituents__object_content_type=appellation_type)) \
-    | (Q(constituents__source_object_id__in=target_appellation_ids) & Q(constituents__source_content_type=appellation_type) \
-       & Q(constituents__object_object_id__in=source_appellation_ids) & Q(constituents__object_content_type=appellation_type)))
-
+    q = ((Q(constituents__source_object_id__in=target_appellation_ids) & Q(constituents__source_content_type=appellation_type)) |
+         (Q(constituents__object_object_id__in=target_appellation_ids) & Q(constituents__object_content_type=appellation_type)))
+    combined_queryset = RelationSet.objects.filter(id__in=source_queryset.filter(q).values_list('id', flat=True))
 
     template = loader.get_template('annotations/relations.html')
+
+    relationsets = []
+    for text_id, text_relationsets in groupby(combined_queryset, lambda a: a.occursIn.id):
+        text = Text.objects.get(pk=text_id)
+        relationsets.append({
+            "text_id": text.id,
+            "text_title": text.title,
+            "relationsets": [{
+                "text_snippet": get_snippet_relation(relationset),
+                "annotator": relationset.createdBy,
+                "created": relationset.created,
+            } for relationset in text_relationsets]
+        })
+
     context = RequestContext(request, {
         'user': request.user,
         'source_concept': source_concept,
         'target_concept': target_concept,
-        'relations': queryset,
+        'relations': relationsets,
     })
     return HttpResponse(template.render(context))
 
