@@ -161,6 +161,7 @@ HAYSTACK_CONNECTIONS = {
         'ENGINE': 'annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine',
         'URL': es.scheme + '://' + es.hostname + ':' + str(port),
         'INDEX_NAME': 'documents',
+        'TIMEOUT': 3600,
     },
 }
 
