@@ -84,6 +84,9 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 50,
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
 }
 
 WSGI_APPLICATION = 'vogon.wsgi.application'
@@ -92,7 +95,7 @@ WSGI_APPLICATION = 'vogon.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 #
-#DATABASES = {
+# DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.postgresql_psycopg2',
 #        'NAME': 'vogonweb',
@@ -101,7 +104,7 @@ WSGI_APPLICATION = 'vogon.wsgi.application'
 #        'HOST': 'localhost',
 #        'PORT': '5432',
 #    }
-#}
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -181,7 +184,7 @@ LOGGING = {
 
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'ENGINE': 'annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine',
         'URL': 'http://127.0.0.1:9200/',
         'INDEX_NAME': 'vogon',
     },

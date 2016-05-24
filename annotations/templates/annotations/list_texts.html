@@ -4,109 +4,110 @@
 
 
 {% block main %}
-<div id="main" class="container-fluid">
+<div id="main" class="container">
     <div class="row" style="margin-bottom: 10px;">
-        <div class="col-sm-10 col-sm-offset-1">
-            {% block title %}
-            <div>
-                <span class="h2">All Texts</span>
-                <span class="btn-group pull-right">
-                    <a href="{% url 'file_upload' %}" class="btn btn-primary">Upload Text</a>
+        {% block title %}
+        <div>
+            <span class="h2">Texts</span>
+            <span class="btn-group pull-right">
+                <a href="{% url 'file_upload' %}" class="btn btn-primary">Upload Text</a>
+            </span>
+        </div>
+
+        <hr></hr>
+        {% endblock %}
+    </div>
+    <div class="row">
+
+        <form class="form" role="search" action="{% url "text_search" %}">
+            <div class="input-group">
+                <input type="text"
+                    class="form-control"
+                    placeholder="Search texts"
+                    name="q"
+                    id="q"
+                    value="{{query}}">
+                <span class="input-group-btn">
+                    <!-- For some reason .glyphicon sets top: 1px; -->
+                    <span
+                        class="btn btn-default glyphicon glyphicon-search"
+                        style="top: 0px;"
+                        type="submit">
+                    </span>
                 </span>
             </div>
-            <hr></hr>
-            {% endblock %}
-        </div>
+        </form>
 
     </div>
     <div class="row">
-        <div class="col-sm-10 col-sm-offset-1">
-            <form class="form" role="search" action="{% url "haystack_search" %}">
-                <div class="input-group">
-                    <input type="text"
-                        class="form-control"
-                        placeholder="Search texts"
-                        name="q"
-                        id="q"
-                        value="{{query}}">
-                    <span class="input-group-btn">
-                        <!-- For some reason .glyphicon sets top: 1px; -->
-                        <span
-                            class="btn btn-default glyphicon glyphicon-search"
-                            style="top: 0px;"
-                            type="submit">
-                        </span>
-                    </span>
-                </div>
-            </form>
-        </div>
-    </div>
+        <div class="col-sm-3">
+            {% if facets.fields.collections %}
+            <div>
+                <div class="h5">Collections</div>
+                {% for collection in facets.fields.collections %}
+                    <dd><a href="{{ sort_base }}{% if query %}&amp;{% else %}?{% endif %}selected_facets=collections_exact:{{ collection.0|urlencode }}">{{ collection.0|get_collection_label }}</a> ({{ collection.1 }})</dd>
+                {% endfor %}
 
-    <div class="row">
-        <div class="col-sm-10 col-sm-offset-1">
-            {% if texts|length > 0 %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-sm-9">
+            {% if object_list|length > 0 %}
             <table class="table table-hover table-responsive table-condensed">
                 <thead>
-                    <th class="col-sm-8">
+                    <th class="col-xs-9">
                         <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-title' %}?order_by=title{% else %}?order_by=-title{% endif %}" id="order_title">Title</a>
                         <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-title' %}?order_by=title{% else %}?order_by=-title{% endif %}">
                             <span class="glyphicon glyphicon-sort-by-alphabet{% if order_by != '-title' %}-alt{% endif %}" aria-hidden="true"></span>
                         </a>
                     </th>
-                    <th class="col-sm-2">
+                    <th>
                         <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}" id="order_publication">Published</a>
                         <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}">
                             <span class="glyphicon glyphicon-sort-by-order{% if order_by != '-created' %}-alt{% endif %}" aria-hidden="true"></span>
                         </a>
                     </th>
-                    <th class="col-sm-2">
-                        <span class="h4" style="text-decoration: none; vertical-align: middle;">Relations</span>
-                        <!-- <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-relation_count' %}?order_by=relation_count{% else %}?order_by=-relation_count{% endif %}" id="order_publication">Relations</a>
-                        <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-relation_count' %}?order_by=relation_count{% else %}?order_by=-relation_count{% endif %}">
-                            <span class="glyphicon glyphicon-sort-by-order{% if order_by != '-relation_count' %}-alt{% endif %}" aria-hidden="true"></span>
-                        </a> -->
-                    </th>
                 </thead>
-            {% for text in texts %}
+            {% for text in object_list %}
                 <tbody>
                     <tr>
-                        <td><a href="{% url "text" text.id %}">{{ text.title }}</a></td>
+                        <td><a href="{% url "text" text.object.id %}">{{ text.title }}</a></td>
                         <td>{{ text.created }}</td>
-                        <td><span class="badge">{{ text.relation_count }}</span></td>
                     </tr>
                 </tbody>
             {% endfor %}
             </table>
-
-            <div>
-                <ul class="pagination pagination-sm">
-                    {% if texts.has_previous %}
-                    <li>
-                        <a href="?page={{ texts.previous_page_number }}">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                    {% for p in texts.paginator.page_range %}
-                    <li{% if p == texts.number %} class="active"{% endif %}>
-                        <a href="?page={{p}}{%if order_by%}&order_by={{order_by}}{%endif%}">{{p}}</a>
-                    </li>
-                    {% endfor %}
-                    {% if texts.has_next %}
-                    <li>
-                        <a href="?page={{ texts.next_page_number }}">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-            {% else %}
-            <p>No texts to display.</p>
-            {% endif %}
-
         </div>
+
     </div>
+
+        <div>
+            <ul class="pagination pagination-sm">
+                {% if page_obj.has_previous %}
+                <li>
+                    <a href="?{% if query %}q={{ query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% for p in page_obj.paginator.page_range %}
+                <li{% if p == page_obj.number %} class="active"{% endif %}>
+                    <a href="?{% if query %}q={{ query }}&amp;{% endif %}page={{p}}{% if order_by %}&order_by={{ order_by }}{% endif %}">{{p}}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li>
+                    <a href="?{% if query %}q={{ query }}&amp;{% endif %}page={{ page_obj.next_page_number }}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% else %}
+        <p>No texts to display.</p>
+        {% endif %}
+
 </div>
 <table class="table">
   <column id='test'/>

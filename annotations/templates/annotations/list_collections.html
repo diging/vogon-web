@@ -4,23 +4,22 @@
 
 
 {% block main %}
-<div id="main" class="container-fluid">
-    <div class="row" style="margin-bottom: 10px;">
-        <div class="col-sm-8 col-sm-offset-2">
-            {% block title %}
-            <div>
-                <span class="h2">All Collections</span>
-            </div>
-            <hr></hr>
-            {% endblock %}
-        </div>
+<div id="main" class="container">
+
+    {% block title %}
+    <div>
+        <span class="h2">All Collections</span>
     </div>
+    <hr></hr>
+    {% endblock %}
+
+
     <div class="row">
-        <div class="col-sm-8 col-sm-offset-2">
+        <div>
             {% if collections|length > 0 %}
             <ul class="list-group">
             {% for collection in collections %}
-                <a href="{% url "collection_texts" collection.id %}" class="list-group-item">{{ collection.name }} <span class="pull-right badge" data-toggle="tooltip" data-placement="top" title="{{ collection.texts.count }} texts in this collection">{{ collection.texts.count }}</span></a>
+                <a href="{% url "text_search" %}?selected_facets=collections_exact:{{ collection.id }}" class="list-group-item">{{ collection.name }} <span class="pull-right badge" data-toggle="tooltip" data-placement="top" title="{{ collection.texts.count }} texts in this collection">{{ collection.texts.count }}</span></a>
 
             {% endfor %}
             </ul>

@@ -173,6 +173,9 @@ class TextCollection(models.Model):
     participants = models.ManyToManyField(VogonUser,
                                           related_name='contributes_to')
 
+    def __unicode__(self):
+        return self.name
+
 
 class Text(models.Model):
     uri = models.CharField(max_length=255, unique=True)
@@ -198,6 +201,9 @@ class Text(models.Model):
     @property
     def relation_count(self):
         return self.relation_set.count()
+
+    def __unicode__(self):
+        return self.title
 
     class Meta:
         permissions = (
@@ -510,4 +516,3 @@ class TemporalBounds(models.Model):
     start = TupleField(blank=True, null=True)
     occur = TupleField(blank=True, null=True)
     end = TupleField(blank=True, null=True)
-

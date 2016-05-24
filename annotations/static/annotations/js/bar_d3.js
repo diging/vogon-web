@@ -2,7 +2,7 @@ function render(data){
   var margin = {top: 20, right: 20, bottom: 30, left: 40},
       ww = document.getElementById("barchart").clientWidth,
       width = ww - margin.left - margin.right,
-      height = 500 - margin.top - margin.bottom;
+      height = 200 - margin.top - margin.bottom;
 
   var x = d3.scale.ordinal()
       .rangeRoundBands([0, width], .1);

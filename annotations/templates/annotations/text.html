@@ -19,7 +19,6 @@
         {% include "annotations/angular.html" %}
         {% include "annotations/scripts.html" %}
 
-
         <script>
         var TEXTID = {{ textid }},
             USERID = {{ userid }};
@@ -87,9 +86,38 @@
         <script src="{% static "annotations/js/csrf_ajax.js" %}"></script>
 
         <div class="container-fluid" id="main-container">
+            <div class="row" style="padding: 5px;">
+                <ul class="nav nav-pills">
+                     <li class="active"><a href="{% url 'text' text.id %}?mode=annotate">Annotate</a></li>
+                     <li><a href="{% url 'text' text.id %}">View</a></li>
+                </ul>
+            </div>
             <div class="row">
                 <div class="col-sm-8">
-                    <div class="panel panel-default metadata-panel">
+                    <div class="h2">
+                        {{ text.title }}
+                        {% if text.originalResource %}
+                        <a href="{{ text.originalResource }}"
+                            type="button"
+                            class="btn"
+                            title="Please click to access the original resource">
+                            <span class="glyphicon glyphicon-new-window "></span>
+                        </a>
+                        {% endif %}
+                        <div class="small">
+                            Created on {{ text.created }}
+                        </div>
+                    </div>
+                    <p class="text-warning">
+                        {{ text.uri }}
+                    </p>
+                    <p class="h5 text-muted">
+                        This text was added by <a href="{% url 'user_details' text.addedBy.id %}">{{text.addedBy.username}}</a>
+                        on {{ text.added }} {% if text.annotation_count > 0 %}<strong>{{text.annotation_count}}</strong> appellations and
+                        <strong>{{text.relation_count}}</strong> relations have been encoded by {{ annotators|length }}
+                        user{% if annotators|length > 1 %}s{% endif %} on the basis of this text.{% endif %}
+                    </p>
+                    <!-- <div class="panel panel-default metadata-panel">
                         <div class="panel-heading">
                             <span class="h2">{{ text.title }}</span>
                             {% if text.originalResource %}
@@ -123,11 +151,11 @@
                                 <span class="label label-default">Added</span> {{ text.added }}
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="panel panel-default">
-                        <div class="panel-heading">
+                        <!-- <div class="panel-heading">
                             <span class="h4">Content</span>
-                        </div>
+                        </div> -->
                         <div class="panel-body">
                             {{ text.tokenizedContent|safe }}
                         </div>
