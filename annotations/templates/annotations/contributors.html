@@ -3,27 +3,25 @@
 
 {% block main %}
 
-<div id="main" class="container-fluid">
-    <div class="row" style="margin-bottom: 10px;">
-        <div class="col-sm-8 col-sm-offset-2">
-            {% block title %}
-            <div>
-                <span class="h2">All Users</span>
-            </div>
-            <hr></hr>
-            {% endblock %}
+<div id="main" class="container">
+
+
+    {% block title %}
+    <div class="h2">Contributors</div>
+    {% endblock %}
+
+    <form class="navbar-form" role="search">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder= {% if search_term %}"{{search_term}}"{% else %}"Search by full name" {% endif %}name="search_term" id="search_term"></input>
+            <span class="input-group-btn">
+                  <button class="btn btn-default" type="submit"><div class="glyphicon glyphicon-search"></div></button>
+            </span>
         </div>
-        <form class="navbar-form" role="search">
-          <div class="input-group col-sm-3 col-sm-offset-2">
-            <input type="text" class="form-control" placeholder= {% if search_term %}"{{search_term}}"{% else %}"Search by full name" {% endif %}name="search_term" id="search_term">
-            <div class="input-group-btn">
-              <button class="btn btn-default" type="submit"><div class="glyphicon glyphicon-search"></div></button>
-            </div>
-          </div>
-        </form>
-    </div>
+
+    </form>
+
     <div class="row">
-        <div class="col-sm-8 col-sm-offset-2">
+
           {% if user_list|length > 0 %}
           <div class = "table-responsive">
             <table class="table table-bordered table-striped">
@@ -116,7 +114,7 @@
             <p>No users to display.</p>
             {% endif %}
 
-        </div>
+
     </div>
 </div>
 {% endblock main %}
