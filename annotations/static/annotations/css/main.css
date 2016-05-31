@@ -605,3 +605,8 @@ a.appellation-list-item.selected {
 .ac-type {
     margin-left: 5px;
 }
+
+
+.h1 .small {
+    font-size: 16pt;
+}
