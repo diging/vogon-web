@@ -87,6 +87,22 @@ from haystack.generic_views import SearchView, FacetedSearchView
 from haystack.query import SearchQuerySet
 
 
+# TODO: Can we replace this with the built-in Django JsonResponse?
+def json_response(func):
+    def decorator(request, *args, **kwargs):
+        objects = func(request, *args, **kwargs)
+
+        try:
+            data = json.dumps(objects)
+        except:
+            if not hasattr(objects, '__iter__'):
+                data = serialize("json", [objects])[1:-1]
+            else:
+                data = serialize("json", objects)
+        return HttpResponse(data, "application/json")
+    return decorator
+
+
 def home(request):
     """
 
@@ -113,18 +129,44 @@ def home(request):
         'text_count': text_count,
         'relation_count': relation_count,
         'appellation_count': appellation_count,
-        'recent_combination': _get_recent_annotations(last=10)
+        'recent_combination': _get_recent_annotations(last=10),
+        'title': 'Build the epistemic web'
+
     })
     return HttpResponse(template.render(context))
 
 
 def user_texts(user):
+    """
+    Retrieve all of the :class:`.Text`\s in which a user has created
+    :class:`.Relation`\s.
+
+    TODO: Do we need this anymore?
+
+    Parameters
+    ----------
+    user : :class:`.VogonUser`
+
+    Returns
+    -------
+    :class:`django.db.models.query.QuerySet`
+    """
     return Text.objects.filter(relation__createdBy__pk=user.id).distinct()
 
 
 def basepath(request):
     """
     Generate the base path (domain + path) for the site.
+
+    TODO: Do we need this anymore?
+
+    Parameters
+    ----------
+    request : :class:`django.http.request.HttpRequest`
+
+    Returns
+    -------
+    str
     """
     if request.is_secure():
         scheme = 'https://'
@@ -132,77 +174,83 @@ def basepath(request):
         scheme = 'http://'
     return scheme + request.get_host() + settings.SUBPATH
 
+
 @csrf_protect
 def register(request):
     """
-    Provide registration view and stores a user on receiving user detail from registration form.
+    Provide new user registration view.
+
     Parameters
     ----------
-    request : HTTPRequest
-        The request after submitting registration form.
+    request : `django.http.requests.HttpRequest`
+
     Returns
     ----------
-    :template:
-        Renders registration form for get request. Redirects to dashboard
-        for post request.
+    :class:`django.http.response.HttpResponse`
     """
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
             user = VogonUser.objects.create_user(
-            form.cleaned_data['username'],
-            form.cleaned_data['email'],
-            password=form.cleaned_data['password1'],
-            full_name=form.cleaned_data['full_name'],
-            affiliation=form.cleaned_data['affiliation'],
-            location=form.cleaned_data['location'],
-            link=form.cleaned_data['link'],
+                form.cleaned_data['username'],
+                form.cleaned_data['email'],
+                password=form.cleaned_data['password1'],
+                full_name=form.cleaned_data['full_name'],
+                affiliation=form.cleaned_data['affiliation'],
+                location=form.cleaned_data['location'],
+                link=form.cleaned_data['link'],
             )
 
-            g = Group.objects.get_or_create(name='Public')[0]
-            user.groups.add(g)
-            user.save()
+            # TODO: Do we need this anymore?
+            public, _ = Group.objects.get_or_create(name='Public')
+            user.groups.add(public)
+            user.save()    # TODO: redundant?
+
             new_user = authenticate(username=form.cleaned_data['username'],
                                     password=form.cleaned_data['password1'])
-            # Logs in new user
+            # Logs in the new VogonUser.
             login(request, new_user)
             return HttpResponseRedirect(reverse('dashboard'))
     else:
         form = RegistrationForm()
-    variables = RequestContext(request, {
-    'form': form
-    })
 
-    return render(request,
-    'registration/register.html',
-    {'form': form},
-    )
+    return render(request, 'registration/register.html', {'form': form})
+
 
 def user_recent_texts(user):
+    """
+    Return a list of :class:`.Text`\s recently annotated by a
+    :class:`.VogonUser`\.
+
+    TODO: Do we need this anymore?
+
+    Parameters
+    ----------
+    user : :class:`.VogonUser`
+
+    Returns
+    -------
+    list
+    """
     by_relations = Text.objects.filter(relation__createdBy__pk=user.id)
     by_appellations = Text.objects.filter(appellation__createdBy__pk=user.id)
     result_list = list(set(chain(by_relations, by_appellations)))
     return result_list
 
 
-def json_response(func):
-    def decorator(request, *args, **kwargs):
-        objects = func(request, *args, **kwargs)
-
-        try:
-            data = json.dumps(objects)
-        except:
-            if not hasattr(objects, '__iter__'):
-                data = serialize("json", [objects])[1:-1]
-            else:
-                data = serialize("json", objects)
-        return HttpResponse(data, "application/json")
-    return decorator
-
-
 @login_required
 def user_settings(request):
-    """ User profile settings"""
+    """
+    User profile settings.
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
+    """
 
     if request.method == 'POST':
         form = UserChangeForm(request.POST,instance=request.user)
@@ -234,6 +282,14 @@ def user_settings(request):
 def about(request):
     """
     Provides information about Vogon-Web
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
     template = loader.get_template('annotations/about.html')
     context = RequestContext(request)
@@ -244,6 +300,14 @@ def about(request):
 def dashboard(request):
     """
     Provides the user's personalized dashboard.
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
 
     template = loader.get_template('annotations/dashboard.html')
@@ -266,6 +330,14 @@ def dashboard(request):
 def network(request):
     """
     Provides a network browser view.
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
     template = loader.get_template('annotations/network.html')
     form = RelationSetFilterForm(request.GET)
@@ -280,6 +352,14 @@ def network(request):
 def list_texts(request):
     """
     List all of the texts that the user can see, with links to annotate them.
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
     template = loader.get_template('annotations/list_texts.html')
 
@@ -309,7 +389,15 @@ def list_texts(request):
 
 def list_user(request):
     """
-    List all the users of Vogon web
+    List all the users of Vogon web.
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
 
     template = loader.get_template('annotations/contributors.html')
@@ -341,11 +429,21 @@ def list_user(request):
     }
     return HttpResponse(template.render(context))
 
+
 @csrf_exempt
 def collection_texts(request, collectionid):
     """
-    List all of the texts that the user can see, with links to annotate them.
-    It saves/removes participants for every collection.
+    Texts for a particular collection.
+
+    TODO: Do we need this anymore?
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
     textcollectioninstance = TextCollection.objects.get(pk=collectionid)
     if request.method == 'POST':
@@ -354,7 +452,6 @@ def collection_texts(request, collectionid):
         if form.is_valid():
             form.save()
     else:
-
         form=TextCollectionForm(instance=textcollectioninstance);
 
     template = loader.get_template('annotations/collection_texts.html')
@@ -1311,7 +1408,7 @@ def concept_details(request, conceptid):
         for i, appellation in enumerate(text_appellations):
             if i == 0:
                 text_title = appellation['occursIn__title']
-                
+
             appellation_details.append({
                 "text_snippet": get_snippet(appellation),
                 "annotator_id": appellation['createdBy_id'],
