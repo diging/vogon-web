@@ -494,6 +494,18 @@ def collection_texts(request, collectionid):
 def _get_recent_annotations(last=20, user=None):
     """
     Generate aggregate activity feed for all annotations.
+
+    TODO: move this into a util module.
+
+    Parameters
+    ----------
+    last : int
+        Number of items to return (default: 20).
+    user : :class:`.VogonUser`
+
+    Returns
+    -------
+    dict
     """
     recent_appellations = Appellation.objects.all()
     recent_relations = Relation.objects.all()
@@ -529,12 +541,14 @@ def recent_activity(request):
     """
     Provides summary of activities performed on the system.
     Currently on text addition, Appellation additions are shown.
-    Args:
-        request: HttpRequest()
 
-    Returns:
-        HttpResponse()
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
 
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
     template = loader.get_template('annotations/recent_activity.html')
     recent_texts = Text.objects.annotate(hour=DateTime("added", "hour", pytz.timezone("UTC"))).values("hour", "addedBy__username").annotate(created_count=Count('id')).order_by("-hour", "addedBy")
@@ -551,6 +565,14 @@ def text(request, textid):
     """
     Provides the main text annotation view for logged-in users.
     Provides summary of the text for non-logged-in users.
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
 
     text = get_object_or_404(Text, pk=textid)
@@ -584,6 +606,9 @@ def text(request, textid):
     elif mode == 'annotate':
         return HttpResponseRedirect(reverse('login'))
     else:
+        # TODO: pull most of this logic out into helper functions, and move it
+        #  out of views.py.
+
         appellations_data = []
         appellations = Appellation.objects.filter(occursIn_id=textid,
                                                   asPredicate=False)
@@ -614,7 +639,8 @@ def text(request, textid):
                 # We have to do this in here, because ``appellation`` is a
                 #  itertools._grouper iterable.
                 if i == 0:
-                    if 'interpretation__typed__label' in appellation and appellation['interpretation__typed__label']:
+                    if 'interpretation__typed__label' in appellation \
+                        and appellation['interpretation__typed__label']:
                         type_label = appellation['interpretation__typed__label']
                     else:
                         type_label = u''
@@ -701,22 +727,33 @@ def text(request, textid):
 
 def custom_403_handler(request):
     """
-    Default 403 Handler. This method gets invoked if a PermissionDenied Exception is raised.
-    Args:
-        request: HttpRequest()
+    Default 403 Handler. This method gets invoked if a PermissionDenied
+    Exception is raised.
 
-    Returns: HttpResponse() with status=403
+    # TODO: move this out of views.py and into an exceptions module.
 
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
+        Status 403.
     """
     template = loader.get_template('annotations/forbidden_error_page.html')
-    context_data = {'userid': request.user.id,
-                    'error_message': "Sorry you are not authorised to view this page."
-                    }
+    context_data = {
+        'userid': request.user.id,
+        'error_message': "Sorry you are not authorised to view this page."
+    }
     context = RequestContext(request, context_data)
     return HttpResponse(template.render(context), status=403)
 
 
 ### REST API class-based views.
+#
+# TODO: move these CBVs into their own module.
+#
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -1041,8 +1078,11 @@ def upload_file(request):
 
     Parameters
     ----------
-    request : HTTPRequest
-        The request after submitting file upload form
+    request : `django.http.requests.HttpRequest`
+
+    Returns
+    ----------
+    :class:`django.http.response.HttpResponse`
     """
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
@@ -1050,8 +1090,6 @@ def upload_file(request):
 
             text = handle_file_upload(request, form)
             return HttpResponseRedirect(reverse('text', args=[text.id]))
-
-
     else:
 
         form = UploadFileForm()
@@ -1071,10 +1109,10 @@ def handle_file_upload(request, form):
 
     Parameters
     ----------
-    request : HTTPRequest
-        The request after submitting file upload form
-    form : Form
+    request : `django.http.requests.HttpRequest`
+    form : `django.forms.Form`
         The form with uploaded content
+
     """
     uploaded_file = request.FILES['filetoupload']
     text_title = form.cleaned_data['title']
@@ -1094,6 +1132,10 @@ def handle_file_upload(request, form):
 
 
 def _filter_relationset(qs, params):
+    """
+
+    TODO: move this out of views.py and into an util module.
+    """
     parameter_map = [
         ('text', 'occursIn_id__in'),
         ('project', 'occursIn__partOf__in'),
@@ -1710,6 +1752,7 @@ def get_relationtemplate(request, template_id):
     response_format = request.GET.get('format', None)
     if response_format == 'json':
         return JsonResponse(data)
+        
     template = loader.get_template('annotations/relationtemplate_show.html')
     context = RequestContext(request, {
         'user': request.user,
@@ -1770,6 +1813,8 @@ def create_from_relationtemplate(request, template_id):
             if node_type == RelationTemplatePart.CONCEPT:
                 # The interpretation is already provided.
                 interpretation = getattr(template_part, '%s_concept' % field)
+
+            # TODO: these should not be hard-coded. Add these URIs to config.
             elif node_type == RelationTemplatePart.TOBE:
                 interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")
             elif node_type == RelationTemplatePart.HAS:
@@ -2172,6 +2217,8 @@ def sign_s3(request):
     """
     Genaration of a temporary signtaure using AWS secret key and access key.
     https://devcenter.heroku.com/articles/s3-upload-python
+
+    This is used for user profile images.
     """
 
     if request.method == 'GET':
@@ -2196,6 +2243,7 @@ def sign_s3(request):
         signature = urllib.quote_plus(signature)
         url = 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, object_name)
 
+        # TODO: can we use the built-in Django JsonResponse for this?
         return JsonResponse({
             'signed_request': '%s?AWSAccessKeyId=%s&Expires=%s&Signature=%s' % (url, AWS_ACCESS_KEY, expires, signature),
             'url': url,
@@ -2203,7 +2251,9 @@ def sign_s3(request):
 
 
 def concept_autocomplete(request):
-
+    """
+    Provides the :class:`.Concept` autocomplete in the home view.
+    """
     query = request.GET.get('q', '')
 
     if not query:
@@ -2218,5 +2268,6 @@ def concept_autocomplete(request):
             'uri': result.uri
         } for result in sqs]
 
+    # TODO: can we use the built-in Django JsonResponse for this?
     response_data = json.dumps({'results': suggestions})
     return HttpResponse(response_data, content_type='application/json')

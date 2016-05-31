@@ -6,7 +6,7 @@ from django import forms
 from django.forms import widgets, BaseFormSet
 from crispy_forms.helper import FormHelper
 from django.db.models import Count
-
+from django.db.utils import ProgrammingError
 
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
