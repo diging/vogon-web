@@ -6,7 +6,7 @@ from django import forms
 from django.forms import widgets, BaseFormSet
 from crispy_forms.helper import FormHelper
 from django.db.models import Count
-
+from django.db.utils import ProgrammingError
 
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
@@ -14,20 +14,6 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 import autocomplete_light
 
 import networkx as nx
-
-# class CrispyUserChangeForm(UserChangeForm):
-#     password = None        # This field was set in the Form ancestor, so exclude
-#                         #  is insufficient.
-#
-#     class Meta:
-#         model = User
-#         exclude = ['password', 'groups', 'user_permissions', 'last_login',
-#                    'is_staff', 'is_superuser', 'date_joined', 'is_active',
-#                    'username']
-#
-#     def __init__(self, *args, **kwargs):
-#         super(CrispyUserChangeForm, self).__init__(*args, **kwargs)
-#         self.helper = FormHelper(self)
 
 
 class RegistrationForm(forms.Form):
@@ -416,45 +402,51 @@ class MySplitDateTimeWidget(forms.widgets.SplitDateTimeWidget):
         super(forms.widgets.SplitDateTimeWidget, self).__init__(widgets, attrs)
 
 
-class RelationSetFilterForm(forms.Form):
-    text = forms.MultipleChoiceField(choices=Text.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'title'),
-                                          required=False,
-                                          widget=forms.widgets.SelectMultiple(attrs={
-                                                'class': 'form-control ymultiselect'
-                                            }))
-    project = forms.MultipleChoiceField(choices=TextCollection.objects.all().values_list('id', 'name'),
-                                             required=False,
-                                             widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
-    text_published_from = forms.DateField(required=False,
-                                          widget=forms.widgets.DateInput(attrs={
-                                                'class': 'datepicker form-control',
-                                                'placeholder': 'MM/DD/YYYY'
-                                            }))
-    text_published_through = forms.DateField(required=False,
-                                          widget=forms.widgets.DateInput(attrs={
-                                                'class': 'datepicker form-control',
-                                                'placeholder': 'MM/DD/YYYY'
-                                            }))
-    user = forms.MultipleChoiceField(choices=VogonUser.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'username'),
-                                  required=False,
-                                  widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
-    created_from = forms.SplitDateTimeField(required=False,
-                                            widget=MySplitDateTimeWidget(attrs={
-                                                 'date_class': 'datepicker form-control',
-                                                 'date_placeholder': 'MM/DD/YYYY',
-                                                 'time_class': 'form-control',
-                                                 'time_placeholder': 'HH:MM:SS'
-                                             }))
-    created_through = forms.SplitDateTimeField(required=False,
-                                               widget=MySplitDateTimeWidget(attrs={
-                                                    'date_class': 'datepicker form-control',
-                                                    'date_placeholder': 'MM/DD/YYYY',
-                                                    'time_class': 'form-control',
-                                                    'time_placeholder': 'HH:MM:SS'
-                                                }))
-
-    node_types = forms.MultipleChoiceField(choices=Type.objects.all().values_list('id', 'label'), required=False,
-                                                widget=forms.widgets.SelectMultiple(attrs={
+# The database annotations in this Form cause call kinds of problems when
+#  testing. TODO: we should find a more elegant solution than just eating
+#  these exceptions.
+try:
+    class RelationSetFilterForm(forms.Form):
+        text = forms.MultipleChoiceField(choices=Text.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'title'),
+                                              required=False,
+                                              widget=forms.widgets.SelectMultiple(attrs={
                                                     'class': 'form-control ymultiselect'
                                                 }))
-    exclusive = forms.BooleanField(required=False)
+        project = forms.MultipleChoiceField(choices=TextCollection.objects.all().values_list('id', 'name'),
+                                                 required=False,
+                                                 widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
+        text_published_from = forms.DateField(required=False,
+                                              widget=forms.widgets.DateInput(attrs={
+                                                    'class': 'datepicker form-control',
+                                                    'placeholder': 'MM/DD/YYYY'
+                                                }))
+        text_published_through = forms.DateField(required=False,
+                                              widget=forms.widgets.DateInput(attrs={
+                                                    'class': 'datepicker form-control',
+                                                    'placeholder': 'MM/DD/YYYY'
+                                                }))
+        user = forms.MultipleChoiceField(choices=VogonUser.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'username'),
+                                      required=False,
+                                      widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
+        created_from = forms.SplitDateTimeField(required=False,
+                                                widget=MySplitDateTimeWidget(attrs={
+                                                     'date_class': 'datepicker form-control',
+                                                     'date_placeholder': 'MM/DD/YYYY',
+                                                     'time_class': 'form-control',
+                                                     'time_placeholder': 'HH:MM:SS'
+                                                 }))
+        created_through = forms.SplitDateTimeField(required=False,
+                                                   widget=MySplitDateTimeWidget(attrs={
+                                                        'date_class': 'datepicker form-control',
+                                                        'date_placeholder': 'MM/DD/YYYY',
+                                                        'time_class': 'form-control',
+                                                        'time_placeholder': 'HH:MM:SS'
+                                                    }))
+
+        node_types = forms.MultipleChoiceField(choices=Type.objects.all().values_list('id', 'label'), required=False,
+                                                    widget=forms.widgets.SelectMultiple(attrs={
+                                                        'class': 'form-control ymultiselect'
+                                                    }))
+        exclusive = forms.BooleanField(required=False)
+except ProgrammingError:
+    pass

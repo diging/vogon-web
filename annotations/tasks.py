@@ -169,6 +169,7 @@ def get_snippet_relation(relationset):
     """
     Get a text snippet for a :class:`.RelationSet` instance.
     """
+
     appellation_type = ContentType.objects.get_for_model(Appellation)
     tokenizedContent = relationset.occursIn.tokenizedContent
     annotated_words = []
@@ -176,22 +177,37 @@ def get_snippet_relation(relationset):
     # We'll use this to label highlighted tokens with their interpretations.
     annotation_map = {}
 
+    fields = [
+        'source_content_type_id',
+        'object_content_type_id',
+        'source_object_id',
+        'object_object_id',
+        'predicate__tokenIds',
+        'predicate__interpretation__label',
+        'predicate__interpretation_id',
+    ]
+
+    appellation_ids = set()
+
     # Pull out all Appellations that have a specific textual basis.
-    for relation in relationset.constituents.all():
+    for relation in relationset.constituents.values(*fields):
         for part in ['source', 'object']:
-            if getattr(relation, '%s_content_type' % part) == appellation_type:
-                appellation = getattr(relation, '%s_content_object' % part)
-                tokenIds = appellation.tokenIds.split(',')
-                annotated_words.append(tokenIds)
-                for t in tokenIds:
-                    annotation_map[t] = appellation
+            if relation.get('%s_content_type_id' % part, None) == appellation_type.id:
+                appellation_ids.add(relation['%s_object_id' % part])
 
         # Predicates too, since we're interested in evidence for the relation.
-        if relation.predicate.tokenIds:
-            tokenIds = relation.predicate.tokenIds.split(',')
+        if relation['predicate__tokenIds']:
+            tokenIds = relation['predicate__tokenIds'].split(',')
             annotated_words.append(tokenIds)
             for t in tokenIds:
-                annotation_map[t] = relation.predicate
+                annotation_map[t] = relation['predicate__interpretation__label']
+
+    for appellation in Appellation.objects.filter(pk__in=appellation_ids).values('tokenIds', 'interpretation__label', 'interpretation_id'):
+
+        tokenIds = appellation['tokenIds'].split(',')
+        annotated_words.append(tokenIds)
+        for t in tokenIds:
+            annotation_map[t] = appellation['interpretation__label']
 
     # Group sequences of tokens from appellations together if they are in close
     #  proximity.
@@ -228,7 +244,7 @@ def get_snippet_relation(relationset):
             if str(i) in tokenSeq:
                 # Tooltip shows the interpretation (Concept) for this
                 #  Appellation.
-                word = u"<strong data-toggle='tooltip' title='%s' class='text-warning'>%s</strong>" % (annotation_map[str(i)].interpretation.label, match.group(1))
+                word = u"<strong data-toggle='tooltip' title='%s' class='text-warning text-snippet'>%s</strong>" % (annotation_map[str(i)], match.group(1))
             else:
                 word = match.group(1)
             snippet = u'%s %s' % (snippet, word)
@@ -251,10 +267,11 @@ def get_snippet(appellation):
         Includes emphasis tags surrounding the :class:`.Appellation`\'s
         tokens.
     """
-    if not appellation.tokenIds:
+    if not appellation['tokenIds']:
         return SafeText('No snippet is available for this appellation')
-    tokenizedContent = appellation.occursIn.tokenizedContent
-    annotated_words = appellation.tokenIds.split(',')
+
+    tokenizedContent = appellation['occursIn__tokenizedContent']
+    annotated_words = appellation['tokenIds'].split(',')
     middle_index = int(annotated_words[max(len(annotated_words)/2, 0)])
     start_index = max(middle_index - 10, 0)
     end_index = middle_index + 10
@@ -264,7 +281,7 @@ def get_snippet(appellation):
         word = ""
 
         if str(i) in annotated_words:
-            word = u"<strong class='text-warning'>%s</strong>" % match.group(1)
+            word = u"<strong class='text-warning text-snippet'>%s</strong>" % match.group(1)
         else:
             word = match.group(1)
         snippet = u'%s %s' % (snippet, word)

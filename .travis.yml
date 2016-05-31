@@ -3,10 +3,13 @@ python:
   - "2.7"
 services:
   - redis-server
+  - postgresql
 env:
   global:
     - DJANGO_SETTINGS_MODULE=vogon.local_settings
     - REDIS_URL=redis://
     - CELERY_TASK_SERIALIZER=json
+before_script:
+  - psql -c 'create database vogonweb;' -U postgres
 script:
   - python manage.py test

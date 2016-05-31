@@ -61,7 +61,7 @@
                                 </div>
                                 {% for appellation in text.appellations %}
                                 <div class="panel-body">
-                                <div class="text-warning">{{appellation.created}} by <a href="{% url "user_details" appellation.annotator.id %}">{{appellation.annotator}}</a></div>
+                                <div class="text-warning">{{appellation.created}} by <a href="{% url "user_details" appellation.annotator_id %}">{{appellation.annotator_username}}</a></div>
                                 <div>{{ appellation.text_snippet | safe}}</div>
                                 </div>
                                 {% endfor %}

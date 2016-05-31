@@ -94,23 +94,29 @@ WSGI_APPLICATION = 'vogon.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-#
-# DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#        'NAME': 'vogonweb',
-#        'USER': 'vogonweb',
-#        'PASSWORD': 'vogonweb',
-#        'HOST': 'localhost',
-#        'PORT': '5432',
-#    }
-# }
+# #
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+   'default': {
+       'ENGINE': 'django.db.backends.postgresql_psycopg2',
+       'NAME': 'vogonweb',
+       'USER': 'vogonweb',
+       'PASSWORD': 'vogonweb',
+       'HOST': 'localhost',
+       'PORT': '5432',
+   }
 }
+
+# TravisCI uses postgres/<blank> by default.
+if 'TRAVIS' in os.environ:
+    DATABASES['default']['USER'] = 'postgres'
+    DATABASES['default']['PASSWORD'] = ''
+    
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # default

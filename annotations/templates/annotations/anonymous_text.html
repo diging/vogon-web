@@ -83,19 +83,19 @@
                                         class="panel-collapse collapse"
                                         concept="{{ interpretation.interpretation_id }}"
                                         role="tabpanel">
-                                            {% if interpretation.num_texts > 0 %}
-                                            <div class="panel-body text-info text-small">
-                                                <a href="{% url 'concept_details' interpretation.interpretation_id %}">Also occurs in {{ interpretation.num_texts }} other texts...</a>
-                                            </div>
-                                            {% endif %}
+                                        
+                                        {% if interpretation.num_texts > 0 %}
+                                        <div class="panel-body text-info text-small">
+                                            <a href="{% url 'concept_details' interpretation.interpretation_id %}">Also occurs in {{ interpretation.num_texts }} other texts...</a>
+                                        </div>
+                                        {% endif %}
 
-                                            {% for appellation in interpretation.appellations %}
-                                            <div class="panel-body">
-                                                <div class="text-warning">{{appellation.created}} by <a href="{% url "user_details" appellation.annotator.id %}">{{appellation.annotator}}</a></div>
-                                                <div class="text-muted">{{ appellation.text_snippet | safe}}</div>
-                                            </div>
-                                            {% endfor %}
-
+                                        {% for appellation in interpretation.appellations %}
+                                        <div class="panel-body">
+                                            <div class="text-warning">{{appellation.created}} by <a href="{% url "user_details" appellation.annotator_id %}">{{appellation.annotator_username}}</a></div>
+                                            <div class="text-muted">{{ appellation.text_snippet | safe}}</div>
+                                        </div>
+                                        {% endfor %}
                                     </div>
                                 </div>
                                 {% endfor %}
