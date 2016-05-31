@@ -492,28 +492,50 @@ def text(request, textid):
                                                   asPredicate=False)
         appellations = appellations.order_by('interpretation_id')
 
+        fields = [
+            'interpretation_id',
+            'interpretation__label',
+            'interpretation__typed__label',
+            'occursIn_id',
+            'occursIn__tokenizedContent',
+            'tokenIds',
+            'createdBy_id',
+            'createdBy__username',
+            'created',
+        ]
+
+        appellations = appellations.values(*fields)
+
         appellation_creators = set()
-        groupkey = lambda a: a.interpretation.id
+        groupkey = lambda a: a['interpretation_id']
         for concept_id, concept_appellations in groupby(appellations, groupkey):
-            concept = Concept.objects.get(pk=concept_id)
-            if hasattr(concept, 'typed') and getattr(concept, 'typed'):
-                type_label = concept.typed.label
-            else:
-                type_label = u''
+
 
             indiv_appellations = []
-            for appellation in concept_appellations:
+            unique_texts = set()
+            for i, appellation in enumerate(concept_appellations):
+                # We have to do this in here, because ``appellation`` is a
+                #  itertools._grouper iterable.
+                if i == 0:
+                    if 'interpretation__typed__label' in appellation and appellation['interpretation__typed__label']:
+                        type_label = appellation['interpretation__typed__label']
+                    else:
+                        type_label = u''
+                    concept_label = appellation['interpretation__label']
+
                 indiv_appellations.append({
                     "text_snippet": get_snippet(appellation),
-                    "annotator": appellation.createdBy,
-                    "created": appellation.created,
+                    "annotator_id": appellation['createdBy_id'],
+                    "annotator_username": appellation['createdBy__username'],
+                    "created": appellation['created'],
                 })
-                appellation_creators.add(appellation.createdBy)
+                appellation_creators.add(appellation['createdBy_id'])
+                unique_texts.add(appellation['occursIn_id'])
 
-            num_texts = concept.appellation_set.values_list('occursIn').distinct().count() - 1
+            num_texts = len(unique_texts) - 1
             appellations_data.append({
                 "interpretation_id": concept_id,
-                "interpretation_label": concept.label,
+                "interpretation_label": concept_label,
                 "interpretation_type": type_label,
                 "appellations": indiv_appellations,
                 "num_texts": num_texts,
@@ -1266,21 +1288,41 @@ def concept_details(request, conceptid):
     concept = get_object_or_404(Concept, pk=conceptid)
     appellations = Appellation.objects.filter(interpretation_id=conceptid)
 
+    fields = [
+        'id',
+        'occursIn_id',
+        'occursIn__title',
+        'occursIn__tokenizedContent',
+        'tokenIds',
+        'createdBy_id',
+        'createdBy__username',
+        'created'
+    ]
+
+    appellations = appellations.values(*fields)
+
     response_format = request.GET.get('format', None)
     response = dict()
     concept_details = []
     appellations_by_text = dict()
     text = ""
-    for text_id, text_appellations in groupby(appellations, lambda a: a.occursIn.id):
-        text = Text.objects.get(pk=text_id)
-        concept_details.append({
-            "text_id": text.id,
-            "text_title": text.title,
-            "appellations": [{
+    for text_id, text_appellations in groupby(appellations, lambda a: a['occursIn_id']):
+        appellation_details = []
+        for i, appellation in enumerate(text_appellations):
+            if i == 0:
+                text_title = appellation['occursIn__title']
+                
+            appellation_details.append({
                 "text_snippet": get_snippet(appellation),
-                "annotator": appellation.createdBy,
-                "created": appellation.created,
-            } for appellation in text_appellations]
+                "annotator_id": appellation['createdBy_id'],
+                "annotator_username": appellation['createdBy__username'],
+                "created": appellation['created'],
+            })
+
+        concept_details.append({
+            "text_id": text_id,
+            "text_title": text_title,
+            "appellations": appellation_details
         })
     response["texts"] = concept_details
     if response_format == 'json':

@@ -610,3 +610,7 @@ a.appellation-list-item.selected {
 .h1 .small {
     font-size: 16pt;
 }
+
+.text-snippet {
+    cursor: default;
+}

@@ -131,12 +131,12 @@ $('body').on('hide.bs.collapse', function(e) {
 								style="margin-top: 10px; margin-bottom: 10px; ">knowledge is more than the printed word</div>
 						</div>
 
-                        <p class="">
+                        <p>
 							The bedrock of our collective knowledge is the intepretation of texts. The epistemic web moves
 							knowledge-making <strong>out of the cloisters and into the light of day</strong>
 							by extending the semantic web to support the subjectivity of the interpretive process. Encode
-							your interpretations of texts&mdash;from scholarly works to websites&mdash;and help build the
-							epistemic web.
+							your interpretations of texts&mdash;from scholarly works to websites&mdash;and
+                            help build the epistemic web.
                         </p>
 						<div id="floatingMarker" style="visibility: hidden;"></div>
 						<div id="floatingButtons">
@@ -264,7 +264,7 @@ var networkEndpoint = '{% url "network-data" %}',
 		<span class="pull-right">
 			Get started! Log in with <a href="#" class="fa fa-github" aria-hidden="true"> GitHub</a>
 		</span>
-		<div class="h1">Build the Epistemic Web</div>
+		<div class="h1">Let's build the epistemic web, together.</div>
 		<p>
 			The concept of the epistemic web was first introduced by
 			<a href="http://www.edition-open-access.de/studies/1/36/index.html">Malcolm Hyman and Jürgen Renn</a> as a new
@@ -273,7 +273,6 @@ var networkEndpoint = '{% url "network-data" %}',
 			propositions emerge: the texts that embed them, the times, places, and contexts of interpretation that constitute
 			local forms and moments of knowledge and knowledge-making.
 		</p>
-		<div class="h3">VogonWeb is a platform for building the epistemic web, together.</div>
 	</div>
 	<div class="text-center row">
 		<div class="col-sm-4 text-center">
@@ -367,6 +366,19 @@ var networkEndpoint = '{% url "network-data" %}',
 
 
 <div id="explore" class="container-fluid section" style="margin-top: 15px;">
+    <div class="text-center panel-heading">
+		<div class="h1">Explore the epistemic web</div>
+        <p>
+            Each node in the graph below represents a concept that has been used in annotations by VogonWeb users.
+            Click on a node to see the texts in which that concept occurs. Click on an edge to see how two concepts
+            are thought to be related. For more control over the network visualization, try the
+            <a href="{% url "network" %}">network browser</a>.
+        </p>
+        <p class="text-small text-muted">
+            Hint: use your mousewheel or trackpad to zoom in and out. Click and drag on
+            empty space to pan.
+        </p>
+    </div>
     <div class="row">
         <div class="col-sm-8">
             <div class="panel" id="networkPanel">
