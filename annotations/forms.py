@@ -15,20 +15,6 @@ import autocomplete_light
 
 import networkx as nx
 
-# class CrispyUserChangeForm(UserChangeForm):
-#     password = None        # This field was set in the Form ancestor, so exclude
-#                         #  is insufficient.
-#
-#     class Meta:
-#         model = User
-#         exclude = ['password', 'groups', 'user_permissions', 'last_login',
-#                    'is_staff', 'is_superuser', 'date_joined', 'is_active',
-#                    'username']
-#
-#     def __init__(self, *args, **kwargs):
-#         super(CrispyUserChangeForm, self).__init__(*args, **kwargs)
-#         self.helper = FormHelper(self)
-
 
 class RegistrationForm(forms.Form):
     """
@@ -416,6 +402,9 @@ class MySplitDateTimeWidget(forms.widgets.SplitDateTimeWidget):
         super(forms.widgets.SplitDateTimeWidget, self).__init__(widgets, attrs)
 
 
+# The database annotations in this Form cause call kinds of problems when
+#  testing. TODO: we should find a more elegant solution than just eating
+#  these exceptions.
 try:
     class RelationSetFilterForm(forms.Form):
         text = forms.MultipleChoiceField(choices=Text.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'title'),
