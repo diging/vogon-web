@@ -596,11 +596,9 @@ def text(request, textid):
     #     raise PermissionDenied
     mode = request.GET.get('mode', 'view')
 
-    if request.user.is_authenticated() and any(access_conditions) and mode == 'annotate':
+    if all([request.user.is_authenticated(), any(access_conditions), mode == 'annotate']):
         template = loader.get_template('annotations/text.html')
-
         context_data['userid'] = request.user.id
-
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
     elif mode == 'annotate':
