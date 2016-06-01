@@ -11,6 +11,7 @@ register = template.Library()
 def safe_text(s):
     return mark_safe(s)
 
+
 @register.filter
 def current_fields(form):
     fields = []

@@ -1,9 +1,9 @@
 {% load staticfiles %}
 {% load app_filters %}
 
-<html ng-app="annotationApp">
+<html>
     <head>
-        <script type="text/javascript" src="https://diging.atlassian.net/s/feb56a6b15dfe1c4dce860c5ec0d0c12-T/en_USugtsph-ren-off/70107/dd3ed69607618acd4f2d9e33519d4b21/2.0.7/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=da09a5cd"></script>
+        {% include "annotations/scripts.html" %}
         <script>
         function stripTrailingSlash(str) {
             if(str.substr(-1) === '/') {
@@ -16,16 +16,11 @@
         </script>
 
         {% include "annotations/stylesheets.html" %}
-        {% include "annotations/angular.html" %}
-        {% include "annotations/scripts.html" %}
 
         <script>
         var TEXTID = {{ textid }},
             USERID = {{ userid }};
         </script>
-
-        {% include "annotations/textApp.html" %}
-
         <script>
         // If the window scrolls below the top of the main content, the right-
         //  hand column should scroll with it.
@@ -72,6 +67,8 @@
             sticky_relocate();
         });
         </script>
+        {% include "annotations/angular.html" %}
+        {% include "annotations/textApp.html" %}
         <title>{{ title }}</title>
 
         {% csrf_token %}
@@ -79,7 +76,7 @@
         <!-- Mobile support. We want to be slightly zoomed out, or else the interface is simply too mashed. -->
         <meta name="viewport" content="width=device-width, initial-scale=0.75">
     </head>
-    <body ng-cloak><!-- ng-cloak prevents unrendered angular templates from being displayed. -->
+    <body  ng-app="annotationApp"><!-- ng-cloak prevents unrendered angular templates from being displayed. -->
         {% include "annotations/header.html" %}
 
         <!-- csrf_ajax.js gets the CSRF token for this page, and pre-configures AJAX requests. -->
@@ -117,45 +114,8 @@
                         <strong>{{text.relation_count}}</strong> relations have been encoded by {{ annotators|length }}
                         user{% if annotators|length > 1 %}s{% endif %} on the basis of this text.{% endif %}
                     </p>
-                    <!-- <div class="panel panel-default metadata-panel">
-                        <div class="panel-heading">
-                            <span class="h2">{{ text.title }}</span>
-                            {% if text.originalResource %}
-                            <a href="{{ text.originalResource }}"
-                                    type="button" id="originalResourceLink"
-                                    class="btn btn-primary pull-right"
-                                    data-toggle="tooltip"
-                                    title="Open original resource in a new tab"
-                                    target="_blank">
-                                <span class="glyphicon glyphicon-new-window "></span>
-                            </a>
-                            <script>$('#originalResourceLink').tooltip();</script>
-                            {% endif %}
-                        </div>
-                        <div class="panel-body">
-                            <div>
-                                <span class="label label-default">URI</span> {{ text.uri }}
-                            </div>
-                            {% if text.source %}
-                            <div>
-                                <span class="label label-default">Source</span> {{ text.source }}
-                            </div>
-                            {% endif %}
-                            <div>
-                                <span class="label label-default">Created</span> {{ text.created }}
-                            </div>
-                            <div>
-                                <span class="label label-default">Added by</span> {{ text.addedBy }}
-                            </div>
-                            <div>
-                                <span class="label label-default">Added</span> {{ text.added }}
-                            </div>
-                        </div>
-                    </div> -->
+
                     <div class="panel panel-default">
-                        <!-- <div class="panel-heading">
-                            <span class="h4">Content</span>
-                        </div> -->
                         <div class="panel-body">
                             {{ text.tokenizedContent|safe }}
                         </div>
@@ -196,12 +156,16 @@
                                                     data-placement="left">
                                                 <span class="glyphicon glyphicon-plus"></span>
                                             </a>
-                                            <script>$('#createRelationButton').tooltip();</script>
+                                            <script>
+                                            $(function() {
+                                                $('#createRelationButton').tooltip();
+                                            });
+                                            </script>
                                         </div>
                                     <!-- </li> -->
                                 </ul>
                             </div>
-                            <div class="panel-body">
+                            <div class="panel-body" ng-cloak>
                                 <div class="tab-content action-body">
                                     {% include "annotations/text/appellationTab.html" %}
                                     {% include "annotations/text/relationTab.html" %}
@@ -210,9 +174,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="alert alert-warning">Press the <kbd>esc</kbd> key to reset the interface.</div>.
+                    <div class="alert alert-warning">Press the <kbd>esc</kbd> key to reset the interface.</div>
                 </div>
             </div>
         </div>
+
     </body>
+
 </html>

@@ -1,6 +1,6 @@
 {% load staticfiles %}
 
-<script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
+
 
 
 <div class="tab-pane col-xs-12" id="tabGraph">
@@ -11,6 +11,8 @@
     </div>
 
 </div>
+
+<script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
 <script>
 
 /**
@@ -174,7 +176,7 @@ var reloadGraph = function() {
             cy.on('unselect', 'node', function(event) {
                 var node = event.cyTarget;
                 node._private.data.appellations.forEach(function(appellation_id) {
-                    $('[appellation='+appellation_id+']').removeClass('networkHighlight')
+                    $('[appellation='+appellation_id+']').removeClass('networkHighlight');
                 });
             })
 
