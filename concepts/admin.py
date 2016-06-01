@@ -47,6 +47,35 @@ def traverse_mergers(concept):
     return id_list
 
 
+def add_concepts_to_conceptpower(modeladmin, request, queryset):
+    """
+    Adds :class:`.Concept`\s in ``queryset`` to the Conceptpower authority
+    service.
+
+    TODO: add a confirmation step that shows similar concepts that already
+    exist.
+
+    Parameters
+    ----------
+    modeladmin
+    request
+    queryset
+    """
+
+    for concept in queryset:
+        if concept.concept_state == Concept.APPROVED:
+            response_data = authorities.add(concept)
+            concept.uri = response_data['uri']
+            concept.concept_state = Concept.RESOLVED
+            concept.save()
+
+
+def approve_concepts(modeladmin, request, queryset):
+    for concept in queryset:
+        concept.concept_state = Concept.APPROVED
+        concept.save()
+
+
 def perform_merge(unresolved_concepts, master_concept):
     """
     Merge a set of unresolved concepts into a single master concept.
@@ -140,7 +169,6 @@ def merge_concepts(modeladmin, request, queryset):
             return
 
         else:
-
             action_form = ConceptActionForm({
                 '_selected_action': _selected_action_ids,
                 'action': 'merge_concepts',
@@ -151,7 +179,7 @@ def merge_concepts(modeladmin, request, queryset):
                 "resolvedConcept": resolved_concepts.first(),
                 "opts": modeladmin.model._meta,
                 "app_label": modeladmin.model._meta.app_label,
-                "unResolvedConcepts": unresolved_concepts ,
+                "unresolved_concepts": unresolved_concepts ,
                 "path" : request.get_full_path(),
                 "action_form": action_form,
             }
@@ -190,15 +218,26 @@ def merge_concepts(modeladmin, request, queryset):
             }
             # merge_form.fields['master_concept'].
             return render(request, 'admin/merge_concepts.html', context)
-            
+
 
 class ConceptAdmin(admin.ModelAdmin):
     model = Concept
     search_fields = ('label',)
-    list_display = ('label', 'description', 'resolved', 'concept_state', 'typed',)
-    actions = (resolve, merge_concepts)
-    list_filter=('concept_state', 'typed',)
-    #opts = modeladmin.model._meta
+    list_display = ('label', 'description', 'concept_state', 'typed',)
+    actions = (merge_concepts, approve_concepts, add_concepts_to_conceptpower,
+               resolve)
+    list_filter = ('concept_state', 'typed',)
+
+    # def get_queryset(self, request):
+    #     """
+    #     Only show Rejected concepts if explicitly requested via the changelist
+    #     filter.
+    #     """
+    #     qs = super(ConceptAdmin, self).get_queryset(request)
+    #     if request.GET.get('concept_state__exact', None) == 'Rejected':
+    #         return qs
+    #     return qs.filter(~Q(concept_state=Concept.REJECTED))
+
 
 class TypeAdmin(admin.ModelAdmin):
     model = Type

@@ -618,6 +618,9 @@ def text(request, textid):
             'interpretation_id',
             'interpretation__label',
             'interpretation__typed__label',
+            'interpretation__merged_with_id',
+            'interpretation__merged_with__label',
+            'interpretation__merged_with__typed__label',
             'occursIn_id',
             'occursIn__tokenizedContent',
             'tokenIds',
@@ -629,22 +632,25 @@ def text(request, textid):
         appellations = appellations.values(*fields)
 
         appellation_creators = set()
-        groupkey = lambda a: a['interpretation_id']
+        groupkey = lambda a: a['interpretation__merged_with_id'] if a['interpretation__merged_with_id'] else a['interpretation_id']
         for concept_id, concept_appellations in groupby(appellations, groupkey):
-
-
+            # print a['interpretation__merged_with_id']
             indiv_appellations = []
             unique_texts = set()
             for i, appellation in enumerate(concept_appellations):
                 # We have to do this in here, because ``appellation`` is a
                 #  itertools._grouper iterable.
                 if i == 0:
-                    if 'interpretation__typed__label' in appellation \
-                        and appellation['interpretation__typed__label']:
+                    if appellation['interpretation__merged_with__typed__label']:
+                        type_label = appellation['interpretation__merged_with__typed__label']
+                    elif appellation['interpretation__typed__label']:
                         type_label = appellation['interpretation__typed__label']
                     else:
                         type_label = u''
-                    concept_label = appellation['interpretation__label']
+                    if appellation['interpretation__merged_with__label']:
+                        concept_label = appellation['interpretation__merged_with__label']
+                    else:
+                        concept_label = appellation['interpretation__label']
 
                 indiv_appellations.append({
                     "text_snippet": get_snippet(appellation),
@@ -672,25 +678,48 @@ def text(request, textid):
         relationsets_by_interpretation = []
         relationsets = []
 
+        fields = [
+            'source_content_type_id',
+            'object_content_type_id',
+            'source_object_id',
+            'object_object_id',
+            'predicate__tokenIds',
+            'predicate__interpretation__label',
+            'predicate__interpretation_id',
+        ]
+
         # Pull out "focal" concepts from the RelationSet. Usually there will
         #  be only two, but there could be more.
         for relationset in relationset_qs:
-            interps = []    # Focal concepts go here.
-            for rel in relationset.constituents.all():
+            appellation_ids = set()
+            for rel in relationset.constituents.all().values(*fields):
                 for part in ['source', 'object']:
-                    if getattr(rel, '%s_content_type' % part) == app_ct:
-                        appellation = getattr(rel, '%s_content_object' % part)
-                        if appellation.asPredicate:
-                            continue
-                        interps.append(appellation.interpretation)
+                    if rel.get('%s_content_type_id' % part, None) == app_ct.id:
+                        appellation_ids.add(rel['%s_object_id' % part])
+
+            interps = []    # Focal concepts go here.
+            appellations = Appellation.objects.filter(pk__in=appellation_ids)
+            appellation_fields = [
+                'interpretation_id',
+                'interpretation__label',
+                'interpretation__typed__label',
+                'interpretation__merged_with_id',
+                'interpretation__merged_with__label',
+                'interpretation__merged_with__typed__label',
+            ]
+            for appellation in appellations.values(*appellation_fields):
+                if appellation['interpretation__merged_with_id']:
+                    interps.append((appellation['interpretation__merged_with_id'], appellation['interpretation__merged_with__label']))
+                else:
+                    interps.append((appellation['interpretation_id'], appellation['interpretation__label']))
 
             # Usually there will be only two Concepts here, but for more complex
             #  relations there could be more.
             for u, v in combinations(interps, 2):
-                u, v = tuple(sorted([u, v], key=lambda a: a.id))
+                u, v = tuple(sorted([u, v], key=lambda a: a[0]))
                 # This is kind of hacky, but it lets us access the IDs and
                 #  labels more readily below.
-                rset = ((u.id, u.label, v.id, v.label), relationset)
+                rset = ((u[0], u[1], v[0], v[1]), relationset)
                 relationsets_by_interpretation.append(rset)
 
         # Here we sort and group by concept-pairs (u and v, above).
@@ -1194,6 +1223,9 @@ def _filter_relationset(qs, params):
 
 
 def network_data(request):
+    """
+    Generates JSON data for Cytoscape.js graph visualization.
+    """
     # project = request.GET.get('project', None)
     # user = request.GET.get('user', None)
     # text = request.GET.get('text', None)
@@ -1201,7 +1233,7 @@ def network_data(request):
     cache_key = request.get_full_path()
     cache = caches['default']
 
-    response_data = cache.get(cache_key)
+    response_data = None#cache.get(cache_key)
     if not response_data:
         queryset = _filter_relationset(RelationSet.objects.all(), request.GET)
         # if project:
@@ -1752,7 +1784,7 @@ def get_relationtemplate(request, template_id):
     response_format = request.GET.get('format', None)
     if response_format == 'json':
         return JsonResponse(data)
-        
+
     template = loader.get_template('annotations/relationtemplate_show.html')
     context = RequestContext(request, {
         'user': request.user,
@@ -1986,23 +2018,45 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
         #  quite a bit, because we will get a result object for each target of
         #  the furthest downstream M2M relation (Concept.appellation_set in
         #  this case). But it cuts down our database overhead enormously.
-        fields = ['interpretation__id',  'interpretation__label',
-                  'interpretation__uri', 'interpretation__description',
-                  'interpretation__typed__id', 'id',
-                  'interpretation__appellation__id',
-                  'interpretation__appellation__occursIn__id',
-                  'interpretation__appellation__occursIn__title']
+        fields = [
+            'interpretation__id',  'interpretation__label',
+            'interpretation__uri', 'interpretation__description',
+            'interpretation__typed__id', 'id',
+            'interpretation__appellation__id',
+            'interpretation__appellation__occursIn__id',
+            'interpretation__appellation__occursIn__title'
+            'interpretation__merged_with__id',  'interpretation__merged_with__label',
+            'interpretation__merged_with__uri', 'interpretation__merged_with__description',
+            'interpretation__merged_with__typed__id',
+            'interpretation__merged_with__appellation__id',
+            'interpretation__merged_with__appellation__occursIn__id',
+            'interpretation__merged_with__appellation__occursIn__title'
+        ]
+
         # This will yield one object per text, so we will see the same
         #  appellation and corresponding interpretations several times.
         for obj in appellation_queryset.values(*fields):
             appell_id = obj.get('id')
 
-            # Nodes represent concepts (target of interpretation).
-            node_id = obj.get('interpretation__id')
-            node_type = obj.get('interpretation__typed__id')
-            node_label = obj.get('interpretation__label')
-            node_uri = obj.get('interpretation__uri')
-            node_description = obj.get('interpretation__description')
+            # If the concept used in this appellation has been merged with
+            #  another concept, we need to use that master/target concept
+            #  instead. In that case, ``merged_with`` will be Truthy. We use
+            #  string interpolation below to insert the ``merged_with`` relation
+            #  into field lookups. If there is no master/target concept, we will
+            #  simply interpolate an empty string.
+            if obj.get('interpretation__merged_with__id'):
+                print 'merged!',obj.get('interpretation__merged_with__id')
+                mw = 'merged_with__'
+            else:
+                mw = ''
+
+            # Nodes represent concepts (target of interpretation). We
+            #  interpolate ``mw`` in case the concept has been merged.
+            node_id = obj.get('interpretation__%sid' % mw)
+            node_type = obj.get('interpretation__%styped__id' % mw)
+            node_label = obj.get('interpretation__%slabel' % mw)
+            node_uri = obj.get('interpretation__%suri' % mw)
+            node_description = obj.get('interpretation__%sdescription' % mw)
 
             if node_id not in nodes:    # Only one node per concept.
                 nodes[node_id] = {
@@ -2024,15 +2078,15 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                     seen.add(appell_id)
             # These are useful in the main network view for displaying
             #  information about the texts associated with each concept.
-            text_id = obj.get('interpretation__appellation__occursIn__id')
-            text_title = obj.get('interpretation__appellation__occursIn__title')
+            text_id = obj.get('interpretation__%sappellation__occursIn__id' % mw)
+            text_title = obj.get('interpretation__%sappellation__occursIn__title' % mw)
 
             # We avoid duplicates by using a set; this needs to be recast to
             #  a dict before we return the data.
             nodes[node_id]['data']['texts'].add((text_id, text_title))
 
             # A set again; must recast to list.
-            interp_app_id = obj.get('interpretation__appellation__id')
+            interp_app_id = obj.get('interpretation__%sappellation__id' % mw)
             nodes[node_id]['data']['appellations'].add(interp_app_id)
 
     # Rather than load whole objects, we only load the fields from the
@@ -2046,6 +2100,10 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
         'constituents__predicate__interpretation__label',
         'constituents__predicate__interpretation__uri',
         'constituents__predicate__interpretation__description',
+        'constituents__predicate__interpretation__merged_with__id',
+        'constituents__predicate__interpretation__merged_with__label',
+        'constituents__predicate__interpretation__merged_with__uri',
+        'constituents__predicate__interpretation__merged_with__description',
         'constituents__source_appellations__id',
         'constituents__object_appellations__id',
         'constituents__source_appellations__asPredicate',
@@ -2059,7 +2117,17 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
         'constituents__source_appellations__interpretation__description',
         'constituents__object_appellations__interpretation__description',
         'constituents__source_appellations__interpretation__typed__id',
-        'constituents__object_appellations__interpretation__typed__id',]
+        'constituents__object_appellations__interpretation__typed__id',
+        'constituents__source_appellations__interpretation__merged_with__id',
+        'constituents__object_appellations__interpretation__merged_with__id',
+        'constituents__source_appellations__interpretation__merged_with__label',
+        'constituents__object_appellations__interpretation__merged_with__label',
+        'constituents__source_appellations__interpretation__merged_with__uri',
+        'constituents__object_appellations__interpretation__merged_with__uri',
+        'constituents__source_appellations__interpretation__merged_with__description',
+        'constituents__object_appellations__interpretation__merged_with__description',
+        'constituents__source_appellations__interpretation__merged_with__typed__id',
+        'constituents__object_appellations__interpretation__merged_with__typed__id',]
 
     # We're agnostic about the structure and meaning of the RelationSet, and so
     #  are simply adding edges between any non-predicate concepts that occur
@@ -2086,20 +2154,34 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
 
     # We get one result per constituent Relation in the RelationSet.
     for obj in relationset_queryset.values(*related_fields):
+
+
         for field in ['source', 'object']:
+            # If the concept used in this appellation has been merged with
+            #  another concept, we need to use that master/target concept
+            #  instead. In that case, ``merged_with`` will be Truthy. We use
+            #  string interpolation below to insert the ``merged_with`` relation
+            #  into field lookups.
+            if obj.get('constituents__%s_appellations__interpretation__merged_with__id' % field):
+                mw = 'merged_with__'
+            # If there is no master/target concept, we will simply interpolate
+            #  an empty string.
+            else:
+                mw = ''
+
             appell_id = obj.get('constituents__%s_appellations__id' % field)
             appell_asPredicate = obj.get('constituents__%s_appellations__asPredicate' % field)
-            node_id = obj.get('constituents__%s_appellations__interpretation__id' % field)
+            node_id = obj.get('constituents__%s_appellations__interpretation__%sid' % (field, mw))
 
             # Node may be a Relation or a DateAppellation, which we don't want
             #  in the network.
             if node_id is None or appell_asPredicate:
                 continue
 
-            node_label = obj.get('constituents__%s_appellations__interpretation__label' % field)
-            node_uri = obj.get('constituents__%s_appellations__interpretation__uri' % field)
-            node_description = obj.get('constituents__%s_appellations__interpretation__description' % field)
-            node_type = obj.get('constituents__%s_appellations__interpretation__typed__id' % field)
+            node_label = obj.get('constituents__%s_appellations__interpretation__%slabel' % (field, mw))
+            node_uri = obj.get('constituents__%s_appellations__interpretation__%suri' % (field, mw))
+            node_description = obj.get('constituents__%s_appellations__interpretation__%sdescription' % (field, mw))
+            node_type = obj.get('constituents__%s_appellations__interpretation__%styped__id' % (field, mw))
 
             if node_id not in nodes:    # Only one node per concept.
                 nodes[node_id] = {
@@ -2133,20 +2215,34 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             interp_app_id = obj.get('constituents__%s_appellations__id' % field)
             nodes[node_id]['data']['appellations'].add(interp_app_id)
 
-        source_id = obj.get('constituents__source_appellations__interpretation__id')
+
+        if obj.get('constituents__source_appellations__interpretation__merged_with__id'):
+            source_mw = 'merged_with__'
+        else:
+            source_mw = ''
+        if obj.get('constituents__object_appellations__interpretation__merged_with__id'):
+            object_mw = 'merged_with__'
+        else:
+            object_mw = ''
+        if obj.get('constituents__predicate__interpretation__merged_with__id'):
+            predicate_mw = 'merged_with__'
+        else:
+            predicate_mw = ''
+
+        source_id = obj.get('constituents__source_appellations__interpretation__%sid' % source_mw)
         source_asPredicate = obj.get('constituents__source_appellations__asPredicate')
-        source_label = obj.get('constituents__source_appellations__interpretation__label')
-        source_uri = obj.get('constituents__source_appellations__interpretation__uri')
-        object_id = obj.get('constituents__object_appellations__interpretation__id')
+        source_label = obj.get('constituents__source_appellations__interpretation__%slabel' % source_mw)
+        source_uri = obj.get('constituents__source_appellations__interpretation__%suri' % source_mw)
+        object_id = obj.get('constituents__object_appellations__interpretation__%sid' % object_mw)
         object_asPredicate = obj.get('constituents__object_appellations__asPredicate')
-        object_label = obj.get('constituents__object_appellations__interpretation__label')
-        object_uri = obj.get('constituents__object_appellations__interpretation__uri')
+        object_label = obj.get('constituents__object_appellations__interpretation__%slabel' % object_mw)
+        object_uri = obj.get('constituents__object_appellations__interpretation__%suri' % object_mw)
         text_id = obj.get('occursIn__id')
         text_title = obj.get('occursIn__title')
 
-        predicate_id = obj.get('constituents__predicate__interpretation__id')
-        predicate_label = obj.get('constituents__predicate__interpretation__label')
-        predicate_uri = obj.get('constituents__predicate__interpretation__uri')
+        predicate_id = obj.get('constituents__predicate__interpretation__%sid' % predicate_mw)
+        predicate_label = obj.get('constituents__predicate__interpretation__%slabel' % predicate_mw)
+        predicate_uri = obj.get('constituents__predicate__interpretation__%suri' % predicate_mw)
 
         relationset_id = obj.get('id')
 
@@ -2154,18 +2250,18 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             if not source_asPredicate:
                 relationset_nodes[relationset_id].add(source_id)
             elif source_uri not in settings.PREDICATES.values():
-                concept_descriptions[source_id] = obj.get('constituents__source_appellations__interpretation__description')
+                concept_descriptions[source_id] = obj.get('constituents__source_appellations__interpretation__%sdescription' % source_mw)
                 relationset_predicates[relationset_id][(source_id, source_label)] += 1.
 
         if object_id:
             if not object_asPredicate:
                 relationset_nodes[relationset_id].add(object_id)
             elif object_uri not in settings.PREDICATES.values():
-                concept_descriptions[object_id] = obj.get('constituents__object_appellations__interpretation__description')
+                concept_descriptions[object_id] = obj.get('constituents__object_appellations__interpretation__%sdescription' % object_mw)
                 relationset_predicates[relationset_id][(object_id, object_label)] += 1.
 
         if predicate_id and predicate_uri not in settings.PREDICATES.values():
-            concept_descriptions[predicate_id] = obj.get('constituents__predicate__interpretation__description')
+            concept_descriptions[predicate_id] = obj.get('constituents__predicate__interpretation__%sdescription' % predicate_mw)
             relationset_predicates[relationset_id][(predicate_id, predicate_label)] += 1
 
 
