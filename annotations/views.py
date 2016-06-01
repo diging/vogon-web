@@ -1231,7 +1231,7 @@ def network_data(request):
     cache_key = request.get_full_path()
     cache = caches['default']
 
-    response_data = None#cache.get(cache_key)
+    response_data = cache.get(cache_key)
     if not response_data:
         queryset = _filter_relationset(RelationSet.objects.all(), request.GET)
         # if project:

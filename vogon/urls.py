@@ -87,6 +87,3 @@ urlpatterns = [
     url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type"),
     url(r'^concept_autocomplete/', views.concept_autocomplete, name='concept_autocomplete'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
