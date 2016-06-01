@@ -1,0 +1,24 @@
+{% extends "admin/base_site.html" %}
+
+{% load staticfiles %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static "admin/css/forms.css" %}" />
+
+<h1>Select master concept</h1>
+<p>
+    All of the concepts that you selected are unresolved. Please select the
+    concept into which all other concepts should be merged.
+</p>
+
+<form action="{% url "admin:concepts_concept_changelist" %}" method="POST">
+    {% csrf_token %}
+    {{ form }}
+
+    <div class="submit-row">
+        <input type="submit" class="button default" value="Merge">
+        <a class="button default" href="#" onclick="window.history.back(); return false;">No, take me back</a>
+    </div>
+
+</form>
+{% endblock %}

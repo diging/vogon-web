@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n l10n staticfiles %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../">{% trans "Home" %}</a> &rsaquo;
+
+     {% trans 'Merge Concepts' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static "admin/css/forms.css" %}" />
+
+<h1>Are you sure?</h1>
+
+<p>{% blocktrans with object as escaped_object %}
+    Are you sure you want to merge all of the selected unresolved concepts into
+    the resolved concept shown below?{% endblocktrans %}
+</p>
+
+<h3>Resolved Concepts</h3>
+<ul>
+    <li>Concept:
+        <b>{{ resolvedConcept.label }}</b>
+        <p>{{ resolvedConcept.description }}</p>
+    </li>
+</ul>
+
+<h3>Unresolved Concepts</h3>
+<ul>
+    {% for concept in unresolved_concepts %}
+    <li>Concept:
+        <b>{{ concept.label }}</b>
+        <p>{{ concept.description }}</p>
+    </li>
+    {% endfor %}
+</ul>
+
+<br>
+<form action="{% url "admin:concepts_concept_changelist" %}" method="POST">
+    {% csrf_token %}
+    {{ action_form }}
+
+    <div class="submit-row">
+        <input type="submit" class="button default" value="Merge">
+        <a class="button default" href="#" onclick="window.history.back(); return false;">No, take me back</a>
+    </div>
+</form>
+
+
+{% endblock %}
