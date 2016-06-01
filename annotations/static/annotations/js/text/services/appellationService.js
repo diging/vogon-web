@@ -4,7 +4,9 @@
   *  Appellations.
   */
 
-angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q', 'Appellation', function($rootScope, $q, Appellation) {
+angular.module('annotationApp').factory('appellationService',
+               ['$rootScope', '$q', 'Appellation',
+                function($rootScope, $q, Appellation) {
     return {
         appellations: [],    // Holds all currently loaded Appellations.
         appellationHash: {}, // Indexes Appellations by their interpretation.
@@ -14,6 +16,7 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
           * Add appellation ID and class to appellated words.
           */
         tagWordAsAppellation: function(appellation) {
+            // Could be here.
             var tokenIds = appellation.tokenIds.split(',');
             tokenIds.forEach(function(tokenId) {
                 // Hovering over an appellation displays a tooltip that shows
@@ -21,7 +24,10 @@ angular.module('annotationApp').factory('appellationService', ['$rootScope', '$q
                 $('word#' + tokenId).attr('appellation', appellation.id)
                     .attr('data-toggle', 'tooltip')
                     .addClass('appellation')
-                    .tooltip({container: 'body', title: appellation.interpretation_label + ' (' + appellation.interpretation_type_label + ')'});  // Fix jumpiness.
+                    .tooltip({
+                        container: 'body',
+                        title: appellation.interpretation_label + ' (' + appellation.interpretation_type_label + ')'
+                    });  // Fix jumpiness.
             });
         },
 

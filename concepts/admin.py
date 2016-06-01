@@ -24,12 +24,168 @@ class ConceptActionForm(forms.Form):
     confirmed = forms.BooleanField(initial=False, widget=forms.HiddenInput())
 
 
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape, format_html, html_safe
+from django.utils.encoding import (
+    force_str, force_text, python_2_unicode_compatible,
+)
+
+
+@html_safe
+@python_2_unicode_compatible
+class RadioChoiceInputWithDescription(forms.widgets.RadioChoiceInput):
+    def __init__(self, name, value, attrs, choice, index, **kwargs):
+        self.name = name
+        self.value = force_text(value)
+        self.attrs = attrs
+        self.choice_value = force_text(choice[0])
+        self.choice_label = force_text(choice[1])
+        self.index = index
+        if 'id' in self.attrs:
+            self.attrs['id'] += "_%d" % self.index
+
+        self.description = kwargs.get('description', '')
+
+    def render(self, name=None, value=None, attrs=None):
+        if self.id_for_label:
+            label_for = format_html(' for="{}"', self.id_for_label)
+        else:
+            label_for = ''
+        attrs = dict(self.attrs, **attrs) if attrs else self.attrs
+        return mark_safe(force_text(format_html('<label{}>{} {} <p class="text-muted">{}</p></label>', label_for, self.tag(attrs), self.choice_label, self.description)))
+
+    def __str__(self):
+        return self.render()
+
+
+@html_safe
+@python_2_unicode_compatible
+class RadioFieldRendererWithDescription(forms.widgets.RadioFieldRenderer):
+    choice_input_class = RadioChoiceInputWithDescription
+
+    def __str__(self):
+        return self.render()
+
+    def __init__(self, name, value, attrs, choices, **kwargs):
+        self.name = name
+        self.value = value
+        self.attrs = attrs
+        self.choices = choices
+        self.descriptions = kwargs.get('descriptions', {})
+
+    def __getitem__(self, idx):
+        choice = self.choices[idx]  # Let the IndexError propagate
+        description = self.descriptions.get(idx, '')
+        return self.choice_input_class(self.name, self.value, self.attrs.copy(),
+                                       choice, idx, description=description)
+
+    def render(self):
+        """
+        Outputs a <ul> for this set of choice fields.
+        If an id was given to the field, it is applied to the <ul> (each
+        item in the list will get an id of `$id_$i`).
+        """
+        id_ = self.attrs.get('id', None)
+        output = []
+        for i, choice in enumerate(self.choices):
+            choice_value, choice_label = choice
+            if isinstance(choice_label, (tuple, list)):
+                attrs_plus = self.attrs.copy()
+                if id_:
+                    attrs_plus['id'] += '_{}'.format(i)
+                sub_ul_renderer = RadioFieldRendererWithDescription(
+                                                      name=self.name,
+                                                      value=self.value,
+                                                      attrs=attrs_plus,
+                                                      choices=choice_label)
+                sub_ul_renderer.choice_input_class = self.choice_input_class
+                output.append(format_html(self.inner_html, choice_value=choice_value,
+                                          sub_widgets=sub_ul_renderer.render()))
+            else:
+                w = self.choice_input_class(self.name, self.value,
+                                            self.attrs.copy(), choice, i,
+                                            description=self.descriptions.get(choice_value, ''))
+                output.append(format_html(self.inner_html,
+                                          choice_value=force_text(w), sub_widgets=''))
+        return format_html(self.outer_html,
+                           id_attr=format_html(' id="{}"', id_) if id_ else '',
+                           content=mark_safe('\n'.join(output)))
+
+
+class RadioSelectWithDescriptions(forms.widgets.RadioSelect):
+    renderer = RadioFieldRendererWithDescription
+
+    def __init__(self, *args, **kwargs):
+        super(RadioSelectWithDescriptions, self).__init__(*args, **kwargs)
+
+    def get_renderer(self, name, value, attrs=None, **kwargs):
+        """Returns an instance of the renderer."""
+        if value is None:
+            value = self._empty_value
+        final_attrs = self.build_attrs(attrs)
+        descriptions = kwargs.get('descriptions', {})
+        return self.renderer(name, value, final_attrs, self.choices,
+                             descriptions=descriptions)
+
+    def render(self, name, value, attrs=None):
+        idx, label, description = zip(*self.choices)
+        self.choices = zip(idx, label)
+        self.descriptions = dict(zip(idx, description))
+        return self.get_renderer(name, value, attrs, descriptions=self.descriptions).render()
+
+
+class ModelChoiceIteratorWithDescriptions(forms.models.ModelChoiceIterator):
+    def choice(self, obj):
+        return (self.field.prepare_value(obj),
+                self.field.label_from_instance(obj),
+                getattr(obj, 'description', ''))
+
+
+class ModelChoiceFieldWithDescriptions(forms.ModelChoiceField):
+    def __init__(self, *args, **kwargs):
+        super(ModelChoiceFieldWithDescriptions, self).__init__(*args, **kwargs)
+
+
+    def _set_queryset(self, queryset):
+        self._queryset = queryset
+        idx, label, description = zip(*self._get_choices())
+        self.widget.choices = zip(idx, label)
+        self.widget.descriptions = dict(zip(idx, description))
+
+    def _set_choices(self, value):
+        # Setting choices also sets the choices on the widget.
+        # choices can be any iterable, but we call list() on it because
+        # it will be consumed more than once.
+        if callable(value):
+            value = CallableChoiceIterator(value)
+        else:
+            value = list(value)
+        idx, label, description = zip(*value)
+        self._choices = self.widget.choices = zip(idx, label)
+        self.widget.descriptions = dict(zip(idx, description))
+
+
+    def _get_choices(self):
+        # If self._choices is set, then somebody must have manually set
+        # the property self.choices. In this case, just return self._choices.
+        if hasattr(self, '_choices'):
+            return self._choices
+        return ModelChoiceIteratorWithDescriptions(self)
+
+    choices = property(_get_choices, _set_choices)
+
+
+
 class ConceptMergeForm(forms.Form):
     """
     The administrator can select one :class:`.Concept` instance into which all
     other selected :class:`.Concept` instances will be merged.
     """
-    master_concept = forms.ModelChoiceField(required=False, queryset=Concept.objects.all(), widget=forms.RadioSelect(), empty_label=None)
+
+    master_concept = ModelChoiceFieldWithDescriptions(required=False,
+                                            queryset=Concept.objects.all(),
+                                            widget=RadioSelectWithDescriptions(),
+                                            empty_label=None)
     _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
     action = forms.CharField(widget=forms.HiddenInput())
 
@@ -45,6 +201,35 @@ def traverse_mergers(concept):
         for child in concept.merged_concepts.all():
             id_list += traverse_mergers(child)
     return id_list
+
+
+def add_concepts_to_conceptpower(modeladmin, request, queryset):
+    """
+    Adds :class:`.Concept`\s in ``queryset`` to the Conceptpower authority
+    service.
+
+    TODO: add a confirmation step that shows similar concepts that already
+    exist.
+
+    Parameters
+    ----------
+    modeladmin
+    request
+    queryset
+    """
+
+    for concept in queryset:
+        if concept.concept_state == Concept.APPROVED:
+            response_data = authorities.add(concept)
+            concept.uri = response_data['uri']
+            concept.concept_state = Concept.RESOLVED
+            concept.save()
+
+
+def approve_concepts(modeladmin, request, queryset):
+    for concept in queryset:
+        concept.concept_state = Concept.APPROVED
+        concept.save()
 
 
 def perform_merge(unresolved_concepts, master_concept):
@@ -140,7 +325,6 @@ def merge_concepts(modeladmin, request, queryset):
             return
 
         else:
-
             action_form = ConceptActionForm({
                 '_selected_action': _selected_action_ids,
                 'action': 'merge_concepts',
@@ -151,7 +335,7 @@ def merge_concepts(modeladmin, request, queryset):
                 "resolvedConcept": resolved_concepts.first(),
                 "opts": modeladmin.model._meta,
                 "app_label": modeladmin.model._meta.app_label,
-                "unResolvedConcepts": unresolved_concepts ,
+                "unresolved_concepts": unresolved_concepts ,
                 "path" : request.get_full_path(),
                 "action_form": action_form,
             }
@@ -190,15 +374,26 @@ def merge_concepts(modeladmin, request, queryset):
             }
             # merge_form.fields['master_concept'].
             return render(request, 'admin/merge_concepts.html', context)
-            
+
 
 class ConceptAdmin(admin.ModelAdmin):
     model = Concept
     search_fields = ('label',)
-    list_display = ('label', 'description', 'resolved', 'concept_state', 'typed',)
-    actions = (resolve, merge_concepts)
-    list_filter=('concept_state', 'typed',)
-    #opts = modeladmin.model._meta
+    list_display = ('label', 'description', 'concept_state', 'typed',)
+    actions = (merge_concepts, approve_concepts, add_concepts_to_conceptpower,
+               resolve)
+    list_filter = ('concept_state', 'typed',)
+
+    # def get_queryset(self, request):
+    #     """
+    #     Only show Rejected concepts if explicitly requested via the changelist
+    #     filter.
+    #     """
+    #     qs = super(ConceptAdmin, self).get_queryset(request)
+    #     if request.GET.get('concept_state__exact', None) == 'Rejected':
+    #         return qs
+    #     return qs.filter(~Q(concept_state=Concept.REJECTED))
+
 
 class TypeAdmin(admin.ModelAdmin):
     model = Type

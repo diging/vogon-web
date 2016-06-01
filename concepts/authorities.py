@@ -169,19 +169,47 @@ def get_by_namespace(namespace):
 
 def add(instance):
     """
-    Adding the approved concept to Conceptpower
+    Add the approved concept to Conceptpower
 
     Parameters
     -----------
-    instance: :class: '.Concept'
+    instance : :class:'.Concept'
+
+    Returns
+    -------
+    response : dict
+
+    Examples
+    -------
+
+    .. code-block:: python
+
+       >>> add(concept)
+       {
+           u'word': u'Askania-Nova',
+           u'description': u'A biosphere reserve located in Kherson Oblast, Ukraine',
+           u'conceptlist': u'VogonWeb Concepts',
+           u'type': u'http://www.digitalhps.org/types/TYPE_dfc95f97-f128-42ae-b54c-ee40333eae8c',
+           u'equals': [],
+           u'pos': u'noun',
+           u'synonymids': [],
+           u'similar': [],
+           u'id': u'CONf3a936bd-f9fe-415c-8e9e-e463de7d4bbf'
+       }
     """
 
     concept_list = 'VogonWeb Concepts'
     conceptpower = ConceptpowerAuthority()
-    conceptpower.create(settings.CONCEPTPOWER_USERID,
-                        settings.CONCEPTPOWER_PASSWORD,
-                        instance.label,
-                        instance.pos,
-                        concept_list,
-                        instance.description,
-                        instance.typed.uri)
+    response = conceptpower.create(settings.CONCEPTPOWER_USERID,
+                                   settings.CONCEPTPOWER_PASSWORD,
+                                   instance.label,
+                                   instance.pos,
+                                   concept_list,
+                                   instance.description,
+                                   instance.typed.uri)
+    # This is kind of hacky, but the current version of Conceptpower does not
+    #  return the full URI of the new Concept -- just its ID. We can remove this
+    #  when the new version of Conceptpower is released.
+    if 'uri' not in response:
+        response['uri'] = u'http://www.digitalhps.org/concepts/%s' % response['id']
+    return response

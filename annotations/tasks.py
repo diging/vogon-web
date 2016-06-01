@@ -202,12 +202,22 @@ def get_snippet_relation(relationset):
             for t in tokenIds:
                 annotation_map[t] = relation['predicate__interpretation__label']
 
-    for appellation in Appellation.objects.filter(pk__in=appellation_ids).values('tokenIds', 'interpretation__label', 'interpretation_id'):
+    appellation_fields = [
+        'tokenIds',
+        'interpretation__label',
+        'interpretation_id',
+        'interpretation__merged_with_id',
+        'interpretation__merged_with__label',
+    ]
+    for appellation in Appellation.objects.filter(pk__in=appellation_ids).values(*appellation_fields):
 
         tokenIds = appellation['tokenIds'].split(',')
         annotated_words.append(tokenIds)
         for t in tokenIds:
-            annotation_map[t] = appellation['interpretation__label']
+            if appellation['interpretation__merged_with_id']:
+                annotation_map[t] = appellation['interpretation__merged_with__label']
+            else:
+                annotation_map[t] = appellation['interpretation__label']
 
     # Group sequences of tokens from appellations together if they are in close
     #  proximity.

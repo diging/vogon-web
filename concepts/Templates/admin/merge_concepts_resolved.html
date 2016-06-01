@@ -23,16 +23,16 @@
 <h3>Resolved Concepts</h3>
 <ul>
     <li>Concept:
-        <b> {{ resolvedConcept.label }}</b>
+        <b>{{ resolvedConcept.label }}</b>
         <p>{{ resolvedConcept.description }}</p>
     </li>
 </ul>
 
 <h3>Unresolved Concepts</h3>
-<ul >
-    {% for concept in unResolvedConcepts %}
+<ul>
+    {% for concept in unresolved_concepts %}
     <li>Concept:
-        <b> {{ concept.label }} </b>
+        <b>{{ concept.label }}</b>
         <p>{{ concept.description }}</p>
     </li>
     {% endfor %}
