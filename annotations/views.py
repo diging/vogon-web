@@ -1036,7 +1036,7 @@ class TypeViewSet(viewsets.ModelViewSet):
 
 
 class ConceptViewSet(viewsets.ModelViewSet):
-    queryset = Concept.objects.all()
+    queryset = Concept.objects.filter(~Q(concept_state=Concept.REJECTED))
     serializer_class = ConceptSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
@@ -2024,7 +2024,7 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             'interpretation__typed__id', 'id',
             'interpretation__appellation__id',
             'interpretation__appellation__occursIn__id',
-            'interpretation__appellation__occursIn__title'
+            'interpretation__appellation__occursIn__title',
             'interpretation__merged_with__id',  'interpretation__merged_with__label',
             'interpretation__merged_with__uri', 'interpretation__merged_with__description',
             'interpretation__merged_with__typed__id',
@@ -2154,8 +2154,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
 
     # We get one result per constituent Relation in the RelationSet.
     for obj in relationset_queryset.values(*related_fields):
-
-
         for field in ['source', 'object']:
             # If the concept used in this appellation has been merged with
             #  another concept, we need to use that master/target concept
@@ -2215,7 +2213,10 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             interp_app_id = obj.get('constituents__%s_appellations__id' % field)
             nodes[node_id]['data']['appellations'].add(interp_app_id)
 
-
+        # Check for merged concepts. We'll use string interpolation as before
+        #  to select the correct concept.
+        #
+        # TODO: can we wrap this logic into the block above?
         if obj.get('constituents__source_appellations__interpretation__merged_with__id'):
             source_mw = 'merged_with__'
         else:
@@ -2263,9 +2264,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
         if predicate_id and predicate_uri not in settings.PREDICATES.values():
             concept_descriptions[predicate_id] = obj.get('constituents__predicate__interpretation__%sdescription' % predicate_mw)
             relationset_predicates[relationset_id][(predicate_id, predicate_label)] += 1
-
-
-        # We use a set here to avoid dupes.
 
         relationset_texts[relationset_id] = (text_id, text_title)
 
