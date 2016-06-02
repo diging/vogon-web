@@ -2,20 +2,24 @@
 We should probably write some documentation.
 """
 
+from __future__ import absolute_import
+
 from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
 
 import requests
 from bs4 import BeautifulSoup
-from models import Text
 from guardian.shortcuts import assign_perm
 import uuid
 import re
 
 import slate
 from . import managers
-from annotations.models import Appellation
+from annotations.models import *
+from annotations import quadriga
+
+from celery import shared_task
 
 
 def get_manager(name):
@@ -296,3 +300,33 @@ def get_snippet(appellation):
             word = match.group(1)
         snippet = u'%s %s' % (snippet, word)
     return SafeText(u'...%s...' % snippet.strip())
+
+
+@shared_task
+def submit_relationsets_to_quadriga(relationsets, text, user):
+    status, response = quadriga.submit_relationsets(relationsets, text, user)
+    if status:
+        accession = QuadrigaAccession.objects.create(**{
+            'createdBy': user,
+            'project_id': response.get('project_id'),
+            'workspace_id': response.get('workspace_id'),
+            'network_id': response.get('networkid')
+        })
+
+        for relationset in relationsets:
+            relationset.submitted = True
+            relationset.submittedOn = accession.created
+            relationset.submittedWith = accession
+            relationset.save()
+
+            for relation in relationset.constituents.all():
+                relation.submitted = True
+                relation.submittedOn = accession.created
+                relation.submittedWith = accession
+                relation.save()
+
+            for appellation in relationset.appellations():
+                appellation.submitted = True
+                appellation.submittedOn = accession.created
+                appellation.submittedWith = accession
+                appellation.save()

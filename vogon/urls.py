@@ -86,4 +86,8 @@ urlpatterns = [
     url(r'^concept/types$', conceptViews.list_concept_types),
     url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type"),
     url(r'^concept_autocomplete/', views.concept_autocomplete, name='concept_autocomplete'),
+    url(r'^quadruples/appellation/(?P<appellation_id>[0-9]+).xml$', views.appellation_xml, name='appellation_xml'),
+    url(r'^quadruples/relation/(?P<relation_id>[0-9]+).xml$', views.relation_xml, name='relation_xml'),
+    url(r'^quadruples/relationset/(?P<relationset_id>[0-9]+).xml$', views.relationset_xml, name='relationset_xml'),
+    url(r'^quadruples/text/(?P<text_id>[0-9]+)/(?P<user_id>[0-9]+).xml$', views.text_xml, name='text_xml'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -46,6 +46,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from concepts.models import Concept
 from annotations.models import VogonUser
+from annotations import quadriga
 from concepts.authorities import search
 from concepts.tasks import search_concept
 
@@ -1806,6 +1807,14 @@ def create_from_relationtemplate(request, template_id):
 
     # Index RelationTemplateParts by ID.
     template_parts = {part.id: part for part in template.template_parts.all()}
+    # print template_parts
+    # part_dependencies = nx.DiGraph()
+    # for pid, part in template_parts.iteritems():
+    #     for elem in ['source', 'object']:
+    #         if type(getattr(part, '%s_relationtemplate' % elem)) is RelationTemplatePart:
+    #             part_dependencies.add_edge(pid, getattr(part, '%s_relationtemplate' % elem).id)
+    # print part_dependencies.edges()
+    # raise AttributeError('')
 
     if request.POST:
         relations = {}
@@ -1860,6 +1869,7 @@ def create_from_relationtemplate(request, template_id):
 
         relation_dependency_graph = nx.DiGraph()
 
+
         # Since we don't know anything about the structure of the
         #  RelationTemplate, we watch for nodes that expect to be Relation
         #  instances and recurse to create them as needed. We store the results
@@ -1911,12 +1921,17 @@ def create_from_relationtemplate(request, template_id):
             relation_data_processed[part_id] = (relation.id, ContentType.objects.get_for_model(Relation))
             return (relation.id, ContentType.objects.get_for_model(Relation))
 
+
         for part_id, template_part in template_parts.iteritems():
             process_recurse(part_id, template_part)
 
         # The first element should be the root of the graph. This is where we
         #  need to "attach" the temporal relations.
-        root = nx.topological_sort(relation_dependency_graph)[0]
+        if len(template_parts) == 1:
+            root = template_parts.keys()[0]
+        else:
+            root = nx.topological_sort(relation_dependency_graph)[0]
+
         for temporalType in ['start', 'end', 'occur']:
             temporalData = data.get(temporalType, None)
             if temporalData:
@@ -1953,7 +1968,7 @@ def create_from_relationtemplate(request, template_id):
 
                 temporalRelation = Relation(**{
                     'source_content_type': ContentType.objects.get_for_model(Relation),
-                    'source_object_id': root,
+                    'source_object_id': relation_data_processed[root][0],
                     'part_of': relation_set,
                     'predicate': predicate_appellation,
                     'object_content_type': ContentType.objects.get_for_model(DateAppellation),
@@ -2363,3 +2378,41 @@ def concept_autocomplete(request):
     # TODO: can we use the built-in Django JsonResponse for this?
     response_data = json.dumps({'results': suggestions})
     return HttpResponse(response_data, content_type='application/json')
+
+
+
+def appellation_xml(request, appellation_id):
+    """
+    Return partial quad-xml for an :class:`.Appellation`\.
+    """
+    appellation = Appellation.objects.get(pk=appellation_id)
+    appellation_xml = quadriga.to_appellationevent(appellation, toString=True)
+    return HttpResponse(appellation_xml, content_type='application/xml')
+
+
+def relation_xml(request, relation_id):
+    """
+    Return partial quad-xml for an :class:`.Appellation`\.
+    """
+    relation = Relation.objects.get(pk=relation_id)
+    relation_xml = quadriga.to_relationevent(relation, toString=True)
+    return HttpResponse(relation_xml, content_type='application/xml')
+
+
+def relationset_xml(request, relationset_id):
+    """
+    Return partial quad-xml for an :class:`.Appellation`\.
+    """
+    relationset = RelationSet.objects.get(pk=relationset_id)
+    relation_xml = quadriga.to_relationevent(relationset.root, toString=True)
+    return HttpResponse(relation_xml, content_type='application/xml')
+
+
+def text_xml(request, text_id, user_id):
+    text = Text.objects.get(pk=text_id)
+    user = VogonUser.objects.get(pk=user_id)
+    relationsets = RelationSet.objects.filter(occursIn_id=text_id, createdBy_id=user_id)
+    text_xml = quadriga.to_quadruples(relationsets, text, user, toString=True)
+    r = quadriga.submit_relationsets(relationsets, text, user)
+    print r.text
+    return HttpResponse(text_xml, content_type='application/xml')

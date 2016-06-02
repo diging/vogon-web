@@ -97,3 +97,8 @@ class TestTextFileExtract(unittest.TestCase):
         f.content_type = 'text/plain'
         content = extract_text_file(f)
         self.assertEquals(content.strip(), 'This is a sample content')
+
+
+
+class TextQuadrigaSerialization(unittest.TestCase):
+    pass

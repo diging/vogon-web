@@ -167,7 +167,6 @@ HAYSTACK_CONNECTIONS = {
 
 if es.username:
     HAYSTACK_CONNECTIONS['default']['KWARGS'] = {"http_auth": es.username + ':' + es.password}
-
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 # AWS Access Key and Secret Key credentials
@@ -202,3 +201,10 @@ CONCEPTPOWER_USERID = os.environ.get('CONCEPTPOWER_USERID', None)
 CONCEPTPOWER_PASSWORD = os.environ.get('CONCEPTPOWER_PASSWORD', None)
 CONCEPTPOWER_ENDPOINT = os.environ.get('CONCEPTPOWER_ENDPOINT', 'http://chps.asu.edu/conceptpower/rest/')
 CONCEPTPOWER_NAMESPACE = os.environ.get('CONCEPTPOWER_NAMESPACE', '{http://www.digitalhps.org/}')
+
+QUADRIGA_USERID = os.environ.get('QUADRIGA_USERID', '')
+QUADRIGA_PASSWORD = os.environ.get('QUADRIGA_PASSWORD', '')
+QUADRIGA_ENDPOINT = os.environ.get('QUADRIGA_ENDPOINT', '')
+QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
+
+BASE_URI_NAMESPACE = u'http://www.vogonweb.net'

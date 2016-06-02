@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 
 from concepts.models import Concept
 from django.conf import settings
@@ -20,6 +21,7 @@ from concepts.models import Concept, Type
 from annotations.managers import repositoryManagers
 
 import ast
+import networkx as nx
 
 
 class VogonUserManager(BaseUserManager):
@@ -98,6 +100,10 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
+    @property
+    def uri(self):
+        return settings.BASE_URI_NAMESPACE + reverse('user_details', args=[self.id])
+
 
 class GroupManager(models.Manager):
     """
@@ -160,6 +166,14 @@ class TupleField(models.TextField):
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
         return self.get_prep_value(value)
+
+
+class QuadrigaAccession(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    createdBy = models.ForeignKey('VogonUser', related_name='accessions')
+    project_id = models.CharField(max_length=255, blank=True, null=True)
+    workspace_id = models.CharField(max_length=255, blank=True, null=True)
+    network_id = models.CharField(max_length=255, blank=True, null=True)
 
 
 class TextCollection(models.Model):
@@ -240,6 +254,10 @@ class Annotation(models.Model):
     occursIn = models.ForeignKey("Text")
     created = models.DateTimeField(auto_now_add=True)
     createdBy = models.ForeignKey(VogonUser)
+
+    submitted = models.BooleanField(default=False)
+    submittedOn = models.DateTimeField(null=True, blank=True)
+    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True, null=True)
 
 
 class Interpreted(models.Model):
@@ -342,22 +360,50 @@ class Appellation(Annotation, Interpreted):
     Applies only if the Appellation is a predicate.""")
 
 
+
 class RelationSet(models.Model):
     """
     A :class:`.RelationSet` organizes :class:`.Relation`\s into complete
     statements.
     """
 
-    template = models.ForeignKey('RelationTemplate', blank=True, null=True, related_name='instantiations')
+    template = models.ForeignKey('RelationTemplate', blank=True, null=True,
+                                 related_name='instantiations')
     created = models.DateTimeField(auto_now_add=True)
     createdBy = models.ForeignKey('VogonUser')
     occursIn = models.ForeignKey('Text', related_name='relationsets')
+
+    pending = models.BooleanField(default=False)
+    """
+    A RelationSet is pending if it has been selected for submission, but the
+    submission process has not yet completed.
+    """
+
+    submitted = models.BooleanField(default=False)
+    submittedOn = models.DateTimeField(null=True, blank=True)
+    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True, null=True)
+
+    @property
+    def root(self):
+        if self.constituents.count() == 1:
+            return self.constituents.first()
+        relation_type = ContentType.objects.get_for_model(Relation)
+        dg = nx.DiGraph()
+        for relation in self.constituents.all():
+            for part in ['source', 'object']:
+                if getattr(relation, '%s_content_type' % part).id == relation_type.id:
+                    dg.add_edge(relation.id, getattr(relation, '%s_object_id' % part))
+        return Relation.objects.get(pk=nx.topological_sort(dg)[0])
 
     @property
     def label(self):
         if self.template:
             return self.template.name
         return u'Untemplated relation created by %s at %s' % (self.createdBy, self.created)
+
+    def ready(self):
+        return all(map(lambda s: s == Concept.RESOLVED, self.concepts().values_list('concept_state', flat=True)))
+    ready.boolean = True
 
     def appellations(self):
         """
@@ -379,8 +425,9 @@ class RelationSet(models.Model):
         Get all of the Concept instances connected to non-predicate
         Appellation instances.
         """
-
-        return Concept.objects.filter(pk__in=[obj['interpretation_id'] for obj in self.appellations().values('interpretation_id')])
+        interpretation_ids = [obj['interpretation_id'] for obj
+                              in self.appellations().values('interpretation_id')]
+        return Concept.objects.filter(pk__in=interpretation_ids)
 
 
 class Relation(Annotation):
@@ -509,6 +556,7 @@ class RelationTemplatePart(models.Model):
     object_prompt_text = models.BooleanField(default=True)
     """Indicates whether the user should be asked for evidence for object."""
     object_description = models.TextField(blank=True, null=True)
+
 
 
 

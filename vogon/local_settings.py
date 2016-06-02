@@ -110,7 +110,7 @@ DATABASES = {
 if 'TRAVIS' in os.environ:
     DATABASES['default']['USER'] = 'postgres'
     DATABASES['default']['PASSWORD'] = ''
-    
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
@@ -229,3 +229,12 @@ CONCEPTPOWER_USERID = os.environ.get('CONCEPTPOWER_USERID', None)
 CONCEPTPOWER_PASSWORD = os.environ.get('CONCEPTPOWER_PASSWORD', None)
 CONCEPTPOWER_ENDPOINT = os.environ.get('CONCEPTPOWER_ENDPOINT', 'http://chps.asu.edu/conceptpower/rest/')
 CONCEPTPOWER_NAMESPACE = os.environ.get('CONCEPTPOWER_NAMESPACE', '{http://www.digitalhps.org/}')
+
+
+QUADRIGA_USERID = os.environ.get('QUADRIGA_USERID', 'test')
+QUADRIGA_PASSWORD = os.environ.get('QUADRIGA_PASSWORD', 'test')
+QUADRIGA_ENDPOINT = os.environ.get('QUADRIGA_ENDPOINT', 'http://diging-dev.asu.edu:8081/quadriga-test/rest/network')
+QUADRIGA_PROJECT = os.environ.get('QUADRIGA_PROJECT', 'ASDF-1234')
+QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
+
+BASE_URI_NAMESPACE = u'http://www.vogonweb.net'

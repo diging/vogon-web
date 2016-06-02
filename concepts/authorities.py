@@ -133,7 +133,7 @@ def resolve(sender, instance):
                 manager = manager_class()
                 method = getattr(manager, get_method)
                 concept_data = method(instance.uri)
-                concept_data['label'] = concept_data[label_field]
+                concept_data['label'] = concept_data.get(label_field, 'No label')
                 instance.authority = manager.__name__
 
                 logger.debug(
