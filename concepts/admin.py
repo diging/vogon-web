@@ -48,11 +48,11 @@ class RadioChoiceInputWithDescription(forms.widgets.RadioChoiceInput):
 
     def render(self, name=None, value=None, attrs=None):
         if self.id_for_label:
-            label_for = format_html(' for="{}"', self.id_for_label)
+            label_for = format_html(u' for="{}"', self.id_for_label)
         else:
-            label_for = ''
+            label_for = u''
         attrs = dict(self.attrs, **attrs) if attrs else self.attrs
-        return mark_safe(force_text(format_html('<label{}>{} {} <p class="text-muted">{}</p></label>', label_for, self.tag(attrs), self.choice_label, self.description)))
+        return mark_safe(force_text(format_html(u'<label{}>{} {} <p class="text-muted">{}</p></label>', label_for, self.tag(attrs), self.choice_label, self.description)))
 
     def __str__(self):
         return self.render()
@@ -92,7 +92,7 @@ class RadioFieldRendererWithDescription(forms.widgets.RadioFieldRenderer):
             if isinstance(choice_label, (tuple, list)):
                 attrs_plus = self.attrs.copy()
                 if id_:
-                    attrs_plus['id'] += '_{}'.format(i)
+                    attrs_plus['id'] += u'_{}'.format(i)
                 sub_ul_renderer = RadioFieldRendererWithDescription(
                                                       name=self.name,
                                                       value=self.value,
@@ -108,7 +108,7 @@ class RadioFieldRendererWithDescription(forms.widgets.RadioFieldRenderer):
                 output.append(format_html(self.inner_html,
                                           choice_value=force_text(w), sub_widgets=''))
         return format_html(self.outer_html,
-                           id_attr=format_html(' id="{}"', id_) if id_ else '',
+                           id_attr=format_html(u' id="{}"', id_) if id_ else '',
                            content=mark_safe('\n'.join(output)))
 
 
