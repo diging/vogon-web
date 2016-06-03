@@ -218,6 +218,82 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
+@login_required
+def edit_project(request, project_id):
+    """
+    Modify a project owned by the current (logged-in) user.
+    """
+    if request.method == 'POST':
+        return HttpResponse('')
+
+    return HttpResponse('')
+
+
+@login_required
+def create_project(request):
+    """
+    Create a new project owned by the current (logged-in) user.
+    """
+    if request.method == 'POST':
+        return HttpResponse('')
+
+    return HttpResponse('')
+
+
+@login_required
+def user_project(request, project_id):
+    """
+    Shows details about a specific project owned by the current user.
+    """
+    return HttpResponse('')
+
+@login_required
+def user_projects(request):
+    """
+    Shows a list of the current (logged-in) uers's projects.
+    """
+    return HttpResponse('')
+
+
+@login_required
+def nominate_relationset(request, relationset_id):
+    """
+    Nominate a relationset for submission to Quadriga.
+    """
+
+    # Intermediate page asks for confirmation.
+    if request.method == 'POST':
+        return HttpResponse('')
+
+    return HttpResponse('')
+
+
+@login_required
+def nominate_relationsets_for_text(request, text_id):
+    """
+    Nominate all relationsets for a text for submission to Quadriga.
+    """
+
+    # Intermediate page asks for confirmation.
+    if request.method == 'POST':
+        return HttpResponse('')
+
+    return HttpResponse('')
+
+
+@login_required
+def nominate_relationsets_for_project(request, text_id):
+    """
+    Nominate all relationsets for a project for submission to Quadriga.
+    """
+
+    # Intermediate page asks for confirmation.
+    if request.method == 'POST':
+        return HttpResponse('')
+
+    return HttpResponse('')
+
+
 def user_recent_texts(user):
     """
     Return a list of :class:`.Text`\s recently annotated by a
@@ -233,10 +309,13 @@ def user_recent_texts(user):
     -------
     list
     """
-    by_relations = Text.objects.filter(relation__createdBy__pk=user.id)
-    by_appellations = Text.objects.filter(appellation__createdBy__pk=user.id)
-    result_list = list(set(chain(by_relations, by_appellations)))
-    return result_list
+    by_appellations = user.appellation_set.all().order_by('-created').values_list('occursIn_id', 'occursIn__title', 'created')
+    by_relations = user.relation_set.all().order_by('-created').values_list('occursIn_id', 'occursIn__title', 'created')
+    # by_relations = Text.objects.filter(relation__createdBy__pk=user.id).values_list('id', 'title')
+    # by_appellations = Text.objects.filter(appellation__createdBy__pk=user.id).values_list('id', 'title')
+    results_sorted = sorted(chain([tuple(t) for t in by_relations], [tuple(t) for t in by_appellations]), key=lambda t: t[2])[::-1]
+    results_unique = list(set([(t[0], t[1]) for t in results_sorted]))
+    return results_unique
 
 
 @login_required
@@ -254,11 +333,10 @@ def user_settings(request):
     """
 
     if request.method == 'POST':
-        form = UserChangeForm(request.POST,instance=request.user)
+        form = UserChangeForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('/accounts/profile/')
-
+            return HttpResponseRedirect(reverse('user_details', args=[request.user.id]))
     else:
         form = UserChangeForm(instance=request.user)
         # Assign default image in the preview if no profile image is selected for the user.
@@ -298,6 +376,18 @@ def about(request):
 
 
 @login_required
+def user_annotated_texts(request):
+    recent_texts = user_recent_texts(request.user)
+
+    context = RequestContext(request, {
+        'title': 'My Texts',
+        'user': request.user,
+        'recent_texts': recent_texts,
+        'added_texts': added_texts,
+    })
+    return HttpResponse(template.render(context))
+
+@login_required
 def dashboard(request):
     """
     Provides the user's personalized dashboard.
@@ -312,16 +402,22 @@ def dashboard(request):
     """
 
     template = loader.get_template('annotations/dashboard.html')
-    texts = user_recent_texts(request.user)
-    baselocation = basepath(request)
-    if baselocation[-1] == '/':
-        baselocation = baselocation[:-1]
+
+    recent_texts = user_recent_texts(request.user)
+    added_texts = Text.objects.filter(addedBy_id=request.user.id)\
+                                .order_by('-added')\
+                                .values_list('id', 'title', 'added')
+
+    projects_owned = request.user.collections.all().values_list('id', 'name', 'description')
+    projects_contributed = request.user.contributes_to.all().values_list('id', 'name', 'description')
+
     context = RequestContext(request, {
+        'title': 'Dashboard',
         'user': request.user,
-        'subpath': settings.SUBPATH,
-        'baselocation': baselocation,
-        'texts': texts,
-        'textCount': len(texts),
+        'recent_texts': recent_texts[:5],
+        'added_texts': added_texts[:5],
+        'projects_owned': projects_owned[:5],
+        'projects_contributed': projects_contributed[:5],
         'appellationCount': Appellation.objects.filter(createdBy__pk=request.user.id).filter(asPredicate=False).distinct().count(),
         'relation_count': Relation.objects.filter(createdBy__pk=request.user.id).distinct().count(),
     })
@@ -538,6 +634,151 @@ def _get_recent_annotations(last=20, user=None):
     return dict(sorted(combined_data.items(), key=lambda k: k[0][0])[::-1][:last])
 
 
+def _get_appellations_data(appellations):
+    """
+    Generate appellation summary information for display in the text detail
+    view.
+    """
+    appellations = appellations.order_by('interpretation_id')
+
+    fields = [
+        'interpretation_id',
+        'interpretation__label',
+        'interpretation__typed__label',
+        'interpretation__merged_with_id',
+        'interpretation__merged_with__label',
+        'interpretation__merged_with__typed__label',
+        'occursIn_id',
+        'occursIn__tokenizedContent',
+        'tokenIds',
+        'createdBy_id',
+        'createdBy__username',
+        'created',
+    ]
+
+    appellations = appellations.values(*fields)
+    appellations_data = []
+
+    appellation_creators = set()
+    groupkey = lambda a: a['interpretation__merged_with_id'] if a['interpretation__merged_with_id'] else a['interpretation_id']
+    for concept_id, concept_appellations in groupby(appellations, groupkey):
+        indiv_appellations = []
+        unique_texts = set()
+        for i, appellation in enumerate(concept_appellations):
+            # We have to do this in here, because ``appellation`` is a
+            #  itertools._grouper iterable.
+            if i == 0:
+                if appellation['interpretation__merged_with__typed__label']:
+                    type_label = appellation['interpretation__merged_with__typed__label']
+                elif appellation['interpretation__typed__label']:
+                    type_label = appellation['interpretation__typed__label']
+                else:
+                    type_label = u''
+                if appellation['interpretation__merged_with__label']:
+                    concept_label = appellation['interpretation__merged_with__label']
+                else:
+                    concept_label = appellation['interpretation__label']
+
+            indiv_appellations.append({
+                "text_snippet": get_snippet(appellation),
+                "annotator_id": appellation['createdBy_id'],
+                "annotator_username": appellation['createdBy__username'],
+                "created": appellation['created'],
+            })
+            appellation_creators.add(appellation['createdBy_id'])
+            unique_texts.add(appellation['occursIn_id'])
+
+        num_texts = len(unique_texts) - 1
+        appellations_data.append({
+            "interpretation_id": concept_id,
+            "interpretation_label": concept_label,
+            "interpretation_type": type_label,
+            "appellations": indiv_appellations,
+            "num_texts": num_texts,
+        })
+
+    appellations_data = sorted(appellations_data,
+                               key=lambda a: a['interpretation_label'])
+
+    return appellations_data, appellation_creators
+
+
+def _get_relations_data(relationset_qs):
+    """
+    Organize RelationSets for this text so that we can display them in
+    conjunction with edges in the graph. In other words, grouped by
+    the "source" and "target" of the simplified graphical representation.
+    """
+
+    app_ct = ContentType.objects.get_for_model(Appellation)
+    relationsets_by_interpretation = []
+    relationsets = []
+
+    fields = [
+        'source_content_type_id',
+        'object_content_type_id',
+        'source_object_id',
+        'object_object_id',
+        'predicate__tokenIds',
+        'predicate__interpretation__label',
+        'predicate__interpretation_id',
+    ]
+
+    # Pull out "focal" concepts from the RelationSet. Usually there will
+    #  be only two, but there could be more.
+    for relationset in relationset_qs:
+        appellation_ids = set()
+        for rel in relationset.constituents.all().values(*fields):
+            for part in ['source', 'object']:
+                if rel.get('%s_content_type_id' % part, None) == app_ct.id:
+                    appellation_ids.add(rel['%s_object_id' % part])
+
+        interps = []    # Focal concepts go here.
+        appellations = Appellation.objects.filter(pk__in=appellation_ids, asPredicate=False)
+        appellation_fields = [
+            'interpretation_id',
+            'interpretation__label',
+            'interpretation__typed__label',
+            'interpretation__merged_with_id',
+            'interpretation__merged_with__label',
+            'interpretation__merged_with__typed__label',
+        ]
+        for appellation in appellations.values(*appellation_fields):
+            if appellation['interpretation__merged_with_id']:
+                interps.append((appellation['interpretation__merged_with_id'], appellation['interpretation__merged_with__label']))
+            else:
+                interps.append((appellation['interpretation_id'], appellation['interpretation__label']))
+
+        # Usually there will be only two Concepts here, but for more complex
+        #  relations there could be more.
+        for u, v in combinations(interps, 2):
+            u, v = tuple(sorted([u, v], key=lambda a: a[0]))
+            # This is kind of hacky, but it lets us access the IDs and
+            #  labels more readily below.
+            rset = ((u[0], u[1], v[0], v[1]), relationset)
+            relationsets_by_interpretation.append(rset)
+
+    # Here we sort and group by concept-pairs (u and v, above).
+    skey = lambda r: r[0]
+    rsets = groupby(sorted(relationsets_by_interpretation, key=skey),
+                    key=skey)
+
+    # Each group will be shown as an accordion panel in the view.
+    for (u_id, u_label, v_id, v_label), i_relationsets in rsets:
+        relationsets.append({
+            "source_interpretation_id": u_id,
+            "source_interpretation_label": u_label,
+            "target_interpretation_id": v_id,
+            "target_interpretation_label": v_label,
+            "relationsets": [{
+                "text_snippet": get_snippet_relation(relationset),
+                "annotator": relationset.createdBy,
+                "created": relationset.created,
+            } for _, relationset in i_relationsets]
+        })
+    return relationsets
+
+
 def recent_activity(request):
     """
     Provides summary of activities performed on the system.
@@ -564,8 +805,7 @@ def recent_activity(request):
 @ensure_csrf_cookie
 def text(request, textid):
     """
-    Provides the main text annotation view for logged-in users.
-    Provides summary of the text for non-logged-in users.
+    Provides the main text view.
 
     Parameters
     ----------
@@ -602,148 +842,39 @@ def text(request, textid):
         context_data['userid'] = request.user.id
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
+    elif all([request.user.is_authenticated(), any(access_conditions), mode == 'user_annotations']):
+        template = loader.get_template('annotations/text_user_annotations.html')
+        appellations = Appellation.objects.filter(occursIn_id=textid,
+                                                  asPredicate=False,
+                                                  createdBy=request.user.id)
+        appellations_data, appellation_creators = _get_appellations_data(appellations)
+        relationset_qs = RelationSet.objects.filter(occursIn=textid,
+                                                    createdBy=request.user.id)
+        relationsets = _get_relations_data(relationset_qs)
+        context_data.update({
+            'userid': request.user.id,
+            'appellations_data': appellations_data,
+            'annotators': appellation_creators,
+            'relations': relationsets,
+            'relationsets': [(rset, get_snippet_relation(rset)) for rset in request.user.relationset_set.filter(occursIn=textid)]
+        })
+
+        context = RequestContext(request, context_data)
+        return HttpResponse(template.render(context))
     elif mode == 'annotate':
         return HttpResponseRedirect(reverse('login'))
     else:
         # TODO: pull most of this logic out into helper functions, and move it
         #  out of views.py.
 
-        appellations_data = []
+
         appellations = Appellation.objects.filter(occursIn_id=textid,
                                                   asPredicate=False)
-        appellations = appellations.order_by('interpretation_id')
-
-        fields = [
-            'interpretation_id',
-            'interpretation__label',
-            'interpretation__typed__label',
-            'interpretation__merged_with_id',
-            'interpretation__merged_with__label',
-            'interpretation__merged_with__typed__label',
-            'occursIn_id',
-            'occursIn__tokenizedContent',
-            'tokenIds',
-            'createdBy_id',
-            'createdBy__username',
-            'created',
-        ]
-
-        appellations = appellations.values(*fields)
-
-        appellation_creators = set()
-        groupkey = lambda a: a['interpretation__merged_with_id'] if a['interpretation__merged_with_id'] else a['interpretation_id']
-        for concept_id, concept_appellations in groupby(appellations, groupkey):
-            # print a['interpretation__merged_with_id']
-            indiv_appellations = []
-            unique_texts = set()
-            for i, appellation in enumerate(concept_appellations):
-                # We have to do this in here, because ``appellation`` is a
-                #  itertools._grouper iterable.
-                if i == 0:
-                    if appellation['interpretation__merged_with__typed__label']:
-                        type_label = appellation['interpretation__merged_with__typed__label']
-                    elif appellation['interpretation__typed__label']:
-                        type_label = appellation['interpretation__typed__label']
-                    else:
-                        type_label = u''
-                    if appellation['interpretation__merged_with__label']:
-                        concept_label = appellation['interpretation__merged_with__label']
-                    else:
-                        concept_label = appellation['interpretation__label']
-
-                indiv_appellations.append({
-                    "text_snippet": get_snippet(appellation),
-                    "annotator_id": appellation['createdBy_id'],
-                    "annotator_username": appellation['createdBy__username'],
-                    "created": appellation['created'],
-                })
-                appellation_creators.add(appellation['createdBy_id'])
-                unique_texts.add(appellation['occursIn_id'])
-
-            num_texts = len(unique_texts) - 1
-            appellations_data.append({
-                "interpretation_id": concept_id,
-                "interpretation_label": concept_label,
-                "interpretation_type": type_label,
-                "appellations": indiv_appellations,
-                "num_texts": num_texts,
-            })
-
-        # Organize RelationSets for this text so that we can display them in
-        #  conjunction with edges in the graph. In other words, grouped by
-        #  the "source" and "target" of the simplified graphical representation.
+        appellations_data, appellation_creators = _get_appellations_data(appellations)
         relationset_qs = RelationSet.objects.filter(occursIn=textid)
-        app_ct = ContentType.objects.get_for_model(Appellation)
-        relationsets_by_interpretation = []
-        relationsets = []
+        relationsets = _get_relations_data(relationset_qs)
 
-        fields = [
-            'source_content_type_id',
-            'object_content_type_id',
-            'source_object_id',
-            'object_object_id',
-            'predicate__tokenIds',
-            'predicate__interpretation__label',
-            'predicate__interpretation_id',
-        ]
-
-        # Pull out "focal" concepts from the RelationSet. Usually there will
-        #  be only two, but there could be more.
-        for relationset in relationset_qs:
-            appellation_ids = set()
-            for rel in relationset.constituents.all().values(*fields):
-                for part in ['source', 'object']:
-                    if rel.get('%s_content_type_id' % part, None) == app_ct.id:
-                        appellation_ids.add(rel['%s_object_id' % part])
-
-            interps = []    # Focal concepts go here.
-            appellations = Appellation.objects.filter(pk__in=appellation_ids)
-            appellation_fields = [
-                'interpretation_id',
-                'interpretation__label',
-                'interpretation__typed__label',
-                'interpretation__merged_with_id',
-                'interpretation__merged_with__label',
-                'interpretation__merged_with__typed__label',
-            ]
-            for appellation in appellations.values(*appellation_fields):
-                if appellation['interpretation__merged_with_id']:
-                    interps.append((appellation['interpretation__merged_with_id'], appellation['interpretation__merged_with__label']))
-                else:
-                    interps.append((appellation['interpretation_id'], appellation['interpretation__label']))
-
-            # Usually there will be only two Concepts here, but for more complex
-            #  relations there could be more.
-            for u, v in combinations(interps, 2):
-                u, v = tuple(sorted([u, v], key=lambda a: a[0]))
-                # This is kind of hacky, but it lets us access the IDs and
-                #  labels more readily below.
-                rset = ((u[0], u[1], v[0], v[1]), relationset)
-                relationsets_by_interpretation.append(rset)
-
-        # Here we sort and group by concept-pairs (u and v, above).
-        skey = lambda r: r[0]
-        rsets = groupby(sorted(relationsets_by_interpretation, key=skey),
-                        key=skey)
-
-        # Each group will be shown as an accordion panel in the view.
-        for (u_id, u_label, v_id, v_label), i_relationsets in rsets:
-            relationsets.append({
-                "source_interpretation_id": u_id,
-                "source_interpretation_label": u_label,
-                "target_interpretation_id": v_id,
-                "target_interpretation_label": v_label,
-                "relationsets": [{
-                    "text_snippet": get_snippet_relation(relationset),
-                    "annotator": relationset.createdBy,
-                    "created": relationset.created,
-                } for _, relationset in i_relationsets]
-            })
-
-
-        appellations_data = sorted(appellations_data,
-                                   key=lambda a: a['interpretation_label'])
-        template = loader.get_template('annotations/anonymous_text.html')
+        template = loader.get_template('annotations/text_view.html')
         context_data.update({
             'appellations_data': appellations_data,
             'annotators': appellation_creators,
@@ -864,12 +995,16 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         concept = self.request.query_params.get('concept', None)
         text = self.request.query_params.get('text', None)
         thisuser = self.request.query_params.get('thisuser', False)
+        showsubmitted = self.request.query_params.get('showsubmitted', False)
+
         if thisuser:
             queryset = queryset.filter(createdBy_id=self.request.user.id)
         if concept:
             queryset = queryset.filter(interpretation_id=concept)
         if text:
             queryset = queryset.filter(occursIn_id=text)
+        if not showsubmitted:
+            queryset = queryset.filter(submitted=False)
 
         return queryset
 
@@ -890,6 +1025,7 @@ class RelationSetViewSet(viewsets.ModelViewSet):
 
         textid = self.request.query_params.getlist('text')
         userid = self.request.query_params.getlist('user')
+        showsubmitted = self.request.query_params.get('showsubmitted', False)
 
         if len(textid) > 0:
             queryset = queryset.filter(occursIn__in=[int(t) for t in textid])
@@ -901,6 +1037,9 @@ class RelationSetViewSet(viewsets.ModelViewSet):
         thisuser = self.request.query_params.get('thisuser', False)
         if thisuser:
             queryset = queryset.filter(createdBy_id=self.request.user.id)
+
+        if not showsubmitted:
+            queryset = queryset.filter(submitted=False)
 
         return queryset
 
@@ -1114,13 +1253,15 @@ def upload_file(request):
     """
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
+        form.fields['project'].queryset = form.fields['project'].queryset.filter(ownedBy_id=request.user.id)
         if form.is_valid():
 
             text = handle_file_upload(request, form)
-            return HttpResponseRedirect(reverse('text', args=[text.id]))
+            return HttpResponseRedirect(reverse('text', args=[text.id]) + u'?mode=annotate')
     else:
 
         form = UploadFileForm()
+        form.fields['project'].queryset = form.fields['project'].queryset.filter(ownedBy_id=request.user.id)
 
     template = loader.get_template('annotations/upload_file.html')
     context = RequestContext(request, {
@@ -1328,7 +1469,7 @@ def user_details(request, userid, *args, **kwargs):
         Renders an user details view based on user's authentication status.
     """
     user = get_object_or_404(VogonUser, pk=userid)
-    if request.user.is_authenticated() and request.user.id == int(userid):
+    if request.user.is_authenticated() and request.user.id == int(userid) and request.GET.get('mode', '') == 'edit':
         return HttpResponseRedirect(reverse('settings'))
     else:
         textCount = Text.objects.filter(addedBy=user).count()
@@ -1807,14 +1948,6 @@ def create_from_relationtemplate(request, template_id):
 
     # Index RelationTemplateParts by ID.
     template_parts = {part.id: part for part in template.template_parts.all()}
-    # print template_parts
-    # part_dependencies = nx.DiGraph()
-    # for pid, part in template_parts.iteritems():
-    #     for elem in ['source', 'object']:
-    #         if type(getattr(part, '%s_relationtemplate' % elem)) is RelationTemplatePart:
-    #             part_dependencies.add_edge(pid, getattr(part, '%s_relationtemplate' % elem).id)
-    # print part_dependencies.edges()
-    # raise AttributeError('')
 
     if request.POST:
         relations = {}
@@ -2058,7 +2191,6 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             #  into field lookups. If there is no master/target concept, we will
             #  simply interpolate an empty string.
             if obj.get('interpretation__merged_with__id'):
-                print 'merged!',obj.get('interpretation__merged_with__id')
                 mw = 'merged_with__'
             else:
                 mw = ''
@@ -2413,6 +2545,5 @@ def text_xml(request, text_id, user_id):
     user = VogonUser.objects.get(pk=user_id)
     relationsets = RelationSet.objects.filter(occursIn_id=text_id, createdBy_id=user_id)
     text_xml = quadriga.to_quadruples(relationsets, text, user, toString=True)
-    r = quadriga.submit_relationsets(relationsets, text, user)
-    print r.text
+    # r = quadriga.submit_relationsets(relationsets, text, user)
     return HttpResponse(text_xml, content_type='application/xml')

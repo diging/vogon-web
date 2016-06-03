@@ -177,6 +177,9 @@ class QuadrigaAccession(models.Model):
 
 
 class TextCollection(models.Model):
+    """
+    This is referred to as a "Project" in most cases.
+    """
     name = models.CharField(max_length=255)
     description = models.TextField()
 
@@ -373,10 +376,18 @@ class RelationSet(models.Model):
     createdBy = models.ForeignKey('VogonUser')
     occursIn = models.ForeignKey('Text', related_name='relationsets')
 
+    nominated = models.BooleanField(default=False)
+    """
+    A user can nominate a RelationSet for submission to Quadriga. If the
+    relationset is ready, then it will be selected for submission.
+    """
+    nominatedOn = models.DateTimeField(null=True, blank=True)
+
     pending = models.BooleanField(default=False)
     """
     A RelationSet is pending if it has been selected for submission, but the
-    submission process has not yet completed.
+    submission process has not yet completed. The primary purpose of this field
+    is to prevent duplicate submissions.
     """
 
     submitted = models.BooleanField(default=False)
@@ -402,7 +413,20 @@ class RelationSet(models.Model):
         return u'Untemplated relation created by %s at %s' % (self.createdBy, self.created)
 
     def ready(self):
-        return all(map(lambda s: s == Concept.RESOLVED, self.concepts().values_list('concept_state', flat=True)))
+        """
+        Check whether or not the constituent :class:`.Concept`\s in this
+        :class:`.RelationSet` have been resolved (or merged).
+
+        This aids the process of submitting annotations to Quadriga: all
+        :class:`.Concept`\s must be present in Conceptpower prior to submission.
+
+        Returns
+        -------
+        bool
+        """
+        criteria = lambda s: s[0] == Concept.RESOLVED or s[1]
+        values = self.concepts().values_list('concept_state', 'merged_with')
+        return all(map(criteria, values))
     ready.boolean = True
 
     def appellations(self):

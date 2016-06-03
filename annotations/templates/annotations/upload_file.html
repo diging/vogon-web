@@ -6,92 +6,92 @@
 
 <script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
 <div id="main">
-    <div class="row">
-        <div class="col-sm-4 col-sm-offset-4">
-            <div id="upload" class="panel panel-default narrow center">
-                <div class="panel-heading">Upload File</div>
-                <form action="{{ app_path }}" enctype="multipart/form-data" method="post" id="upload-form" class="form-horizontal" style="margin-bottom: 5px;">
-                    {% csrf_token %}
-                    <br>
-                    {% if form.non_field_errors %}
-                    <div class="col-sm-10 col-sm-offset-1">
-                        {% for error in form.non_field_errors %}
-                        <p class="errornote">
-                            <span class="label label-danger">ERROR: {{ error }}</span>
-                        </p>
-                        {% endfor %}
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-8 col-sm-offset-2">
+                <form action="{{ app_path }}"
+                    enctype="multipart/form-data"
+                    method="post" id="upload-form"
+                    class="form-horizontal" >
+                <div id="upload" class="panel center">
+                    <div class="panel-heading">
+                        <span class="h3">Add a new text</span>
                     </div>
-                    {% endif %}
-                    <div class="form-group">
-                        <div class="col-sm-10 col-sm-offset-1">
-                            {% for error in form.title.errors %}
-                            <span class="label label-danger">ERROR: {{ error }}</span>
+                        {% csrf_token %}
+                        <div class="panel-body" style="padding: 25px;">
+                            <p class="text-info">
+                                Use the form below to add a new text to VogonWeb. Currently VogonWeb only accepts plain text files
+                                for annotation, but very soon we'll support PDFs, images, and other non-textual material. If you do
+                                not wish to make this text publicly accessible (e.g. if you are not authorized to distribute it), leave
+                                the "Make this text public" option un-checked.
+                            </p>
+                            {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                            <p class="errornote">
+                                <span class="label label-danger">{{ error }}</span>
+                            </p>
                             {% endfor %}
-                        </div>
-                        <div class="col-sm-10 col-sm-offset-1">
-                            <label for="filetoupload" class="required control-label ">{{ form.title.label }}</label>
-                            {{ form.title | addcss:"form-control" }}
-                        </div>
-                    </div>
+                            {% endif %}
+                            <div class="form-group">
+                                {% for error in form.title.errors %}
+                                <span class="label label-danger">{{ error }}</span>
+                                {% endfor %}
+                                <label for="filetoupload" class="required control-label ">{{ form.title.label }}</label>
+                                {{ form.title | addcss:"form-control" }}
+                            </div>
+                            <div class="form-group">
+                                {% for error in form.datecreated.errors %}
+                                <span class="label label-danger">{{ error }}</span>
+                                {% endfor %}
 
-                    <div class="form-group">
-                        <div class="col-sm-10 col-sm-offset-1">
-                            {% for error in form.datecreated.errors %}
-                            <span class="label label-danger">ERROR: {{ error }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="col-sm-10 col-sm-offset-1">
-                            <label for="filetoupload" class="required control-label ">{{ form.datecreated.label }}</label>
-                            <div class="input-group input-append date" id="datePicker">
-                                {{ form.datecreated | addcss:"form-control" }}
-                                <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
+                                <label for="filetoupload" class="required control-label ">{{ form.datecreated.label }}</label>
+                                <div class="input-group input-append date" id="datePicker">
+                                    {{ form.datecreated | addcss:"form-control" }}
+                                    <span class="input-group-addon add-on"><span class="glyphicon glyphicon-calendar"></span></span>
+                                </div>
+
+                                <script>
+                                $(document).ready(function() {
+                                    $('#datePicker')
+                                    .datepicker({
+                                        format: 'mm/dd/yyyy'
+                                    });
+                                });
+                                </script>
+                            </div>
+                            <div class="form-group">
+                                {% for error in form.filetoupload.errors %}
+                                <span class="label label-danger">{{ error }}</span>
+                                {% endfor %}
+
+                                <label for="filetoupload" class="required control-label">{{ form.filetoupload.label }}</label>
+                                {{ form.filetoupload | addcss:"form-control" }}
+                            </div>
+                            <div class="form-group">
+                                {% for error in form.project.errors %}
+                                <span class="label label-danger">{{ error }}</span>
+                                {% endfor %}
+                                <label for="project" class="required control-label ">{{ form.project.label }}</label>
+                                {{ form.project | addcss:"form-control" }}
                             </div>
 
-                            <script>
-                            $(document).ready(function() {
-                                $('#datePicker')
-                                .datepicker({
-                                    format: 'mm/dd/yyyy'
-                                });
-                            });
-                            </script>
-
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-sm-10 col-sm-offset-1">
-                            {% for error in form.filetoupload.errors %}
-                            <span class="label label-danger">ERROR: {{ error }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="col-sm-10 col-sm-offset-1">
-                            <label for="filetoupload" class="required control-label">{{ form.filetoupload.label }}</label>
-                            {{ form.filetoupload | addcss:"form-control" }}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-sm-10 col-sm-offset-1">
-                            {% for error in form.ispublic.errors %}
-                            <span class="label label-danger">ERROR: {{ error }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="col-sm-10 col-sm-offset-1">
-                            <label for="filetoupload" class="required control-label ">{{ form.ispublic.label }}</label>
-                            {{ form.ispublic }}
-                            <p class="text text-muted text-small"><i>{{ form.ispublic.help_text }}</i></p>
-                        </div>
-                    </div>
-
-                    <div class="panel-footer clearfix">
-                        <div class="submit-row btn-group btn-group-sm">
-                            <input type="submit" class="btn btn-primary" value="Upload" />
+                            <div class="form-group">
+                                {% for error in form.ispublic.errors %}
+                                <span class="label label-danger">{{ error }}</span>
+                                {% endfor %}
+                                <label for="filetoupload" class="required control-label ">{{ form.ispublic.label }}</label>
+                                {{ form.ispublic }}
+                                <p class="text text-muted text-small"><i>{{ form.ispublic.help_text }}</i></p>
+                            </div>
+                            <div class="submit-row btn-group btn-group-sm pull-right">
+                                <input type="submit" class="btn btn-primary" value="Upload" />
+                            </div>
                         </div>
                     </div>
                 </form>
             </div>
-        </div>
-    </di>
+        </di>
+    </div>
+</div>
 </div>
 {% endblock main %}

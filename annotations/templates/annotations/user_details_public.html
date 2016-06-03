@@ -7,7 +7,10 @@
 		height="200px"
 		class="img img-responsive pull-right">
 	</img>
-	<div class="h2">{{ detail_user.username }}{% if detail_user.full_name %} <small>| {{ detail_user.full_name}}</small>{% endif %}</div>
+	<div class="h2">{{ detail_user.username }}
+        {% if detail_user.full_name %} <small>| {{ detail_user.full_name}}</small>{% endif %}
+        {% if detail_user.id == user.id %}<a class="btn btn-md" href="{% url "settings" %}">Edit</a>{% endif %}
+    </div>
 	{% if detail_user.conceptpower_uri %}
 	<p class="text-warning text-small">{{ detail_user.conceptpower_uri }}</p>
 	{% endif %}

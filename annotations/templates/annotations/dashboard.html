@@ -5,29 +5,122 @@
 
 <div class="container">
     <h1 class="page-header">Welcome back, {{ user.username }}</small></h1>
-    <div class="row">
-        <div class="col-sm-4">
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="h4">My Texts</span>
+
+        <ul class="nav nav-tabs nav-justified">
+            <li class="active clearfix">
+                <a id="textTabAnchor"
+                    class="action-tab-anchor h4"
+                    data-target="#texts"
+                    data-toggle="tab">My Texts</a>
+            </li>
+            <li>
+                <a id="annotationTabAnchor"
+                    class="action-tab-anchor h4"
+                    data-target="#annotations"
+                    data-toggle="tab">My Annotations</a>
+            </li>
+            <li>
+                <a id="projectTabAnchor"
+                    class="action-tab-anchor h4"
+                    data-target="#projects"
+                    data-toggle="tab">My Projects</a>
+            </li>
+
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade in active" id="texts">
+                <div class="panel">
+                    <div class="container-fluid" style="padding-top: 10px;">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="panel">
+                                    <div class="panel-heading clearfix">
+                                        <span class="h4">Recently Annotated</span>
+                                        <span class="pull-right btn-group">
+                                            <a href="" class="btn btm-xs">View all</a>
+                                        </span>
+                                    </div>
+                                    <div class="list-group">
+                                        {% for text in recent_texts %}
+                                        <a class="list-group-item" href="{% url "text" text.0 %}">{{ text.1 }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="panel">
+                                    <div class="panel-heading clearfix">
+                                        <span class="h4">Recently Added</span>
+                                        <span class="pull-right btn-group">
+                                            <a href="" class="btn btm-xs">View all</a>
+                                            <a href="{% url "file_upload" %}" class="btn btm-xs">Add</a>
+                                        </span>
+                                    </div>
+                                    <div class="list-group">
+                                        {% for text in added_texts %}
+                                        <a class="list-group-item" href="{% url "text" text.0 %}">{{ text.1 }}</a>
+                                        {% endfor %}
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
+            </div>
+            <div class="tab-pane fade in" id="annotations">
+                <div class="panel">
+
+                </div>
+            </div>
+            <div class="tab-pane fade in" id="projects">
+                <div class="panel">
+                    <div class="container-fluid" style="padding-top: 10px;">
+                        <div class="row">
+                            <div class="col-sm-{% if projects_contributed|length > 0 %}6{% else %}12{% endif %}">
+                                <div class="panel">
+                                    <div class="panel-heading clearfix">
+                                        <span class="h4">
+                                            Projects I Own
+                                        </span>
+                                        <div class="pull-right btn-group">
+                                            <a href="" class="btn btm-xs">View all</a>
+                                            <a href="" class="btn btm-xs">Create</a>
+                                        </div>
+
+                                    </div>
+                                    <div class="list-group">
+                                        {% for project in projects_owned %}
+                                        <a class="list-group-item" href="">{{ project.1 }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% if projects_contributed|length > 0 %}
+                            <div class="col-sm-6">
+                                <div class="panel">
+                                    <div class="panel-heading clearfix">
+                                        <span class="h4">Projects I Contribute To</span>
+                                        <span class="pull-right btn-group">
+                                            <a href="" class="btn btm-xs">View all</a>
+                                        </span>
+                                    </div>
+                                    <div class="list-group">
+                                        {% for project in projects_contributed %}
+                                        <a class="list-group-item" href="">{{ project.1 }}</a>
+                                        {% endfor %}
+                                    </div>
+
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-sm-4">
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="h4">My Annotations</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="h4">My Projects</span>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 

@@ -67,21 +67,29 @@ def validatefiletype(file):
     ValidationError
         Raises this exception if uploaded file is neither plain text nor PDF
     """
-    if file.content_type != 'application/pdf' and file.content_type != 'text/plain':
-        raise ValidationError('Please choose a plain text file or PDF file')
+    # TODO: add PDF back in once we have a better system in place for processing
+    #  large uploads.
+    if file.content_type != 'text/plain':    # file.content_type != 'application/pdf' and
+        raise ValidationError('Please choose a plain text file')
+
 
 class UploadFileForm(forms.Form):
     title = forms.CharField(label='Title:', max_length=255, required=True)
-    ispublic = forms.BooleanField(label='Make this text public?',
+    ispublic = forms.BooleanField(label='Make this text public',
                 required=False,
-                help_text='By checking this box you affirm that you have the\n'+
+                help_text='By checking this box you affirm that you have the '+
                           'right to make this file publicly available.')
-    filetoupload = forms.FileField(label='Choose a file (plain text or PDF):',
+    filetoupload = forms.FileField(label='Choose a plain text file:',
                 required=True,
                 validators=[validatefiletype])
     datecreated = forms.DateField(label='Date created:',
                 required=False,
                 widget=forms.TextInput(attrs={'class':'datepicker'}))
+
+    project = forms.ModelChoiceField(queryset=TextCollection.objects.all(),
+                                     required=False,
+                                     label='Add to project',
+                                     help_text='You can always add this text to a project later.')
 
 
 class UserCreationForm(forms.ModelForm):
@@ -114,36 +122,14 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = VogonUser
-        fields = ('full_name', 'email', 'affiliation', 'location','imagefile','link')
+        fields = ('full_name', 'email', 'affiliation', 'location', 'imagefile',
+                   'link')
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
         # This is done here, rather than on the field, because the
         # field does not have access to the initial value
         return self.initial.get("password")
-
-    def clean_email(self):
-        if not self.cleaned_data.get('email'):
-            raise ValidationError(_('Missing email.'), code='required')
-        else:
-            return self.cleaned_data['email']
-
-    def clean_full_name(self):
-        if not self.cleaned_data.get('full_name'):
-            raise ValidationError(_('Missing full name.'), code='required')
-
-    def clean_affiliation(self):
-        if not self.cleaned_data.get('affiliation'):
-            raise ValidationError(_('Missing affiliation.'), code='required')
-
-    def clean_location(self):
-        if not self.cleaned_data.get('location'):
-            raise ValidationError(_('Missing location.'), code='required')
-
-    def clean_link(self):
-        if not self.cleaned_data.get('link'):
-            raise ValidationError(_('Missing link.'), code='required')
-
 
 
 class AutocompleteWidget(widgets.TextInput):

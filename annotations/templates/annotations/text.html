@@ -98,6 +98,7 @@
             <div class="row" style="padding: 5px;">
                 <ul class="nav nav-pills">
                      <li class="active"><a href="{% url 'text' text.id %}?mode=annotate">Annotate</a></li>
+                     <li><a href="{% url 'text' text.id %}?mode=user_annotations">My Annotations</a></li>
                      <li><a href="{% url 'text' text.id %}">View</a></li>
                 </ul>
             </div>
@@ -123,8 +124,7 @@
                     <p class="h5 text-muted">
                         This text was added by <a href="{% url 'user_details' text.addedBy.id %}">{{text.addedBy.username}}</a>
                         on {{ text.added }} {% if text.annotation_count > 0 %}<strong>{{text.annotation_count}}</strong> appellations and
-                        <strong>{{text.relation_count}}</strong> relations have been encoded by {{ annotators|length }}
-                        user{% if annotators|length > 1 %}s{% endif %} on the basis of this text.{% endif %}
+                        <strong>{{text.relation_count}}</strong> relations have been encoded on the basis of this text.{% endif %}
                     </p>
 
                     <div class="panel panel-default">
