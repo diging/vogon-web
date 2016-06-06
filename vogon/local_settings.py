@@ -73,6 +73,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'annotations.context_processors.google',
+                'annotations.context_processors.version',
             ],
         },
     },
@@ -195,6 +197,8 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'vogon',
     },
 }
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
 
 import djcelery
 djcelery.setup_loader()
@@ -250,3 +254,7 @@ CELERYBEAT_SCHEDULE = {
 }
 
 CELERY_TIMEZONE = 'UTC'
+
+GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)
+
+VERSION = '0.4'

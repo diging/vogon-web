@@ -57,367 +57,365 @@ $('body').on('hide.bs.collapse', function(e) {
 });
 </script>
 
-<div id="header" class="navbar-home">
-	<nav class="navbar navbar-inverse navbar-inverse-transparent">
-		<div class="container-fluid">
 
-			<div class="navbar-header">
-				<a class="navbar-brand" href="{% url "home" %}">
-					<img alt="Brand" src="{% static "annotations/img/VogonTiny.png" %}" height="100%" />
-				</a>
-				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-			</div>
+    <div id="header" class="navbar-home">
+    	<nav class="navbar navbar-inverse navbar-inverse-transparent">
+    		<div class="container-fluid">
 
-
-			<div id="navbar" class="collapse navbar-collapse">
-				<ul class="nav navbar-nav">
-					<li><a href="{% url "dashboard" %}">Dashboard</a></li>
-					<li class="dropdown">
-						<a href="#"
-							class="dropdown-toggle"
-							data-toggle="dropdown"
-							role="button"
-							aria-haspopup="true"
-							aria-expanded="false">Texts <span class="caret"></span>
-						</a>
-						<ul class="dropdown-menu">
-							<li><a href="{% url "text_search" %}">All Texts</a></li>
-							<li><a href="{% url "collection_list" %}">Collections</a></li>
-						</ul>
-
-					</li>
-					<li><a href="{% url "network" %}">Network</a></li>
-					<li><a href="{% url "user" %}">Contributors</a></li>
-					<li><a href="{% url "about" %}">About</a></li>
-				</ul>
-				<div class="dropdown pull-right" id="userdropdown">
-					{% if user.is_authenticated  %}
-					<button class="btn btn-default dropdown-toggler" type="button" id="usermenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-						{{ user.username }}
-						<span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu" aria-labelledby="usermenu">
-						<li><a href="/accounts/profile/">Dashboard</a></li>
-						<li><a href="/accounts/settings/">Settings</a></li>
-						<li><a href="/accounts/logout/">Log Out</a></li>
-						{% if user.is_staff %}
-							<li><a href="/admin/">Admin Site</a></li>
-						{% endif %}
-					</ul>
-					{% else %}
-					<div class="btn-group" role="group" aria-label="usermgmt">
-						<a href="/accounts/register/" class="btn btn-primary" id="registerButton">Register</a>
-						<a href="/accounts/login/" class="btn btn-primary" id="loginButton">Log In</a>
-					</div>
-					{% endif %}
-				</div>
-			</div><!--/.nav-collapse -->
-		</div>
-	</nav>
-
-    <div class="container-fluid nav-hide" style="margin-top: 15px;" id="jumbo">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="jumbotron jumbotron-transparent">
-                    <!-- <div class="container"> -->
-                        <div class="h1" style="padding: 15px;">
-							Build the Epistemic Web
-							<div class="small text-right"
-								style="margin-top: 10px; margin-bottom: 10px; ">knowledge is more than the printed word</div>
-						</div>
-
-                        <p>
-							The bedrock of our collective knowledge is the intepretation of texts. The epistemic web moves
-							knowledge-making <strong>out of the cloisters and into the light of day</strong>
-							by extending the semantic web to support the subjectivity of the interpretive process. Encode
-							your interpretations of texts&mdash;from scholarly works to websites&mdash;and
-                            help build the epistemic web.
-                        </p>
-						<div id="floatingMarker" style="visibility: hidden;"></div>
-						<div id="floatingButtons">
-							<div class="text-center">
-								<div class="col-xs-4 text-center"
-									style="padding: 0px;">
-									<a class="btn btn-md btn-success scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
-										target="#build">Build</a>
-								</div>
-								<div class="col-xs-4 text-left"
-									style="padding: 0px;">
-									<a class="btn btn-md btn-success scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
-										target="#search">Search</a>
-								</div>
-								<div class="col-xs-4 text-right"
-									style="padding: 0px;">
-		                            <a class="btn btn-md btn-success scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
-										target="#explore">Explore</a>
-								</div>
-							</div>
-							<script>
-							$('.scrollButton').click(function(e) {
-								// Scroll to the selected section, but back off
-								//  far enough that the button element does not
-								//  lay on top of the content in that section.
-								var elem = $(e.target);
-								var section = $(elem.attr('target'));
-								var targetTop = section.offset().top - 68;
-								$(window).scrollTop(targetTop);
-							});
-							</script>
-						</div>
-
-                    <!-- </div> -->
-                </div>
-				<div class="row">
-					<div class="col-xs-8 col-xs-offset-2">
-						<div class="panel" style="background-color: rgba(255, 255, 255, 0.7);">
-							{% if recent_combination|length > 0 %}
-								<div class="activity-list text-center"
-									style="max-height: 40px; overflow-y: scroll;">
-									{% for key, item in recent_combination.items %}
-									<p class="activity-list-item invisible-item">
-										<a href="{% url "user_details" key.2 %}"><b>{{ key.1 }}</b></a> added
-										{% if item.appelation_count > 1 %}<b>{{ item.appelation_count }}</b> appellations{% endif %}
-										{% if item.appelation_count == 1 %}<b>{{ item.appelation_count }}</b> appellation{% endif %}
-										{% if item.relation_count > 0 and item.appelation_count > 0 %}and   {% endif %}
-										 {% if item.relation_count == 1 %}<b>{{ item.relation_count }}</b> relation{% endif %}
-										{% if item.relation_count > 1 %}<b>{{ item.relation_count }}</b> relations{% endif %}
-										<b>{{ key.0 |timesince }}</b> ago
-									</p>
-									{% endfor %}
-								</div>
-
-							{% endif %}
-							<style>
-								.visible-item {
-									display: block;
-								}
-								.invisible-item {
-									display: none;
-								}
-							</style>
-							<script>
-								// Rotate the recent activity item displayed below
-								//  the jumbotron.
-								var activityList = $('.activity-list');
-								var activities = [];
-								$('.activity-list-item').each(function(i, item) {
-									activities.push(item);
-								});
-								var currentActivity = 0;
-								var cycleActivity = function() {
-									if (currentActivity + 1 >= activities.length) {
-										currentActivity = 0;
-									} else {
-										currentActivity += 1;
-									}
-									$(activities[currentActivity]).removeClass('invisible-item');
-
-									activities.forEach(function(activity, i) {
-										if (i != currentActivity) {
-											$(activity).addClass('invisible-item');
-										}
-									})
-								}
-								cycleActivity();
-								setInterval(cycleActivity, 3000);
-							</script>
-						</div>
-					</div>
-
-				</div>
-            </div>
-
-        </div>
-    </div>
-    <div class="text text-warning text-tiny brand-footer-left">
-        Modified version of photograph by <a href="https://commons.wikimedia.org/wiki/User:Diliff">Diliff</a>, released under <a href="http://creativecommons.org/licenses/by/2.5">CC BY 2.5</a>
-    </div>
-    <div class="container-fluid">
-        <div class="row">
-
-        </div>
-    </div>
-
-</div>
+    			<div class="navbar-header">
+    				<a class="navbar-brand" href="{% url "home" %}">
+    					<img alt="Brand" src="{% static "annotations/img/VogonTiny_beta.png" %}" height="100%" />
+    				</a>
+    				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+    					<span class="sr-only">Toggle navigation</span>
+    					<span class="icon-bar"></span>
+    					<span class="icon-bar"></span>
+    					<span class="icon-bar"></span>
+    				</button>
+    			</div>
 
 
-{% endblock %}
+    			<div id="navbar" class="collapse navbar-collapse">
+    				<ul class="nav navbar-nav">
+    					<li><a href="{% url "dashboard" %}">Dashboard</a></li>
+    					<li class="dropdown">
+    						<a href="#"
+    							class="dropdown-toggle"
+    							data-toggle="dropdown"
+    							role="button"
+    							aria-haspopup="true"
+    							aria-expanded="false">Texts <span class="caret"></span>
+    						</a>
+    						<ul class="dropdown-menu">
+    							<li><a href="{% url "text_search" %}">All Texts</a></li>
+    							<li><a href="{% url "collection_list" %}">Collections</a></li>
+    						</ul>
 
-{% block main %}
-<script src="{% static "annotations/js/spin.min.js" %}"></script>
-<script src="{% static "annotations/js/jquery.spin.js" %}"></script>
+    					</li>
+    					<li><a href="{% url "network" %}">Network</a></li>
+    					<li><a href="{% url "user" %}">Contributors</a></li>
+    					<li><a href="{% url "about" %}">About</a></li>
+    				</ul>
+    				<div class="dropdown pull-right" id="userdropdown">
+    					{% if user.is_authenticated  %}
+    					<button class="btn btn-default dropdown-toggler" type="button" id="usermenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    						{{ user.username }}
+    						<span class="caret"></span>
+    					</button>
+    					<ul class="dropdown-menu" aria-labelledby="usermenu">
+    						<li><a href="/accounts/profile/">Dashboard</a></li>
+    						<li><a href="/accounts/settings/">Settings</a></li>
+    						<li><a href="/accounts/logout/">Log Out</a></li>
+    						{% if user.is_staff %}
+    							<li><a href="/admin/">Admin Site</a></li>
+    						{% endif %}
+    					</ul>
+    					{% else %}
+    					<div class="btn-group" role="group" aria-label="usermgmt">
+    						<a href="/accounts/register/" class="btn btn-primary" id="registerButton">Register</a>
+    						<a href="/accounts/login/" class="btn btn-primary" id="loginButton">Log In</a>
+    					</div>
+    					{% endif %}
+    				</div>
+    			</div><!--/.nav-collapse -->
+    		</div>
+    	</nav>
 
-<script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
-<script>
-var networkEndpoint = '{% url "network-data" %}',
-    networkParams = null,
-    networkContainerSelector = '#networkViewport';
-</script>
+        <div class="container-fluid nav-hide" style="margin-top: 15px;" id="jumbo">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="jumbotron jumbotron-transparent">
+                        <!-- <div class="container"> -->
+                            <div class="h1" style="padding: 15px;">
+    							Build the Epistemic Web
+    							<div class="small text-right"
+    								style="margin-top: 10px; margin-bottom: 10px; ">knowledge is more than the printed word</div>
+    						</div>
 
-<div id="build" class="container-fluid section" style="margin-top: 15px;">
-	<div class="text-center panel-heading">
-		<span class="pull-right">
-			Get started! Log in with <a href="#" class="fa fa-github" aria-hidden="true"> GitHub</a>
-		</span>
-		<div class="h1">Let's build the epistemic web, together.</div>
-		<p>
-			The concept of the epistemic web was first introduced by
-			<a href="http://www.edition-open-access.de/studies/1/36/index.html">Malcolm Hyman and Jürgen Renn</a> as a new
-			chapter in the history of knowledge representation. While the semantic web represents knowledge as a static graph of
-			concepts and propositions, the epistemic web encodes the multi-dimensional contexts in which those concepts and
-			propositions emerge: the texts that embed them, the times, places, and contexts of interpretation that constitute
-			local forms and moments of knowledge and knowledge-making.
-		</p>
-	</div>
-	<div class="text-center row">
-		<div class="col-sm-4 text-center">
-			<div class="responsive-h2">1. Digital Texts</div>
-			<div class="row">
-				<img class="img img-responsive img-rounded col-xs-8 col-xs-offset-2"
-					style="border: 2px solid gray; padding: 0px;"
-					src="{% static 'annotations/images/text.png' %}" />
-			</div>
-			<div class="row">
-				<p class="responsive-p col-xs-10 col-xs-offset-1">
-					Everything begins with texts: digitized archival materials, images, webpages,
-					even your own publications. Upload texts to our secure server, or select texts
-					from an online repository.
-				</p>
-			</div>
-			<p>
-				<a href="#">What can I annotate?</a>
-			</p>
-		</div>
-		<div class="col-sm-4">
-			<div class="responsive-h2">2. Annotate</div>
-			<div class="row">
-				<img class="img img-responsive img-rounded col-xs-8 col-xs-offset-2"
-					style="border: 2px solid gray; padding: 0px;"
-					src="{% static 'annotations/images/annotated.png' %}" />
-			</div>
-			<div class="row">
-				<p class="responsive-p col-xs-10 col-xs-offset-1">
-					Tag phrases or passages with concepts and relationships that matter to
-					<span class="heavy">your research</span>. You don't need a rigid ontology.
-					Use concepts from existing authorities, or create your own.
-				</p>
-			</div>
-			<p>
-				<a href="#">How does it work?</a>
-			</p>
-		</div>
-		<div class="col-sm-4">
-			<div class="responsive-h2">3. Share, Search, Explore</div>
-			<div class="row">
-				<img class="img img-responsive img-rounded col-xs-8 col-xs-offset-2"
-					style="border: 2px solid gray; padding: 0px;"
-					src="{% static 'annotations/images/graph.png' %}" />
-			</div>
-			<div class="row">
-				<p class="responsive-p col-xs-10 col-xs-offset-1">
-					Your annotations join a rapidly-growing searchable database of interpretations.
-					See how the concepts in your project connect to a broader landscape of
-					actors, events, and ideas.
-				</p>
-			</div>
-			<p>
-				<a href="#">What use is that, anyway?</a>
-			</p>
-		</div>
-	</div>
+                            <p>
+    							The bedrock of our collective knowledge is the intepretation of texts. The epistemic web moves
+    							knowledge-making <strong>out of the cloisters and into the light of day</strong>
+    							by extending the semantic web to support the subjectivity of the interpretive process. Encode
+    							your interpretations of texts&mdash;from scholarly works to websites&mdash;and
+                                help build the epistemic web.
+                            </p>
+    						<div id="floatingMarker" style="visibility: hidden;"></div>
+    						<div id="floatingButtons">
+    							<div class="text-center">
+    								<div class="col-xs-4 text-center"
+    									style="padding: 0px;">
+    									<a class="btn btn-md btn-success scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
+    										target="#build">Build</a>
+    								</div>
+    								<div class="col-xs-4 text-left"
+    									style="padding: 0px;">
+    									<a class="btn btn-md btn-success scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
+    										target="#search">Search</a>
+    								</div>
+    								<div class="col-xs-4 text-right"
+    									style="padding: 0px;">
+    		                            <a class="btn btn-md btn-success scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
+    										target="#explore">Explore</a>
+    								</div>
+    							</div>
+    							<script>
+    							$('.scrollButton').click(function(e) {
+    								// Scroll to the selected section, but back off
+    								//  far enough that the button element does not
+    								//  lay on top of the content in that section.
+    								var elem = $(e.target);
+    								var section = $(elem.attr('target'));
+    								var targetTop = section.offset().top - 68;
+    								$(window).scrollTop(targetTop);
+    							});
+    							</script>
+    						</div>
 
-</div>
-
-<div id="search"
-    class="container-fluid section section-alt"
-    style="margin-top: 15px; padding: 15px;">
-    <div style="color:white;"
-        class="text-center">
-        Start typing in the search bar below to find concepts in the epistemic
-        web.
-    </div>
-	<div class="input-group input-group-lg col-xs-10 col-xs-offset-1"
-		style="margin-top: 10px;">
-        <form class="autocomplete" method="GET" action=".">
-
-                    <input autocomplete="off" maxlength="255" class="form-control" type="text" name="q" placeholder="Search the epistemic web...">
-
-        </form>
-
-	</div>
-    <div class="row" style="margin-top: 20px;">
-        <div class="col-xs-10 col-xs-offset-1">
-            <div class="panel autocomplete-container">
-                <ul class="list-group autocomplete-results"
-                    id="autocomplete-results">
-                </ul>
-            </div>
-        </div>
-    </div>
-    {% include "annotations/autocomplete.html" %}
-</div>
-
-
-
-
-<div id="explore" class="container-fluid section" style="margin-top: 15px;">
-    <div class="text-center panel-heading">
-		<div class="h1">Explore the epistemic web</div>
-        <p>
-            Each node in the graph below represents a concept that has been used in annotations by VogonWeb users.
-            Click on a node to see the texts in which that concept occurs. Click on an edge to see how two concepts
-            are thought to be related. For more control over the network visualization, try the
-            <a href="{% url "network" %}">network browser</a>.
-        </p>
-        <p class="text-small text-muted">
-            Hint: use your mousewheel or trackpad to zoom in and out. Click and drag on
-            empty space to pan.
-        </p>
-    </div>
-    <div class="row">
-        <div class="col-sm-8">
-            <div class="panel" id="networkPanel">
-                <div id="networkViewport"></div>
-            </div>
-        </div>
-            <!-- <div class="row"> -->
-        <div class="col-sm-4">
-            <div class="alert alert-success text-small" id="networkAlert">
-                Click on a node or edge for details. Use your mousewheel or trackpad to zoom. Click and drag to pan.
-            </div>
-            <div class="panel selection-details-panel" style="display: none;">
-                <div class="panel-body" id="concept-details">
-                    <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
-                    <div id="concept-uri" class="text text-muted text-tiny"></div>
-                    <div id="concept-description" class="text text-small"></div>
-                    <div id="concept-occurrence" class="text text-small"></div>
-                </div>
-                    <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
-                    <div id="text-list-container">
-                        <table class="table table-responsive table-hover">
-                            <tbody id="text-list"></tbody>
-                        </table>
+                        <!-- </div> -->
                     </div>
+    				<div class="row">
+    					<div class="col-xs-8 col-xs-offset-2">
+    						<div class="panel" style="background-color: rgba(255, 255, 255, 0.7);">
+    							{% if recent_combination|length > 0 %}
+    								<div class="activity-list text-center"
+    									style="max-height: 40px; overflow-y: scroll;">
+    									{% for key, item in recent_combination.items %}
+    									<p class="activity-list-item invisible-item">
+    										<a href="{% url "user_details" key.2 %}"><b>{{ key.1 }}</b></a> added
+    										{% if item.appelation_count > 1 %}<b>{{ item.appelation_count }}</b> appellations{% endif %}
+    										{% if item.appelation_count == 1 %}<b>{{ item.appelation_count }}</b> appellation{% endif %}
+    										{% if item.relation_count > 0 and item.appelation_count > 0 %}and   {% endif %}
+    										 {% if item.relation_count == 1 %}<b>{{ item.relation_count }}</b> relation{% endif %}
+    										{% if item.relation_count > 1 %}<b>{{ item.relation_count }}</b> relations{% endif %}
+    										<b>{{ key.0 |timesince }}</b> ago
+    									</p>
+    									{% endfor %}
+    								</div>
+
+    							{% endif %}
+    							<style>
+    								.visible-item {
+    									display: block;
+    								}
+    								.invisible-item {
+    									display: none;
+    								}
+    							</style>
+    							<script>
+    								// Rotate the recent activity item displayed below
+    								//  the jumbotron.
+    								var activityList = $('.activity-list');
+    								var activities = [];
+    								$('.activity-list-item').each(function(i, item) {
+    									activities.push(item);
+    								});
+    								var currentActivity = 0;
+    								var cycleActivity = function() {
+    									if (currentActivity + 1 >= activities.length) {
+    										currentActivity = 0;
+    									} else {
+    										currentActivity += 1;
+    									}
+    									$(activities[currentActivity]).removeClass('invisible-item');
+
+    									activities.forEach(function(activity, i) {
+    										if (i != currentActivity) {
+    											$(activity).addClass('invisible-item');
+    										}
+    									})
+    								}
+    								cycleActivity();
+    								setInterval(cycleActivity, 3000);
+    							</script>
+    						</div>
+    					</div>
+
+    				</div>
+                </div>
+
+            </div>
+        </div>
+        <div class="text text-warning text-tiny brand-footer-left">
+            Modified version of photograph by <a href="https://commons.wikimedia.org/wiki/User:Diliff">Diliff</a>, released under <a href="http://creativecommons.org/licenses/by/2.5">CC BY 2.5</a>
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+
             </div>
         </div>
 
     </div>
-	<!-- System-wide stats -->
-    <div class="row text-center">
-		<div class="col-sm-4 text-muted h4">{{ appellation_count }} appellations</div>
-        <div class="col-sm-4 text-muted h4">{{ relation_count }} relations</div>
-		<div class="col-sm-4 text-muted h4">{{text_count}} texts</div>
+
+
+    {% endblock %}
+
+    {% block main %}
+    <script src="{% static "annotations/js/spin.min.js" %}"></script>
+    <script src="{% static "annotations/js/jquery.spin.js" %}"></script>
+
+    <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
+    <script>
+    var networkEndpoint = '{% url "network-data" %}',
+        networkParams = null,
+        networkContainerSelector = '#networkViewport';
+    </script>
+
+    <div id="build" class="container-fluid section" style="margin-top: 15px;">
+    	<div class="text-center panel-heading">
+    		<span class="pull-right">
+    			<a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">sign up</a> to get started!
+                <!-- with <a href="#" class="fa fa-github" aria-hidden="true"> GitHub</a> -->
+    		</span>
+    		<div class="h1">Let's build the epistemic web, together.</div>
+    		<p>
+    			The concept of the epistemic web was first introduced by
+    			<a href="http://www.edition-open-access.de/studies/1/36/index.html">Malcolm Hyman and Jürgen Renn</a> as a new
+    			chapter in the history of knowledge representation. While the semantic web represents knowledge as a static graph of
+    			concepts and propositions, the epistemic web encodes the multi-dimensional contexts in which those concepts and
+    			propositions emerge: the texts that embed them, the times, places, and contexts of interpretation that constitute
+    			local forms and moments of knowledge and knowledge-making.
+    		</p>
+    	</div>
+    	<div class="text-center row">
+    		<div class="col-sm-4 text-center">
+    			<div class="responsive-h2">1. Digital Texts</div>
+    			<div class="row">
+    				<img class="img img-responsive img-rounded col-xs-8 col-xs-offset-2"
+    					style="border: 2px solid gray; padding: 0px;"
+    					src="{% static 'annotations/images/text.png' %}" />
+    			</div>
+    			<div class="row">
+    				<p class="responsive-p col-xs-10 col-xs-offset-1">
+    					Everything begins with texts: digitized archival materials, images, webpages,
+    					even your own publications. Upload texts to our secure server, or select texts
+    					from an online repository.
+    				</p>
+    			</div>
+    			<p>
+    				<a href="{% url "about" %}#materials">What can I annotate?</a>
+    			</p>
+    		</div>
+    		<div class="col-sm-4">
+    			<div class="responsive-h2">2. Annotate</div>
+    			<div class="row">
+    				<img class="img img-responsive img-rounded col-xs-8 col-xs-offset-2"
+    					style="border: 2px solid gray; padding: 0px;"
+    					src="{% static 'annotations/images/annotated.png' %}" />
+    			</div>
+    			<div class="row">
+    				<p class="responsive-p col-xs-10 col-xs-offset-1">
+    					Tag phrases or passages with concepts and relationships that matter to
+    					<span class="heavy">your research</span>. You don't need a rigid ontology.
+    					Use concepts from existing authorities, or create your own.
+    				</p>
+    			</div>
+    			<p>
+    				<a href="{% url "about" %}#how">How does it work?</a>
+    			</p>
+    		</div>
+    		<div class="col-sm-4">
+    			<div class="responsive-h2">3. Share, Search, Explore</div>
+    			<div class="row">
+    				<img class="img img-responsive img-rounded col-xs-8 col-xs-offset-2"
+    					style="border: 2px solid gray; padding: 0px;"
+    					src="{% static 'annotations/images/graph.png' %}" />
+    			</div>
+    			<div class="row">
+    				<p class="responsive-p col-xs-10 col-xs-offset-1">
+    					Your annotations join a rapidly-growing searchable database of interpretations.
+    					See how the concepts in your project connect to a broader landscape of
+    					actors, events, and ideas.
+    				</p>
+    			</div>
+    			<p>
+    				<a href="{% url "about" %}#goodfer">What use is that, anyway?</a>
+    			</p>
+    		</div>
+    	</div>
+
     </div>
-	<div class="col-xs-2 col-xs-offset-10">
-		<a href="http://devo-evo.lab.asu.edu" target="_blank">
-			<img class="img img-responsive pull-right" src="{% static "annotations/img/devoevolab.png" %}">
-		</a>
-	</div>
-</div>
-<script src="{% static "annotations/js/network_cytoscape.js" %}"></script>
-{% endblock %}
+
+    <div id="search"
+        class="container-fluid section section-alt"
+        style="margin-top: 15px; padding: 15px;">
+        <div style="color:white;"
+            class="text-center">
+            Start typing in the search bar below to find concepts in the epistemic
+            web.
+        </div>
+    	<div class="input-group input-group-lg col-xs-10 col-xs-offset-1"
+    		style="margin-top: 10px;">
+            <form class="autocomplete" method="GET" action=".">
+
+                        <input autocomplete="off" maxlength="255" class="form-control" type="text" name="q" placeholder="Search the epistemic web...">
+
+            </form>
+
+    	</div>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-xs-10 col-xs-offset-1">
+                <div class="panel autocomplete-container">
+                    <ul class="list-group autocomplete-results"
+                        id="autocomplete-results">
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% include "annotations/autocomplete.html" %}
+    </div>
+
+
+
+
+    <div id="explore" class="container-fluid section" style="margin-top: 15px;">
+        <div class="text-center panel-heading">
+    		<div class="h1">Explore the epistemic web</div>
+            <p>
+                Each node in the graph below represents a concept that has been used in annotations by VogonWeb users.
+                Click on a node to see the texts in which that concept occurs. Click on an edge to see how two concepts
+                are thought to be related. For more control over the network visualization, try the
+                <a href="{% url "network" %}">network browser</a>.
+            </p>
+            <p class="text-small text-muted">
+                Hint: use your mousewheel or trackpad to zoom in and out. Click and drag on
+                empty space to pan.
+            </p>
+        </div>
+        <div class="row">
+            <div class="col-sm-8">
+                <div class="panel" id="networkPanel">
+                    <div id="networkViewport"></div>
+                </div>
+            </div>
+                <!-- <div class="row"> -->
+            <div class="col-sm-4">
+                <div class="alert alert-success text-small" id="networkAlert">
+                    Click on a node or edge for details. Use your mousewheel or trackpad to zoom. Click and drag to pan.
+                </div>
+                <div class="panel selection-details-panel" style="display: none;">
+                    <div class="panel-body" id="concept-details">
+                        <div><a id="concept-href"><span id="concept-label" class="text-primary h4"></span></a></div>
+                        <div id="concept-uri" class="text text-muted text-tiny"></div>
+                        <div id="concept-description" class="text text-small"></div>
+                        <div id="concept-occurrence" class="text text-small"></div>
+                    </div>
+                        <div class="text text-warning text-tiny"><span id="concept-text-list-title"></span></div>
+                        <div id="text-list-container">
+                            <table class="table table-responsive table-hover">
+                                <tbody id="text-list"></tbody>
+                            </table>
+                        </div>
+                </div>
+            </div>
+
+        </div>
+    	<!-- System-wide stats -->
+        <div class="row text-center">
+    		<div class="col-sm-4 text-muted h4">{{ appellation_count }} appellations</div>
+            <div class="col-sm-4 text-muted h4">{{ relation_count }} relations</div>
+    		<div class="col-sm-4 text-muted h4">{{text_count}} texts</div>
+        </div>
+
+    </div>
+    <script src="{% static "annotations/js/network_cytoscape.js" %}"></script>
+    {% endblock %}

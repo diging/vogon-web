@@ -75,6 +75,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'annotations.context_processors.google',
+                'annotations.context_processors.google',
             ],
         },
     },
@@ -208,3 +210,19 @@ QUADRIGA_ENDPOINT = os.environ.get('QUADRIGA_ENDPOINT', '')
 QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
 
 BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
+
+
+from datetime import timedelta
+
+CELERYBEAT_SCHEDULE = {
+    'add-every-30-seconds': {
+        'task': 'annotations.tasks.accession_ready_relationsets',
+        'schedule': timedelta(seconds=360),
+    },
+}
+
+CELERY_TIMEZONE = 'UTC'
+
+GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)
+
+VERSION = '0.4'

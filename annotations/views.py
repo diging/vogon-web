@@ -132,27 +132,10 @@ def home(request):
         'appellation_count': appellation_count,
         'recent_combination': _get_recent_annotations(last=10),
         'title': 'Build the epistemic web'
-
     })
     return HttpResponse(template.render(context))
 
 
-def user_texts(user):
-    """
-    Retrieve all of the :class:`.Text`\s in which a user has created
-    :class:`.Relation`\s.
-
-    TODO: Do we need this anymore?
-
-    Parameters
-    ----------
-    user : :class:`.VogonUser`
-
-    Returns
-    -------
-    :class:`django.db.models.query.QuerySet`
-    """
-    return Text.objects.filter(relation__createdBy__pk=user.id).distinct()
 
 
 def basepath(request):
@@ -372,6 +355,9 @@ def about(request):
     """
     template = loader.get_template('annotations/about.html')
     context = RequestContext(request)
+    context.update({
+        'title': 'About VogonWeb'
+    })
     return HttpResponse(template.render(context))
 
 
@@ -839,7 +825,10 @@ def text(request, textid):
 
     if all([request.user.is_authenticated(), any(access_conditions), mode == 'annotate']):
         template = loader.get_template('annotations/text.html')
-        context_data['userid'] = request.user.id
+        context_data.update({
+            'userid': request.user.id,
+            'title': text.title,
+        })
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
     elif all([request.user.is_authenticated(), any(access_conditions), mode == 'user_annotations']):
@@ -873,7 +862,8 @@ def text(request, textid):
         'userid': request.user.id,
         'appellations_data': appellations_data,
         'annotators': appellation_creators,
-        'relations': relationsets
+        'relations': relationsets,
+        'title': text.title,
     })
     context = RequestContext(request, context_data)
     return HttpResponse(template.render(context))
