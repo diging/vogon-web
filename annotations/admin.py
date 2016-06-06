@@ -63,17 +63,25 @@ def submit_relationsets(modeladmin, request, queryset):
     #  involve concepts that are not resolved.
     all_rsets = [rs for rs in queryset if rs.ready()]
 
-    for text_id, text_group in groupby(all_rsets, key=lambda rs: rs.occursIn.id):
-        text = Text.objects.get(pk=text_id)
-        for user_id, user_group in groupby(text_group, key=lambda rs: rs.createdBy.id):
-            user = VogonUser.objects.get(pk=user_id)
-            # We lose the iterator after the first pass, so we want a list here.
-            rsets = []
-            for rs in user_group:
-                rsets.append(rs)
-                rs.pending = True
-                rs.save()
-            submit_relationsets_to_quadriga.delay(rsets, text, user)
+    project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
+    for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
+        print project_id
+        for text_id, text_group in groupby(project_group, key=lambda rs: rs.occursIn.id):
+            text = Text.objects.get(pk=text_id)
+            for user_id, user_group in groupby(text_group, key=lambda rs: rs.createdBy.id):
+                user = VogonUser.objects.get(pk=user_id)
+                # We lose the iterator after the first pass, so we want a list here.
+                rsets = []
+                for rs in user_group:
+                    rsets.append(rs)
+                    rs.pending = True
+                    rs.save()
+                kwargs = {}
+                if project_id:
+                    kwargs.update({
+                        'project_id': project_id,
+                    })
+                submit_relationsets_to_quadriga.delay(rsets, text, user, **kwargs)
 
 
 class RelationSetAdmin(admin.ModelAdmin):

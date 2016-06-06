@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 from guardian.shortcuts import assign_perm
 import uuid
 import re
+from itertools import groupby
 
 import slate
 from . import managers
@@ -303,8 +304,8 @@ def get_snippet(appellation):
 
 
 @shared_task
-def submit_relationsets_to_quadriga(relationsets, text, user):
-    status, response = quadriga.submit_relationsets(relationsets, text, user)
+def submit_relationsets_to_quadriga(relationsets, text, user, **kwargs):
+    status, response = quadriga.submit_relationsets(relationsets, text, user, **kwargs)
     if status:
         accession = QuadrigaAccession.objects.create(**{
             'createdBy': user,
@@ -330,3 +331,36 @@ def submit_relationsets_to_quadriga(relationsets, text, user):
                 appellation.submittedOn = accession.created
                 appellation.submittedWith = accession
                 appellation.save()
+
+
+@shared_task
+def accession_ready_relationsets():
+
+    qs = RelationSet.objects.filter(submitted=False, pending=False)
+
+
+    # Do not submit a relationset to Quadriga if the constituent interpretations
+    #  involve concepts that are not resolved.
+    all_rsets = [rs for rs in qs if rs.ready()]
+
+    print 'processing %i relationsets' % len(all_rsets)
+    project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
+
+    for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
+        print project_id
+        for text_id, text_group in groupby(project_group, key=lambda rs: rs.occursIn.id):
+            text = Text.objects.get(pk=text_id)
+            for user_id, user_group in groupby(text_group, key=lambda rs: rs.createdBy.id):
+                user = VogonUser.objects.get(pk=user_id)
+                # We lose the iterator after the first pass, so we want a list here.
+                rsets = []
+                for rs in user_group:
+                    rsets.append(rs)
+                    rs.pending = True
+                    rs.save()
+                kwargs = {}
+                if project_id:
+                    kwargs.update({
+                        'project_id': project_id,
+                    })
+                submit_relationsets_to_quadriga.delay(rsets, text, user, **kwargs)

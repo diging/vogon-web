@@ -190,6 +190,11 @@ class TextCollection(models.Model):
     participants = models.ManyToManyField(VogonUser,
                                           related_name='contributes_to')
 
+    quadriga_id = models.CharField(max_length=255, blank=True, null=True,
+                                   help_text="""
+    Use this field to specify the ID of an existing project in Quadriga with
+    which this project should be associated.""")
+
     def __unicode__(self):
         return self.name
 
@@ -375,13 +380,6 @@ class RelationSet(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     createdBy = models.ForeignKey('VogonUser')
     occursIn = models.ForeignKey('Text', related_name='relationsets')
-
-    nominated = models.BooleanField(default=False)
-    """
-    A user can nominate a RelationSet for submission to Quadriga. If the
-    relationset is ready, then it will be selected for submission.
-    """
-    nominatedOn = models.DateTimeField(null=True, blank=True)
 
     pending = models.BooleanField(default=False)
     """

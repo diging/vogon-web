@@ -238,3 +238,15 @@ QUADRIGA_PROJECT = os.environ.get('QUADRIGA_PROJECT', 'ASDF-1234')
 QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
 
 BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
+
+
+from datetime import timedelta
+
+CELERYBEAT_SCHEDULE = {
+    'add-every-30-seconds': {
+        'task': 'annotations.tasks.accession_ready_relationsets',
+        'schedule': timedelta(seconds=30),
+    },
+}
+
+CELERY_TIMEZONE = 'UTC'

@@ -23,8 +23,8 @@
             <div class="row" style="padding: 5px;">
                 <ul class="nav nav-pills">
                      <li><a href="{% url 'text' text.id %}?mode=annotate">Annotate</a></li>
-                     <li><a href="{% url 'text' text.id %}?mode=user_annotations">My Annotations</a></li>
-                     <li class="active"><a href="{% url 'text' text.id %}">View</a></li>
+                     <li{% if view == 'user' %} class="active"{% endif %}><a href="{% url 'text' text.id %}?mode=user_annotations">My Annotations</a></li>
+                     <li{% if view != 'user' %} class="active"{% endif %}><a href="{% url 'text' text.id %}">View</a></li>
                 </ul>
             </div>
             <div class="h2">

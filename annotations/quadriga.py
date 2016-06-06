@@ -142,7 +142,7 @@ def _generate_workspace_label(createdBy):
 
 def to_quadruples(relationsets, text, user, network_label=None,
                   workspace_id=None, workspace_label=None,
-                  project_id=settings.QUADRIGA_PROJECT, toString=False):
+                  project_id=None, toString=False):
     """
     Generate quadruple XML for a collection of :class:`.RelationSet`\s.
 
@@ -167,9 +167,12 @@ def to_quadruples(relationsets, text, user, network_label=None,
     # to resolve external ids, we need to know the client that the id belongs to
     # the easisest would be to have a convention, something like
     #  : .../externalId+client
-    # then all exisint path could continue to work
-    if not project_id.endswith('+%s' % settings.QUADRIGA_CLIENTID):
-        project_id += u'+%s' % settings.QUADRIGA_CLIENTID
+    # then all exising paths could continue to work
+    if not project_id:
+        project_id = u'%s+%s' % (settings.QUADRIGA_PROJECT, settings.QUADRIGA_CLIENTID)
+
+    # If project_id is provided, we assume that it is a -native- Quadriga
+    #  project id and use it without deliberation.
     project = ET.Element('project', id=project_id)
 
     # project has two subelements: details and network.

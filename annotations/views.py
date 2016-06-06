@@ -843,7 +843,6 @@ def text(request, textid):
         context = RequestContext(request, context_data)
         return HttpResponse(template.render(context))
     elif all([request.user.is_authenticated(), any(access_conditions), mode == 'user_annotations']):
-        template = loader.get_template('annotations/text_user_annotations.html')
         appellations = Appellation.objects.filter(occursIn_id=textid,
                                                   asPredicate=False,
                                                   createdBy=request.user.id)
@@ -851,37 +850,33 @@ def text(request, textid):
         relationset_qs = RelationSet.objects.filter(occursIn=textid,
                                                     createdBy=request.user.id)
         relationsets = _get_relations_data(relationset_qs)
-        context_data.update({
-            'userid': request.user.id,
-            'appellations_data': appellations_data,
-            'annotators': appellation_creators,
-            'relations': relationsets,
-            'relationsets': [(rset, get_snippet_relation(rset)) for rset in request.user.relationset_set.filter(occursIn=textid)]
-        })
 
-        context = RequestContext(request, context_data)
-        return HttpResponse(template.render(context))
+        context_data.update({
+            'view': 'user',
+        })
     elif mode == 'annotate':
         return HttpResponseRedirect(reverse('login'))
-    else:
-        # TODO: pull most of this logic out into helper functions, and move it
-        #  out of views.py.
+
+    # TODO: pull most of this logic out into helper functions, and move it
+    #  out of views.py.
+
+    template = loader.get_template('annotations/text_view.html')
+
+    appellations = Appellation.objects.filter(occursIn_id=textid,
+                                              asPredicate=False)
+    appellations_data, appellation_creators = _get_appellations_data(appellations)
+    relationset_qs = RelationSet.objects.filter(occursIn=textid)
+    relationsets = _get_relations_data(relationset_qs)
 
 
-        appellations = Appellation.objects.filter(occursIn_id=textid,
-                                                  asPredicate=False)
-        appellations_data, appellation_creators = _get_appellations_data(appellations)
-        relationset_qs = RelationSet.objects.filter(occursIn=textid)
-        relationsets = _get_relations_data(relationset_qs)
-
-        template = loader.get_template('annotations/text_view.html')
-        context_data.update({
-            'appellations_data': appellations_data,
-            'annotators': appellation_creators,
-            'relations': relationsets
-        })
-        context = RequestContext(request, context_data)
-        return HttpResponse(template.render(context))
+    context_data.update({
+        'userid': request.user.id,
+        'appellations_data': appellations_data,
+        'annotators': appellation_creators,
+        'relations': relationsets
+    })
+    context = RequestContext(request, context_data)
+    return HttpResponse(template.render(context))
 
 
 def custom_403_handler(request):
@@ -995,7 +990,6 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         concept = self.request.query_params.get('concept', None)
         text = self.request.query_params.get('text', None)
         thisuser = self.request.query_params.get('thisuser', False)
-        showsubmitted = self.request.query_params.get('showsubmitted', False)
 
         if thisuser:
             queryset = queryset.filter(createdBy_id=self.request.user.id)
@@ -1003,8 +997,7 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(interpretation_id=concept)
         if text:
             queryset = queryset.filter(occursIn_id=text)
-        if not showsubmitted:
-            queryset = queryset.filter(submitted=False)
+
 
         return queryset
 
@@ -1025,7 +1018,6 @@ class RelationSetViewSet(viewsets.ModelViewSet):
 
         textid = self.request.query_params.getlist('text')
         userid = self.request.query_params.getlist('user')
-        showsubmitted = self.request.query_params.get('showsubmitted', False)
 
         if len(textid) > 0:
             queryset = queryset.filter(occursIn__in=[int(t) for t in textid])
@@ -1037,9 +1029,6 @@ class RelationSetViewSet(viewsets.ModelViewSet):
         thisuser = self.request.query_params.get('thisuser', False)
         if thisuser:
             queryset = queryset.filter(createdBy_id=self.request.user.id)
-
-        if not showsubmitted:
-            queryset = queryset.filter(submitted=False)
 
         return queryset
 
