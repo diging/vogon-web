@@ -23,16 +23,16 @@ class TestUploadFileType(unittest.TestCase):
         except ValidationError:
             self.fail('Should not raise Validation Error on a TXT file.')
 
-    def test_pdf_file(self):
-        """
-        When file is a PDF file, no exception should be raised.
-        """
-        f = File('pdffile')
-        f.content_type = 'application/pdf'
-        try:
-            validatefiletype(f)
-        except ValidationError:
-            self.fail('Should not raise Validation Error on a PDF file.')
+    # def test_pdf_file(self):
+    #     """
+    #     When file is a PDF file, no exception should be raised.
+    #     """
+    #     f = File('pdffile')
+    #     f.content_type = 'application/pdf'
+    #     try:
+    #         validatefiletype(f)
+    #     except ValidationError:
+    #         self.fail('Should not raise Validation Error on a PDF file.')
 
     def test_invalid_file(self):
         """
