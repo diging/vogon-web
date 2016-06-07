@@ -138,7 +138,8 @@ def extract_pdf_file(uploaded_file):
     return filecontent
 
 
-def save_text_instance(tokenized_content, text_title, date_created, is_public, user):
+# TODO: refactor!! This signature stinks.
+def save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri=None):
     """
     This method creates and saves the text instance based on the parameters passed
 
@@ -155,13 +156,14 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
     user : User
         The user who saved the text content
     """
-    uniqueuri = 'http://vogonweb.net/' + str(uuid.uuid1())
+    if not uri:
+        uri = 'http://vogonweb.net/' + str(uuid.uuid1())
     text = Text(tokenizedContent=tokenized_content,
             title=text_title,
             created=date_created,
             public=is_public,
             addedBy=user,
-            uri=uniqueuri)
+            uri=uri)
     text.save()
     assign_perm('annotations.view_text', user, text)
     if is_public:
@@ -286,13 +288,16 @@ def get_snippet(appellation):
         return SafeText('No snippet is available for this appellation')
 
     tokenizedContent = appellation['occursIn__tokenizedContent']
-    annotated_words = appellation['tokenIds'].split(',')
+    annotated_words = [i.strip() for i in appellation['tokenIds'].split(',')]
     middle_index = int(annotated_words[max(len(annotated_words)/2, 0)])
     start_index = max(middle_index - 10, 0)
     end_index = middle_index + 10
     snippet = ""
     for i in range(start_index, end_index):
         match = re.search(r'<word id="'+str(i)+'">([^<]*)</word>', tokenizedContent, re.M|re.I)
+        if not match:
+            continue
+
         word = ""
 
         if str(i) in annotated_words:

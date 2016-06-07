@@ -71,17 +71,17 @@
                                 <div class="panel">
                                     <div class="panel-heading clearfix">
                                         <span class="h4">
-                                            Projects I Own
+                                            Projects that I own
                                         </span>
                                         <div class="pull-right btn-group">
-                                            <a href="" class="btn btm-xs">View all</a>
-                                            <a href="" class="btn btm-xs">Create</a>
+                                            <a href="{% url "user_projects" %}" class="btn btm-xs">View all</a>
+                                            <a href="{% url "create_project" %}" class="btn btm-xs">Create</a>
                                         </div>
 
                                     </div>
                                     <div class="list-group">
                                         {% for project in projects_owned %}
-                                        <a class="list-group-item" href="">{{ project.1 }}</a>
+                                        <a class="list-group-item" href="{% url "view_project" project.0 %}">{{ project.1 }}</a>
                                         {% endfor %}
                                     </div>
                                 </div>
@@ -90,7 +90,7 @@
                             <div class="col-sm-6">
                                 <div class="panel">
                                     <div class="panel-heading clearfix">
-                                        <span class="h4">Projects I Contribute To</span>
+                                        <span class="h4">Projects to which I contribute</span>
                                         <span class="pull-right btn-group">
                                             <a href="" class="btn btm-xs">View all</a>
                                         </span>

@@ -1,6 +1,6 @@
 from haystack.backends.elasticsearch2_backend import Elasticsearch2SearchBackend, Elasticsearch2SearchEngine
 from haystack.models import SearchResult
-
+import elasticsearch
 
 class JHBElasticsearch2SearchBackend(Elasticsearch2SearchBackend):
     RESERVED_CHARACTERS = (

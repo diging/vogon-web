@@ -1,0 +1,97 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+{% block extrahead %}
+<script src="{% static "annotations/js/spin.min.js" %}"></script>
+<script src="{% static "annotations/js/jquery.spin.js" %}"></script>
+<script src="{% static "annotations/js/cytoscape.min.js" %}"></script>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    <div class="h4 text-muted">Project Details</div>
+    {% block titleblock %}
+    <div style="margin-bottom: 15px;">
+        <div class="h2">
+            {{ project.name }}
+            {% if user.id == project.ownedBy.id %}
+            <span class="btn-group pull-right">
+                <a class="btn btn-md"
+                    href="{% url "file_upload" %}?project={{ project.id }}">
+                    <span class="gylphicon glyphicon-plus"></span> Add Text
+                </a>
+                <a class="btn btn-md"
+                    href="{% url "edit_project" project.id %}">
+                    <span class="gylphicon glyphicon-pencil"></span> Edit Project
+                </a>
+            </span>
+            {% endif %}
+        </div>
+        <div class="text text-muted">{{ project.description }}</div>
+        <div class="text-warning">
+            Created by <a href="{% url "user_details" project.ownedBy.id %}">{{ project.ownedBy.username }}</a> on {{ project.created }}
+        </div>
+        <div>
+            {{ project.num_texts }} texts, {{ project.num_relations }} relations.
+        </div>
+    </div>
+    {% endblock %}
+
+    {% if texts|length > 0 %}
+    <table class="table table-hover table-responsive table-condensed">
+        <thead>
+            <th class="col-xs-9">
+                <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-title' %}?order_by=title{% else %}?order_by=-title{% endif %}" id="order_title">Title</a>
+                <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-title' %}?order_by=title{% else %}?order_by=-title{% endif %}">
+                    <span class="glyphicon glyphicon-sort-by-alphabet{% if order_by != '-title' %}-alt{% endif %}" aria-hidden="true"></span>
+                </a>
+            </th>
+            <th>
+                <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}" id="order_publication">Published</a>
+                <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}">
+                    <span class="glyphicon glyphicon-sort-by-order{% if order_by != '-created' %}-alt{% endif %}" aria-hidden="true"></span>
+                </a>
+            </th>
+        </thead>
+        {% for text in texts %}
+        <tbody>
+            <tr>
+                <td><a href="{% url "text" text.id %}">{{ text.title }}</a></td>
+                <td>{{ text.created }}</td>
+            </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+
+    <div>
+        <ul class="pagination pagination-sm">
+            {% if texts.has_previous %}
+            <li>
+                <a href="?{% if query %}q={{ query }}&amp;{% endif %}page={{ texts.previous_page_number }}">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+            {% for p in texts.paginator.page_range %}
+            <li{% if p == texts.number %} class="active"{% endif %}>
+                <a href="?{% if query %}q={{ query }}&amp;{% endif %}page={{p}}{% if order_by %}&order_by={{ order_by }}{% endif %}">{{p}}</a>
+            </li>
+            {% endfor %}
+            {% if texts.has_next %}
+            <li>
+                <a href="?{% if query %}q={{ query }}&amp;{% endif %}page={{ texts.next_page_number }}">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% else %}
+    <p class="h4 text-center">
+        This project has no texts. {% if user.id == project.ownedBy.id %}Perhaps you should add one?{% endif %}
+    </p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

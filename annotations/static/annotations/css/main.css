@@ -623,13 +623,9 @@ a.appellation-list-item.selected {
     cursor: default;
 }
 
-
-
 .alt-background:nth-of-type(odd) {
     background: #e0e0e0;
 }
-
-
 
 .main {
     min-height: 100%;
@@ -638,10 +634,29 @@ a.appellation-list-item.selected {
     margin: 0 auto -60px; /* the bottom margin is the negative value of the footer's height */
 }
 
+.push {
+    opacity: 0;
+}
 .footer, .push {
-    height: 60px; /* .push must be the same height as .footer */
+    height: 60px;
     background: #e0e0e0;
 }
 .footer .container-fluid {
     padding-top: 20px;
+}
+
+.contributor-container {
+    padding: 5px;
+}
+
+
+.contributor-container img {
+    margin-right: 10px;
+}
+
+
+
+.contributor-details {
+    /* Make wrapped text align with text displaced by floating profile image. */
+    margin-left: 70px;
 }

@@ -88,12 +88,12 @@ $('body').on('hide.bs.collapse', function(e) {
     						</a>
     						<ul class="dropdown-menu">
     							<li><a href="{% url "text_search" %}">All Texts</a></li>
-    							<li><a href="{% url "collection_list" %}">Collections</a></li>
+    							<li><a href="{% url "list_projects" %}">Projects</a></li>
     						</ul>
 
     					</li>
     					<li><a href="{% url "network" %}">Network</a></li>
-    					<li><a href="{% url "user" %}">Contributors</a></li>
+    					<li><a href="{% url "users" %}">Contributors</a></li>
     					<li><a href="{% url "about" %}">About</a></li>
     				</ul>
     				<div class="dropdown pull-right" id="userdropdown">

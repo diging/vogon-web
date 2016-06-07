@@ -25,6 +25,9 @@ var reloadGraph = function() {
         // When the data is returned, generate an interative visualization
         //  using Cytoscape.js.
         success: function(data) {
+            if (data.elements.length == 0) {
+                return;
+            }
             // Normalize node and edge weights.
             var minEdgeWeight = 1.0;
             var maxEdgeWeight = 0.0;
@@ -190,8 +193,10 @@ var reloadGraph = function() {
     var resizeGraph = function() {
         var targetHeight = Number($('.action-body').css('max-height').replace('px', ''));
         $('#graphContainer').height(targetHeight - 10);
-        cy.resize();
-        cy.fit();
+        if (cy) {
+            cy.resize();
+            cy.fit();
+        }
     }
     $(window).resize(resizeGraph);
 }

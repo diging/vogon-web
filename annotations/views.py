@@ -201,15 +201,103 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
+
+
+@login_required
+def user_projects(request):
+    """
+    Shows a list of the current (logged-in) uers's projects.
+    """
+    fields = [
+        'id',
+        'name',
+        'created',
+        'ownedBy__id',
+        'ownedBy__username',
+        'description',
+        'num_texts',
+        'num_relations',
+    ]
+    qs = TextCollection.objects.filter(ownedBy=request.user.id)
+    qs = qs.annotate(num_texts=Count('texts'),
+                     num_relations=Count('texts__relationsets'))
+    qs = qs.values(*fields)
+
+    template = loader.get_template('annotations/project_user.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'title': 'Projects',
+        'projects': qs,
+    })
+    return HttpResponse(template.render(context))
+
+
+def view_project(request, project_id):
+    """
+    Shows details about a specific project owned by the current user.
+    """
+
+    project = get_object_or_404(TextCollection, pk=project_id)
+    template = loader.get_template('annotations/project_details.html')
+
+    order_by = request.GET.get('order_by', 'title')
+    texts = project.texts.all().order_by(order_by).values('id', 'title', 'created')
+    paginator = Paginator(texts, 15)
+
+    page = request.GET.get('page')
+    try:
+        texts = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        texts = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        texts = paginator.page(paginator.num_pages)
+
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'title': project.name,
+        'project': project,
+        'texts': texts,
+    })
+
+    return HttpResponse(template.render(context))
+
+
+def create_project(request):
+
+    return
+
+
 @login_required
 def edit_project(request, project_id):
     """
-    Modify a project owned by the current (logged-in) user.
+    Allow the owner of a project to edit it.
     """
-    if request.method == 'POST':
-        return HttpResponse('')
+    template = loader.get_template('annotations/project_change.html')
+    project = get_object_or_404(TextCollection, pk=project_id)
+    if project.ownedBy.id != request.user.id:
+        raise PermissionDenied("Whoops, you're not supposed to be here!")
 
-    return HttpResponse('')
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=project)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('view_project', args=(project.id,)))
+        else:
+            print form.errors
+    else:
+        form = ProjectForm(instance=project)
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'title': 'Editing project: %s' % project.name,
+        'project': project,
+        'form': form,
+        'page_title': 'Edit project'
+    })
+    return HttpResponse(template.render(context))
 
 
 @login_required
@@ -217,64 +305,56 @@ def create_project(request):
     """
     Create a new project owned by the current (logged-in) user.
     """
+    template = loader.get_template('annotations/project_change.html')
+
     if request.method == 'POST':
-        return HttpResponse('')
+        form = ProjectForm(request.POST)
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.ownedBy = request.user
+            project.save()
+            return HttpResponseRedirect(reverse('view_project', args=(project.id,)))
+        else:
+            print form.errors
+    else:
+        form = ProjectForm()
 
-    return HttpResponse('')
+    context = RequestContext(request, {
+        'user': request.user,
+        'title': 'Create a new project',
+        'form': form,
+        'page_title': 'Create a new project'
+    })
+    return HttpResponse(template.render(context))
 
 
-@login_required
-def user_project(request, project_id):
+def list_projects(request):
     """
-    Shows details about a specific project owned by the current user.
-    """
-    return HttpResponse('')
-
-@login_required
-def user_projects(request):
-    """
-    Shows a list of the current (logged-in) uers's projects.
-    """
-    return HttpResponse('')
-
-
-@login_required
-def nominate_relationset(request, relationset_id):
-    """
-    Nominate a relationset for submission to Quadriga.
-    """
-
-    # Intermediate page asks for confirmation.
-    if request.method == 'POST':
-        return HttpResponse('')
-
-    return HttpResponse('')
-
-
-@login_required
-def nominate_relationsets_for_text(request, text_id):
-    """
-    Nominate all relationsets for a text for submission to Quadriga.
+    All known projects.
     """
 
-    # Intermediate page asks for confirmation.
-    if request.method == 'POST':
-        return HttpResponse('')
+    fields = [
+        'id',
+        'name',
+        'created',
+        'ownedBy__id',
+        'ownedBy__username',
+        'description',
+        'num_texts',
+        'num_relations',
+    ]
+    qs = TextCollection.objects.all()
+    qs = qs.annotate(num_texts=Count('texts'),
+                     num_relations=Count('texts__relationsets'))
+    qs = qs.values(*fields)
 
-    return HttpResponse('')
-
-
-@login_required
-def nominate_relationsets_for_project(request, text_id):
-    """
-    Nominate all relationsets for a project for submission to Quadriga.
-    """
-
-    # Intermediate page asks for confirmation.
-    if request.method == 'POST':
-        return HttpResponse('')
-
-    return HttpResponse('')
+    template = loader.get_template('annotations/project_list.html')
+    context = RequestContext(request, {
+        'user': request.user,
+        'title': 'Projects',
+        'projects': qs,
+    })
+    return HttpResponse(template.render(context))
 
 
 def user_recent_texts(user):
@@ -466,6 +546,7 @@ def list_texts(request):
         'texts': texts,
         'order_by': order_by,
         'user': request.user,
+        'title': 'Texts',
     }
     return HttpResponse(template.render(context))
 
@@ -490,7 +571,8 @@ def list_user(request):
     queryset = VogonUser.objects.exclude(id = -1).order_by(sort)
 
     if search_term:
-        queryset = queryset.filter(full_name__icontains = search_term)
+        queryset = queryset.filter(Q(full_name__icontains=search_term) |
+                                   Q(username__icontains=search_term))
 
     paginator = Paginator(queryset, 10)
 
@@ -509,6 +591,7 @@ def list_user(request):
         'sort_column' : sort,
         'user_list': users,
         'user': request.user,
+        'title': 'Contributors'
     }
     return HttpResponse(template.render(context))
 
@@ -618,6 +701,39 @@ def _get_recent_annotations(last=20, user=None):
             combined_data[key] = {'appelation_count': 0, 'relation_count': event['relation_count']}
         combined_data[key]['relation_count'] += event['relation_count']
     return dict(sorted(combined_data.items(), key=lambda k: k[0][0])[::-1][:last])
+
+
+def _get_recent_annotations_for_graph(annotation_by_user, start_date):
+    result = dict()
+    weeks_last_date_map = dict()
+    d7 = datetime.timedelta( days = 7)
+    current_week = datetime.datetime.now() + d7
+
+    # Find out the weeks and their last date in the past 90 days.
+    while start_date <= current_week:
+        result[(Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] = 0
+        start_date += d7
+    time_format = '%Y-%m-%d'
+
+    # Count annotations for each week.
+    for count_per_day in annotation_by_user:
+        if(isinstance(count_per_day['date'], unicode)):
+            date = datetime.datetime.strptime(count_per_day['date'], time_format)
+        else:
+            date = count_per_day['date']
+        result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] += count_per_day['count']
+    annotation_per_week = list()
+
+    # Sort the date and format the data in the format required by d3.js.
+    keys = (result.keys())
+    keys.sort()
+    for key in keys:
+        new_format = dict()
+        new_format["date"] = key
+        new_format["count"] = result[key]
+        annotation_per_week.append(new_format)
+    annotation_per_week = str(annotation_per_week).replace("'", "\"")
+    return annotation_per_week
 
 
 def _get_appellations_data(appellations):
@@ -869,12 +985,11 @@ def text(request, textid):
     return HttpResponse(template.render(context))
 
 
+# TODO: move this out of views.py and into an exceptions module.
 def custom_403_handler(request):
     """
     Default 403 Handler. This method gets invoked if a PermissionDenied
     Exception is raised.
-
-    # TODO: move this out of views.py and into an exceptions module.
 
     Parameters
     ----------
@@ -888,7 +1003,7 @@ def custom_403_handler(request):
     template = loader.get_template('annotations/forbidden_error_page.html')
     context_data = {
         'userid': request.user.id,
-        'error_message': "Sorry you are not authorised to view this page."
+        'error_message': "Whoops, you're not supposed to be here!"
     }
     context = RequestContext(request, context_data)
     return HttpResponse(template.render(context), status=403)
@@ -1230,6 +1345,9 @@ def upload_file(request):
     ----------
     :class:`django.http.response.HttpResponse`
     """
+
+    project_id = request.GET.get('project', None)
+
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         form.fields['project'].queryset = form.fields['project'].queryset.filter(ownedBy_id=request.user.id)
@@ -1238,9 +1356,11 @@ def upload_file(request):
             text = handle_file_upload(request, form)
             return HttpResponseRedirect(reverse('text', args=[text.id]) + u'?mode=annotate')
     else:
-
         form = UploadFileForm()
+
         form.fields['project'].queryset = form.fields['project'].queryset.filter(ownedBy_id=request.user.id)
+        if project_id:
+            form.fields['project'].initial = project_id
 
     template = loader.get_template('annotations/upload_file.html')
     context = RequestContext(request, {
@@ -1263,6 +1383,7 @@ def handle_file_upload(request, form):
 
     """
     uploaded_file = request.FILES['filetoupload']
+    uri = form.cleaned_data['uri']
     text_title = form.cleaned_data['title']
     date_created = form.cleaned_data['datecreated']
     is_public = form.cleaned_data['ispublic']
@@ -1276,7 +1397,7 @@ def handle_file_upload(request, form):
     # Save the content if the above extractors extracted something
     if file_content != None:
         tokenized_content = tokenize(file_content)
-        return save_text_instance(tokenized_content, text_title, date_created, is_public, user)
+        return save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri)
 
 
 def _filter_relationset(qs, params):
@@ -1497,6 +1618,8 @@ def user_details(request, userid, *args, **kwargs):
             annotation_per_week.append(new_format)
         annotation_per_week = str(annotation_per_week).replace("'", "\"")
 
+        projects = user.collections.all()
+
         template = loader.get_template('annotations/user_details_public.html')
         context = RequestContext(request, {
             'detail_user': user,
@@ -1506,7 +1629,8 @@ def user_details(request, userid, *args, **kwargs):
             'text_count': textAnnotated,
             'default_user_image' : settings.DEFAULT_USER_IMAGE,
             'annotation_per_week' : annotation_per_week,
-            'recent_activity': _get_recent_annotations(user=user)
+            'recent_activity': _get_recent_annotations(user=user),
+            'projects': projects,
         })
     return HttpResponse(template.render(context))
 

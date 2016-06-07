@@ -74,22 +74,26 @@ def validatefiletype(file):
 
 
 class UploadFileForm(forms.Form):
-    title = forms.CharField(label='Title:', max_length=255, required=True)
+    title = forms.CharField(max_length=255, required=True,
+                            help_text='The title of the original resource.')
+    uri = forms.CharField(label='URI', max_length=255, required=True,
+                            help_text='"URI" stands for Uniform Resource Identifier. This can be a DOI, a permalink to a digital archive (e.g. JSTOR), or any other unique identifier.')                            
     ispublic = forms.BooleanField(label='Make this text public',
                 required=False,
-                help_text='By checking this box you affirm that you have the '+
-                          'right to make this file publicly available.')
+                help_text='By checking this box you affirm that you have the right to make this file publicly available.')
     filetoupload = forms.FileField(label='Choose a plain text file:',
                 required=True,
-                validators=[validatefiletype])
+                validators=[validatefiletype],
+                help_text="Soon you'll be able to upload images, PDFs, and HTML documents!")
     datecreated = forms.DateField(label='Date created:',
                 required=False,
-                widget=forms.TextInput(attrs={'class':'datepicker'}))
+                widget=forms.TextInput(attrs={'class':'datepicker'}),
+                help_text='The date that the original resource was published.')
 
     project = forms.ModelChoiceField(queryset=TextCollection.objects.all(),
                                      required=False,
                                      label='Add to project',
-                                     help_text='You can always add this text to a project later.')
+                                     help_text='You can add this text to a project that you own.')
 
 
 class UserCreationForm(forms.ModelForm):
@@ -350,18 +354,19 @@ class RelationTemplatePartFormSet(BaseFormSet):
         # print self.cleaned_data
 
 
-class TextCollectionForm(forms.ModelForm):
+class ProjectForm(forms.ModelForm):
     """
     Gives the participants list for every collection.
     """
+
     class Meta:
         model = TextCollection
-        exclude = ['name', 'description', 'ownedBy', 'texts']
+        exclude = ['ownedBy', 'texts', 'participants']
 
-    def __init__(self, *args, **kwargs):
-        super(TextCollectionForm, self).__init__(*args, **kwargs)
-        self.fields["participants"].widget = forms.CheckboxSelectMultiple()
-        self.fields["participants"].queryset = VogonUser.objects.order_by('username')
+    # def __init__(self, *args, **kwargs):
+    #     super(ProjectForm, self).__init__(*args, **kwargs)
+    #     self.fields["participants"].widget = forms.CheckboxSelectMultiple()
+    #     self.fields["participants"].queryset = VogonUser.objects.order_by('username')
 
 
 class MySplitDateTimeWidget(forms.widgets.SplitDateTimeWidget):
