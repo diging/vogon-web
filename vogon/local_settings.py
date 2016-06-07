@@ -197,7 +197,8 @@ HAYSTACK_CONNECTIONS = {
         'INDEX_NAME': 'vogon',
     },
 }
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+if not 'TRAVIS' in os.environ:
+    HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 
 import djcelery
