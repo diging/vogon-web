@@ -9,22 +9,24 @@
     {% block title %}
     <div class="h2">Contributors</div>
     {% endblock %}
+    <div class="container">
+        <form class="form" role="search">
+            <div class="input-group col-xs-12">
+                <input type="text"
+                    class="form-control"
+                    placeholder="Search..."
+                    {% if search_term %}value="{{search_term}}"{% endif %}
+                    name="search_term" id="search_term"></input>
+            </div>
 
-    <form class="navbar-form" role="search">
-        <div class="input-group">
-            <input type="text" class="form-control" placeholder= {% if search_term %}"{{search_term}}"{% else %}"Search by full name" {% endif %}name="search_term" id="search_term"></input>
-            <span class="input-group-btn">
-                  <button class="btn btn-default" type="submit"><div class="glyphicon glyphicon-search"></div></button>
-            </span>
-        </div>
+        </form>
+    </div>
 
-    </form>
-
-    <div class="row">
+    <div class="container">
 
           {% if user_list|length > 0 %}
-          <div class = "table-responsive">
-            <table class="table table-bordered table-striped">
+
+            <!-- <table class="table table-hover table-responsive table-condensed">
               <thead>
                 <tr>
                   <th class="col-sm-3">
@@ -69,24 +71,47 @@
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                {% for users in user_list %}
-                <tr>
-                    <td class="col-sm-3">
-                      <a href="{% url "user_details" users.id %}">{{ users.username }} &nbsp;
-                        {% if users.is_admin %}
-                          <span class="glyphicon glyphicon-user"></span>
+              <tbody> -->
+        <div class="list-group">
+            {% for user in user_list %}
+            <a href="{% url "user_details" user.id %}"
+                class="contributor-container clearfix list-group-item">
+                <div class="col-xs-8">
+                    <img class="pull-left img img-responsive img-rounded"
+                        src="{% if user.imagefile %}{{ user.imagefile }}{% else %}https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png{% endif %}"
+                        width="60px">
+
+                    <div class="contributor-details clearfix">
+                        <div>{{ user.username }}{% if user.full_name %} |  <span class="text-muted">{{user.full_name}}</span>{% endif %}
+                            {% if users.is_admin %}
+                            <span class="glyphicon glyphicon-user"></span>
+                            {% endif %}
+                        </div>
+                        {% if user.affiliation %}
+                        <div class="text-warning">
+                            {{user.affiliation}}
+                        </div>
                         {% endif %}
-                      </a>
-                    </td>
-                    <td class="col-sm-3">{% if users.full_name %}{{users.full_name}}{% endif %}</td>
-                    <td class="col-sm-3">{% if users.affiliation %}{{users.affiliation}}{% endif %}</td>
-                    <td class="col-sm-3">{% if users.location %}{{users.location}}{% endif %}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
+                        {% if user.location %}
+                        <div>
+                            {{user.location}}
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="col-xs-4">
+                    <div class="text-info">{{ user.appellation_set.count }} appellations </div>
+                    <div class="text-info">{{ user.relation_set.count }} relations </div>
+                    <div class="text-info">{{ user.addedTexts.count }} texts </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+              <!-- </tbody>
+            </table> -->
+
             <div>
                 <ul class="pagination pagination-sm">
                     {% if user_list.has_previous %}

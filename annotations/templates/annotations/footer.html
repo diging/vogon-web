@@ -1,0 +1,22 @@
+{% load staticfiles %}
+
+<footer class="footer">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-8">
+                VogonWeb <strong>Beta</strong> {% if VERSION %}<a href="https://github.com/diging/vogon-web/releases/tag/{{ VERSION }}">version {{ VERSION }}</a>{% endif %}
+                <a href="https://github.com/diging/vogon-web" class="btn btn-xs">
+                    <span class="fa fa-github"></span>
+                </a>
+                <a href="https://diging.atlassian.net/projects/VGNWB/summary" class="btn btn-xs">
+                    <span class="fa fa-ticket"></span>
+                </a>
+            </div>
+            <div class="col-xs-4">
+                <a href="http://devo-evo.lab.asu.edu" target="_blank">
+                    <img class="img img-responsive pull-right" src="{% static "annotations/img/devoevolab.png" %}">
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>

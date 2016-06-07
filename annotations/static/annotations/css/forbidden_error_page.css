@@ -1,8 +1,9 @@
-#blurry_text_block{
-    width:50%;
+.blurry_text_block{
     margin:0 auto;
+    margin-top: 25px;
 }
-#blurry_text{
+
+.blurry_text{
     color: transparent;
     text-shadow: 0 0 5px rgba(0,0,0,0.5);
     -webkit-touch-callout: none;

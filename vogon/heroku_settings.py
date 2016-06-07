@@ -75,6 +75,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'annotations.context_processors.google',
+                'annotations.context_processors.google',
             ],
         },
     },
@@ -167,7 +169,6 @@ HAYSTACK_CONNECTIONS = {
 
 if es.username:
     HAYSTACK_CONNECTIONS['default']['KWARGS'] = {"http_auth": es.username + ':' + es.password}
-
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 # AWS Access Key and Secret Key credentials
@@ -202,3 +203,26 @@ CONCEPTPOWER_USERID = os.environ.get('CONCEPTPOWER_USERID', None)
 CONCEPTPOWER_PASSWORD = os.environ.get('CONCEPTPOWER_PASSWORD', None)
 CONCEPTPOWER_ENDPOINT = os.environ.get('CONCEPTPOWER_ENDPOINT', 'http://chps.asu.edu/conceptpower/rest/')
 CONCEPTPOWER_NAMESPACE = os.environ.get('CONCEPTPOWER_NAMESPACE', '{http://www.digitalhps.org/}')
+
+QUADRIGA_USERID = os.environ.get('QUADRIGA_USERID', '')
+QUADRIGA_PASSWORD = os.environ.get('QUADRIGA_PASSWORD', '')
+QUADRIGA_ENDPOINT = os.environ.get('QUADRIGA_ENDPOINT', '')
+QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
+
+BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
+
+
+from datetime import timedelta
+
+CELERYBEAT_SCHEDULE = {
+    'add-every-30-seconds': {
+        'task': 'annotations.tasks.accession_ready_relationsets',
+        'schedule': timedelta(seconds=360),
+    },
+}
+
+CELERY_TIMEZONE = 'UTC'
+
+GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)
+
+VERSION = '0.4'

@@ -1,0 +1,56 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% load addcss %}
+
+{% block extrahead %}
+<script src="{% static "annotations/js/spin.min.js" %}"></script>
+<script src="{% static "annotations/js/jquery.spin.js" %}"></script>
+<script src="{% static "annotations/js/cytoscape.min.js" %}"></script>
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <form action="." method="POST">
+    {% block titleblock %}
+    <div style="margin-bottom: 15px;">
+        <div class="h2">
+            {{ page_title }}
+            <button type="submit"
+                class="pull-right btn btn-md btn-success"
+                <span class="gylphicon glyphicon-save"></span> Save Changes
+            </button>
+        </div>
+    </div>
+    {% endblock %}
+        {% csrf_token %}
+        <!-- Project name -->
+        <div class="form-group">
+            {% for error in form.name.errors %}
+            <div class="alert alert-warning">{{ error }}</div>
+            {% endfor %}
+            <label class="" for="name">{{ form.name.label }}</label>
+            {{ form.name|addcss:"form-control"}}
+        </div>
+
+        <!-- Project description -->
+        <div class="form-group">
+            {% for error in form.description.errors %}
+            <div class="alert alert-warning">{{ error }}</div>
+            {% endfor %}
+            <label class="" for="name">{{ form.description.label }}</label>
+            {{ form.description|addcss:"form-control"}}
+        </div>
+
+        <!-- Project Quadriga ID -->
+        <div class="form-group">
+            {% for error in form.quadriga_id.errors %}
+            <div class="alert alert-warning">{{ error }}</div>
+            {% endfor %}
+            <label class="" for="name">{{ form.quadriga_id.label }}</label>
+            {{ form.quadriga_id|addcss:"form-control"}}
+        </div>
+    </form>
+
+
+</div>
+{% endblock %}
