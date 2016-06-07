@@ -70,7 +70,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.resetWordSelection = function() {
         service.selected_words.removeClass("selected");
-        $('word').popover('destroy');
+        $('body').popover('destroy');
         service.selected_words = $();
     }
 
@@ -84,7 +84,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         if (!service.persistHighlighting) {
             service.unhighlightAppellations();
         }
-        $('word').popover('destroy');
+        $('body').popover('destroy');
         service.selected_appellation = null;
     }
 
@@ -263,7 +263,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.selectedWordPopover = function() {
         var lastId = service.selected_words[service.selected_words.length - 1].id;
-        $('word').popover('destroy');
+        $('body').popover('destroy');
         $('word#' + lastId).popover({
             html: true,
             template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
@@ -279,7 +279,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     service.selectedAppellationPopover = function() {
         var selector = $('word[appellation=' + service.selected_appellation.id + ']');
 
-        $('word').popover('destroy');
+        $('body').popover('destroy');
         selector.last().popover({
             html: true,
             template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
@@ -318,7 +318,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.handleEsc = function(event) {
         service.releaseWords();
-        $('word').popover('destroy');
+        $('body').popover('destroy');
     }
 
     /**
@@ -373,17 +373,26 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     service.bindWords = function() {
-        $('word').click(service.handleClick);
+        $('body').on('click', function(e){
+            console.log('click');
+            console.log(e);
+               var Elem = e.target;
+               if (Elem.localName == 'word'){
+                   service.handleClick(e);
+               }
+        })
+
+        // $('word').click(service.handleClick);
 
         service.persistHighlighting = false;
 
         $('body').on('click', '.word-popover-button', function() {
-            $('word').popover('destroy');
+            $('body').popover('destroy');
             service.handleSelectWord();
         });
 
         $('body').on('click', '.appellation-popover-button', function() {
-            $('word').popover('destroy');
+            $('body').popover('destroy');
             service.handleSelectAppellation();
         });
 
@@ -391,10 +400,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
             if(event.which == 13) service.handleEnter(event);
             if(event.which == 27) service.handleEsc(event);
         });
-        $(document).keypress(function(event) {
 
-
-        });
     }
     service.bindWords();
 
