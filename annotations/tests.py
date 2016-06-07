@@ -44,32 +44,34 @@ class TestUploadFileType(unittest.TestCase):
             validatefiletype(f)
 
 
-class TestPDFFileExtract(unittest.TestCase):
-    """
-    This class tests the PDF file extraction method after upload file form
-    is submitted.
-    """
+# Disabling these for now, since we are disallowing PDFs at the moment.
 
-    def test_not_a_pdf_file(self):
-        """
-        This method tests if validation error is raised when a non-PDF file is
-        uploaded
-        """
-        f = File('invalid')
-        f.content_type = 'invalid'
-        with self.assertRaises(ValueError):
-            extract_pdf_file(f)
-
-    def test_pdf_file(self):
-        """
-        This method tests if contents of the PDF file are extracted when a PDF
-        file is uploaded.
-        """
-        with open('annotations/tests/data/test.pdf', 'r') as f:
-            pdf = File(f)
-            pdf.content_type = 'application/pdf'
-            content = extract_pdf_file(pdf)
-            self.assertEquals(content.strip(), 'This is a sample test file.')
+# class TestPDFFileExtract(unittest.TestCase):
+#     """
+#     This class tests the PDF file extraction method after upload file form
+#     is submitted.
+#     """
+#
+#     def test_not_a_pdf_file(self):
+#         """
+#         This method tests if validation error is raised when a non-PDF file is
+#         uploaded
+#         """
+#         f = File('invalid')
+#         f.content_type = 'invalid'
+#         with self.assertRaises(ValueError):
+#             extract_pdf_file(f)
+#
+#     def test_pdf_file(self):
+#         """
+#         This method tests if contents of the PDF file are extracted when a PDF
+#         file is uploaded.
+#         """
+#         with open('annotations/tests/data/test.pdf', 'r') as f:
+#             pdf = File(f)
+#             pdf.content_type = 'application/pdf'
+#             content = extract_pdf_file(pdf)
+#             self.assertEquals(content.strip(), 'This is a sample test file.')
 
 
 class TestTextFileExtract(unittest.TestCase):
