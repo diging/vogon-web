@@ -1,6 +1,10 @@
 from django.contrib import admin
 from annotations.forms import *
 from annotations.models import *
+from annotations import quadriga
+from annotations.tasks import submit_relationsets_to_quadriga
+
+from itertools import groupby
 
 
 class VogonUserAdmin(UserAdmin):
@@ -45,11 +49,47 @@ class RelationAdmin(admin.ModelAdmin):
         return obj.createdBy
 
 
+def submit_relationsets(modeladmin, request, queryset):
+    """
+    Submit selected :class:`.RelationSet`\s to Quadriga.
+
+    Will quietly skip any :class:`.RelationSet`\s that have already been
+    submitted.
+    """
+
+    queryset = queryset.filter(submitted=False, pending=False)
+
+    # Do not submit a relationset to Quadriga if the constituent interpretations
+    #  involve concepts that are not resolved.
+    all_rsets = [rs for rs in queryset if rs.ready()]
+
+    project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
+    for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
+        print project_id
+        for text_id, text_group in groupby(project_group, key=lambda rs: rs.occursIn.id):
+            text = Text.objects.get(pk=text_id)
+            for user_id, user_group in groupby(text_group, key=lambda rs: rs.createdBy.id):
+                user = VogonUser.objects.get(pk=user_id)
+                # We lose the iterator after the first pass, so we want a list here.
+                rsets = []
+                for rs in user_group:
+                    rsets.append(rs)
+                    rs.pending = True
+                    rs.save()
+                kwargs = {}
+                if project_id:
+                    kwargs.update({
+                        'project_id': project_id,
+                    })
+                submit_relationsets_to_quadriga.delay(rsets, text, user, **kwargs)
+
+
 class RelationSetAdmin(admin.ModelAdmin):
     class Meta:
         model = RelationSet
 
-    list_display = ('id', 'createdBy', 'occursIn', 'created')
+    list_display = ('id', 'createdBy', 'occursIn', 'created', 'ready', 'pending', 'submitted', )
+    actions = (submit_relationsets, )
 
 
 class AppellationAdmin(admin.ModelAdmin):

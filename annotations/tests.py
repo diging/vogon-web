@@ -23,16 +23,16 @@ class TestUploadFileType(unittest.TestCase):
         except ValidationError:
             self.fail('Should not raise Validation Error on a TXT file.')
 
-    def test_pdf_file(self):
-        """
-        When file is a PDF file, no exception should be raised.
-        """
-        f = File('pdffile')
-        f.content_type = 'application/pdf'
-        try:
-            validatefiletype(f)
-        except ValidationError:
-            self.fail('Should not raise Validation Error on a PDF file.')
+    # def test_pdf_file(self):
+    #     """
+    #     When file is a PDF file, no exception should be raised.
+    #     """
+    #     f = File('pdffile')
+    #     f.content_type = 'application/pdf'
+    #     try:
+    #         validatefiletype(f)
+    #     except ValidationError:
+    #         self.fail('Should not raise Validation Error on a PDF file.')
 
     def test_invalid_file(self):
         """
@@ -44,32 +44,34 @@ class TestUploadFileType(unittest.TestCase):
             validatefiletype(f)
 
 
-class TestPDFFileExtract(unittest.TestCase):
-    """
-    This class tests the PDF file extraction method after upload file form
-    is submitted.
-    """
+# Disabling these for now, since we are disallowing PDFs at the moment.
 
-    def test_not_a_pdf_file(self):
-        """
-        This method tests if validation error is raised when a non-PDF file is
-        uploaded
-        """
-        f = File('invalid')
-        f.content_type = 'invalid'
-        with self.assertRaises(ValueError):
-            extract_pdf_file(f)
-
-    def test_pdf_file(self):
-        """
-        This method tests if contents of the PDF file are extracted when a PDF
-        file is uploaded.
-        """
-        with open('annotations/tests/data/test.pdf', 'r') as f:
-            pdf = File(f)
-            pdf.content_type = 'application/pdf'
-            content = extract_pdf_file(pdf)
-            self.assertEquals(content.strip(), 'This is a sample test file.')
+# class TestPDFFileExtract(unittest.TestCase):
+#     """
+#     This class tests the PDF file extraction method after upload file form
+#     is submitted.
+#     """
+#
+#     def test_not_a_pdf_file(self):
+#         """
+#         This method tests if validation error is raised when a non-PDF file is
+#         uploaded
+#         """
+#         f = File('invalid')
+#         f.content_type = 'invalid'
+#         with self.assertRaises(ValueError):
+#             extract_pdf_file(f)
+#
+#     def test_pdf_file(self):
+#         """
+#         This method tests if contents of the PDF file are extracted when a PDF
+#         file is uploaded.
+#         """
+#         with open('annotations/tests/data/test.pdf', 'r') as f:
+#             pdf = File(f)
+#             pdf.content_type = 'application/pdf'
+#             content = extract_pdf_file(pdf)
+#             self.assertEquals(content.strip(), 'This is a sample test file.')
 
 
 class TestTextFileExtract(unittest.TestCase):
@@ -97,3 +99,8 @@ class TestTextFileExtract(unittest.TestCase):
         f.content_type = 'text/plain'
         content = extract_text_file(f)
         self.assertEquals(content.strip(), 'This is a sample content')
+
+
+
+class TextQuadrigaSerialization(unittest.TestCase):
+    pass

@@ -1,0 +1,18 @@
+{% extends "annotations/project_list.html" %}
+{% load staticfiles %}
+
+
+{% block titleblock %}
+<div class="h2">
+    <div class="h4 text-muted">
+        <a href="{% url "list_projects" %}">
+            View all projects
+        </a>
+    </div>
+    My Projects
+    <a class="pull-right btn btn-md"
+        href="{% url "create_project" %}">
+        <span class="gylphicon glyphicon-plus"></span> Create Project
+    </a>
+</div>
+{% endblock %}

@@ -14,11 +14,13 @@ def reconnect_signal(signal, receiver, sender):
     connect = getattr(signal, 'connect')
     connect(receiver, sender=sender)
 
+
 class TestConceptSearch(TestCase):
     def test_search(self):
         concepts = search('Bradshaw', pos='noun')
         self.assertIsInstance(concepts, list)
         self.assertIsInstance(concepts[0], Concept)
+
 
 class TestConceptResolve(TestCase):
     def setUp(self):

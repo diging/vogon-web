@@ -23,7 +23,8 @@
             <div class="row" style="padding: 5px;">
                 <ul class="nav nav-pills">
                      <li><a href="{% url 'text' text.id %}?mode=annotate">Annotate</a></li>
-                     <li class="active"><a href="{% url 'text' text.id %}">View</a></li>
+                     <li{% if view == 'user' %} class="active"{% endif %}><a href="{% url 'text' text.id %}?mode=user_annotations">My Annotations</a></li>
+                     <li{% if view != 'user' %} class="active"{% endif %}><a href="{% url 'text' text.id %}">View</a></li>
                 </ul>
             </div>
             <div class="h2">
@@ -36,9 +37,11 @@
                     <span class="glyphicon glyphicon-new-window "></span>
                 </a>
                 {% endif %}
+                {% if text.created %}
                 <div class="small">
                     Created on {{ text.created }}
                 </div>
+                {% endif %}
             </div>
             <p class="text-warning">
                 {{ text.uri }}
@@ -46,15 +49,16 @@
             <p class="h5 text-muted">
                 This text was added by <a href="{% url 'user_details' text.addedBy.id %}">{{text.addedBy.username}}</a>
                 on {{ text.added }}. <strong>{{text.annotation_count}}</strong> appellations and
-                <strong>{{text.relation_count}}</strong> relations have been encoded by {{ annotators|length }}
-                user{% if annotators|length > 1 %}s{% endif %} on the basis of this text.
+                <strong>{{text.relation_count}}</strong> relations have been encoded on the basis of this text.
             </p>
             <div class="row">
+                {% if relations|length > 0 %}
                 <div class="col-sm-4">
                     <div id="networkVis" style="height: 300px;">
                     </div>
                 </div>
-                <div class="col-sm-8">
+                {% endif %}
+                <div class="col-sm-{% if relations|length > 0 %}8{% else %}12{% endif %}">
                     <div class="row">
                         <div class="col-xs-6">
                             <div class="panel-heading">
@@ -83,7 +87,7 @@
                                         class="panel-collapse collapse"
                                         concept="{{ interpretation.interpretation_id }}"
                                         role="tabpanel">
-                                        
+
                                         {% if interpretation.num_texts > 0 %}
                                         <div class="panel-body text-info text-small">
                                             <a href="{% url 'concept_details' interpretation.interpretation_id %}">Also occurs in {{ interpretation.num_texts }} other texts...</a>

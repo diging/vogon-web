@@ -12,6 +12,13 @@ from . import authorities
 import django.forms as forms
 
 
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape, format_html, html_safe
+from django.utils.encoding import (
+    force_str, force_text, python_2_unicode_compatible,
+)
+
+
 def resolve(modeladmin, request, queryset):
     for obj in queryset:
         authorities.resolve(type(obj), obj)
@@ -22,13 +29,6 @@ class ConceptActionForm(forms.Form):
     _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
     action = forms.CharField(widget=forms.HiddenInput())
     confirmed = forms.BooleanField(initial=False, widget=forms.HiddenInput())
-
-
-from django.utils.safestring import mark_safe
-from django.utils.html import conditional_escape, format_html, html_safe
-from django.utils.encoding import (
-    force_str, force_text, python_2_unicode_compatible,
-)
 
 
 @html_safe

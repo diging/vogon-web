@@ -2,66 +2,63 @@
 {% load staticfiles %}
 {% url "sign_s3" %}
 {% block main %}
-<div id="main">
-   <div class="col-sm-8 col-sm-offset-2">
-      <div id="settings" class="panel panel-default">
-         <div class="panel-heading">Update your profile</div>
-         <div class="panel-body">
-            <form  action="#" method="post" enctype='multipart/form-data'>
-               {% csrf_token %}
-               {{ form.errors }}
-               {{ form.non_field_errors }}
-               <div class="form-group">
-                  <label for="fullname">Full Name</label>
-                  <input type="text" class="form-control" id="id_fullname" name="full_name" value="{{ full_name }}">
-               </div>
-               <div class="form-group">
-                  <label for="email">Email Address</label>
-                  <input type="email" class="form-control" id="id_email" name="email" value="{{ email }}">
-               </div>
-               <div class="form-group">
-                  <label for="affiliation">Affiliation</label>
-                  <input type="text" class="form-control" id="id_affiliation" name="affiliation" value="{{ affiliation }}">
-               </div>
-               <div class="form-group">
-                  <label for="location">Location</label>
-                  <input type="text" class="form-control" id="id_location" name="location" value="{{ location }}">
-               </div>
-               <div class="form-group">
-                  <label for="link">Link</label>
-                  <input type="text" class="form-control" id="id_link" name="link" value="{{ link }}">
-               </div>
 
-               <input type="hidden" id="defaultImage" name="imagefile" value="{{ preview }}"/>
-             
-               <span class="pull-left">
-               <input type="submit" class="btn btn-primary" value="Submit" />
-               </span>
-            </form>
-            <br><br><br>
-            <div class="form-group">
-               <div class="panel-footer clearfix">
-                 <div id = "myAlertUpload" class = "alert alert-warning collapse">
-                     <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                     <strong>Error!</strong> Could not upload file.
-                  </div>
-                  <div id = "myAlertSignedURL" class = "alert alert-warning collapse">
-                     <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-                     <strong>Error!</strong> Could not get signed URL.
-                  </div>
-                  
-                  <label for="imagefile">Please upload an image</label>
-                  <input type="file" id="file_input" class="uploadBtn"/>
-                  <p id="status">Please select a file</p>
-                   <div id="spinnerContainer" class="spinner">
-                  <img id="preview"  src="{{ preview }}"/>
-                  </div>
-                  
-               </div>
-            </div>
-         </div>
-      </div>
-   </div>
+<div class="container">
+     <div class="h2">Update your profile</div>
+
+    <form  action="#" method="post" enctype='multipart/form-data'>
+       {% csrf_token %}
+       {{ form.errors }}
+       {{ form.non_field_errors }}
+       <div class="form-group">
+          <label for="fullname">Full Name</label>
+          <input type="text" class="form-control" id="id_fullname" name="full_name" {% if full_name %}value="{{ full_name }}"{% endif %}">
+       </div>
+       <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" class="form-control" id="id_email" name="email" value="{{ email }}">
+       </div>
+       <div class="form-group">
+          <label for="affiliation">Affiliation</label>
+          <input type="text" class="form-control" id="id_affiliation" name="affiliation" {% if affiliation %}value="{{ affiliation }}"{% endif %}>
+       </div>
+       <div class="form-group">
+          <label for="location">Location</label>
+          <input type="text" class="form-control" id="id_location" name="location" {% if location %}value="{{ location }}"{% endif %}">
+       </div>
+       <div class="form-group">
+          <label for="link">Link</label>
+          <input type="text" class="form-control" id="id_link" name="link" {% if link %}value="{{ link }}"{% endif %}>
+       </div>
+
+       <input type="hidden" id="defaultImage" name="imagefile" value="{{ preview }}"/>
+
+       <span class="pull-left">
+       <input type="submit" class="btn btn-primary" value="Submit" />
+       </span>
+    </form>
+    <br><br><br>
+    <div class="form-group">
+       <div class="panel-footer clearfix">
+         <div id = "myAlertUpload" class = "alert alert-warning collapse">
+             <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+             <strong>Error!</strong> Could not upload file.
+          </div>
+          <div id = "myAlertSignedURL" class = "alert alert-warning collapse">
+             <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+             <strong>Error!</strong> Could not get signed URL.
+          </div>
+
+          <label for="imagefile">Please upload an image</label>
+          <input type="file" id="file_input" class="uploadBtn"/>
+          <p id="status">Please select a file</p>
+           <div id="spinnerContainer" class="spinner">
+          <img id="preview" class="img img-responsive img-thumbnail" src="{{ preview }}"/>
+          </div>
+
+       </div>
+    </div>
+
 </div>
 <script src="{% static "annotations/js/spin.min.js" %}"></script>
 <script src="{% static "annotations/js/jquery.spin.js" %}"></script>
@@ -91,28 +88,28 @@ var opts = {
       };
 
 
-    
+
 
    /*
       Function called when file input updated. If there is a file selected, then
       start upload procedure by asking for a signed request from the app.
    */
-   function init_upload(){   
+   function init_upload(){
        $('#spinnerContainer').spin(opts);
        var files = document.getElementById("file_input").files;
        var file = files[0];
        get_signed_request(file);
    }
-   
-   
+
+
    /*
       Bind listeners when the page loads.
    */
    (function() {
        document.getElementById("file_input").onchange = init_upload;
    })();
-   
-   
+
+
    /*
        Function to get the temporary signed request from the Python app.
        If request successful, continue to upload the file using this signed
@@ -129,17 +126,17 @@ var opts = {
                }
                else{
                    $(function(){
-                       
+
                           $("#myAlertSignedURL").show();
-                        
+
                     });
                }
            }
        };
        xhr.send();
    }
-   
-   
+
+
    /*
        Function to carry out the actual PUT request to S3 using the signed request from the Python app.
    */
@@ -149,22 +146,22 @@ var opts = {
        xhr.setRequestHeader('x-amz-acl', 'public-read');
        xhr.onload = function() {
            if (xhr.status === 200) {
-               document.getElementById("preview").src = url;            
+               document.getElementById("preview").src = url;
                document.getElementById("defaultImage").value = url;
            }
        };
        xhr.onerror = function() {
            $(function(){
-              
+
                           $("#myAlertUpload").show();
-                        
+
                     });
        };
-      
+
        xhr.send(file);
         $('#spinnerContainer').spin(false);
    }
-   
-   
+
+
 </script>
 {% endblock main %}

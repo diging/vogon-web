@@ -42,7 +42,7 @@ class ConceptIndex(indexes.SearchIndex, indexes.Indexable):
     Index :class:`.Concept`\s that have been used in :class:`.Appellation`\s.
     """
     text = indexes.CharField(document=True, use_template=False)
-    label = indexes.EdgeNgramField(model_attr='label')
+    label = indexes.EdgeNgramField()
     uri = indexes.CharField(null=True)
     typed = indexes.CharField(model_attr='typed', faceted=True, null=True)
     description = indexes.CharField(null=True)
@@ -60,7 +60,9 @@ class ConceptIndex(indexes.SearchIndex, indexes.Indexable):
         return self.prepare_label(instance)
 
     def prepare_label(self, instance):
-        return instance.label.replace('_', ' ').strip().lower()
+        if instance.label:
+            return instance.label.replace('_', ' ').strip().lower()
+        return u'No label'
 
     def prepare_typed(self, instance):
         if hasattr(instance, 'typed') and getattr(instance, 'typed'):
