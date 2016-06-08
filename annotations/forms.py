@@ -424,14 +424,14 @@ try:
         created_from = forms.SplitDateTimeField(required=False,
                                                 widget=MySplitDateTimeWidget(attrs={
                                                      'date_class': 'datepicker form-control',
-                                                     'date_placeholder': 'MM/DD/YYYY',
+                                                     'placeholder': 'YYYY-MM-DD',
                                                      'time_class': 'form-control',
                                                      'time_placeholder': 'HH:MM:SS'
                                                  }))
         created_through = forms.SplitDateTimeField(required=False,
                                                    widget=MySplitDateTimeWidget(attrs={
                                                         'date_class': 'datepicker form-control',
-                                                        'date_placeholder': 'MM/DD/YYYY',
+                                                        'placeholder': 'YYYY-MM-DD',
                                                         'time_class': 'form-control',
                                                         'time_placeholder': 'HH:MM:SS'
                                                     }))
