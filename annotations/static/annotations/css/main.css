@@ -451,7 +451,7 @@ a.appellation-list-item.selected {
 }
 
 .navbar-home {
-    background-image: url('/static/annotations/img/britishmuseum.png');
+    background-image: url('/static/annotations/img/britishmuseum_compressed.jpg');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center top;
