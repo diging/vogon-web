@@ -16,6 +16,8 @@ import sys
 from urlparse import urlparse
 import socket
 import dj_database_url
+import djcelery
+from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -211,11 +213,11 @@ QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
 
 BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
 
+# Celery config.
 
-from datetime import timedelta
-
+djcelery.setup_loader()
 CELERYBEAT_SCHEDULE = {
-    'add-every-30-seconds': {
+    'accession_ready_relationsets': {
         'task': 'annotations.tasks.accession_ready_relationsets',
         'schedule': timedelta(seconds=360),
     },

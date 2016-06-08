@@ -14,6 +14,8 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 import sys
 from urlparse import urlparse
+from datetime import timedelta
+import djcelery
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -201,7 +203,6 @@ if not 'TRAVIS' in os.environ:
     HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 
-import djcelery
 djcelery.setup_loader()
 
 # AWS Access Key and Secret Key credentials
@@ -245,10 +246,10 @@ QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
 BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
 
 
-from datetime import timedelta
+
 
 CELERYBEAT_SCHEDULE = {
-    'add-every-30-seconds': {
+    'accession_ready_relationsets': {
         'task': 'annotations.tasks.accession_ready_relationsets',
         'schedule': timedelta(seconds=30),
     },

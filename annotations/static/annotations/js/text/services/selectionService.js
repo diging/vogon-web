@@ -376,7 +376,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
 
     service.bindWords = function() {
         $('body').on('click', function(e) {
-                e.stopPropagation();
                var Elem = e.target;
                if (Elem.localName == 'word'){
                    service.handleClick(e);

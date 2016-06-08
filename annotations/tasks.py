@@ -343,7 +343,6 @@ def accession_ready_relationsets():
 
     qs = RelationSet.objects.filter(submitted=False, pending=False)
 
-
     # Do not submit a relationset to Quadriga if the constituent interpretations
     #  involve concepts that are not resolved.
     all_rsets = [rs for rs in qs if rs.ready()]

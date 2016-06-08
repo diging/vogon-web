@@ -102,4 +102,9 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
     $scope.$on('reset', function (event, data) {
         $scope.reset();
     });
+
+    $scope.$on('newAppellation', function(e, d) {
+        $scope.creatingConcept = false;
+        $scope.assertUnique = false;
+    });
 }]);

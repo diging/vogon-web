@@ -108,7 +108,11 @@ def resolve(sender, instance):
 
     if instance is not None:
         # Configure based on sender model class.
-        instance_cast = instance.cast()
+        try:
+            instance_cast = instance.cast()
+        except:
+            return
+            
         if type(instance_cast) is Concept:
             get_method = 'get'
             label_field = 'lemma'

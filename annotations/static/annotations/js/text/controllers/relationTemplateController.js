@@ -295,7 +295,13 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
         if ($scope.field.type == 'TP') {
             // User can select an existing appellation.
             selectionService.expectAppellation(function(appellation) {
-                if (appellation.interpretation_type == $scope.field.concept_id) {
+                // TODO: this is too naive; we need to consider the CRM entity
+                //  hierarchy to adequately evaluate whether or not the
+                //  interpretation of the appellation is the correct type.
+                //  Until then, allow all -- this is not inconsistent with the
+                //  Quad model anyway.
+                if (true) {
+                // if (appellation.interpretation_type == $scope.field.concept_id) {
                     // The Appellation interpretation has the correct Type.
                     $scope.field.appellation = appellation;
                     $scope.label = appellation.stringRep;
