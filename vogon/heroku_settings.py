@@ -210,6 +210,8 @@ QUADRIGA_USERID = os.environ.get('QUADRIGA_USERID', '')
 QUADRIGA_PASSWORD = os.environ.get('QUADRIGA_PASSWORD', '')
 QUADRIGA_ENDPOINT = os.environ.get('QUADRIGA_ENDPOINT', '')
 QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
+QUADRIGA_PROJECT = os.environ.get('QUADRIGA_PROJECT', 'vogonweb')
+
 
 BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
 
