@@ -1,7 +1,7 @@
 from django.test import TestCase
 import unittest
-from forms import validatefiletype
-from tasks import extract_text_file, extract_pdf_file
+from annotations.forms import validatefiletype
+from annotations.tasks import extract_text_file, extract_pdf_file
 from django.core.files import File
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
