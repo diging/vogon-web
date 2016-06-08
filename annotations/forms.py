@@ -77,7 +77,7 @@ class UploadFileForm(forms.Form):
     title = forms.CharField(max_length=255, required=True,
                             help_text='The title of the original resource.')
     uri = forms.CharField(label='URI', max_length=255, required=True,
-                            help_text='"URI" stands for Uniform Resource Identifier. This can be a DOI, a permalink to a digital archive (e.g. JSTOR), or any other unique identifier.')                            
+                            help_text='"URI" stands for Uniform Resource Identifier. This can be a DOI, a permalink to a digital archive (e.g. JSTOR), or any other unique identifier.')
     ispublic = forms.BooleanField(label='Make this text public',
                 required=False,
                 help_text='By checking this box you affirm that you have the right to make this file publicly available.')
@@ -407,14 +407,16 @@ try:
                                                  required=False,
                                                  widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
         text_published_from = forms.DateField(required=False,
+
                                               widget=forms.widgets.DateInput(attrs={
                                                     'class': 'datepicker form-control',
-                                                    'placeholder': 'MM/DD/YYYY'
+                                                    'placeholder': 'YYYY-MM-DD'
                                                 }))
         text_published_through = forms.DateField(required=False,
+
                                               widget=forms.widgets.DateInput(attrs={
                                                     'class': 'datepicker form-control',
-                                                    'placeholder': 'MM/DD/YYYY'
+                                                    'placeholder': 'YYYY-MM-DD'
                                                 }))
         user = forms.MultipleChoiceField(choices=VogonUser.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'username'),
                                       required=False,

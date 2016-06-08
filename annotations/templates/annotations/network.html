@@ -64,7 +64,7 @@ var networkEndpoint = '{% url "network-data" %}',
                                         </form>
                                         <script>
                                         $(function() {
-                                            $( ".datepicker" ).datepicker();
+                                            $( ".datepicker" ).datepicker({ dateFormat: 'yy-mm-dd' });
                                             $(".ymultiselect").multiselect({
                                                 buttonContainer: '<div class="btn-group" />',
                                                 buttonWidth: '100%',
