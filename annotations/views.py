@@ -50,6 +50,9 @@ from annotations import quadriga
 from concepts.authorities import search
 from concepts.tasks import search_concept
 
+from annotations.display_helpers import get_appellation_summaries
+from annotations.utils import *
+
 from models import *
 from forms import *
 from serializers import *
@@ -138,25 +141,7 @@ def home(request):
 
 
 
-def basepath(request):
-    """
-    Generate the base path (domain + path) for the site.
 
-    TODO: Do we need this anymore?
-
-    Parameters
-    ----------
-    request : :class:`django.http.request.HttpRequest`
-
-    Returns
-    -------
-    str
-    """
-    if request.is_secure():
-        scheme = 'https://'
-    else:
-        scheme = 'http://'
-    return scheme + request.get_host() + settings.SUBPATH
 
 
 @csrf_protect
@@ -736,149 +721,7 @@ def _get_recent_annotations_for_graph(annotation_by_user, start_date):
     return annotation_per_week
 
 
-def _get_appellations_data(appellations):
-    """
-    Generate appellation summary information for display in the text detail
-    view.
-    """
-    appellations = appellations.order_by('interpretation_id')
 
-    fields = [
-        'interpretation_id',
-        'interpretation__label',
-        'interpretation__typed__label',
-        'interpretation__merged_with_id',
-        'interpretation__merged_with__label',
-        'interpretation__merged_with__typed__label',
-        'occursIn_id',
-        'occursIn__tokenizedContent',
-        'tokenIds',
-        'createdBy_id',
-        'createdBy__username',
-        'created',
-    ]
-
-    appellations = appellations.values(*fields)
-    appellations_data = []
-
-    appellation_creators = set()
-    groupkey = lambda a: a['interpretation__merged_with_id'] if a['interpretation__merged_with_id'] else a['interpretation_id']
-    for concept_id, concept_appellations in groupby(appellations, groupkey):
-        indiv_appellations = []
-        unique_texts = set()
-        for i, appellation in enumerate(concept_appellations):
-            # We have to do this in here, because ``appellation`` is a
-            #  itertools._grouper iterable.
-            if i == 0:
-                if appellation['interpretation__merged_with__typed__label']:
-                    type_label = appellation['interpretation__merged_with__typed__label']
-                elif appellation['interpretation__typed__label']:
-                    type_label = appellation['interpretation__typed__label']
-                else:
-                    type_label = u''
-                if appellation['interpretation__merged_with__label']:
-                    concept_label = appellation['interpretation__merged_with__label']
-                else:
-                    concept_label = appellation['interpretation__label']
-
-            indiv_appellations.append({
-                "text_snippet": get_snippet(appellation),
-                "annotator_id": appellation['createdBy_id'],
-                "annotator_username": appellation['createdBy__username'],
-                "created": appellation['created'],
-            })
-            appellation_creators.add(appellation['createdBy_id'])
-            unique_texts.add(appellation['occursIn_id'])
-
-        num_texts = len(unique_texts) - 1
-        appellations_data.append({
-            "interpretation_id": concept_id,
-            "interpretation_label": concept_label,
-            "interpretation_type": type_label,
-            "appellations": indiv_appellations,
-            "num_texts": num_texts,
-        })
-
-    appellations_data = sorted(appellations_data,
-                               key=lambda a: a['interpretation_label'])
-
-    return appellations_data, appellation_creators
-
-
-def _get_relations_data(relationset_qs):
-    """
-    Organize RelationSets for this text so that we can display them in
-    conjunction with edges in the graph. In other words, grouped by
-    the "source" and "target" of the simplified graphical representation.
-    """
-
-    app_ct = ContentType.objects.get_for_model(Appellation)
-    relationsets_by_interpretation = []
-    relationsets = []
-
-    fields = [
-        'source_content_type_id',
-        'object_content_type_id',
-        'source_object_id',
-        'object_object_id',
-        'predicate__tokenIds',
-        'predicate__interpretation__label',
-        'predicate__interpretation_id',
-    ]
-
-    # Pull out "focal" concepts from the RelationSet. Usually there will
-    #  be only two, but there could be more.
-    for relationset in relationset_qs:
-        appellation_ids = set()
-        for rel in relationset.constituents.all().values(*fields):
-            for part in ['source', 'object']:
-                if rel.get('%s_content_type_id' % part, None) == app_ct.id:
-                    appellation_ids.add(rel['%s_object_id' % part])
-
-        interps = []    # Focal concepts go here.
-        appellations = Appellation.objects.filter(pk__in=appellation_ids, asPredicate=False)
-        appellation_fields = [
-            'interpretation_id',
-            'interpretation__label',
-            'interpretation__typed__label',
-            'interpretation__merged_with_id',
-            'interpretation__merged_with__label',
-            'interpretation__merged_with__typed__label',
-        ]
-        for appellation in appellations.values(*appellation_fields):
-            if appellation['interpretation__merged_with_id']:
-                interps.append((appellation['interpretation__merged_with_id'], appellation['interpretation__merged_with__label']))
-            else:
-                interps.append((appellation['interpretation_id'], appellation['interpretation__label']))
-
-        # Usually there will be only two Concepts here, but for more complex
-        #  relations there could be more.
-        for u, v in combinations(interps, 2):
-            u, v = tuple(sorted([u, v], key=lambda a: a[0]))
-            # This is kind of hacky, but it lets us access the IDs and
-            #  labels more readily below.
-            rset = ((u[0], u[1], v[0], v[1]), relationset)
-            relationsets_by_interpretation.append(rset)
-
-    # Here we sort and group by concept-pairs (u and v, above).
-    skey = lambda r: r[0]
-    rsets = groupby(sorted(relationsets_by_interpretation, key=skey),
-                    key=skey)
-
-    # Each group will be shown as an accordion panel in the view.
-    for (u_id, u_label, v_id, v_label), i_relationsets in rsets:
-        relationsets.append({
-            "source_interpretation_id": u_id,
-            "source_interpretation_label": u_label,
-            "target_interpretation_id": v_id,
-            "target_interpretation_label": v_label,
-            "relationsets": [{
-                "text_snippet": get_snippet_relation(relationset),
-                "annotator": relationset.createdBy,
-                "created": relationset.created,
-            } for _, relationset in i_relationsets]
-        })
-    return relationsets
 
 
 def recent_activity(request):
@@ -904,85 +747,7 @@ def recent_activity(request):
     return HttpResponse(template.render(context))
 
 
-@ensure_csrf_cookie
-def text(request, textid):
-    """
-    Provides the main text view.
 
-    Parameters
-    ----------
-    request : `django.http.requests.HttpRequest`
-
-    Returns
-    ----------
-    :class:`django.http.response.HttpResponse`
-    """
-
-    text = get_object_or_404(Text, pk=textid)
-    context_data = {
-        'text': text,
-        'textid': textid,
-        'title': 'Annotate Text',
-        'baselocation' : basepath(request)
-    }
-
-    # If a text is restricted, then the user needs explicit permission to
-    #  access it.
-    access_conditions = [
-        'view_text' in get_perms(request.user, text),
-        request.user in text.annotators.all(),
-        getattr(request.user, 'is_admin', False),
-        text.public,
-    ]
-    # if not any(access_conditions):
-    #     # TODO: return a pretty templated response.
-    #     raise PermissionDenied
-    mode = request.GET.get('mode', 'view')
-
-    if all([request.user.is_authenticated(), any(access_conditions), mode == 'annotate']):
-        template = loader.get_template('annotations/text.html')
-        context_data.update({
-            'userid': request.user.id,
-            'title': text.title,
-        })
-        context = RequestContext(request, context_data)
-        return HttpResponse(template.render(context))
-    elif all([request.user.is_authenticated(), any(access_conditions), mode == 'user_annotations']):
-        appellations = Appellation.objects.filter(occursIn_id=textid,
-                                                  asPredicate=False,
-                                                  createdBy=request.user.id)
-        appellations_data, appellation_creators = _get_appellations_data(appellations)
-        relationset_qs = RelationSet.objects.filter(occursIn=textid,
-                                                    createdBy=request.user.id)
-        relationsets = _get_relations_data(relationset_qs)
-
-        context_data.update({
-            'view': 'user',
-        })
-    elif mode == 'annotate':
-        return HttpResponseRedirect(reverse('login'))
-
-    # TODO: pull most of this logic out into helper functions, and move it
-    #  out of views.py.
-
-    template = loader.get_template('annotations/text_view.html')
-
-    appellations = Appellation.objects.filter(occursIn_id=textid,
-                                              asPredicate=False)
-    appellations_data, appellation_creators = _get_appellations_data(appellations)
-    relationset_qs = RelationSet.objects.filter(occursIn=textid)
-    relationsets = _get_relations_data(relationset_qs)
-
-
-    context_data.update({
-        'userid': request.user.id,
-        'appellations_data': appellations_data,
-        'annotators': appellation_creators,
-        'relations': relationsets,
-        'title': text.title,
-    })
-    context = RequestContext(request, context_data)
-    return HttpResponse(template.render(context))
 
 
 # TODO: move this out of views.py and into an exceptions module.
