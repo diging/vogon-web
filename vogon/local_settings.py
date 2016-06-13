@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'guardian',
     'djcelery',
     'haystack',
+    'repository',
 )
 
 MIDDLEWARE_CLASSES = (

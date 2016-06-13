@@ -81,7 +81,7 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     authority service, please enter it here.
     """))
 
-    imagefile = models.URLField(blank=True, null=True, label="Mugshot",
+    imagefile = models.URLField(blank=True, null=True,
                                 help_text="Upload a profile picture.")
 
     is_active = models.BooleanField(default=True, help_text=help_text(
@@ -274,7 +274,7 @@ class Text(models.Model):
     """The user who added the text to VogonWeb."""))
 
     source = models.ForeignKey("Repository", blank=True, null=True,
-                               related_name="loadedTexts", help_text(
+                               related_name="loadedTexts", help_text=help_text(
     """The repository (if applicable) from which the text was retrieved."""))
 
     originalResource = models.URLField(blank=True, null=True,
@@ -338,7 +338,8 @@ class Repository(models.Model):
     """The human-readable name that will be presented to end users."""))
 
     manager = models.CharField(max_length=255, choices=repositoryManagers,
-    """The name of the manager class for this repository.""")
+                               help_text=help_text(
+    """The name of the manager class for this repository."""))
 
     endpoint = models.CharField(max_length=255, help_text=help_text(
     """The base URL for the repository API."""))
@@ -559,7 +560,7 @@ class RelationSet(models.Model):
     is to prevent duplicate submissions.
     """))
 
-    submitted = models.BooleanField(default=False help_text=help_text(
+    submitted = models.BooleanField(default=False, help_text=help_text(
     """
     Whether or not the RelationSet has been accessioned to Quadriga. This is
     set True only if the RelationSet was added successfully.
