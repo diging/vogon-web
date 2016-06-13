@@ -1,14 +1,58 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import SafeText
 
 import json, datetime, requests
+import copy
 from urlparse import urljoin
+
+
+class FieldValue(object):
+    def __init__(self, name, value, value_type):
+        self.name = name
+        self.value = value
+        self.value_type = value_type
+        self.render_value = getattr(self, '_render_%s' % value_type)
+
+    def _render_bool(self):
+        if self.value:
+            return SafeText(u'<span class="glyphicon glyphicon-ok"></span>')
+        return SafeText(u'<span class="glyphicon glyphicon-remove"></span>')
+
+    def _render_text(self):
+        return self.value
+
+    def _render_int(self):
+        return self.value
+
+    def _render_float(self):
+        return self.value
+
+    def _render_url(self):
+        return SafeText(u'<a href="%s">%s</a>' % (self.value, self.value))
+
+    def render(self):
+        return SafeText(u'<dt>%s</dt><dd>%s</dd>' % (self.name, self.render_value()))
+
+    def __str__(self):
+        return self.render()
+
+    def __unicode__(self):
+        return self.render()
 
 
 class Result(object):
     def __init__(self, **kwargs):
+        self.data = kwargs
+
         for key, value in kwargs.iteritems():
             setattr(self, key, value)
+
+    def iteritems(self):
+        return self.data.iteritems()
+
+    def get(self, key, default=None):
+        return self.data.get(key, default)
 
 
 class ResultSet(object):
@@ -38,8 +82,11 @@ class Repository(models.Model):
     def __init__(self, *args, **kwargs):
         super(Repository, self).__init__(*args, **kwargs)
 
-        for method in self.configured_methods:
-            setattr(self, method, self._method_factory(method))
+        try:
+            for method in self.configured_methods:
+                setattr(self, method, self._method_factory(method))
+        except ValueError:
+            pass
 
     @property
     def endpoint(self):
@@ -95,12 +142,12 @@ class Repository(models.Model):
                              (field['name'], field['type']))
 
     def _render_path_template(self, method, template, **payload):
-        config = self._get_configuration()['methods'][method]
+        config = self._get_configuration(method)
         field_part = template.format(**payload)
         return urljoin(config['path'], field_part)
 
     def _get_path_for_method(self, method, **kwargs):
-        config = self._get_configuration()['methods'][method]
+        config = self._get_configuration(method)
         template = config['request'].get('template', None)
         if template:
             path = self._render_path_template(method, template, **kwargs)
@@ -108,11 +155,42 @@ class Repository(models.Model):
             path = config['path']
         return urljoin(self.endpoint, path)
 
+    # def _get_pagination(self, method, data):
+    #     config = self._get_configuration(method)
+    #     pagination_config = config['results'].get('pagination', None)
+    #     if pagination_config and pagination_config.get('paginated', False):
+
+
+
     def _get_results(self, method, data):
         config = self._get_configuration(method)
         results_path = config['response']['path'].split('.')
-        for key in results_path:
-            data = data.get(key)
+
+        if type(data) is list and not results_path[0]:
+            return data
+
+        # The results_path points to a property in the data that represents the
+        #  result set.
+        if results_path[0]:
+            for key in results_path:
+                data = data.get(key)
+
+        fields = self._get_response_fields(method)
+        field_map = {f['path']: k for k, f in fields.iteritems()}
+        response_type = self._get_configuration(method)['response']['results']
+
+        def map_data(result):
+            mapped_data = {}
+            for path, field in field_map.iteritems():
+                if path in result:
+                    mapped_data[fields[field]['name']] = FieldValue(fields[field]['display'], result[path], fields[field]['type'])
+            return mapped_data
+
+
+        if response_type == 'list':
+            data = [map_data(result) for result in data]
+        elif response_type == 'instance':
+            data = map_data(data)
         return data
 
     def _get_response_handler(self, method):
@@ -139,6 +217,7 @@ class Repository(models.Model):
         -------
         :class:`.Result` or :class:`.ResultSet`
         """
+
         fields = self._get_request_fields(method)
 
         payload = {}
@@ -148,8 +227,10 @@ class Repository(models.Model):
             self._validate_field_value(fields[key], value)
             payload[key] = value
 
-        response = requests.get(self._get_path_for_method(method, **kwargs),
-                                params=payload)
+        request_path = self._get_path_for_method(method, **kwargs)
+        response = requests.get(request_path, params=payload)
+
+
         result_data = self._get_results(method, response.json())
 
         response_handler = self._get_response_handler(method)

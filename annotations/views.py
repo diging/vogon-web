@@ -87,6 +87,8 @@ logger.setLevel('ERROR')
 from haystack.generic_views import SearchView, FacetedSearchView
 from haystack.query import SearchQuerySet
 
+from repository.models import Repository
+
 
 # TODO: Can we replace this with the built-in Django JsonResponse?
 def json_response(func):
@@ -1367,6 +1369,7 @@ def upload_file(request):
         'user': request.user,
         'form': form,
         'subpath': settings.SUBPATH,
+        'repositories': Repository.objects.all(),
     })
     return HttpResponse(template.render(context))
 
@@ -2650,3 +2653,118 @@ def text_xml(request, text_id, user_id):
     text_xml = quadriga.to_quadruples(relationsets, text, user, toString=True)
     # r = quadriga.submit_relationsets(relationsets, text, user)
     return HttpResponse(text_xml, content_type='application/xml')
+
+
+@login_required
+def repository_collections(request, repository_id):
+    template = loader.get_template('annotations/repository_collections.html')
+    repository = get_object_or_404(Repository, pk=repository_id)
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'repository': repository,
+        'title': 'Browse collections in %s' % repository.name,
+    })
+
+    return HttpResponse(template.render(context))
+
+
+@login_required
+def repository_collection(request, repository_id, collection_id):
+    template = loader.get_template('annotations/repository_collection.html')
+    repository = get_object_or_404(Repository, pk=repository_id)
+    collection = repository.collection(id=collection_id)
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'repository': repository,
+        'collection': collection,
+        'title': 'Browse collections in %s' % repository.name,
+    })
+
+    return HttpResponse(template.render(context))
+
+
+@login_required
+def repository_browse(request, repository_id):
+    template = loader.get_template('annotations/repository_browse.html')
+    repository = get_object_or_404(Repository, pk=repository_id)
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'repository': repository,
+        'title': 'Browse repository %s' % repository.name,
+    })
+
+    return HttpResponse(template.render(context))
+
+
+@login_required
+def repository_search(request, repository_id):
+    template = loader.get_template('annotations/repository_search.html')
+    repository = get_object_or_404(Repository, pk=repository_id)
+    query = request.GET.get('query', None)
+    if query:
+        results = repository.search(search=query)
+        form = RepositorySearchForm({'query': query})
+    else:
+        results = None
+        form = RepositorySearchForm()
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'repository': repository,
+        'title': 'Browse repository %s' % repository.name,
+        'form': form,
+        'results': results,
+        'query': query,
+    })
+
+    return HttpResponse(template.render(context))
+
+
+@login_required
+def repository_details(request, repository_id):
+    template = loader.get_template('annotations/repository_details.html')
+    repository = get_object_or_404(Repository, pk=repository_id)
+
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'repository': repository,
+        'title': 'Repository details: %s' % repository.name,
+
+    })
+
+    return HttpResponse(template.render(context))
+
+
+@login_required
+def repository_list(request):
+    template = loader.get_template('annotations/repository_list.html')
+    repositories = Repository.objects.all()
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'repositories': repositories,
+        'title': 'Repositories',
+
+    })
+
+    return HttpResponse(template.render(context))
+
+
+@login_required
+def repository_text(request, repository_id, text_id):
+    repository = get_object_or_404(Repository, pk=repository_id)
+    result = repository.read(id=int(text_id))
+
+    defaults = {
+        'title': getattr(result.get('title'), 'value', None),
+        'created': getattr(result.get('created'), 'value', None),
+        #'source': repository,
+        'addedBy': request.user,
+        'originalResource': getattr(result.get('url'), 'value', None),
+    }
+    text, _ = Text.objects.get_or_create(uri=result.uri.value, defaults=defaults)
+    return HttpResponseRedirect(reverse('text', args=(text.id,)))
