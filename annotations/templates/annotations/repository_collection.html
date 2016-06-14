@@ -11,7 +11,8 @@
 
     <div class="list-group">
         {% for result in collection  %}
-        <a class="list-group-item">
+        <a class="list-group-item"
+            href="{% url "repository_text" repository.id result.id.value %}">
             <div class="h5">{{ result.title.render_value }}</div>
             <dl class="dl-horizontal">
             {% for name, fieldvalue in result.iteritems %}

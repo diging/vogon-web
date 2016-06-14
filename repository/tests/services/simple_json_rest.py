@@ -88,6 +88,20 @@ def read(o, **kwargs):
                 'content': {
                     'id': 52,
                     'title': 'The only book with this name',
+                    'formats': [
+                        {
+                            'id': 8,
+                            'name': 'plain text',
+                            'mime': 'text/plain',
+                            'location': 'http://testrepository.net/rest/content/0008.txt'
+                        },
+                        {
+                            'id': 9,
+                            'name': 'pdf',
+                            'mime': 'application/pdf',
+                            'location': 'http://testrepository.net/rest/content/0009.txt'
+                        },
+                    ]
                 },
             },
         }
@@ -133,6 +147,37 @@ configuration = json.dumps({
             'response': {
                 'path': 'body.content',
                 'results': 'instance',
+                'content': {
+                    'type': 'format',
+                    'results': 'list',
+                    'path': 'formats',
+                    'fields': {
+                        'id': {
+                            'name': 'id',
+                            'type': 'int',
+                            'display': 'ID',
+                            'path': 'id',
+                        },
+                        'content_type': {
+                            'name': 'content_type',
+                            'type': 'text',
+                            'display': 'Content type',
+                            'path': 'mime'
+                        },
+                        'name': {
+                            'name': 'name',
+                            'type': 'text',
+                            'display': 'Name',
+                            'path': 'filename'
+                        },
+                        'content_location': {
+                            'name': 'content_location',
+                            'type': 'url',
+                            'display': 'Content location',
+                            'path': 'location',
+                        }
+                    },
+                },
                 'fields': {
                     'title': {
                         'name': 'title',

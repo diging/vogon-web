@@ -33,12 +33,24 @@ def collection(o, **kwargs):
     return data
 
 
-def resource(o, **kwargs):
+def resources(o, **kwargs):
     """
     Mock a response to a resource list request.
     """
     if re.match('/rest/resource/$', o.path):
         with open('repository/tests/services/responses/jars_resources.json', 'r') as f:
+            data = json.load(f)
+    else:
+        data = {"detail":"Not found."}
+    return data
+
+
+def resource(o, **kwargs):
+    """
+    Mock a response to a resource list request.
+    """
+    if re.match('/rest/resource/([0-9]+)/$', o.path):
+        with open('repository/tests/services/responses/jars_resource_with_content.json', 'r') as f:
             data = json.load(f)
     else:
         data = {"detail":"Not found."}
@@ -67,8 +79,10 @@ def get(o, **kwargs):
         data = collections(o, **kwargs)
     elif 'search' in kwargs['params']:
         data = search(o, **kwargs)
-    elif re.match('/rest/resource/$', o.path):
+    elif re.match('/rest/resource/([0-9]+)/$', o.path):
         data = resource(o, **kwargs)
+    elif re.match('/rest/resource/$', o.path):
+        data = resources(o, **kwargs)
     else:
         status = 404
         data = {'body': {'message': 'No such path'}}
@@ -81,6 +95,80 @@ configuration = json.dumps({
     'description': 'description',
     'endpoint': 'http://localhost:8000/rest/',
     'methods': {
+        'read': {
+            'name': 'read',
+            'method': 'GET',
+            'path': 'resource/',
+            'request': {
+                'template': '{id}/',
+            },
+            'response': {
+                'results': 'instance',
+                'fields': {
+                    'url': {
+                        'name': 'url',
+                        'display': 'URL',
+                        'type': 'text',
+                        'path': 'url',
+                    },
+                    'title': {
+                        'name': 'title',
+                        'display': 'Title',
+                        'type': 'text',
+                        'path': 'name',
+                    },
+                    'uri': {
+                        'name': 'uri',
+                        'display': 'URI',
+                        'type': 'text',
+                        'path': 'uri',
+                    },
+                    'public': {
+                        'name': 'public',
+                        'display': 'Public',
+                        'type': 'bool',
+                        'path': 'public',
+                    },
+                    'id': {
+                        'name': 'id',
+                        'display': 'ID',
+                        'type': 'int',
+                        'path': 'id'
+                    }
+                },
+                'content': {
+                    'type': 'format',
+                    'results': 'list',
+                    'path': 'content',
+                    'fields': {
+                        'id': {
+                            'name': 'id',
+                            'type': 'int',
+                            'display': 'ID',
+                            'path': 'id',
+                        },
+                        'content_type': {
+                            'name': 'content_type',
+                            'type': 'text',
+                            'display': 'Content type',
+                            'path': 'content_type'
+                        },
+                        'name': {
+                            'name': 'name',
+                            'type': 'text',
+                            'display': 'Name',
+                            'path': 'content_resource.name'
+                        },
+                        'content_location': {
+                            'name': 'content_location',
+                            'type': 'url',
+                            'display': 'Content location',
+                            'path': 'content_resource.url',
+                        }
+                    },
+                },
+            }
+        },
         'collections': {
             'name': 'collections',
             'method': 'GET',
@@ -211,6 +299,12 @@ configuration = json.dumps({
                         'display': 'Public',
                         'type': 'bool',
                         'path': 'public',
+                    },
+                    'id': {
+                        'name': 'id',
+                        'display': 'ID',
+                        'type': 'int',
+                        'path': 'id'
                     }
                 }
             }

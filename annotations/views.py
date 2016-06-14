@@ -2649,7 +2649,8 @@ def relationset_xml(request, relationset_id):
 def text_xml(request, text_id, user_id):
     text = Text.objects.get(pk=text_id)
     user = VogonUser.objects.get(pk=user_id)
-    relationsets = RelationSet.objects.filter(occursIn_id=text_id, createdBy_id=user_id)
+    relationsets = RelationSet.objects.filter(occursIn_id=text_id,
+                                              createdBy_id=user_id)
     text_xml = quadriga.to_quadruples(relationsets, text, user, toString=True)
     # r = quadriga.submit_relationsets(relationsets, text, user)
     return HttpResponse(text_xml, content_type='application/xml')
@@ -2728,7 +2729,6 @@ def repository_details(request, repository_id):
     template = loader.get_template('annotations/repository_details.html')
     repository = get_object_or_404(Repository, pk=repository_id)
 
-
     context = RequestContext(request, {
         'user': request.user,
         'repository': repository,
@@ -2756,15 +2756,55 @@ def repository_list(request):
 
 @login_required
 def repository_text(request, repository_id, text_id):
+    template = loader.get_template('annotations/repository_text_details.html')
+
     repository = get_object_or_404(Repository, pk=repository_id)
     result = repository.read(id=int(text_id))
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'repository': repository,
+        'result': result,
+        'title': 'Text: %s' % result.data['title'].value,
+
+    })
+    return HttpResponse(template.render(context))
+
+
+@login_required
+def repository_text_content(request, repository_id, text_id, content_id):
+    repository = get_object_or_404(Repository, pk=repository_id)
+    result = repository.read(id=int(text_id))
+    content = result.content.contents.get(int(content_id))    # Not a dict.
+    content_type = content.data.get('content_type', None)
+    if content_type and content_type.value == 'text/plain':
+        content_response = requests.get(content.data['content_location'].value)
+        tokenizedContent = tokenize(content_response.text)
+    else:
+        return _repository_text_fail(request, repository, result, content)
 
     defaults = {
         'title': getattr(result.get('title'), 'value', None),
         'created': getattr(result.get('created'), 'value', None),
         #'source': repository,
+        'tokenizedContent': tokenizedContent,
         'addedBy': request.user,
         'originalResource': getattr(result.get('url'), 'value', None),
     }
     text, _ = Text.objects.get_or_create(uri=result.uri.value, defaults=defaults)
     return HttpResponseRedirect(reverse('text', args=(text.id,)))
+
+
+
+def _repository_text_fail(request, repository, result, content):
+    template = loader.get_template('annotations/repository_text_fail.html')
+
+    context = RequestContext(request, {
+        'user': request.user,
+        'repository': repository,
+        'result': result,
+        'content': content,
+        'title': 'Whoops!',
+        'content_type': content.data.get('content_type', None),
+    })
+    return HttpResponse(template.render(context))

@@ -2,9 +2,10 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import SafeText
 
-import json, datetime, requests
-import copy
+import json, datetime, requests, copy, xmltodict
 from urlparse import urljoin
+from string import Formatter
+from uuid import uuid4
 
 
 class FieldValue(object):
@@ -29,7 +30,11 @@ class FieldValue(object):
         return self.value
 
     def _render_url(self):
-        return SafeText(u'<a href="%s">%s</a>' % (self.value, self.value))
+        return SafeText(u'<span class="text-warning">%s</span>' % self.value)
+
+    def _render_datetime(self):
+        # TODO: this should actually implement datetime formatting.
+        return self.value
 
     def render(self):
         return SafeText(u'<dt>%s</dt><dd>%s</dd>' % (self.name, self.render_value()))
@@ -41,12 +46,43 @@ class FieldValue(object):
         return self.render()
 
 
+class ContentObject(object):
+    def __init__(self, data):
+        self.id = data.pop('id').value
+        self.data = data
+
+
+class ContentContainer(object):
+    def __init__(self, content_data):
+        self.contents = {}
+        for datum in content_data:
+            datum = ContentObject(datum)
+            self.contents[int(datum.id)] = datum
+
+    def get(self, key):
+        return self.contents.get(key, None)
+
+    def items(self):
+        return self.contents.items()
+
+    @property
+    def count(self):
+        return len(self.contents)
+
+
+
 class Result(object):
     def __init__(self, **kwargs):
+        content = kwargs.pop('content', None)
         self.data = kwargs
+        for field, value in self.data.iteritems():
+            setattr(self, field, value)
 
-        for key, value in kwargs.iteritems():
-            setattr(self, key, value)
+        if content:
+            if type(content) is not list:
+                content = [content]
+
+            self.content = ContentContainer(content)
 
     def iteritems(self):
         return self.data.iteritems()
@@ -160,37 +196,118 @@ class Repository(models.Model):
     #     pagination_config = config['results'].get('pagination', None)
     #     if pagination_config and pagination_config.get('paginated', False):
 
+    def _get_data_by_path(self, data, path):
+        path_parts = path.split('.')
+        data = copy.copy(data)
 
+        # Paths can be arbitrarily deep.
+        if len(path_parts) > 0 and path_parts[0]:
+            for part in path_parts:
+                try:
+                    data = data.get(part)
+                except (KeyError, AttributeError):
+                    # TODO: make this more informative, or add logging.
+                    raise RuntimeError('Response data does not match configuration')
+        # If there is no usable path information, we simply return the data.
+        return data
 
-    def _get_results(self, method, data):
-        config = self._get_configuration(method)
-        results_path = config['response']['path'].split('.')
+    def _get_field_data(self, fields, response_type, data):
+        # The `path` of each field specifies where in the data to find data for
+        #  that field.
 
-        if type(data) is list and not results_path[0]:
-            return data
-
-        # The results_path points to a property in the data that represents the
-        #  result set.
-        if results_path[0]:
-            for key in results_path:
-                data = data.get(key)
-
-        fields = self._get_response_fields(method)
-        field_map = {f['path']: k for k, f in fields.iteritems()}
-        response_type = self._get_configuration(method)['response']['results']
+        field_map = {f.get('path'): k for k, f in fields.iteritems() if 'path' in f}
+        config = self._get_configuration()
 
         def map_data(result):
             mapped_data = {}
             for path, field in field_map.iteritems():
-                if path in result:
-                    mapped_data[fields[field]['name']] = FieldValue(fields[field]['display'], result[path], fields[field]['type'])
-            return mapped_data
+                mapped_data[fields[field]['name']] = FieldValue(
+                    fields[field]['display'],
+                    self._get_data_by_path(result, path),
+                    fields[field]['type']
+                )
 
+            # Rather than reading a field value directly from data, the value
+            #  may be a composite of values from other fields, or the
+            #  repository configuration itself. Composite fields are described
+            #  using the 'template' parameter in the field description.
+            for field in fields.values():
+                if 'template' in field:
+                    template = field['template']
+                    template_keys = [o[1] for o in Formatter().parse(template)]
+                    template_values = {}
+                    for key in template_keys:
+                        if key in mapped_data:
+                            template_values[key] = mapped_data[key].value
+                        elif key in data:
+                            template_values[key] = data[key]
+                        elif key in config:
+                            template_values[key] = config[key]
+
+                    mapped_data[field['name']] = FieldValue(
+                        field['display'],
+                        template.format(**template_values),
+                        'text'
+                    )
+
+            return mapped_data
 
         if response_type == 'list':
             data = [map_data(result) for result in data]
         elif response_type == 'instance':
             data = map_data(data)
+        return data
+
+    def _get_content_data(self, method, data, response_type='instance'):
+
+        config = self._get_configuration(method)['response']
+        if 'content' not in config:
+            return
+
+        # If metadata about the content of a result is present in the result
+        #  data itself, then this is indicated with the 'path' paramter.
+        content_path = config['content'].get('path', None)
+        content_method = config['content'].get('method', None)
+        if method and not content_path:
+            external_data = self._execute_method(content_method, raw=True, **data)
+            return external_data
+
+        content_data = self._get_data_by_path(data, content_path)
+        content_fields = config['content']['fields']
+        content_results_type = config['content'].get('results', 'instance')
+        if response_type == 'instance':
+            return self._get_field_data(content_fields, content_results_type, content_data)
+        elif response_type == 'list':
+            return [self._get_field_data(content_fields, content_results_type, datum) for datum in data]
+
+        return None
+
+    def _get_results(self, method, data):
+        # TODO: this should be more sophisticated.
+        if type(data) is list:
+            return data
+
+        config = self._get_configuration(method)['response']
+
+        # The response path points to a property in the data that represents the
+        #  result set.
+        data = self._get_data_by_path(data, config.get('path', ''))
+
+        # These are the fields that we expect to find.
+        fields = self._get_response_fields(method)
+        response_type = config.get('results', 'instance')
+
+        if response_type == 'list' and not type(data) is list:
+            data = [data]
+
+        content = self._get_content_data(method, data, response_type)
+        data = self._get_field_data(fields, response_type, data)
+        if response_type == 'instance' and content:
+            data['content'] = content
+        elif response_type == 'list' and content:
+            for datum, ct in zip(data, content):
+                datum['content'] = ct
+
         return data
 
     def _get_response_handler(self, method):
@@ -218,7 +335,12 @@ class Repository(models.Model):
         :class:`.Result` or :class:`.ResultSet`
         """
 
+        # If raw is True, then the raw result data will be returned, rather
+        # than wrapping the results as Result and ResultSet instances.
+        raw = kwargs.pop('raw', False)
+
         fields = self._get_request_fields(method)
+        config = self._get_configuration()
 
         payload = {}
         for key, value in kwargs.iteritems():
@@ -228,10 +350,20 @@ class Repository(models.Model):
             payload[key] = value
 
         request_path = self._get_path_for_method(method, **kwargs)
-        response = requests.get(request_path, params=payload)
+        print request_path
 
 
-        result_data = self._get_results(method, response.json())
+        if config['format'] == 'json':
+            response = requests.get(request_path, params=payload)
+            response_content = response.json()
+        elif config['format'] == 'xml':
+            headers = {'Accept': 'application/xml'}
+            response = requests.get(request_path, params=payload, headers=headers)
+            response_content = xmltodict.parse(response.text)
 
-        response_handler = self._get_response_handler(method)
-        return response_handler(result_data)
+        result_data = self._get_results(method, response_content)
+
+        if raw:    # Just the facts, ma'am.
+            return result_data
+
+        return self._get_response_handler(method)(result_data)
