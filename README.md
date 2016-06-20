@@ -38,12 +38,6 @@ Right now we're using Redis as the broker for Celery. You should set
 export REDIS_URL="redis://"
 ```
 
-You should also set:
-
-```shell
-export CELERY_TASK_SERIALIZER=json
-```
-
 ## Conceptpower integration
 
 VogonWeb expects the following settings for communication with the
@@ -113,23 +107,15 @@ You'll want to set up two separate processes: one to run the webapp itself (e.g.
 
 The ``-B`` flag is for [periodic tasks](http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html), in this case a task that submits networks to Quadriga. You may want to remove this flag if you're just getting started.
 
-These two processes should both be run with the environment variables described above.
-
-## Python requirements
-
-VogonWeb is developed in Python 2.7. Python dependencies can be found in ``requirements.txt``.
-
-```shell
-pip install -r requirements.txt
-```
+Both of these processes should be run with the environment variables described above.
 
 ## Database backend
 
 At a minimum, you'll need a database. VogonWeb has been tested with PostgresQL, but most Django backends should work. See the [Django documentation](https://docs.djangoproject.com/en/1.9/ref/databases/).
 
-## Redis backend
+## Redis broker
 
-A vanilla Redis server will work
+A vanilla Redis server will work. You can read about using Redis with Celery [here](http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html).
 
 ## Elasticsearch 2.x
 
