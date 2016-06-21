@@ -25,7 +25,9 @@ Select your preferred configuration with:
 export DJANGO_SETTINGS_MODULE='vogon.my_settings_file'
 ```
 
-See the [Django documentation](https://docs.djangoproject.com/en/1.9/topics/settings/) for information on the built-in configuration options.
+See the [Django
+documentation](https://docs.djangoproject.com/en/1.9/topics/settings/) for
+information on the built-in configuration options.
 
 VogonWeb needs several additional configuration parameters:
 
@@ -71,7 +73,8 @@ following parameters (again, preferably in your environment):
 
 ## Amazon S3
 
-VogonWeb uses an S3 bucket for some media (currently just user profile pictures). Set the following three parameters in your environment:
+VogonWeb uses an S3 bucket for some media (currently just user profile
+pictures). Set the following three parameters in your environment:
 
 * ``AWS_ACCESS_KEY``
 * ``AWS_SECRET_KEY``
@@ -80,7 +83,9 @@ VogonWeb uses an S3 bucket for some media (currently just user profile pictures)
 ## Elasticsearch/Haystack
 
 VogonWeb uses Elasticsearch 2 for document search. Take a look at the Haystack
-configuration section before deploying. For details, seeing the [Haystack documentation](http://django-haystack.readthedocs.io/en/v2.4.1/settings.html). It should look something like:
+configuration section before deploying. For details, seeing the [Haystack
+documentation](http://django-haystack.readthedocs.io/en/v2.4.1/settings.html).
+It should look something like:
 
 ```
 HAYSTACK_CONNECTIONS = {
@@ -94,24 +99,37 @@ if not 'TRAVIS' in os.environ:
     HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 ```
 
-The ``RealtimeSignalProcessor`` is pretty aggressive. If you're deploying without ES, consider commenting out that line.
+The ``RealtimeSignalProcessor`` is pretty aggressive. If you're deploying
+without ES, consider commenting out that line.
 
 # Deployment
 
-VogonWeb is configured to deploy on the Heroku platform. Deploying it elsewhere is pretty easy, too. The preferred approach is to serve it with Gunicorn behind NGINX or Apache. See [this informative blog post](http://michal.karzynski.pl/blog/2013/06/09/django-nginx-gunicorn-virtualenv-supervisor/) for an example.
+VogonWeb is configured to deploy on the Heroku platform. Deploying it elsewhere
+is pretty easy, too. The preferred approach is to serve it with Gunicorn behind
+NGINX or Apache. See [this informative blog
+post](http://michal.karzynski.pl/blog/2013/06/09/django-nginx-gunicorn-virtualenv-supervisor/)
+for an example.
 
-You'll want to set up two separate processes: one to run the webapp itself (e.g. with Gunicorn), and another to execute Celery tasks. On Heroku we use these two processes:
+You'll want to set up two separate processes: one to run the webapp itself (e.g.
+with Gunicorn), and another to execute Celery tasks. On Heroku we use these two
+processes:
 
 * ``web: gunicorn vogon.wsgi``
 * ``worker: celery worker -B -A vogon``
 
-The ``-B`` flag is for [periodic tasks](http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html), in this case a task that submits networks to Quadriga. You may want to remove this flag if you're just getting started.
+The ``-B`` flag is for [periodic
+tasks](http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html),
+in this case a task that submits networks to Quadriga. You may want to remove
+this flag if you're just getting started.
 
-Both of these processes should be run with the environment variables described above.
+Both of these processes should be run with the environment variables described
+above.
 
 ## Database backend
 
-At a minimum, you'll need a database. VogonWeb has been tested with PostgresQL, but most Django backends should work. See the [Django documentation](https://docs.djangoproject.com/en/1.9/ref/databases/).
+At a minimum, you'll need a database. VogonWeb has been tested with PostgresQL,
+but most Django backends should work. See the [Django
+documentation](https://docs.djangoproject.com/en/1.9/ref/databases/).
 
 ## Redis broker
 
@@ -119,6 +137,10 @@ A vanilla Redis server will work. You can read about using Redis with Celery [he
 
 ## Elasticsearch 2.x
 
-We use [Haystack](http://haystacksearch.org/) to interface with [Elasticsearch 2](https://www.elastic.co/). The current version of Haystack doesn't actually support ES2 (the ES API changed dramatically), so we're using a custom backend located in ``annotations/elasticsearch_backends.py``.
+We use [Haystack](http://haystacksearch.org/) to interface with [Elasticsearch
+2](https://www.elastic.co/). The current version of Haystack doesn't actually
+support ES2 (the ES API changed dramatically), so we're using a custom backend
+located in ``annotations/elasticsearch_backends.py``.
 
-If you're using ES 1.x, the built-in ES backend for Haystack should work just fine.
+If you're using ES 1.x, the built-in ES backend for Haystack should work just
+fine.
