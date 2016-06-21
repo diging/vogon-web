@@ -219,6 +219,8 @@ def get_snippet_relation(relationset):
     for appellation in Appellation.objects.filter(pk__in=appellation_ids).values(*appellation_fields):
 
         tokenIds = appellation['tokenIds'].split(',')
+        if len(tokenIds) == 0 or not tokenIds[0]:
+            continue
         annotated_words.append(tokenIds)
         for t in tokenIds:
             if appellation['interpretation__merged_with_id']:
