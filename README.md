@@ -9,6 +9,8 @@ who create those interpretations. As we build the epistemic web we are producing
 not only a rich knowledge-base for the humanities, but also documenting the
 scholarly process itself.
 
+API Documentation is [here](http://diging.github.io/vogon-web/).
+
 # Configuration
 
 There are two configuration files in the ``/vogon/`` directory:
