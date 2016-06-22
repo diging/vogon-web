@@ -1,0 +1,30 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+{% block main %}
+
+<script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
+<div class="container">
+    <a href="{% url "repository_list" %}" class="text-small btn" style="margin-top: 10px;">&#9664; Back to repositories</a>
+    <div class="h3">Repository <strong>{{ repository.name }}</strong></div>
+    <p class="">{{ repository.description }}</p>
+    <ul class="nav nav-pills text-center">
+        {% if repository.search %}
+        <li>
+            <a href="{% url "repository_search" repository.id %}">Search</a>
+        </li>
+        {% endif %}
+        {% if repository.list %}
+        <li>
+            <a href="{% url "repository_browse" repository.id %}">Browse</a>
+        </li>
+        {% endif %}
+        {% if repository.collections %}
+        <li>
+            <a href="{% url "repository_collections" repository.id %}">Collections</a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}

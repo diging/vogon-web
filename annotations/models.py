@@ -274,8 +274,7 @@ class Text(models.Model):
     """The user who added the text to VogonWeb."""))
 
     source = models.ForeignKey("Repository", blank=True, null=True,
-                               related_name="loadedTexts",
-                               help_text=help_text(
+                               related_name="loadedTexts", help_text=help_text(
     """The repository (if applicable) from which the text was retrieved."""))
 
     originalResource = models.URLField(blank=True, null=True,

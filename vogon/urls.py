@@ -99,11 +99,22 @@ urlpatterns = [
 
     url(r'^concept/types$', conceptViews.list_concept_types),
     url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type"),
+
     url(r'^concept_autocomplete/', views.search.concept_autocomplete, name='concept_autocomplete'),
 
     url(r'^quadruples/appellation/(?P<appellation_id>[0-9]+).xml$', views.quadruple.appellation_xml, name='appellation_xml'),
     url(r'^quadruples/relation/(?P<relation_id>[0-9]+).xml$', views.quadruple.relation_xml, name='relation_xml'),
     url(r'^quadruples/relationset/(?P<relationset_id>[0-9]+).xml$', views.quadruple.relationset_xml, name='relationset_xml'),
     url(r'^quadruples/text/(?P<text_id>[0-9]+)/(?P<user_id>[0-9]+).xml$', views.quadruple.text_xml, name='text_xml'),
+
+
+    url(r'^repository/(?P<repository_id>[0-9]+)/collections/$', views.repository_collections, name='repository_collections'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/browse/$', views.repository_browse, name='repository_browse'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/search/$', views.repository_search, name='repository_search'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/collections/(?P<collection_id>[0-9]+)/$', views.repository_collection, name='repository_collection'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/$', views.repository_text, name='repository_text'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/content/(?P<content_id>[0-9]+)/$', views.repository_text_content, name='repository_text_content'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/$', views.repository_details, name='repository_details'),
+    url(r'^repository/$', views.repository_list, name='repository_list'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
