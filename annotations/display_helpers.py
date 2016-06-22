@@ -1,8 +1,14 @@
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q, Count
+from django.db.models.expressions import DateTime
+from django.utils.safestring import SafeText
 
-from annotations.models import Appellation
+from annotations.models import Appellation, RelationSet, Relation
 
-from itertols import groupby, combinations
+from collections import OrderedDict
+from itertools import groupby, combinations, chain
+import pytz
+import re
 
 
 def get_snippet_relation(relationset):
@@ -219,7 +225,6 @@ def get_appellation_summaries(appellations):
     return appellations_data, appellation_creators
 
 
-
 def get_relations_summaries(relationset_qs):
     """
     Organize RelationSets for this text so that we can display them in
@@ -302,3 +307,176 @@ def get_relations_summaries(relationset_qs):
             } for _, relationset in i_relationsets]
         })
     return relationsets
+
+
+def user_recent_texts(user):
+    """
+    Return a list of :class:`.Text`\s recently annotated by a
+    :class:`.VogonUser`\.
+
+    TODO: Do we need this anymore?
+
+    Parameters
+    ----------
+    user : :class:`.VogonUser`
+
+    Returns
+    -------
+    list
+    """
+    fields = ['occursIn_id', 'occursIn__title', 'created']
+    by_appellations = user.appellation_set.all().order_by('-created')\
+                                          .values_list(*fields)
+    by_relations = user.relation_set.all().order_by('-created')\
+                                    .values_list(*fields)
+
+    results_sorted = sorted(chain([tuple(t) for t in by_relations],
+                                  [tuple(t) for t in by_appellations]),
+                            key=lambda t: t[2])[::-1]
+
+    return list(set([(t[0], t[1]) for t in results_sorted]))
+
+
+def get_recent_annotations(last=20, user=None):
+    """
+    Generate aggregate activity feed for all annotations.
+
+    TODO: move this into a util module.
+
+    Parameters
+    ----------
+    last : int
+        Number of items to return (default: 20).
+    user : :class:`.VogonUser`
+
+    Returns
+    -------
+    dict
+    """
+    recent_appellations = Appellation.objects.all()
+    recent_relations = Relation.objects.all()
+
+    if user:
+        recent_appellations = recent_appellations.filter(createdBy_id=user.id)
+        recent_relations = recent_relations.filter(createdBy_id=user.id)
+
+    recent_appellations = recent_appellations.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
+        .values("hour", "createdBy__username", "createdBy__id")\
+        .annotate(appelation_count=Count('id'))\
+        .order_by("-hour")
+    recent_relations = recent_relations.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
+        .values("hour", "createdBy__username", "createdBy__id")\
+        .annotate(relation_count=Count('id'))\
+        .order_by("-hour")
+
+    combined_data = OrderedDict()
+    for event in recent_appellations:
+        key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
+        if key not in combined_data:
+            combined_data[key] = {'appelation_count': event['appelation_count'], 'relation_count': 0}
+        combined_data[key]['appelation_count'] += event['appelation_count']
+    for event in recent_relations:
+        key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
+        if key not in combined_data:
+            combined_data[key] = {'appelation_count': 0, 'relation_count': event['relation_count']}
+        combined_data[key]['relation_count'] += event['relation_count']
+    return dict(sorted(combined_data.items(), key=lambda k: k[0][0])[::-1][:last])
+
+
+def get_recent_annotations_for_graph(annotation_by_user, start_date):
+    result = dict()
+    weeks_last_date_map = dict()
+    d7 = datetime.timedelta( days = 7)
+    current_week = datetime.datetime.now() + d7
+
+    # Find out the weeks and their last date in the past 90 days.
+    while start_date <= current_week:
+        result[(Week(start_date.isocalendar()[0], start_date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] = 0
+        start_date += d7
+    time_format = '%Y-%m-%d'
+
+    # Count annotations for each week.
+    for count_per_day in annotation_by_user:
+        if(isinstance(count_per_day['date'], unicode)):
+            date = datetime.datetime.strptime(count_per_day['date'], time_format)
+        else:
+            date = count_per_day['date']
+        result[(Week(date.isocalendar()[0], date.isocalendar()[1]).saturday()).strftime('%m-%d-%y')] += count_per_day['count']
+    annotation_per_week = list()
+
+    # Sort the date and format the data in the format required by d3.js.
+    keys = (result.keys())
+    keys.sort()
+    for key in keys:
+        new_format = dict()
+        new_format["date"] = key
+        new_format["count"] = result[key]
+        annotation_per_week.append(new_format)
+    annotation_per_week = str(annotation_per_week).replace("'", "\"")
+    return annotation_per_week
+
+
+def filter_relationset(qs, params):
+    """
+    """
+    parameter_map = [
+        ('text', 'occursIn_id__in'),
+        ('project', 'occursIn__partOf__in'),
+        ('text_published_from', 'occursIn__created__gte'),
+        ('text_published_through', 'occursIn__created__lte'),
+        ('user', 'createdBy__in'),
+        ('created_from', 'created__gte'),
+        ('created_through', 'created__lte'),
+    ]
+
+    parameters = {}
+    for param, field in parameter_map:
+        if param in ['text', 'project', 'user']:
+            value = params.getlist(param, [])
+        else:
+            value = params.get(param, None)
+        if value and value[0]:
+            parameters[field] = value
+
+    qs = qs.filter(**parameters)
+
+    node_types = params.getlist('node_types')
+    exclusive = params.get('exclusive', 'off')
+
+    # We need this ContentType to filter on Relations, since .source and .object
+    #  are Generic relations.
+    app_ct = ContentType.objects.get_for_model(Appellation)
+
+    # Limit to RelationSets whose Appellations refer to Concepts of a
+    #  specific Type.
+    if node_types:
+        appellations = Appellation.objects.filter(**parameters)\
+                                          .filter(interpretation__typed__in=node_types)\
+                                          .values_list('id', flat=True)
+        q_source = Q(constituents__source_content_type=app_ct)\
+                   & Q(constituents__source_object_id__in=appellations)
+        q_object = Q(constituents__object_content_type=app_ct)\
+                   & Q(constituents__object_object_id__in=appellations)
+        if exclusive == 'on':
+            q = q_source & q_object
+        else:
+            q = q_source | q_object
+        qs = qs.filter(q)
+
+    # Limit to RelationSets whose Appellations refer to specific Concepts.
+    nodes = params.getlist('nodes')
+
+    if nodes:
+        appellations = Appellation.objects.filter(**parameters)\
+                                          .filter(interpretation__in=nodes)\
+                                          .values_list('id', flat=True)
+        q = (Q(constituents__source_content_type=app_ct) & Q(constituents__source_object_id__in=appellations) |
+             Q(constituents__object_content_type=app_ct) & Q(constituents__object_object_id__in=appellations))
+        qs = qs.filter(q)
+
+    # We have filtered based on related fields, which means that if we were to
+    #  call values() or values_list() on those related fields we would be
+    #  limited not only to the selected RelationSets but also to the specific
+    #  passing values. Re-filtering based on ID ensures that we can get all of
+    #  the relevant related fields for the RelationSets in our QuerySet.
+    return RelationSet.objects.filter(id__in=qs.values_list('id', flat=True))

@@ -4,6 +4,7 @@ General-purpose helper functions.
 
 from django.conf import settings
 
+from itertools import chain, combinations, groupby
 import re
 
 

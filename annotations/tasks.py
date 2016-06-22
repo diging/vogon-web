@@ -232,3 +232,32 @@ def accession_ready_relationsets():
                         'project_id': project_id,
                     })
                 submit_relationsets_to_quadriga.delay(rsets, text, user, **kwargs)
+
+
+def handle_file_upload(request, form):
+    """
+    Handle the uploaded file and route it to corresponding handlers
+
+    Parameters
+    ----------
+    request : `django.http.requests.HttpRequest`
+    form : `django.forms.Form`
+        The form with uploaded content
+
+    """
+    uploaded_file = request.FILES['filetoupload']
+    uri = form.cleaned_data['uri']
+    text_title = form.cleaned_data['title']
+    date_created = form.cleaned_data['datecreated']
+    is_public = form.cleaned_data['ispublic']
+    user = request.user
+    file_content = None
+    if uploaded_file.content_type == 'text/plain':
+        file_content = extract_text_file(uploaded_file)
+    elif uploaded_file.content_type == 'application/pdf':
+        file_content = extract_pdf_file(uploaded_file)
+
+    # Save the content if the above extractors extracted something
+    if file_content != None:
+        tokenized_content = tokenize(file_content)
+        return save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri)
