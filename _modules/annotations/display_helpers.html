@@ -1,0 +1,611 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.display_helpers &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.display_helpers</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">django.contrib.contenttypes.models</span> <span class="kn">import</span> <span class="n">ContentType</span>
+<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="kn">import</span> <span class="n">Q</span><span class="p">,</span> <span class="n">Count</span>
+<span class="kn">from</span> <span class="nn">django.db.models.expressions</span> <span class="kn">import</span> <span class="n">DateTime</span>
+<span class="kn">from</span> <span class="nn">django.utils.safestring</span> <span class="kn">import</span> <span class="n">SafeText</span>
+
+<span class="kn">from</span> <span class="nn">annotations.models</span> <span class="kn">import</span> <span class="n">Appellation</span><span class="p">,</span> <span class="n">RelationSet</span><span class="p">,</span> <span class="n">Relation</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">combinations</span><span class="p">,</span> <span class="n">chain</span>
+<span class="kn">import</span> <span class="nn">pytz</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+
+<div class="viewcode-block" id="get_snippet_relation"><a class="viewcode-back" href="../../annotations.display_helpers.html#annotations.display_helpers.get_snippet_relation">[docs]</a><span class="k">def</span> <span class="nf">get_snippet_relation</span><span class="p">(</span><span class="n">relationset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a text snippet for a :class:`annotations.models.RelationSet` instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">appellation_type</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+    <span class="n">tokenizedContent</span> <span class="o">=</span> <span class="n">relationset</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">tokenizedContent</span>
+    <span class="n">annotated_words</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># We&#39;ll use this to label highlighted tokens with their interpretations.</span>
+    <span class="n">annotation_map</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;source_content_type_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;object_content_type_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_object_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;object_object_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__tokenIds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__interpretation__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__interpretation_id&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">appellation_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="c1"># Pull out all Appellations that have a specific textual basis.</span>
+    <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="n">relationset</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">relation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_content_type_id&#39;</span> <span class="o">%</span> <span class="n">part</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">appellation_type</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                <span class="n">appellation_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">relation</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_object_id&#39;</span> <span class="o">%</span> <span class="n">part</span><span class="p">])</span>
+
+        <span class="c1"># Predicates too, since we&#39;re interested in evidence for the relation.</span>
+        <span class="k">if</span> <span class="n">relation</span><span class="p">[</span><span class="s1">&#39;predicate__tokenIds&#39;</span><span class="p">]:</span>
+            <span class="n">tokenIds</span> <span class="o">=</span> <span class="n">relation</span><span class="p">[</span><span class="s1">&#39;predicate__tokenIds&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">annotated_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tokenIds</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokenIds</span><span class="p">:</span>
+                <span class="n">annotation_map</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">relation</span><span class="p">[</span><span class="s1">&#39;predicate__interpretation__label&#39;</span><span class="p">]</span>
+
+    <span class="n">appellation_fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;tokenIds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">appellation</span> <span class="ow">in</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk__in</span><span class="o">=</span><span class="n">appellation_ids</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">appellation_fields</span><span class="p">):</span>
+
+        <span class="n">tokenIds</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;tokenIds&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">annotated_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tokenIds</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokenIds</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">]:</span>
+                <span class="n">annotation_map</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">annotation_map</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__label&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Group sequences of tokens from appellations together if they are in close</span>
+    <span class="c1">#  proximity.</span>
+    <span class="n">grouped_words</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tokenSeq</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">annotated_words</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="nb">min</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])):</span>
+        <span class="n">tokenSeqI</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokenSeq</span><span class="p">]</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tokensSeqGrouped</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grouped_words</span><span class="p">):</span>
+            <span class="n">tokensSeqGroupedI</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokensSeqGrouped</span><span class="p">]</span>
+            <span class="c1"># If the current token sequence is contained within or overlaps with</span>
+            <span class="c1">#  the token sequence group, then add it to the current group and</span>
+            <span class="c1">#  exit.</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">tokenSeqI</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">min</span><span class="p">(</span><span class="n">tokensSeqGroupedI</span><span class="p">)</span> <span class="o">-</span> <span class="mi">10</span> <span class="ow">and</span> <span class="nb">max</span><span class="p">(</span><span class="n">tokenSeq</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tokensSeqGroupedI</span><span class="p">)</span> <span class="o">+</span> <span class="mi">10</span><span class="p">)</span> <span class="ow">or</span> \
+               <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">tokenSeqI</span><span class="p">)</span> <span class="o">-</span> <span class="mi">10</span> <span class="o">&lt;=</span> <span class="nb">min</span><span class="p">(</span><span class="n">tokensSeqGroupedI</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tokenSeqI</span><span class="p">)</span> <span class="o">+</span> <span class="mi">10</span><span class="p">)</span> <span class="ow">or</span> \
+               <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">tokenSeqI</span><span class="p">)</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">&gt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tokensSeqGroupedI</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">min</span><span class="p">(</span><span class="n">tokenSeqI</span><span class="p">)</span> <span class="o">-</span> <span class="mi">10</span><span class="p">):</span>
+               <span class="n">grouped_words</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tokensSeqGrouped</span> <span class="o">+</span> <span class="n">tokenSeq</span>
+               <span class="n">match</span> <span class="o">=</span> <span class="bp">True</span>
+               <span class="k">break</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>    <span class="c1"># Sequence belongs to its own group (for now).</span>
+            <span class="n">grouped_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tokenSeq</span><span class="p">)</span>
+
+    <span class="c1"># Now build the snippet.</span>
+    <span class="n">combined_snippet</span> <span class="o">=</span> <span class="s2">u&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">tokenSeq</span> <span class="ow">in</span> <span class="n">grouped_words</span><span class="p">:</span>
+        <span class="n">snippet</span> <span class="o">=</span> <span class="s2">u&quot;&quot;</span>
+        <span class="n">start_index</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokenSeq</span><span class="p">]))</span> <span class="o">-</span> <span class="mi">5</span>
+        <span class="n">end_index</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokenSeq</span><span class="p">])</span> <span class="o">+</span> <span class="mi">5</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">end_index</span><span class="p">):</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">r&#39;&lt;word id=&quot;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;&quot;&gt;([^&lt;]*)&lt;/word&gt;&#39;</span><span class="p">,</span> <span class="n">tokenizedContent</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tokenSeq</span><span class="p">:</span>
+                <span class="c1"># Tooltip shows the interpretation (Concept) for this</span>
+                <span class="c1">#  Appellation.</span>
+                <span class="n">word</span> <span class="o">=</span> <span class="s2">u&quot;&lt;strong data-toggle=&#39;tooltip&#39; title=&#39;</span><span class="si">%s</span><span class="s2">&#39; class=&#39;text-warning text-snippet&#39;&gt;</span><span class="si">%s</span><span class="s2">&lt;/strong&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">annotation_map</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">word</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">snippet</span> <span class="o">=</span> <span class="s1">u&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">snippet</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+        <span class="n">combined_snippet</span> <span class="o">+=</span> <span class="s1">u&#39; ...</span><span class="si">%s</span><span class="s1">... &#39;</span> <span class="o">%</span> <span class="n">snippet</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">SafeText</span><span class="p">(</span><span class="n">combined_snippet</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_snippet"><a class="viewcode-back" href="../../annotations.display_helpers.html#annotations.display_helpers.get_snippet">[docs]</a><span class="k">def</span> <span class="nf">get_snippet</span><span class="p">(</span><span class="n">appellation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the text content surrounding (and including) an</span>
+<span class="sd">    :class:`.Appellation` instance.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    appellation : :class:`annotations.models.Appellation`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    snippet : :class:`django.utils.safestring.SafeText`</span>
+<span class="sd">        Includes emphasis tags surrounding the :class:`.Appellation`\&#39;s</span>
+<span class="sd">        tokens.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;tokenIds&#39;</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">SafeText</span><span class="p">(</span><span class="s1">&#39;No snippet is available for this appellation&#39;</span><span class="p">)</span>
+
+    <span class="n">tokenizedContent</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;occursIn__tokenizedContent&#39;</span><span class="p">]</span>
+    <span class="n">annotated_words</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;tokenIds&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)]</span>
+    <span class="n">middle_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">annotated_words</span><span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">annotated_words</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+    <span class="n">start_index</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">middle_index</span> <span class="o">-</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">end_index</span> <span class="o">=</span> <span class="n">middle_index</span> <span class="o">+</span> <span class="mi">10</span>
+    <span class="n">snippet</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">end_index</span><span class="p">):</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">r&#39;&lt;word id=&quot;&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;&quot;&gt;([^&lt;]*)&lt;/word&gt;&#39;</span><span class="p">,</span> <span class="n">tokenizedContent</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="o">|</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">word</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="ow">in</span> <span class="n">annotated_words</span><span class="p">:</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="s2">u&quot;&lt;strong class=&#39;text-warning text-snippet&#39;&gt;</span><span class="si">%s</span><span class="s2">&lt;/strong&gt;&quot;</span> <span class="o">%</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">snippet</span> <span class="o">=</span> <span class="s1">u&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">snippet</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">SafeText</span><span class="p">(</span><span class="s1">u&#39;...</span><span class="si">%s</span><span class="s1">...&#39;</span> <span class="o">%</span> <span class="n">snippet</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="get_appellation_summaries"><a class="viewcode-back" href="../../annotations.display_helpers.html#annotations.display_helpers.get_appellation_summaries">[docs]</a><span class="k">def</span> <span class="nf">get_appellation_summaries</span><span class="p">(</span><span class="n">appellations</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate appellation summary information for display in the text detail</span>
+<span class="sd">    view.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    appellations : :class:`django.db.models.query.QuerySet`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        (list, set)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">appellations</span> <span class="o">=</span> <span class="n">appellations</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;interpretation_id&#39;</span><span class="p">)</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;interpretation_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation__typed__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;interpretation__merged_with__typed__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;occursIn_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;occursIn__tokenizedContent&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;tokenIds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;createdBy_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;createdBy__username&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;created&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="n">appellations</span> <span class="o">=</span> <span class="n">appellations</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">)</span>
+    <span class="n">appellations_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">appellation_creators</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">groupkey</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">a</span><span class="p">[</span><span class="s1">&#39;interpretation_id&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">concept_id</span><span class="p">,</span> <span class="n">concept_appellations</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">appellations</span><span class="p">,</span> <span class="n">groupkey</span><span class="p">):</span>
+        <span class="n">indiv_appellations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">unique_texts</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">appellation</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">concept_appellations</span><span class="p">):</span>
+            <span class="c1"># We have to do this in here, because ``appellation`` is an</span>
+            <span class="c1">#  itertools._grouper iterable.</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with__typed__label&#39;</span><span class="p">]:</span>
+                    <span class="n">type_label</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with__typed__label&#39;</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__typed__label&#39;</span><span class="p">]:</span>
+                    <span class="n">type_label</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__typed__label&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">type_label</span> <span class="o">=</span> <span class="s1">u&#39;&#39;</span>
+                <span class="k">if</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">]:</span>
+                    <span class="n">concept_label</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">concept_label</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__label&#39;</span><span class="p">]</span>
+
+            <span class="n">indiv_appellations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;text_snippet&quot;</span><span class="p">:</span> <span class="n">get_snippet</span><span class="p">(</span><span class="n">appellation</span><span class="p">),</span>
+                <span class="s2">&quot;annotator_id&quot;</span><span class="p">:</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;createdBy_id&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;annotator_username&quot;</span><span class="p">:</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;createdBy__username&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;created&quot;</span><span class="p">:</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;created&#39;</span><span class="p">],</span>
+            <span class="p">})</span>
+            <span class="n">appellation_creators</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;createdBy_id&#39;</span><span class="p">])</span>
+            <span class="n">unique_texts</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;occursIn_id&#39;</span><span class="p">])</span>
+
+        <span class="n">num_texts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_texts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">appellations_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;interpretation_id&quot;</span><span class="p">:</span> <span class="n">concept_id</span><span class="p">,</span>
+            <span class="s2">&quot;interpretation_label&quot;</span><span class="p">:</span> <span class="n">concept_label</span><span class="p">,</span>
+            <span class="s2">&quot;interpretation_type&quot;</span><span class="p">:</span> <span class="n">type_label</span><span class="p">,</span>
+            <span class="s2">&quot;appellations&quot;</span><span class="p">:</span> <span class="n">indiv_appellations</span><span class="p">,</span>
+            <span class="s2">&quot;num_texts&quot;</span><span class="p">:</span> <span class="n">num_texts</span><span class="p">,</span>
+        <span class="p">})</span>
+
+    <span class="n">appellations_data</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">appellations_data</span><span class="p">,</span>
+                               <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span><span class="p">[</span><span class="s1">&#39;interpretation_label&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">appellations_data</span><span class="p">,</span> <span class="n">appellation_creators</span></div>
+
+
+<div class="viewcode-block" id="get_relations_summaries"><a class="viewcode-back" href="../../annotations.display_helpers.html#annotations.display_helpers.get_relations_summaries">[docs]</a><span class="k">def</span> <span class="nf">get_relations_summaries</span><span class="p">(</span><span class="n">relationset_qs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Organize RelationSets for this text so that we can display them in</span>
+<span class="sd">    conjunction with edges in the graph. In other words, grouped by</span>
+<span class="sd">    the &quot;source&quot; and &quot;target&quot; of the simplified graphical representation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    relationset_qs : :class:`django.db.models.query.QuerySet`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">app_ct</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+    <span class="n">relationsets_by_interpretation</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">relationsets</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;source_content_type_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;object_content_type_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_object_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;object_object_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__tokenIds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__interpretation__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__interpretation_id&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Pull out &quot;focal&quot; concepts from the RelationSet. Usually there will</span>
+    <span class="c1">#  be only two, but there could be more.</span>
+    <span class="k">for</span> <span class="n">relationset</span> <span class="ow">in</span> <span class="n">relationset_qs</span><span class="p">:</span>
+        <span class="n">appellation_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">relationset</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">rel</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_content_type_id&#39;</span> <span class="o">%</span> <span class="n">part</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">app_ct</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                    <span class="n">appellation_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rel</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_object_id&#39;</span> <span class="o">%</span> <span class="n">part</span><span class="p">])</span>
+
+        <span class="n">interps</span> <span class="o">=</span> <span class="p">[]</span>    <span class="c1"># Focal concepts go here.</span>
+        <span class="n">appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk__in</span><span class="o">=</span><span class="n">appellation_ids</span><span class="p">,</span> <span class="n">asPredicate</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">appellation_fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;interpretation_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__typed__label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__typed__label&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">appellation</span> <span class="ow">in</span> <span class="n">appellations</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">appellation_fields</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">]:</span>
+                <span class="n">interps</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">],</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">interps</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation_id&#39;</span><span class="p">],</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__label&#39;</span><span class="p">]))</span>
+
+        <span class="c1"># Usually there will be only two Concepts here, but for more complex</span>
+        <span class="c1">#  relations there could be more.</span>
+        <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">interps</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="c1"># This is kind of hacky, but it lets us access the IDs and</span>
+            <span class="c1">#  labels more readily below.</span>
+            <span class="n">rset</span> <span class="o">=</span> <span class="p">((</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">relationset</span><span class="p">)</span>
+            <span class="n">relationsets_by_interpretation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rset</span><span class="p">)</span>
+
+    <span class="c1"># Here we sort and group by concept-pairs (u and v, above).</span>
+    <span class="n">skey</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">rsets</span> <span class="o">=</span> <span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">relationsets_by_interpretation</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">skey</span><span class="p">),</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">skey</span><span class="p">)</span>
+
+    <span class="c1"># Each group will be shown as an accordion panel in the view.</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">u_id</span><span class="p">,</span> <span class="n">u_label</span><span class="p">,</span> <span class="n">v_id</span><span class="p">,</span> <span class="n">v_label</span><span class="p">),</span> <span class="n">i_relationsets</span> <span class="ow">in</span> <span class="n">rsets</span><span class="p">:</span>
+        <span class="n">relationsets</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;source_interpretation_id&quot;</span><span class="p">:</span> <span class="n">u_id</span><span class="p">,</span>
+            <span class="s2">&quot;source_interpretation_label&quot;</span><span class="p">:</span> <span class="n">u_label</span><span class="p">,</span>
+            <span class="s2">&quot;target_interpretation_id&quot;</span><span class="p">:</span> <span class="n">v_id</span><span class="p">,</span>
+            <span class="s2">&quot;target_interpretation_label&quot;</span><span class="p">:</span> <span class="n">v_label</span><span class="p">,</span>
+            <span class="s2">&quot;relationsets&quot;</span><span class="p">:</span> <span class="p">[{</span>
+                <span class="s2">&quot;text_snippet&quot;</span><span class="p">:</span> <span class="n">get_snippet_relation</span><span class="p">(</span><span class="n">relationset</span><span class="p">),</span>
+                <span class="s2">&quot;annotator&quot;</span><span class="p">:</span> <span class="n">relationset</span><span class="o">.</span><span class="n">createdBy</span><span class="p">,</span>
+                <span class="s2">&quot;created&quot;</span><span class="p">:</span> <span class="n">relationset</span><span class="o">.</span><span class="n">created</span><span class="p">,</span>
+            <span class="p">}</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">relationset</span> <span class="ow">in</span> <span class="n">i_relationsets</span><span class="p">]</span>
+        <span class="p">})</span>
+    <span class="k">return</span> <span class="n">relationsets</span></div>
+
+
+<div class="viewcode-block" id="user_recent_texts"><a class="viewcode-back" href="../../annotations.display_helpers.html#annotations.display_helpers.user_recent_texts">[docs]</a><span class="k">def</span> <span class="nf">user_recent_texts</span><span class="p">(</span><span class="n">user</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a list of :class:`.Text`\s recently annotated by a</span>
+<span class="sd">    :class:`.VogonUser`\.</span>
+
+<span class="sd">    TODO: Do we need this anymore?</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    user : :class:`.VogonUser`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;occursIn_id&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn__title&#39;</span><span class="p">,</span> <span class="s1">&#39;created&#39;</span><span class="p">]</span>
+    <span class="n">by_appellations</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">appellation_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-created&#39;</span><span class="p">)</span>\
+                                          <span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">)</span>
+    <span class="n">by_relations</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">relation_set</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s1">&#39;-created&#39;</span><span class="p">)</span>\
+                                    <span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">)</span>
+
+    <span class="n">results_sorted</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">chain</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">by_relations</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">by_appellations</span><span class="p">]),</span>
+                            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">results_sorted</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="get_recent_annotations"><a class="viewcode-back" href="../../annotations.display_helpers.html#annotations.display_helpers.get_recent_annotations">[docs]</a><span class="k">def</span> <span class="nf">get_recent_annotations</span><span class="p">(</span><span class="n">last</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate aggregate activity feed for all annotations.</span>
+
+<span class="sd">    TODO: move this into a util module.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    last : int</span>
+<span class="sd">        Number of items to return (default: 20).</span>
+<span class="sd">    user : :class:`.VogonUser`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">recent_appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">recent_relations</span> <span class="o">=</span> <span class="n">Relation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+        <span class="n">recent_appellations</span> <span class="o">=</span> <span class="n">recent_appellations</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">createdBy_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">recent_relations</span> <span class="o">=</span> <span class="n">recent_relations</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">createdBy_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+    <span class="n">recent_appellations</span> <span class="o">=</span> <span class="n">recent_appellations</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">hour</span><span class="o">=</span><span class="n">DateTime</span><span class="p">(</span><span class="s2">&quot;created&quot;</span><span class="p">,</span> <span class="s2">&quot;hour&quot;</span><span class="p">,</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)))</span>\
+        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="s2">&quot;hour&quot;</span><span class="p">,</span> <span class="s2">&quot;createdBy__username&quot;</span><span class="p">,</span> <span class="s2">&quot;createdBy__id&quot;</span><span class="p">)</span>\
+        <span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">appelation_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>\
+        <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s2">&quot;-hour&quot;</span><span class="p">)</span>
+    <span class="n">recent_relations</span> <span class="o">=</span> <span class="n">recent_relations</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">hour</span><span class="o">=</span><span class="n">DateTime</span><span class="p">(</span><span class="s2">&quot;created&quot;</span><span class="p">,</span> <span class="s2">&quot;hour&quot;</span><span class="p">,</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="s2">&quot;UTC&quot;</span><span class="p">)))</span>\
+        <span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="s2">&quot;hour&quot;</span><span class="p">,</span> <span class="s2">&quot;createdBy__username&quot;</span><span class="p">,</span> <span class="s2">&quot;createdBy__id&quot;</span><span class="p">)</span>\
+        <span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">relation_count</span><span class="o">=</span><span class="n">Count</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">))</span>\
+        <span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s2">&quot;-hour&quot;</span><span class="p">)</span>
+
+    <span class="n">combined_data</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">recent_appellations</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">],</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;createdBy__username&#39;</span><span class="p">],</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;createdBy__id&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">combined_data</span><span class="p">:</span>
+            <span class="n">combined_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;appelation_count&#39;</span><span class="p">:</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;appelation_count&#39;</span><span class="p">],</span> <span class="s1">&#39;relation_count&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+        <span class="n">combined_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;appelation_count&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;appelation_count&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">recent_relations</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">event</span><span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">],</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;createdBy__username&#39;</span><span class="p">],</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;createdBy__id&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">combined_data</span><span class="p">:</span>
+            <span class="n">combined_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;appelation_count&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;relation_count&#39;</span><span class="p">:</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;relation_count&#39;</span><span class="p">]}</span>
+        <span class="n">combined_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;relation_count&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">event</span><span class="p">[</span><span class="s1">&#39;relation_count&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">combined_data</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="n">last</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="get_recent_annotations_for_graph"><a class="viewcode-back" href="../../annotations.display_helpers.html#annotations.display_helpers.get_recent_annotations_for_graph">[docs]</a><span class="k">def</span> <span class="nf">get_recent_annotations_for_graph</span><span class="p">(</span><span class="n">annotation_by_user</span><span class="p">,</span> <span class="n">start_date</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">weeks_last_date_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">d7</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span> <span class="n">days</span> <span class="o">=</span> <span class="mi">7</span><span class="p">)</span>
+    <span class="n">current_week</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">+</span> <span class="n">d7</span>
+
+    <span class="c1"># Find out the weeks and their last date in the past 90 days.</span>
+    <span class="k">while</span> <span class="n">start_date</span> <span class="o">&lt;=</span> <span class="n">current_week</span><span class="p">:</span>
+        <span class="n">result</span><span class="p">[(</span><span class="n">Week</span><span class="p">(</span><span class="n">start_date</span><span class="o">.</span><span class="n">isocalendar</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">start_date</span><span class="o">.</span><span class="n">isocalendar</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">saturday</span><span class="p">())</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m-</span><span class="si">%d</span><span class="s1">-%y&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">start_date</span> <span class="o">+=</span> <span class="n">d7</span>
+    <span class="n">time_format</span> <span class="o">=</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span>
+
+    <span class="c1"># Count annotations for each week.</span>
+    <span class="k">for</span> <span class="n">count_per_day</span> <span class="ow">in</span> <span class="n">annotation_by_user</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">count_per_day</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">],</span> <span class="nb">unicode</span><span class="p">)):</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">count_per_day</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">],</span> <span class="n">time_format</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">count_per_day</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span>
+        <span class="n">result</span><span class="p">[(</span><span class="n">Week</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">isocalendar</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="n">date</span><span class="o">.</span><span class="n">isocalendar</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">saturday</span><span class="p">())</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%m-</span><span class="si">%d</span><span class="s1">-%y&#39;</span><span class="p">)]</span> <span class="o">+=</span> <span class="n">count_per_day</span><span class="p">[</span><span class="s1">&#39;count&#39;</span><span class="p">]</span>
+    <span class="n">annotation_per_week</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+    <span class="c1"># Sort the date and format the data in the format required by d3.js.</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">keys</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">new_format</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">new_format</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="n">new_format</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">annotation_per_week</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_format</span><span class="p">)</span>
+    <span class="n">annotation_per_week</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">annotation_per_week</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">annotation_per_week</span></div>
+
+
+<div class="viewcode-block" id="filter_relationset"><a class="viewcode-back" href="../../annotations.display_helpers.html#annotations.display_helpers.filter_relationset">[docs]</a><span class="k">def</span> <span class="nf">filter_relationset</span><span class="p">(</span><span class="n">qs</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">parameter_map</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn_id__in&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn__partOf__in&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;text_published_from&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn__created__gte&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;text_published_through&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn__created__lte&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="s1">&#39;createdBy__in&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;created_from&#39;</span><span class="p">,</span> <span class="s1">&#39;created__gte&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;created_through&#39;</span><span class="p">,</span> <span class="s1">&#39;created__lte&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">param</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">parameter_map</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">]:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">and</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="n">qs</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">**</span><span class="n">parameters</span><span class="p">)</span>
+
+    <span class="n">node_types</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s1">&#39;node_types&#39;</span><span class="p">)</span>
+    <span class="n">exclusive</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;exclusive&#39;</span><span class="p">,</span> <span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+    <span class="c1"># We need this ContentType to filter on Relations, since .source and .object</span>
+    <span class="c1">#  are Generic relations.</span>
+    <span class="n">app_ct</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+
+    <span class="c1"># Limit to RelationSets whose Appellations refer to Concepts of a</span>
+    <span class="c1">#  specific Type.</span>
+    <span class="k">if</span> <span class="n">node_types</span><span class="p">:</span>
+        <span class="n">appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">**</span><span class="n">parameters</span><span class="p">)</span>\
+                                          <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">interpretation__typed__in</span><span class="o">=</span><span class="n">node_types</span><span class="p">)</span>\
+                                          <span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">q_source</span> <span class="o">=</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__source_content_type</span><span class="o">=</span><span class="n">app_ct</span><span class="p">)</span>\
+                   <span class="o">&amp;</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__source_object_id__in</span><span class="o">=</span><span class="n">appellations</span><span class="p">)</span>
+        <span class="n">q_object</span> <span class="o">=</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__object_content_type</span><span class="o">=</span><span class="n">app_ct</span><span class="p">)</span>\
+                   <span class="o">&amp;</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__object_object_id__in</span><span class="o">=</span><span class="n">appellations</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exclusive</span> <span class="o">==</span> <span class="s1">&#39;on&#39;</span><span class="p">:</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="n">q_source</span> <span class="o">&amp;</span> <span class="n">q_object</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="n">q_source</span> <span class="o">|</span> <span class="n">q_object</span>
+        <span class="n">qs</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+
+    <span class="c1"># Limit to RelationSets whose Appellations refer to specific Concepts.</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="s1">&#39;nodes&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="n">appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">**</span><span class="n">parameters</span><span class="p">)</span>\
+                                          <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">interpretation__in</span><span class="o">=</span><span class="n">nodes</span><span class="p">)</span>\
+                                          <span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">constituents__source_content_type</span><span class="o">=</span><span class="n">app_ct</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__source_object_id__in</span><span class="o">=</span><span class="n">appellations</span><span class="p">)</span> <span class="o">|</span>
+             <span class="n">Q</span><span class="p">(</span><span class="n">constituents__object_content_type</span><span class="o">=</span><span class="n">app_ct</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__object_object_id__in</span><span class="o">=</span><span class="n">appellations</span><span class="p">))</span>
+        <span class="n">qs</span> <span class="o">=</span> <span class="n">qs</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+
+    <span class="c1"># We have filtered based on related fields, which means that if we were to</span>
+    <span class="c1">#  call values() or values_list() on those related fields we would be</span>
+    <span class="c1">#  limited not only to the selected RelationSets but also to the specific</span>
+    <span class="c1">#  passing values. Re-filtering based on ID ensures that we can get all of</span>
+    <span class="c1">#  the relevant related fields for the RelationSets in our QuerySet.</span>
+    <span class="k">return</span> <span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">qs</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

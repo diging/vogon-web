@@ -1,0 +1,398 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>concepts.admin module &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="index.html" />
+    <link rel="up" title="concepts package" href="concepts.html" />
+    <link rel="next" title="concepts.apps module" href="concepts.apps.html" />
+    <link rel="prev" title="concepts.migrations.0002_concept_merged_with module" href="concepts.migrations.0002_concept_merged_with.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="annotations.html">annotations package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="concepts.html">concepts package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="concepts.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="concepts.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html#module-concepts">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="concepts.html">concepts package</a><ul>
+      <li>Previous: <a href="concepts.migrations.0002_concept_merged_with.html" title="previous chapter">concepts.migrations.0002_concept_merged_with module</a></li>
+      <li>Next: <a href="concepts.apps.html" title="next chapter">concepts.apps module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-concepts.admin">
+<span id="concepts-admin-module"></span><h1>concepts.admin module<a class="headerlink" href="#module-concepts.admin" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="concepts.admin.ConceptActionForm">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">ConceptActionForm</code><span class="sig-paren">(</span><em>data=None</em>, <em>files=None</em>, <em>auto_id=u'id_%s'</em>, <em>prefix=None</em>, <em>initial=None</em>, <em>error_class=&lt;class 'django.forms.utils.ErrorList'&gt;</em>, <em>label_suffix=None</em>, <em>empty_permitted=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#ConceptActionForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.ConceptActionForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.forms.forms.Form</span></code></p>
+<dl class="attribute">
+<dt id="concepts.admin.ConceptActionForm.base_fields">
+<code class="descname">base_fields</code><em class="property"> = OrderedDict([('_selected_action', &lt;django.forms.fields.CharField object&gt;), ('action', &lt;django.forms.fields.CharField object&gt;), ('confirmed', &lt;django.forms.fields.BooleanField object&gt;)])</em><a class="headerlink" href="#concepts.admin.ConceptActionForm.base_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptActionForm.declared_fields">
+<code class="descname">declared_fields</code><em class="property"> = OrderedDict([('_selected_action', &lt;django.forms.fields.CharField object&gt;), ('action', &lt;django.forms.fields.CharField object&gt;), ('confirmed', &lt;django.forms.fields.BooleanField object&gt;)])</em><a class="headerlink" href="#concepts.admin.ConceptActionForm.declared_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptActionForm.media">
+<code class="descname">media</code><a class="headerlink" href="#concepts.admin.ConceptActionForm.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.admin.ConceptAdmin">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">ConceptAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#ConceptAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.ConceptAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="concepts.admin.ConceptAdmin.actions">
+<code class="descname">actions</code><em class="property"> = (&lt;function merge_concepts&gt;, &lt;function approve_concepts&gt;, &lt;function add_concepts_to_conceptpower&gt;, &lt;function resolve&gt;)</em><a class="headerlink" href="#concepts.admin.ConceptAdmin.actions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('label', 'description', 'concept_state', 'typed')</em><a class="headerlink" href="#concepts.admin.ConceptAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptAdmin.list_filter">
+<code class="descname">list_filter</code><em class="property"> = ('concept_state', 'typed')</em><a class="headerlink" href="#concepts.admin.ConceptAdmin.list_filter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#concepts.admin.ConceptAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptAdmin.model">
+<code class="descname">model</code><a class="headerlink" href="#concepts.admin.ConceptAdmin.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptAdmin.search_fields">
+<code class="descname">search_fields</code><em class="property"> = ('label',)</em><a class="headerlink" href="#concepts.admin.ConceptAdmin.search_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.admin.ConceptMergeForm">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">ConceptMergeForm</code><span class="sig-paren">(</span><em>data=None</em>, <em>files=None</em>, <em>auto_id=u'id_%s'</em>, <em>prefix=None</em>, <em>initial=None</em>, <em>error_class=&lt;class 'django.forms.utils.ErrorList'&gt;</em>, <em>label_suffix=None</em>, <em>empty_permitted=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#ConceptMergeForm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.ConceptMergeForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.forms.forms.Form</span></code></p>
+<p>The administrator can select one <a class="reference internal" href="concepts.models.html#concepts.models.Concept" title="concepts.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a> instance into which all
+other selected <a class="reference internal" href="concepts.models.html#concepts.models.Concept" title="concepts.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a> instances will be merged.</p>
+<dl class="attribute">
+<dt id="concepts.admin.ConceptMergeForm.base_fields">
+<code class="descname">base_fields</code><em class="property"> = OrderedDict([('master_concept', &lt;concepts.admin.ModelChoiceFieldWithDescriptions object&gt;), ('_selected_action', &lt;django.forms.fields.CharField object&gt;), ('action', &lt;django.forms.fields.CharField object&gt;)])</em><a class="headerlink" href="#concepts.admin.ConceptMergeForm.base_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptMergeForm.declared_fields">
+<code class="descname">declared_fields</code><em class="property"> = OrderedDict([('master_concept', &lt;concepts.admin.ModelChoiceFieldWithDescriptions object&gt;), ('_selected_action', &lt;django.forms.fields.CharField object&gt;), ('action', &lt;django.forms.fields.CharField object&gt;)])</em><a class="headerlink" href="#concepts.admin.ConceptMergeForm.declared_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.ConceptMergeForm.media">
+<code class="descname">media</code><a class="headerlink" href="#concepts.admin.ConceptMergeForm.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.admin.ModelChoiceFieldWithDescriptions">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">ModelChoiceFieldWithDescriptions</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#ModelChoiceFieldWithDescriptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.ModelChoiceFieldWithDescriptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.forms.models.ModelChoiceField</span></code></p>
+<dl class="attribute">
+<dt id="concepts.admin.ModelChoiceFieldWithDescriptions.choices">
+<code class="descname">choices</code><a class="headerlink" href="#concepts.admin.ModelChoiceFieldWithDescriptions.choices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.admin.ModelChoiceIteratorWithDescriptions">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">ModelChoiceIteratorWithDescriptions</code><span class="sig-paren">(</span><em>field</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#ModelChoiceIteratorWithDescriptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.ModelChoiceIteratorWithDescriptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.forms.models.ModelChoiceIterator</span></code></p>
+<dl class="method">
+<dt id="concepts.admin.ModelChoiceIteratorWithDescriptions.choice">
+<code class="descname">choice</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#ModelChoiceIteratorWithDescriptions.choice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.ModelChoiceIteratorWithDescriptions.choice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.admin.RadioChoiceInputWithDescription">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">RadioChoiceInputWithDescription</code><span class="sig-paren">(</span><em>name</em>, <em>value</em>, <em>attrs</em>, <em>choice</em>, <em>index</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#RadioChoiceInputWithDescription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.RadioChoiceInputWithDescription" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.forms.widgets.RadioChoiceInput</span></code></p>
+<dl class="method">
+<dt id="concepts.admin.RadioChoiceInputWithDescription.render">
+<code class="descname">render</code><span class="sig-paren">(</span><em>name=None</em>, <em>value=None</em>, <em>attrs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#RadioChoiceInputWithDescription.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.RadioChoiceInputWithDescription.render" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.admin.RadioFieldRendererWithDescription">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">RadioFieldRendererWithDescription</code><span class="sig-paren">(</span><em>name</em>, <em>value</em>, <em>attrs</em>, <em>choices</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#RadioFieldRendererWithDescription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.RadioFieldRendererWithDescription" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.forms.widgets.RadioFieldRenderer</span></code></p>
+<dl class="attribute">
+<dt id="concepts.admin.RadioFieldRendererWithDescription.choice_input_class">
+<code class="descname">choice_input_class</code><a class="headerlink" href="#concepts.admin.RadioFieldRendererWithDescription.choice_input_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#concepts.admin.RadioChoiceInputWithDescription" title="concepts.admin.RadioChoiceInputWithDescription"><code class="xref py py-class docutils literal"><span class="pre">RadioChoiceInputWithDescription</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="concepts.admin.RadioFieldRendererWithDescription.render">
+<code class="descname">render</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#RadioFieldRendererWithDescription.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.RadioFieldRendererWithDescription.render" title="Permalink to this definition">¶</a></dt>
+<dd><p>Outputs a &lt;ul&gt; for this set of choice fields.
+If an id was given to the field, it is applied to the &lt;ul&gt; (each
+item in the list will get an id of <cite>$id_$i</cite>).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.admin.RadioSelectWithDescriptions">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">RadioSelectWithDescriptions</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#RadioSelectWithDescriptions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.RadioSelectWithDescriptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.forms.widgets.RadioSelect</span></code></p>
+<dl class="method">
+<dt id="concepts.admin.RadioSelectWithDescriptions.get_renderer">
+<code class="descname">get_renderer</code><span class="sig-paren">(</span><em>name</em>, <em>value</em>, <em>attrs=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#RadioSelectWithDescriptions.get_renderer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.RadioSelectWithDescriptions.get_renderer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance of the renderer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.RadioSelectWithDescriptions.media">
+<code class="descname">media</code><a class="headerlink" href="#concepts.admin.RadioSelectWithDescriptions.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="concepts.admin.RadioSelectWithDescriptions.render">
+<code class="descname">render</code><span class="sig-paren">(</span><em>name</em>, <em>value</em>, <em>attrs=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#RadioSelectWithDescriptions.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.RadioSelectWithDescriptions.render" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.RadioSelectWithDescriptions.renderer">
+<code class="descname">renderer</code><a class="headerlink" href="#concepts.admin.RadioSelectWithDescriptions.renderer" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#concepts.admin.RadioFieldRendererWithDescription" title="concepts.admin.RadioFieldRendererWithDescription"><code class="xref py py-class docutils literal"><span class="pre">RadioFieldRendererWithDescription</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.admin.TypeAdmin">
+<em class="property">class </em><code class="descclassname">concepts.admin.</code><code class="descname">TypeAdmin</code><span class="sig-paren">(</span><em>model</em>, <em>admin_site</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#TypeAdmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.TypeAdmin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.admin.options.ModelAdmin</span></code></p>
+<dl class="attribute">
+<dt id="concepts.admin.TypeAdmin.list_display">
+<code class="descname">list_display</code><em class="property"> = ('label', 'resolved')</em><a class="headerlink" href="#concepts.admin.TypeAdmin.list_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.TypeAdmin.media">
+<code class="descname">media</code><a class="headerlink" href="#concepts.admin.TypeAdmin.media" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.admin.TypeAdmin.model">
+<code class="descname">model</code><a class="headerlink" href="#concepts.admin.TypeAdmin.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">Type</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="concepts.admin.add_concepts_to_conceptpower">
+<code class="descclassname">concepts.admin.</code><code class="descname">add_concepts_to_conceptpower</code><span class="sig-paren">(</span><em>modeladmin</em>, <em>request</em>, <em>queryset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#add_concepts_to_conceptpower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.add_concepts_to_conceptpower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds <a class="reference internal" href="concepts.models.html#concepts.models.Concept" title="concepts.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a>s in <code class="docutils literal"><span class="pre">queryset</span></code> to the Conceptpower authority
+service.</p>
+<p>TODO: add a confirmation step that shows similar concepts that already
+exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>modeladmin</strong> &#8211; </li>
+<li><strong>request</strong> &#8211; </li>
+<li><strong>queryset</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="concepts.admin.approve_concepts">
+<code class="descclassname">concepts.admin.</code><code class="descname">approve_concepts</code><span class="sig-paren">(</span><em>modeladmin</em>, <em>request</em>, <em>queryset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#approve_concepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.approve_concepts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="concepts.admin.merge_concepts">
+<code class="descclassname">concepts.admin.</code><code class="descname">merge_concepts</code><span class="sig-paren">(</span><em>modeladmin</em>, <em>request</em>, <em>queryset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#merge_concepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.merge_concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>An administrator should be able to merge concepts in the concept change list
+view.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>modeladmin</strong> (<a class="reference internal" href="#concepts.admin.ConceptAdmin" title="concepts.admin.ConceptAdmin"><code class="xref py py-class docutils literal"><span class="pre">ConceptAdmin</span></code></a>) &#8211; </li>
+<li><strong>request</strong> (<code class="xref py py-class docutils literal"><span class="pre">HttpRequest</span></code>) &#8211; </li>
+<li><strong>queryset</strong> (<code class="xref py py-class docutils literal"><span class="pre">QuerySet</span></code>) &#8211; Should contain two or more :class:.`Concept` instances.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">POST request.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">HttpResponse</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="concepts.admin.perform_merge">
+<code class="descclassname">concepts.admin.</code><code class="descname">perform_merge</code><span class="sig-paren">(</span><em>unresolved_concepts</em>, <em>master_concept</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#perform_merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.perform_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge a set of unresolved concepts into a single master concept.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="concepts.admin.resolve">
+<code class="descclassname">concepts.admin.</code><code class="descname">resolve</code><span class="sig-paren">(</span><em>modeladmin</em>, <em>request</em>, <em>queryset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#resolve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.resolve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="concepts.admin.traverse_mergers">
+<code class="descclassname">concepts.admin.</code><code class="descname">traverse_mergers</code><span class="sig-paren">(</span><em>concept</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/admin.html#traverse_mergers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.admin.traverse_mergers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively collect all IDs for concepts that have been merged into
+<code class="docutils literal"><span class="pre">concept</span></code>.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/concepts.admin.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

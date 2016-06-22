@@ -1,0 +1,344 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.views.text_views &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.views.text_views</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides views onto :class:`.Text`\s.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.decorators</span> <span class="kn">import</span> <span class="n">login_required</span>
+<span class="kn">from</span> <span class="nn">django.contrib.contenttypes.models</span> <span class="kn">import</span> <span class="n">ContentType</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span><span class="p">,</span> <span class="n">HttpResponseRedirect</span>
+<span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">get_object_or_404</span>
+<span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">RequestContext</span><span class="p">,</span> <span class="n">loader</span>
+<span class="kn">from</span> <span class="nn">django.views.decorators.csrf</span> <span class="kn">import</span> <span class="n">ensure_csrf_cookie</span>
+
+<span class="kn">from</span> <span class="nn">annotations.display_helpers</span> <span class="kn">import</span> <span class="n">get_snippet_relation</span>
+<span class="kn">from</span> <span class="nn">annotations.forms</span> <span class="kn">import</span> <span class="n">UploadFileForm</span>
+<span class="kn">from</span> <span class="nn">annotations.models</span> <span class="kn">import</span> <span class="n">Text</span><span class="p">,</span> <span class="n">Appellation</span><span class="p">,</span> <span class="n">RelationSet</span>
+<span class="kn">from</span> <span class="nn">annotations.utils</span> <span class="kn">import</span> <span class="n">basepath</span>
+<span class="kn">from</span> <span class="nn">annotations.tasks</span> <span class="kn">import</span> <span class="n">handle_file_upload</span>
+<span class="kn">from</span> <span class="nn">annotations.display_helpers</span> <span class="kn">import</span> <span class="n">get_appellation_summaries</span>
+
+<span class="kn">from</span> <span class="nn">guardian.shortcuts</span> <span class="kn">import</span> <span class="n">get_perms</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span><span class="p">,</span> <span class="n">combinations</span>
+
+
+<span class="k">def</span> <span class="nf">_get_relations_data</span><span class="p">(</span><span class="n">relationset_qs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Organize RelationSets for this text so that we can display them in</span>
+<span class="sd">    conjunction with edges in the graph. In other words, grouped by</span>
+<span class="sd">    the &quot;source&quot; and &quot;target&quot; of the simplified graphical representation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">app_ct</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+    <span class="n">relationsets_by_interpretation</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">relationsets</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;source_content_type_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;object_content_type_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;source_object_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;object_object_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__tokenIds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__interpretation__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;predicate__interpretation_id&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Pull out &quot;focal&quot; concepts from the RelationSet. Usually there will</span>
+    <span class="c1">#  be only two, but there could be more.</span>
+    <span class="k">for</span> <span class="n">relationset</span> <span class="ow">in</span> <span class="n">relationset_qs</span><span class="p">:</span>
+        <span class="n">appellation_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">relationset</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">rel</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_content_type_id&#39;</span> <span class="o">%</span> <span class="n">part</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">app_ct</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                    <span class="n">appellation_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rel</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_object_id&#39;</span> <span class="o">%</span> <span class="n">part</span><span class="p">])</span>
+
+        <span class="n">interps</span> <span class="o">=</span> <span class="p">[]</span>    <span class="c1"># Focal concepts go here.</span>
+        <span class="n">appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk__in</span><span class="o">=</span><span class="n">appellation_ids</span><span class="p">,</span> <span class="n">asPredicate</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">appellation_fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;interpretation_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__typed__label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__typed__label&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">appellation</span> <span class="ow">in</span> <span class="n">appellations</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">appellation_fields</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">]:</span>
+                <span class="n">interps</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with_id&#39;</span><span class="p">],</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">interps</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation_id&#39;</span><span class="p">],</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;interpretation__label&#39;</span><span class="p">]))</span>
+
+        <span class="c1"># Usually there will be only two Concepts here, but for more complex</span>
+        <span class="c1">#  relations there could be more.</span>
+        <span class="k">for</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">interps</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="c1"># This is kind of hacky, but it lets us access the IDs and</span>
+            <span class="c1">#  labels more readily below.</span>
+            <span class="n">rset</span> <span class="o">=</span> <span class="p">((</span><span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">relationset</span><span class="p">)</span>
+            <span class="n">relationsets_by_interpretation</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rset</span><span class="p">)</span>
+
+    <span class="c1"># Here we sort and group by concept-pairs (u and v, above).</span>
+    <span class="n">skey</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">rsets</span> <span class="o">=</span> <span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">relationsets_by_interpretation</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">skey</span><span class="p">),</span>
+                    <span class="n">key</span><span class="o">=</span><span class="n">skey</span><span class="p">)</span>
+
+    <span class="c1"># Each group will be shown as an accordion panel in the view.</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">u_id</span><span class="p">,</span> <span class="n">u_label</span><span class="p">,</span> <span class="n">v_id</span><span class="p">,</span> <span class="n">v_label</span><span class="p">),</span> <span class="n">i_relationsets</span> <span class="ow">in</span> <span class="n">rsets</span><span class="p">:</span>
+        <span class="n">relationsets</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;source_interpretation_id&quot;</span><span class="p">:</span> <span class="n">u_id</span><span class="p">,</span>
+            <span class="s2">&quot;source_interpretation_label&quot;</span><span class="p">:</span> <span class="n">u_label</span><span class="p">,</span>
+            <span class="s2">&quot;target_interpretation_id&quot;</span><span class="p">:</span> <span class="n">v_id</span><span class="p">,</span>
+            <span class="s2">&quot;target_interpretation_label&quot;</span><span class="p">:</span> <span class="n">v_label</span><span class="p">,</span>
+            <span class="s2">&quot;relationsets&quot;</span><span class="p">:</span> <span class="p">[{</span>
+                <span class="s2">&quot;text_snippet&quot;</span><span class="p">:</span> <span class="n">get_snippet_relation</span><span class="p">(</span><span class="n">relationset</span><span class="p">),</span>
+                <span class="s2">&quot;annotator&quot;</span><span class="p">:</span> <span class="n">relationset</span><span class="o">.</span><span class="n">createdBy</span><span class="p">,</span>
+                <span class="s2">&quot;created&quot;</span><span class="p">:</span> <span class="n">relationset</span><span class="o">.</span><span class="n">created</span><span class="p">,</span>
+            <span class="p">}</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">relationset</span> <span class="ow">in</span> <span class="n">i_relationsets</span><span class="p">]</span>
+        <span class="p">})</span>
+    <span class="k">return</span> <span class="n">relationsets</span>
+
+
+<span class="nd">@ensure_csrf_cookie</span>
+<div class="viewcode-block" id="text"><a class="viewcode-back" href="../../../annotations.views.text_views.html#annotations.views.text_views.text">[docs]</a><span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">textid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides the main text annotation/info view.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :class:`django.http.response.HttpResponse`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">textid</span><span class="p">)</span>
+    <span class="n">context_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+        <span class="s1">&#39;textid&#39;</span><span class="p">:</span> <span class="n">textid</span><span class="p">,</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="s1">&#39;Annotate Text&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;baselocation&#39;</span> <span class="p">:</span> <span class="n">basepath</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="c1"># If a text is restricted, then the user needs explicit permission to</span>
+    <span class="c1">#  access it.</span>
+    <span class="n">access_conditions</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;view_text&#39;</span> <span class="ow">in</span> <span class="n">get_perms</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">text</span><span class="p">),</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">annotators</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="s1">&#39;is_admin&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">),</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">public</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="c1"># if not any(access_conditions):</span>
+    <span class="c1">#     # TODO: return a pretty templated response.</span>
+    <span class="c1">#     raise PermissionDenied</span>
+    <span class="n">mode</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="s1">&#39;view&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">(),</span> <span class="nb">any</span><span class="p">(</span><span class="n">access_conditions</span><span class="p">),</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;annotate&#39;</span><span class="p">]):</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;annotations/text.html&#39;</span><span class="p">)</span>
+        <span class="n">context_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;userid&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">text</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+        <span class="p">})</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">all</span><span class="p">([</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">(),</span> <span class="nb">any</span><span class="p">(</span><span class="n">access_conditions</span><span class="p">),</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;user_annotations&#39;</span><span class="p">]):</span>
+        <span class="n">appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">occursIn_id</span><span class="o">=</span><span class="n">textid</span><span class="p">,</span>
+                                                  <span class="n">asPredicate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                                  <span class="n">createdBy</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">appellations_data</span><span class="p">,</span> <span class="n">appellation_creators</span> <span class="o">=</span> <span class="n">get_appellation_summaries</span><span class="p">(</span><span class="n">appellations</span><span class="p">)</span>
+        <span class="n">relationset_qs</span> <span class="o">=</span> <span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">occursIn</span><span class="o">=</span><span class="n">textid</span><span class="p">,</span>
+                                                    <span class="n">createdBy</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="n">relationsets</span> <span class="o">=</span> <span class="n">_get_relations_data</span><span class="p">(</span><span class="n">relationset_qs</span><span class="p">)</span>
+
+        <span class="n">context_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s1">&#39;view&#39;</span><span class="p">:</span> <span class="s1">&#39;user&#39;</span><span class="p">,</span>
+        <span class="p">})</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;annotate&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+
+    <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;annotations/text_view.html&#39;</span><span class="p">)</span>
+
+    <span class="n">appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">occursIn_id</span><span class="o">=</span><span class="n">textid</span><span class="p">,</span>
+                                              <span class="n">asPredicate</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">appellations_data</span><span class="p">,</span> <span class="n">appellation_creators</span> <span class="o">=</span> <span class="n">get_appellation_summaries</span><span class="p">(</span><span class="n">appellations</span><span class="p">)</span>
+    <span class="n">relationset_qs</span> <span class="o">=</span> <span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">occursIn</span><span class="o">=</span><span class="n">textid</span><span class="p">)</span>
+    <span class="n">relationsets</span> <span class="o">=</span> <span class="n">_get_relations_data</span><span class="p">(</span><span class="n">relationset_qs</span><span class="p">)</span>
+
+
+    <span class="n">context_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+        <span class="s1">&#39;userid&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="s1">&#39;appellations_data&#39;</span><span class="p">:</span> <span class="n">appellations_data</span><span class="p">,</span>
+        <span class="s1">&#39;annotators&#39;</span><span class="p">:</span> <span class="n">appellation_creators</span><span class="p">,</span>
+        <span class="s1">&#39;relations&#39;</span><span class="p">:</span> <span class="n">relationsets</span><span class="p">,</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">text</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+    <span class="p">})</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context_data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">))</span></div>
+
+
+<span class="nd">@login_required</span>
+<div class="viewcode-block" id="upload_file"><a class="viewcode-back" href="../../../annotations.views.text_views.html#annotations.views.text_views.upload_file">[docs]</a><span class="k">def</span> <span class="nf">upload_file</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Upload a file and save the text instance.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :class:`django.http.response.HttpResponse`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">project_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">UploadFileForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">queryset</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ownedBy_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+
+            <span class="n">text</span> <span class="o">=</span> <span class="n">handle_file_upload</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">form</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">text</span><span class="o">.</span><span class="n">id</span><span class="p">])</span> <span class="o">+</span> <span class="s1">u&#39;?mode=annotate&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">UploadFileForm</span><span class="p">()</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">queryset</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ownedBy_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">initial</span> <span class="o">=</span> <span class="n">project_id</span>
+
+    <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;annotations/upload_file.html&#39;</span><span class="p">)</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+        <span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">form</span><span class="p">,</span>
+        <span class="s1">&#39;subpath&#39;</span><span class="p">:</span> <span class="n">settings</span><span class="o">.</span><span class="n">SUBPATH</span><span class="p">,</span>
+    <span class="p">})</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

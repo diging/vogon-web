@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.admin &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.admin</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">django.contrib</span> <span class="kn">import</span> <span class="n">admin</span>
+<span class="kn">from</span> <span class="nn">annotations.forms</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">annotations.models</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">annotations</span> <span class="kn">import</span> <span class="n">quadriga</span>
+<span class="kn">from</span> <span class="nn">annotations.tasks</span> <span class="kn">import</span> <span class="n">submit_relationsets_to_quadriga</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span>
+
+
+<div class="viewcode-block" id="VogonUserAdmin"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.VogonUserAdmin">[docs]</a><span class="k">class</span> <span class="nc">VogonUserAdmin</span><span class="p">(</span><span class="n">UserAdmin</span><span class="p">):</span>
+    <span class="c1"># The forms to add and change user instances</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">UserChangeForm</span>
+    <span class="n">add_form</span> <span class="o">=</span> <span class="n">UserCreationForm</span>
+
+    <span class="c1"># The fields to be used in displaying the User model.</span>
+    <span class="c1"># These override the definitions on the base UserAdmin</span>
+    <span class="c1"># that reference specific fields on auth.User.</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="s1">&#39;full_name&#39;</span><span class="p">,</span> <span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;affiliation&#39;</span><span class="p">,</span> <span class="s1">&#39;is_admin&#39;</span><span class="p">)</span>
+    <span class="n">list_filter</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;is_admin&#39;</span><span class="p">,)</span>
+    <span class="n">fieldsets</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">)}),</span>
+        <span class="p">(</span><span class="s1">&#39;Personal info&#39;</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;full_name&#39;</span><span class="p">,</span> <span class="s1">&#39;affiliation&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;link&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;conceptpower_uri&#39;</span><span class="p">)</span>
+        <span class="p">}),</span>
+        <span class="p">(</span><span class="s1">&#39;Permissions&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;is_admin&#39;</span><span class="p">,</span> <span class="s1">&#39;is_active&#39;</span><span class="p">)}),</span>
+    <span class="p">)</span>
+    <span class="c1"># add_fieldsets is not a standard ModelAdmin attribute. UserAdmin</span>
+    <span class="c1"># overrides get_fieldsets to use this attribute when creating a user.</span>
+    <span class="n">add_fieldsets</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="p">{</span>
+            <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;wide&#39;</span><span class="p">,),</span>
+            <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;password1&#39;</span><span class="p">,</span> <span class="s1">&#39;password2&#39;</span><span class="p">,</span> <span class="s1">&#39;full_name&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;affiliation&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">)</span>
+        <span class="p">}),</span>
+    <span class="p">)</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">,)</span>
+    <span class="n">ordering</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">,)</span>
+    <span class="n">filter_horizontal</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TextAdmin"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.TextAdmin">[docs]</a><span class="k">class</span> <span class="nc">TextAdmin</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span><span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;uri&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;created&#39;</span><span class="p">,</span> <span class="s1">&#39;addedBy&#39;</span><span class="p">,</span> <span class="s1">&#39;added&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RelationAdmin"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.RelationAdmin">[docs]</a><span class="k">class</span> <span class="nc">RelationAdmin</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span><span class="p">):</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;occurs_in&#39;</span><span class="p">,</span> <span class="s1">&#39;created_by&#39;</span><span class="p">,</span> <span class="s1">&#39;created&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="RelationAdmin.occurs_in"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.RelationAdmin.occurs_in">[docs]</a>    <span class="k">def</span> <span class="nf">occurs_in</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">title</span></div>
+<div class="viewcode-block" id="RelationAdmin.created_by"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.RelationAdmin.created_by">[docs]</a>    <span class="k">def</span> <span class="nf">created_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">createdBy</span></div></div>
+
+
+<div class="viewcode-block" id="submit_relationsets"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.submit_relationsets">[docs]</a><span class="k">def</span> <span class="nf">submit_relationsets</span><span class="p">(</span><span class="n">modeladmin</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">queryset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Submit selected :class:`.RelationSet`\s to Quadriga.</span>
+
+<span class="sd">    Will quietly skip any :class:`.RelationSet`\s that have already been</span>
+<span class="sd">    submitted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">submitted</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">pending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="c1"># Do not submit a relationset to Quadriga if the constituent interpretations</span>
+    <span class="c1">#  involve concepts that are not resolved.</span>
+    <span class="n">all_rsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">rs</span> <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">queryset</span> <span class="k">if</span> <span class="n">rs</span><span class="o">.</span><span class="n">ready</span><span class="p">()]</span>
+
+    <span class="n">project_grouper</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">partOf</span><span class="o">.</span><span class="n">first</span><span class="p">(),</span> <span class="s1">&#39;quadriga_id&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">project_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">all_rsets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">project_grouper</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">project_grouper</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">project_id</span>
+        <span class="k">for</span> <span class="n">text_id</span><span class="p">,</span> <span class="n">text_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">project_group</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="n">rs</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">Text</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">text_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">user_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">text_group</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="n">rs</span><span class="o">.</span><span class="n">createdBy</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="n">VogonUser</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+                <span class="c1"># We lose the iterator after the first pass, so we want a list here.</span>
+                <span class="n">rsets</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">user_group</span><span class="p">:</span>
+                    <span class="n">rsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span>
+                    <span class="n">rs</span><span class="o">.</span><span class="n">pending</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">rs</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                        <span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span>
+                    <span class="p">})</span>
+                <span class="n">submit_relationsets_to_quadriga</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">rsets</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="submit_relationsets_synch"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.submit_relationsets_synch">[docs]</a><span class="k">def</span> <span class="nf">submit_relationsets_synch</span><span class="p">(</span><span class="n">modeladmin</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">queryset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Submit selected :class:`.RelationSet`\s to Quadriga.</span>
+
+<span class="sd">    Will quietly skip any :class:`.RelationSet`\s that have already been</span>
+<span class="sd">    submitted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">submitted</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">pending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="c1"># Do not submit a relationset to Quadriga if the constituent interpretations</span>
+    <span class="c1">#  involve concepts that are not resolved.</span>
+    <span class="n">all_rsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">rs</span> <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">queryset</span> <span class="k">if</span> <span class="n">rs</span><span class="o">.</span><span class="n">ready</span><span class="p">()]</span>
+
+    <span class="n">project_grouper</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">partOf</span><span class="o">.</span><span class="n">first</span><span class="p">(),</span> <span class="s1">&#39;quadriga_id&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">project_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">all_rsets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">project_grouper</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">project_grouper</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">project_id</span>
+        <span class="k">for</span> <span class="n">text_id</span><span class="p">,</span> <span class="n">text_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">project_group</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="n">rs</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">Text</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">text_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">user_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">text_group</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="n">rs</span><span class="o">.</span><span class="n">createdBy</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="n">VogonUser</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+                <span class="c1"># We lose the iterator after the first pass, so we want a list here.</span>
+                <span class="n">rsets</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">user_group</span><span class="p">:</span>
+                    <span class="n">rsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span>
+                    <span class="n">rs</span><span class="o">.</span><span class="n">pending</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">rs</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                        <span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span>
+                    <span class="p">})</span>
+                <span class="n">submit_relationsets_to_quadriga</span><span class="p">(</span><span class="n">rsets</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RelationSetAdmin"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.RelationSetAdmin">[docs]</a><span class="k">class</span> <span class="nc">RelationSetAdmin</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span><span class="p">):</span>
+<div class="viewcode-block" id="RelationSetAdmin.Meta"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.RelationSetAdmin.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">RelationSet</span></div>
+
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;createdBy&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn&#39;</span><span class="p">,</span> <span class="s1">&#39;created&#39;</span><span class="p">,</span> <span class="s1">&#39;ready&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;pending&#39;</span><span class="p">,</span> <span class="s1">&#39;submitted&#39;</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="p">(</span><span class="n">submit_relationsets</span><span class="p">,</span> <span class="n">submit_relationsets_synch</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AppellationAdmin"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.AppellationAdmin">[docs]</a><span class="k">class</span> <span class="nc">AppellationAdmin</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span><span class="p">):</span>
+<div class="viewcode-block" id="AppellationAdmin.Meta"><a class="viewcode-back" href="../../annotations.admin.html#annotations.admin.AppellationAdmin.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Appellation</span></div>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;createdBy&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn&#39;</span><span class="p">,</span> <span class="s1">&#39;created&#39;</span><span class="p">,</span> <span class="s1">&#39;interpretation&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;asPredicate&#39;</span><span class="p">)</span></div>
+
+
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">VogonUser</span><span class="p">,</span> <span class="n">VogonUserAdmin</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Appellation</span><span class="p">,</span> <span class="n">AppellationAdmin</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">TextAdmin</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">TextCollection</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">Relation</span><span class="p">,</span> <span class="n">RelationAdmin</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">RelationSet</span><span class="p">,</span> <span class="n">RelationSetAdmin</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">RelationTemplate</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">RelationTemplatePart</span><span class="p">)</span>
+<span class="n">admin</span><span class="o">.</span><span class="n">site</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">DateAppellation</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

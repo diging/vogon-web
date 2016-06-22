@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.tests.tests &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.tests.tests</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">annotations.forms</span> <span class="kn">import</span> <span class="n">validatefiletype</span>
+<span class="kn">from</span> <span class="nn">annotations.tasks</span> <span class="kn">import</span> <span class="n">extract_text_file</span><span class="p">,</span> <span class="n">extract_pdf_file</span>
+<span class="kn">from</span> <span class="nn">django.core.files</span> <span class="kn">import</span> <span class="n">File</span>
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="kn">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">django.core.files.base</span> <span class="kn">import</span> <span class="n">ContentFile</span>
+
+
+<div class="viewcode-block" id="TestUploadFileType"><a class="viewcode-back" href="../../../annotations.tests.tests.html#annotations.tests.tests.TestUploadFileType">[docs]</a><span class="k">class</span> <span class="nc">TestUploadFileType</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class tests the validator (to test proper file type - TXT or PDF)</span>
+<span class="sd">    used in file upload form.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TestUploadFileType.test_txt_file"><a class="viewcode-back" href="../../../annotations.tests.tests.html#annotations.tests.tests.TestUploadFileType.test_txt_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_txt_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        When file is a TXT file, no exception should be raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="s1">&#39;txtfile&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s1">&#39;text/plain&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">validatefiletype</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s1">&#39;Should not raise Validation Error on a TXT file.&#39;</span><span class="p">)</span></div>
+
+    <span class="c1"># def test_pdf_file(self):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     When file is a PDF file, no exception should be raised.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     f = File(&#39;pdffile&#39;)</span>
+    <span class="c1">#     f.content_type = &#39;application/pdf&#39;</span>
+    <span class="c1">#     try:</span>
+    <span class="c1">#         validatefiletype(f)</span>
+    <span class="c1">#     except ValidationError:</span>
+    <span class="c1">#         self.fail(&#39;Should not raise Validation Error on a PDF file.&#39;)</span>
+
+<div class="viewcode-block" id="TestUploadFileType.test_invalid_file"><a class="viewcode-back" href="../../../annotations.tests.tests.html#annotations.tests.tests.TestUploadFileType.test_invalid_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_invalid_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        When file is not a zip file, ValidationError should be raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="s1">&#39;invalidfile&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s1">&#39;invalid&#39;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="n">ValidationError</span><span class="p">):</span>
+            <span class="n">validatefiletype</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># Disabling these for now, since we are disallowing PDFs at the moment.</span>
+
+<span class="c1"># class TestPDFFileExtract(unittest.TestCase):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     This class tests the PDF file extraction method after upload file form</span>
+<span class="c1">#     is submitted.</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#     def test_not_a_pdf_file(self):</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         This method tests if validation error is raised when a non-PDF file is</span>
+<span class="c1">#         uploaded</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         f = File(&#39;invalid&#39;)</span>
+<span class="c1">#         f.content_type = &#39;invalid&#39;</span>
+<span class="c1">#         with self.assertRaises(ValueError):</span>
+<span class="c1">#             extract_pdf_file(f)</span>
+<span class="c1">#</span>
+<span class="c1">#     def test_pdf_file(self):</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         This method tests if contents of the PDF file are extracted when a PDF</span>
+<span class="c1">#         file is uploaded.</span>
+<span class="c1">#         &quot;&quot;&quot;</span>
+<span class="c1">#         with open(&#39;annotations/tests/data/test.pdf&#39;, &#39;r&#39;) as f:</span>
+<span class="c1">#             pdf = File(f)</span>
+<span class="c1">#             pdf.content_type = &#39;application/pdf&#39;</span>
+<span class="c1">#             content = extract_pdf_file(pdf)</span>
+<span class="c1">#             self.assertEquals(content.strip(), &#39;This is a sample test file.&#39;)</span>
+
+
+<div class="viewcode-block" id="TestTextFileExtract"><a class="viewcode-back" href="../../../annotations.tests.tests.html#annotations.tests.tests.TestTextFileExtract">[docs]</a><span class="k">class</span> <span class="nc">TestTextFileExtract</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class tests the text file extraction method after the upload file</span>
+<span class="sd">    form is submitted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestTextFileExtract.test_not_a_txt_file"><a class="viewcode-back" href="../../../annotations.tests.tests.html#annotations.tests.tests.TestTextFileExtract.test_not_a_txt_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_not_a_txt_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method tests if validation error is raised when a non-text file is</span>
+<span class="sd">        uploaded</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="s1">&#39;invalid&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s1">&#39;invalid&#39;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+            <span class="n">extract_text_file</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestTextFileExtract.test_text_file"><a class="viewcode-back" href="../../../annotations.tests.tests.html#annotations.tests.tests.TestTextFileExtract.test_text_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_text_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method tests if content of the text file are extracted when</span>
+<span class="sd">        a text file is uploaded</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">ContentFile</span><span class="p">(</span><span class="s1">&#39;This is a sample content&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;test.txt&#39;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s1">&#39;text/plain&#39;</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">extract_text_file</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="s1">&#39;This is a sample content&#39;</span><span class="p">)</span></div></div>
+
+
+
+<div class="viewcode-block" id="TextQuadrigaSerialization"><a class="viewcode-back" href="../../../annotations.tests.tests.html#annotations.tests.tests.TextQuadrigaSerialization">[docs]</a><span class="k">class</span> <span class="nc">TextQuadrigaSerialization</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

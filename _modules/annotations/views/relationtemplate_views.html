@@ -1,0 +1,592 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.views.relationtemplate_views &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.views.relationtemplate_views</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides :class:`.RelationTemplate`\-related views.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.contrib.admin.views.decorators</span> <span class="kn">import</span> <span class="n">staff_member_required</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.decorators</span> <span class="kn">import</span> <span class="n">login_required</span>
+<span class="kn">from</span> <span class="nn">django.contrib.contenttypes.models</span> <span class="kn">import</span> <span class="n">ContentType</span>
+<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
+<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="kn">import</span> <span class="n">Q</span>
+<span class="kn">from</span> <span class="nn">django.forms</span> <span class="kn">import</span> <span class="n">formset_factory</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span><span class="p">,</span> <span class="n">HttpResponseRedirect</span><span class="p">,</span> <span class="n">JsonResponse</span>
+<span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">get_object_or_404</span>
+<span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">RequestContext</span><span class="p">,</span> <span class="n">loader</span>
+
+
+<span class="kn">from</span> <span class="nn">annotations.forms</span> <span class="kn">import</span> <span class="p">(</span><span class="n">RelationTemplatePartFormSet</span><span class="p">,</span>
+                               <span class="n">RelationTemplatePartForm</span><span class="p">,</span>
+                               <span class="n">RelationTemplateForm</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">annotations.models</span> <span class="kn">import</span> <span class="p">(</span><span class="n">RelationTemplate</span><span class="p">,</span> <span class="n">RelationTemplatePart</span><span class="p">,</span>
+                                <span class="n">RelationSet</span><span class="p">,</span> <span class="n">Relation</span><span class="p">,</span> <span class="n">Appellation</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">concepts.models</span> <span class="kn">import</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">Type</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;ERROR&#39;</span><span class="p">)</span>
+
+
+<span class="nd">@staff_member_required</span>
+<div class="viewcode-block" id="add_relationtemplate"><a class="viewcode-back" href="../../../annotations.views.relationtemplate_views.html#annotations.views.relationtemplate_views.add_relationtemplate">[docs]</a><span class="k">def</span> <span class="nf">add_relationtemplate</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Staff can use this view to create :class:`.RelationTemplate`\s.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    project_id : int</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :class:`django.http.response.HttpResponse`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO: This could use quite a bit of refactoring, or at least breaking</span>
+    <span class="c1">#  apart into more manageable bits.</span>
+
+    <span class="c1"># Each RelationTemplatePart is a &quot;triple&quot;, the subject or object of which</span>
+    <span class="c1">#  might be another RelationTemplatePart.</span>
+    <span class="n">formset</span> <span class="o">=</span> <span class="n">formset_factory</span><span class="p">(</span><span class="n">RelationTemplatePartForm</span><span class="p">,</span>
+                              <span class="n">formset</span><span class="o">=</span><span class="n">RelationTemplatePartFormSet</span><span class="p">)</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">RelationTemplateForm</span>   <span class="c1"># e.g. Name, Description.</span>
+
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="bp">None</span>    <span class="c1"># TODO: &lt;-- make this less hacky.</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;add_relationtemplate: post request&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Instatiate both form(set)s with data.</span>
+        <span class="n">relationtemplatepart_formset</span> <span class="o">=</span> <span class="n">formset</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;parts&#39;</span><span class="p">)</span>
+        <span class="n">relationtemplate_form</span> <span class="o">=</span> <span class="n">form_class</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;formset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relationtemplatepart_formset</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;templateform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relationtemplate_form</span>
+
+        <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="n">relationtemplatepart_formset</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(),</span>
+                <span class="n">relationtemplate_form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()]):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;add_relationtemplate: both forms are valid&#39;</span><span class="p">)</span>
+            <span class="c1"># We commit the RelationTemplate to the database first, so that we</span>
+            <span class="c1">#  can use it in the FK relation ``RelationTemplatePart.part_of``.</span>
+            <span class="n">relationTemplate</span> <span class="o">=</span> <span class="n">relationtemplate_form</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="c1"># We index RTPs so that we can fill FK references among them.</span>
+            <span class="n">relationTemplateParts</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">dependency_order</span> <span class="o">=</span> <span class="p">{}</span>    <span class="c1"># Source RTP index -&gt; target RTP index.</span>
+            <span class="k">for</span> <span class="n">form</span> <span class="ow">in</span> <span class="n">relationtemplatepart_formset</span><span class="p">:</span>
+                <span class="n">relationTemplatePart</span> <span class="o">=</span> <span class="n">RelationTemplatePart</span><span class="p">()</span>
+                <span class="n">relationTemplatePart</span><span class="o">.</span><span class="n">part_of</span> <span class="o">=</span> <span class="n">relationTemplate</span>
+                <span class="n">relationTemplatePart</span><span class="o">.</span><span class="n">internal_id</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;internal_id&#39;</span><span class="p">]</span>
+
+                <span class="c1"># Since many field names are shared for source, predicate, and</span>
+                <span class="c1">#  object, this approach should cut down on a lot of repetitive</span>
+                <span class="c1">#  code.</span>
+                <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;predicate&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplatePart</span><span class="p">,</span> <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_node_type&#39;</span><span class="p">,</span>
+                            <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_node_type&#39;</span><span class="p">])</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplatePart</span><span class="p">,</span> <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_prompt_text&#39;</span><span class="p">,</span>
+                            <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_prompt_text&#39;</span><span class="p">])</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplatePart</span><span class="p">,</span> <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_label&#39;</span><span class="p">,</span>
+                            <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_label&#39;</span><span class="p">])</span>
+
+                    <span class="c1"># Node is a concept Type. e.g. ``E20 Person``.</span>
+                    <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_node_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;TP&#39;</span><span class="p">:</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplatePart</span><span class="p">,</span> <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_type&#39;</span><span class="p">,</span>
+                                <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_type&#39;</span><span class="p">])</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplatePart</span><span class="p">,</span> <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_description&#39;</span><span class="p">,</span>
+                                <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_description&#39;</span><span class="p">])</span>
+
+                    <span class="c1"># Node is a specific Concept, e.g. ``employ``.</span>
+                    <span class="k">elif</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_node_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;CO&#39;</span><span class="p">:</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplatePart</span><span class="p">,</span> <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_concept&#39;</span><span class="p">,</span>
+                                <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_concept&#39;</span><span class="p">])</span>
+                        <span class="c1"># We may still want to provide instructions to the user</span>
+                        <span class="c1">#  via the description field.</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplatePart</span><span class="p">,</span> <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_description&#39;</span><span class="p">,</span>
+                                <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_description&#39;</span><span class="p">])</span>
+
+                    <span class="c1"># Node is another RelationTemplatePart.</span>
+                    <span class="k">elif</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_node_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;RE&#39;</span><span class="p">:</span>
+                        <span class="n">target_id</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_relationtemplate_internal_id&#39;</span><span class="p">]</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplatePart</span><span class="p">,</span>
+                                <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_relationtemplate_internal_id&#39;</span><span class="p">,</span>
+                                <span class="n">target_id</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">target_id</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                            <span class="c1"># This will help us to figure out the order in</span>
+                            <span class="c1">#  which to save RTPs.</span>
+                            <span class="n">dependency_order</span><span class="p">[</span><span class="n">relationTemplatePart</span><span class="o">.</span><span class="n">internal_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_id</span>
+
+                <span class="c1"># Index so that we can fill FK references among RTPs.</span>
+                <span class="n">relationTemplateParts</span><span class="p">[</span><span class="n">relationTemplatePart</span><span class="o">.</span><span class="n">internal_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">relationTemplatePart</span>
+
+            <span class="c1"># If there is interdependency among RTPs, determine and execute</span>
+            <span class="c1">#  the correct save order.</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dependency_order</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Find the relation template furthest downstream.</span>
+                <span class="c1"># TODO: is this really better than hitting the database twice?</span>
+                <span class="n">start_rtp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dependency_order</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">this_rtp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">start_rtp</span><span class="p">)</span>
+                <span class="n">save_order</span> <span class="o">=</span> <span class="p">[</span><span class="n">this_rtp</span><span class="p">]</span>
+                <span class="n">iteration</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                    <span class="n">this_rtp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dependency_order</span><span class="p">[</span><span class="n">this_rtp</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">this_rtp</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">save_order</span><span class="p">:</span>
+                        <span class="n">save_order</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">this_rtp</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">this_rtp</span> <span class="ow">in</span> <span class="n">dependency_order</span><span class="p">:</span>
+                        <span class="n">iteration</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>   <span class="c1"># Found the downstream relation template.</span>
+                        <span class="k">break</span>
+
+                    <span class="c1"># Make sure that we&#39;re not in an endless loop.</span>
+                    <span class="c1"># TODO: This is kind of a hacky way to handle the situation.</span>
+                    <span class="c1">#  Maybe we should move this logic to the validation phase,</span>
+                    <span class="c1">#  so that we can handle errors in a Django-esque fashion.</span>
+                    <span class="k">if</span> <span class="n">iteration</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">this_rtp</span> <span class="o">==</span> <span class="n">start_rtp</span><span class="p">:</span>
+                        <span class="n">error</span> <span class="o">=</span> <span class="s1">&#39;Endless loop&#39;</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">error</span><span class="p">:</span>
+                    <span class="c1"># Resolve internal ids for RTP references into instance pks,</span>
+                    <span class="c1">#  and populate the RTP _relationtemplate fields.</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">save_order</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+                            <span class="n">dep</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">relationTemplateParts</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                          <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_relationtemplate_internal_id&#39;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">dep</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                                <span class="nb">setattr</span><span class="p">(</span><span class="n">relationTemplateParts</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                        <span class="n">part</span> <span class="o">+</span> <span class="s1">&#39;_relationtemplate&#39;</span><span class="p">,</span>
+                                        <span class="n">relationTemplateParts</span><span class="p">[</span><span class="n">dep</span><span class="p">])</span>
+                        <span class="c1"># Only save non-committed instances.</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">relationTemplateParts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                            <span class="n">relationTemplateParts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="c1"># Otherwise, just save the (one and only) RTP.</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">relationTemplateParts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">relationTemplateParts</span><span class="o">.</span><span class="n">values</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">error</span><span class="p">:</span>
+                <span class="c1"># TODO: when the list view for RTs is implemented, we should</span>
+                <span class="c1">#  direct the user there.</span>
+                <span class="k">return</span> <span class="n">HttpResponseRedirect</span><span class="p">(</span><span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;list_relationtemplate&#39;</span><span class="p">))</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># For now, we can render this view-wide error separately. But</span>
+                <span class="c1">#  we should probably make this part of the normal validation</span>
+                <span class="c1">#  process in the future. See comments above.</span>
+                <span class="n">context</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">error</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;add_relationtemplate: forms not valid&#39;</span><span class="p">)</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;formset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relationtemplatepart_formset</span>
+            <span class="n">context</span><span class="p">[</span><span class="s1">&#39;templateform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relationtemplate_form</span>
+
+    <span class="k">else</span><span class="p">:</span>   <span class="c1"># No data, start with a fresh formset.</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;formset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">formset</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;parts&#39;</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s1">&#39;templateform&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">form_class</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s1">&#39;annotations/relationtemplate.html&#39;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
+
+
+<span class="nd">@login_required</span>
+<div class="viewcode-block" id="list_relationtemplate"><a class="viewcode-back" href="../../../annotations.views.relationtemplate_views.html#annotations.views.relationtemplate_views.list_relationtemplate">[docs]</a><span class="k">def</span> <span class="nf">list_relationtemplate</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of all :class:`.RelationTemplate`\s.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :class:`django.http.response.HttpResponse`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">RelationTemplate</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">search</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
+        <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Q</span><span class="p">(</span><span class="n">name__icontains</span><span class="o">=</span><span class="n">search</span><span class="p">)</span> <span class="o">|</span>
+            <span class="n">Q</span><span class="p">(</span><span class="n">description__icontains</span><span class="o">=</span><span class="n">search</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;templates&#39;</span><span class="p">:</span> <span class="p">[{</span>
+            <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">rt</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">rt</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="n">rt</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+            <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">rt</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span>
+            <span class="p">}</span> <span class="k">for</span> <span class="n">rt</span> <span class="ow">in</span> <span class="n">queryset</span><span class="p">]</span>
+        <span class="p">}</span>
+
+    <span class="n">response_format</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;format&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">response_format</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;annotations/relationtemplate_list.html&#39;</span><span class="p">)</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+        <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
+    <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">))</span></div>
+
+
+<span class="nd">@login_required</span>
+<div class="viewcode-block" id="get_relationtemplate"><a class="viewcode-back" href="../../../annotations.views.relationtemplate_views.html#annotations.views.relationtemplate_views.get_relationtemplate">[docs]</a><span class="k">def</span> <span class="nf">get_relationtemplate</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">template_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns data on fillable fields in a :class:`.RelationTemplate`\.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+<span class="sd">    template_id : int</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :class:`django.http.response.HttpResponse`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">relation_template</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">RelationTemplate</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">template_id</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;fields&#39;</span><span class="p">:</span> <span class="n">relation_template</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">relation_template</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="n">relation_template</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">template_id</span><span class="p">,</span>
+        <span class="s1">&#39;expression&#39;</span><span class="p">:</span> <span class="n">relation_template</span><span class="o">.</span><span class="n">expression</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">response_format</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;format&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">response_format</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;annotations/relationtemplate_show.html&#39;</span><span class="p">)</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+        <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
+    <span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">))</span></div>
+
+
+<span class="nd">@login_required</span>
+<div class="viewcode-block" id="create_from_relationtemplate"><a class="viewcode-back" href="../../../annotations.views.relationtemplate_views.html#annotations.views.relationtemplate_views.create_from_relationtemplate">[docs]</a><span class="k">def</span> <span class="nf">create_from_relationtemplate</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">template_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a :class:`.RelationSet` and constituent :class:`.Relation`\s from</span>
+<span class="sd">    a :class:`.RelationTemplate` and user annotations.</span>
+
+<span class="sd">    This is mainly used by the RelationTemplateController in the text</span>
+<span class="sd">    annotation  view.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+<span class="sd">    template_id : int</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :class:`django.http.response.HttpResponse`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO: this could also use quite a bit of attention in terms of</span>
+    <span class="c1">#  modularization.</span>
+
+    <span class="n">template</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">RelationTemplate</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">template_id</span><span class="p">)</span>
+
+    <span class="c1"># Index RelationTemplateParts by ID.</span>
+    <span class="n">template_parts</span> <span class="o">=</span> <span class="p">{</span><span class="n">part</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">part</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">template</span><span class="o">.</span><span class="n">template_parts</span><span class="o">.</span><span class="n">all</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+        <span class="n">relations</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+        <span class="n">relation_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">]:</span>
+
+            <span class="k">if</span> <span class="n">field</span><span class="p">[</span><span class="s1">&#39;part_id&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">relation_data</span><span class="p">:</span>
+                <span class="n">relation_data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">field</span><span class="p">[</span><span class="s1">&#39;part_id&#39;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">relation_data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">field</span><span class="p">[</span><span class="s1">&#39;part_id&#39;</span><span class="p">])][</span><span class="n">field</span><span class="p">[</span><span class="s1">&#39;part_field&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span>
+
+        <span class="n">relation_set</span> <span class="o">=</span> <span class="n">RelationSet</span><span class="p">(</span>
+            <span class="n">template</span><span class="o">=</span><span class="n">template</span><span class="p">,</span>
+            <span class="n">createdBy</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+            <span class="n">occursIn_id</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;occursIn&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">relation_set</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">create_appellation</span><span class="p">(</span><span class="n">field_data</span><span class="p">,</span> <span class="n">template_part</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">evidence_required</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">template_part</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_node_type&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+
+            <span class="n">appellation_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;occursIn_id&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;occursIn&#39;</span><span class="p">],</span>
+                <span class="s1">&#39;createdBy_id&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="n">evidence_required</span> <span class="ow">and</span> <span class="n">field_data</span><span class="p">:</span>
+                <span class="n">appellation_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                    <span class="s1">&#39;tokenIds&#39;</span><span class="p">:</span> <span class="n">field_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;tokenIds&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;stringRep&#39;</span><span class="p">:</span> <span class="n">field_data</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;stringRep&#39;</span><span class="p">],</span>
+                <span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">appellation_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;asPredicate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span>
+
+            <span class="k">if</span> <span class="n">node_type</span> <span class="o">==</span> <span class="n">RelationTemplatePart</span><span class="o">.</span><span class="n">CONCEPT</span><span class="p">:</span>
+                <span class="c1"># The interpretation is already provided.</span>
+                <span class="n">interpretation</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">template_part</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_concept&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+
+            <span class="c1"># TODO: these should not be hard-coded. Add these URIs to config.</span>
+            <span class="k">elif</span> <span class="n">node_type</span> <span class="o">==</span> <span class="n">RelationTemplatePart</span><span class="o">.</span><span class="n">TOBE</span><span class="p">:</span>
+                <span class="n">interpretation</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">node_type</span> <span class="o">==</span> <span class="n">RelationTemplatePart</span><span class="o">.</span><span class="n">HAS</span><span class="p">:</span>
+                <span class="n">interpretation</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">interpretation</span><span class="p">:</span>
+                <span class="n">appellation_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;interpretation&#39;</span><span class="p">:</span> <span class="n">interpretation</span><span class="p">})</span>
+
+            <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s1">&#39;predicate&#39;</span><span class="p">:</span>
+                <span class="n">appellation_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;asPredicate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">})</span>
+            <span class="n">appellation</span> <span class="o">=</span> <span class="n">Appellation</span><span class="p">(</span><span class="o">**</span><span class="n">appellation_data</span><span class="p">)</span>
+            <span class="n">appellation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">appellation</span>
+
+        <span class="n">relation_dependency_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+
+
+        <span class="c1"># Since we don&#39;t know anything about the structure of the</span>
+        <span class="c1">#  RelationTemplate, we watch for nodes that expect to be Relation</span>
+        <span class="c1">#  instances and recurse to create them as needed. We store the results</span>
+        <span class="c1">#  for each Relation in ``relation_data_processed`` so that we don&#39;t</span>
+        <span class="c1">#  create duplicate Relation instances.</span>
+        <span class="n">relation_data_processed</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">def</span> <span class="nf">process_recurse</span><span class="p">(</span><span class="n">part_id</span><span class="p">,</span> <span class="n">template_part</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            relation_id : int</span>
+<span class="sd">            relation : :class:`.Relation`</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="k">if</span> <span class="n">part_id</span> <span class="ow">in</span> <span class="n">relation_data_processed</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">relation_data_processed</span><span class="p">[</span><span class="n">part_id</span><span class="p">]</span>
+
+            <span class="n">part_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;createdBy&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                <span class="s1">&#39;occursIn_id&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;occursIn&#39;</span><span class="p">]</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;predicate&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+
+                <span class="n">node_type</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">template_part</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_node_type&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                <span class="n">evidence_required</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">template_part</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_prompt_text&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">node_type</span> <span class="o">==</span> <span class="n">RelationTemplatePart</span><span class="o">.</span><span class="n">TYPE</span><span class="p">:</span>
+                    <span class="n">field_data</span> <span class="o">=</span> <span class="n">relation_data</span><span class="p">[</span><span class="n">part_id</span><span class="p">][</span><span class="n">field</span><span class="p">]</span>
+                    <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_object_id&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">field_data</span><span class="p">[</span><span class="s1">&#39;appellation&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+                    <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_content_type&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">node_type</span> <span class="o">==</span> <span class="n">RelationTemplatePart</span><span class="o">.</span><span class="n">RELATION</span><span class="p">:</span>
+                    <span class="c1"># -vv- Recusion happens here! -vv-</span>
+                    <span class="n">child_part</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">template_part</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_relationtemplate&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                    <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_object_id&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">],</span> <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_content_type&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">process_recurse</span><span class="p">(</span><span class="n">child_part</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">child_part</span><span class="p">)</span>
+                    <span class="n">relation_dependency_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">part_id</span><span class="p">,</span> <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_object_id&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>   <span class="c1"># We will need to create an Appellation.</span>
+                    <span class="n">field_data</span> <span class="o">=</span> <span class="n">relation_data</span><span class="p">[</span><span class="n">part_id</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_object_id&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">create_appellation</span><span class="p">(</span><span class="n">field_data</span><span class="p">,</span> <span class="n">template_part</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">evidence_required</span><span class="p">)</span><span class="o">.</span><span class="n">id</span>
+                    <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_content_type&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+
+            <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;predicate_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;predicate_object_id&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;predicate_object_id&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;predicate_content_type&#39;</span><span class="p">]</span>
+            <span class="n">part_data</span><span class="p">[</span><span class="s1">&#39;part_of&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relation_set</span>
+
+            <span class="n">relation</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="o">**</span><span class="n">part_data</span><span class="p">)</span>
+            <span class="n">relation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="n">relation_data_processed</span><span class="p">[</span><span class="n">part_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">relation</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Relation</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">relation</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Relation</span><span class="p">))</span>
+
+
+        <span class="k">for</span> <span class="n">part_id</span><span class="p">,</span> <span class="n">template_part</span> <span class="ow">in</span> <span class="n">template_parts</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">process_recurse</span><span class="p">(</span><span class="n">part_id</span><span class="p">,</span> <span class="n">template_part</span><span class="p">)</span>
+
+        <span class="c1"># The first element should be the root of the graph. This is where we</span>
+        <span class="c1">#  need to &quot;attach&quot; the temporal relations.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">template_parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">template_parts</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">topological_sort</span><span class="p">(</span><span class="n">relation_dependency_graph</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">temporalType</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;end&#39;</span><span class="p">,</span> <span class="s1">&#39;occur&#39;</span><span class="p">]:</span>
+            <span class="n">temporalData</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">temporalType</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">temporalData</span><span class="p">:</span>
+
+                <span class="c1"># The predicate indicates the type of temporal dimension.</span>
+                <span class="n">predicate_uri</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">TEMPORAL_PREDICATES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">temporalType</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">predicate_uri</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">predicate_concept</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="n">predicate_uri</span><span class="p">,</span> <span class="n">defaults</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;authority&#39;</span><span class="p">:</span> <span class="s1">&#39;Conceptpower&#39;</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">predicate_data</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;occursIn_id&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;occursIn&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;createdBy_id&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="s1">&#39;interpretation&#39;</span><span class="p">:</span> <span class="n">predicate_concept</span><span class="p">,</span>
+                    <span class="s1">&#39;asPredicate&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">predicate_appellation</span> <span class="o">=</span> <span class="n">Appellation</span><span class="p">(</span><span class="o">**</span><span class="n">predicate_data</span><span class="p">)</span>
+                <span class="n">predicate_appellation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+                <span class="c1"># The object need not have a URI (concept) interpretation; we</span>
+                <span class="c1">#  use an ISO8601 date literal instead. This non-concept</span>
+                <span class="c1">#  appellation is represented internally as a DateAppellation.</span>
+                <span class="n">object_data</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;occursIn_id&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;occursIn&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;createdBy_id&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;day&#39;</span><span class="p">]:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">temporalData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">object_data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+                <span class="n">object_appellation</span> <span class="o">=</span> <span class="n">DateAppellation</span><span class="p">(</span><span class="o">**</span><span class="n">object_data</span><span class="p">)</span>
+                <span class="n">object_appellation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+                <span class="n">temporalRelation</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+                    <span class="s1">&#39;source_content_type&#39;</span><span class="p">:</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Relation</span><span class="p">),</span>
+                    <span class="s1">&#39;source_object_id&#39;</span><span class="p">:</span> <span class="n">relation_data_processed</span><span class="p">[</span><span class="n">root</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s1">&#39;part_of&#39;</span><span class="p">:</span> <span class="n">relation_set</span><span class="p">,</span>
+                    <span class="s1">&#39;predicate&#39;</span><span class="p">:</span> <span class="n">predicate_appellation</span><span class="p">,</span>
+                    <span class="s1">&#39;object_content_type&#39;</span><span class="p">:</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">DateAppellation</span><span class="p">),</span>
+                    <span class="s1">&#39;object_object_id&#39;</span><span class="p">:</span> <span class="n">object_appellation</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="s1">&#39;occursIn_id&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;occursIn&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;createdBy_id&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="p">})</span>
+                <span class="n">temporalRelation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">response_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;relationset&#39;</span><span class="p">:</span> <span class="n">relation_set</span><span class="o">.</span><span class="n">id</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>   <span class="c1"># Not sure if we want to do anything for GET requests at this point.</span>
+        <span class="n">response_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">response_data</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.views.data_views &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.views.data_views</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">These views provide perspectives on user-created data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">django.contrib.contenttypes.models</span> <span class="kn">import</span> <span class="n">ContentType</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span><span class="p">,</span> <span class="n">JsonResponse</span>
+<span class="kn">from</span> <span class="nn">django.shortcuts</span> <span class="kn">import</span> <span class="n">get_object_or_404</span>
+<span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">RequestContext</span><span class="p">,</span> <span class="n">loader</span>
+
+<span class="kn">from</span> <span class="nn">annotations.models</span> <span class="kn">import</span> <span class="n">Appellation</span><span class="p">,</span> <span class="n">RelationSet</span><span class="p">,</span> <span class="n">Text</span>
+<span class="kn">from</span> <span class="nn">annotations.display_helpers</span> <span class="kn">import</span> <span class="n">get_snippet_relation</span><span class="p">,</span> <span class="n">get_snippet</span>
+<span class="kn">from</span> <span class="nn">concepts.models</span> <span class="kn">import</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">Type</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span>
+
+
+<div class="viewcode-block" id="relation_details"><a class="viewcode-back" href="../../../annotations.views.data_views.html#annotations.views.data_views.relation_details">[docs]</a><span class="k">def</span> <span class="nf">relation_details</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">source_concept_id</span><span class="p">,</span> <span class="n">target_concept_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Information about :class:`.RelationSet`\s involving a particular pair of</span>
+<span class="sd">    :class:`.Concept`\s.</span>
+
+<span class="sd">    &quot;source&quot; and &quot;target&quot; don&#39;t really mean anything here -- there is no</span>
+<span class="sd">    directionality.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+<span class="sd">    source_concept_id : int</span>
+<span class="sd">    target_concept_id : int</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :class:`django.http.response.HttpResponse`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">source_concept</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">source_concept_id</span><span class="p">)</span>
+    <span class="n">target_concept</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">target_concept_id</span><span class="p">)</span>
+
+    <span class="c1"># Source and target on Relation are now generic, so we need this for lookup.</span>
+    <span class="n">appellation_type</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+
+    <span class="n">source_appellation_ids</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">interpretation</span><span class="o">=</span><span class="n">source_concept</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">target_appellation_ids</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">interpretation</span><span class="o">=</span><span class="n">target_concept</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="p">((</span><span class="n">Q</span><span class="p">(</span><span class="n">constituents__source_object_id__in</span><span class="o">=</span><span class="n">source_appellation_ids</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__source_content_type</span><span class="o">=</span><span class="n">appellation_type</span><span class="p">))</span> <span class="o">|</span>
+         <span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">constituents__object_object_id__in</span><span class="o">=</span><span class="n">source_appellation_ids</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__object_content_type</span><span class="o">=</span><span class="n">appellation_type</span><span class="p">)))</span>
+    <span class="n">source_queryset</span> <span class="o">=</span> <span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+
+    <span class="n">q</span> <span class="o">=</span> <span class="p">((</span><span class="n">Q</span><span class="p">(</span><span class="n">constituents__source_object_id__in</span><span class="o">=</span><span class="n">target_appellation_ids</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__source_content_type</span><span class="o">=</span><span class="n">appellation_type</span><span class="p">))</span> <span class="o">|</span>
+         <span class="p">(</span><span class="n">Q</span><span class="p">(</span><span class="n">constituents__object_object_id__in</span><span class="o">=</span><span class="n">target_appellation_ids</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Q</span><span class="p">(</span><span class="n">constituents__object_content_type</span><span class="o">=</span><span class="n">appellation_type</span><span class="p">)))</span>
+    <span class="n">combined_queryset</span> <span class="o">=</span> <span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">id__in</span><span class="o">=</span><span class="n">source_queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">q</span><span class="p">)</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+
+    <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;annotations/relations.html&#39;</span><span class="p">)</span>
+
+    <span class="n">relationsets</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">text_id</span><span class="p">,</span> <span class="n">text_relationsets</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">combined_queryset</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">Text</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">text_id</span><span class="p">)</span>
+        <span class="n">relationsets</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;text_id&quot;</span><span class="p">:</span> <span class="n">text</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="s2">&quot;text_title&quot;</span><span class="p">:</span> <span class="n">text</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+            <span class="s2">&quot;relationsets&quot;</span><span class="p">:</span> <span class="p">[{</span>
+                <span class="s2">&quot;text_snippet&quot;</span><span class="p">:</span> <span class="n">get_snippet_relation</span><span class="p">(</span><span class="n">relationset</span><span class="p">),</span>
+                <span class="s2">&quot;annotator&quot;</span><span class="p">:</span> <span class="n">relationset</span><span class="o">.</span><span class="n">createdBy</span><span class="p">,</span>
+                <span class="s2">&quot;created&quot;</span><span class="p">:</span> <span class="n">relationset</span><span class="o">.</span><span class="n">created</span><span class="p">,</span>
+            <span class="p">}</span> <span class="k">for</span> <span class="n">relationset</span> <span class="ow">in</span> <span class="n">text_relationsets</span><span class="p">]</span>
+        <span class="p">})</span>
+
+    <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+        <span class="s1">&#39;source_concept&#39;</span><span class="p">:</span> <span class="n">source_concept</span><span class="p">,</span>
+        <span class="s1">&#39;target_concept&#39;</span><span class="p">:</span> <span class="n">target_concept</span><span class="p">,</span>
+        <span class="s1">&#39;relations&#39;</span><span class="p">:</span> <span class="n">relationsets</span><span class="p">,</span>
+    <span class="p">})</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="concept_details"><a class="viewcode-back" href="../../../annotations.views.data_views.html#annotations.views.data_views.concept_details">[docs]</a><span class="k">def</span> <span class="nf">concept_details</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">conceptid</span><span class="p">):</span>
+    <span class="n">concept</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">conceptid</span><span class="p">)</span>
+    <span class="n">appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">interpretation_id</span><span class="o">=</span><span class="n">conceptid</span><span class="p">)</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;occursIn_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;occursIn__title&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;occursIn__tokenizedContent&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;tokenIds&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;createdBy_id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;createdBy__username&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;created&#39;</span>
+    <span class="p">]</span>
+
+    <span class="n">appellations</span> <span class="o">=</span> <span class="n">appellations</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">)</span>
+
+    <span class="n">response_format</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;format&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">concept_details</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">appellations_by_text</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">text_id</span><span class="p">,</span> <span class="n">text_appellations</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">appellations</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="n">a</span><span class="p">[</span><span class="s1">&#39;occursIn_id&#39;</span><span class="p">]):</span>
+        <span class="n">appellation_details</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">appellation</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">text_appellations</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">text_title</span> <span class="o">=</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;occursIn__title&#39;</span><span class="p">]</span>
+
+            <span class="n">appellation_details</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;text_snippet&quot;</span><span class="p">:</span> <span class="n">get_snippet</span><span class="p">(</span><span class="n">appellation</span><span class="p">),</span>
+                <span class="s2">&quot;annotator_id&quot;</span><span class="p">:</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;createdBy_id&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;annotator_username&quot;</span><span class="p">:</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;createdBy__username&#39;</span><span class="p">],</span>
+                <span class="s2">&quot;created&quot;</span><span class="p">:</span> <span class="n">appellation</span><span class="p">[</span><span class="s1">&#39;created&#39;</span><span class="p">],</span>
+            <span class="p">})</span>
+
+        <span class="n">concept_details</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;text_id&quot;</span><span class="p">:</span> <span class="n">text_id</span><span class="p">,</span>
+            <span class="s2">&quot;text_title&quot;</span><span class="p">:</span> <span class="n">text_title</span><span class="p">,</span>
+            <span class="s2">&quot;appellations&quot;</span><span class="p">:</span> <span class="n">appellation_details</span>
+        <span class="p">})</span>
+    <span class="n">response</span><span class="p">[</span><span class="s2">&quot;texts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept_details</span>
+    <span class="k">if</span> <span class="n">response_format</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="n">response</span><span class="p">[</span><span class="s2">&quot;concept_label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">label</span>
+        <span class="n">response</span><span class="p">[</span><span class="s2">&quot;concept_uri&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">uri</span>
+        <span class="n">response</span><span class="p">[</span><span class="s2">&quot;concept_description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span><span class="o">.</span><span class="n">description</span>
+        <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">response</span><span class="p">[</span><span class="s1">&#39;concept&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;annotations/concept_details.html&#39;</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">RequestContext</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

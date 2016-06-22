@@ -1,0 +1,1107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.models &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.models</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Models for the :mod:`annotations` app.</span>
+
+<span class="sd">Texts and projects</span>
+<span class="sd">------------------</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">   :nosignatures:</span>
+
+<span class="sd">   Text</span>
+<span class="sd">   TextCollection</span>
+
+<span class="sd">Annotations</span>
+<span class="sd">-----------</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">   :nosignatures:</span>
+
+<span class="sd">   Annotation</span>
+<span class="sd">   Appellation</span>
+<span class="sd">   DateAppellation</span>
+<span class="sd">   Interpreted</span>
+<span class="sd">   QuadrigaAccession</span>
+<span class="sd">   Relation</span>
+<span class="sd">   RelationSet</span>
+<span class="sd">   RelationTemplate</span>
+<span class="sd">   RelationTemplatePart</span>
+
+<span class="sd">Users and groups</span>
+<span class="sd">----------------</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">   :nosignatures:</span>
+
+<span class="sd">   GroupManager</span>
+<span class="sd">   VogonGroup</span>
+<span class="sd">   VogonUser</span>
+<span class="sd">   VogonUserManager</span>
+
+<span class="sd">Detailed descriptions</span>
+<span class="sd">---------------------</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="kn">from</span> <span class="nn">django.contrib.contenttypes.fields</span> <span class="kn">import</span> <span class="n">GenericForeignKey</span>
+<span class="kn">from</span> <span class="nn">django.contrib.contenttypes.fields</span> <span class="kn">import</span> <span class="n">GenericRelation</span>
+<span class="kn">from</span> <span class="nn">django.contrib.contenttypes.models</span> <span class="kn">import</span> <span class="n">ContentType</span>
+<span class="kn">from</span> <span class="nn">django.core.urlresolvers</span> <span class="kn">import</span> <span class="n">reverse</span>
+
+<span class="kn">from</span> <span class="nn">concepts.models</span> <span class="kn">import</span> <span class="n">Concept</span>
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+
+<span class="kn">from</span> <span class="nn">annotations.managers</span> <span class="kn">import</span> <span class="n">repositoryManagers</span>
+<span class="kn">from</span> <span class="nn">annotations.utils</span> <span class="kn">import</span> <span class="n">help_text</span>
+
+<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseUserManager</span><span class="p">,</span> <span class="n">AbstractBaseUser</span><span class="p">,</span> <span class="n">PermissionsMixin</span><span class="p">,</span> <span class="n">Permission</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="kn">import</span> <span class="n">ugettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="kn">from</span> <span class="nn">concepts.models</span> <span class="kn">import</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">Type</span>
+<span class="kn">from</span> <span class="nn">annotations.managers</span> <span class="kn">import</span> <span class="n">repositoryManagers</span>
+
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="kn">as</span> <span class="nn">nx</span>
+
+
+<div class="viewcode-block" id="VogonUserManager"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonUserManager">[docs]</a><span class="k">class</span> <span class="nc">VogonUserManager</span><span class="p">(</span><span class="n">BaseUserManager</span><span class="p">):</span>
+<div class="viewcode-block" id="VogonUserManager.create_user"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonUserManager.create_user">[docs]</a>    <span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">full_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">affiliation</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">link</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">email</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Users must have an email address&#39;</span><span class="p">)</span>
+
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span>
+            <span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">,</span>
+            <span class="n">email</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">normalize_email</span><span class="p">(</span><span class="n">email</span><span class="p">),</span>
+            <span class="n">full_name</span><span class="o">=</span><span class="n">full_name</span><span class="p">,</span>
+            <span class="n">affiliation</span><span class="o">=</span><span class="n">affiliation</span><span class="p">,</span>
+            <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span>
+            <span class="n">link</span><span class="o">=</span><span class="n">link</span>
+        <span class="p">)</span>
+
+        <span class="n">user</span><span class="o">.</span><span class="n">set_password</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">using</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">user</span></div>
+
+<div class="viewcode-block" id="VogonUserManager.create_superuser"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonUserManager.create_superuser">[docs]</a>    <span class="k">def</span> <span class="nf">create_superuser</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span>
+            <span class="n">username</span><span class="p">,</span>
+            <span class="n">email</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">is_admin</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">using</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">user</span></div></div>
+
+
+<div class="viewcode-block" id="VogonUser"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonUser">[docs]</a><span class="k">class</span> <span class="nc">VogonUser</span><span class="p">(</span><span class="n">AbstractBaseUser</span><span class="p">,</span> <span class="n">PermissionsMixin</span><span class="p">):</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">EmailField</span><span class="p">(</span>
+        <span class="n">verbose_name</span><span class="o">=</span><span class="s1">&#39;email address&#39;</span><span class="p">,</span>
+        <span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">affiliation</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Your home institution or employer.&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The user&#39;s home institution or employer.&quot;&quot;&quot;</span>
+
+    <span class="n">location</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Your current geographical location.&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The user&#39;s current geographical location.&quot;&quot;&quot;</span>
+
+    <span class="n">link</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">URLField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                           <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;The location of your online bio or homepage.&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The location of the user&#39;s online bio or homepage.&quot;&quot;&quot;</span>
+
+    <span class="n">full_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">conceptpower_uri</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">URLField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                       <span class="n">help_text</span><span class="o">=</span><span class="n">help_text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Advanced: if you</span>
+<span class="s2">                                       have an entry for yourself in the</span>
+<span class="s2">                                       Conceptpower authority service, please</span>
+<span class="s2">                                       enter it here.&quot;&quot;&quot;</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ideally, each :class:`.VogonUser` will have a corresponding record in</span>
+<span class="sd">    Conceptpower that we can submit to Quadriga along with annotations. This is</span>
+<span class="sd">    not typicaly at the moment, but we should create a mechanism to make this</span>
+<span class="sd">    easy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">imagefile</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">URLField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Upload a profile picture.&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Location of the user&#39;s profile picture. This will usually be in our AWS S3</span>
+<span class="sd">    bucket.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">is_active</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="n">help_text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Un-set</span>
+<span class="s2">                                    this field to deactivate a user. This is</span>
+<span class="s2">                                    extremely preferable to deletion.&quot;&quot;&quot;</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot;If this field is ``False``, the user will not be able to log in.&quot;&quot;&quot;</span>
+
+    <span class="n">is_admin</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">objects</span> <span class="o">=</span> <span class="n">VogonUserManager</span><span class="p">()</span>
+
+    <span class="n">USERNAME_FIELD</span> <span class="o">=</span> <span class="s1">&#39;username&#39;</span>
+    <span class="n">REQUIRED_FIELDS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="VogonUser.get_full_name"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonUser.get_full_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_full_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span></div>
+
+<div class="viewcode-block" id="VogonUser.get_short_name"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonUser.get_short_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_short_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span></div>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span>
+
+<div class="viewcode-block" id="VogonUser.has_perm"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonUser.has_perm">[docs]</a>    <span class="k">def</span> <span class="nf">has_perm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">perm</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does the user have a specific permission?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Simplest possible answer: Yes, always</span>
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+<div class="viewcode-block" id="VogonUser.has_module_perms"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonUser.has_module_perms">[docs]</a>    <span class="k">def</span> <span class="nf">has_module_perms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app_label</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does the user have permissions to view the app `app_label`?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Simplest possible answer: Yes, always</span>
+        <span class="k">return</span> <span class="bp">True</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_staff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Is the user a member of staff?</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Simplest possible answer: All admins are staff</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_admin</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">uri</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The Uniform Resource Identifier (URI) for this :class:`.VogonUser`\.</span>
+
+<span class="sd">        This is required for accessioning annotations into Quadriga.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        unicode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conceptpower_uri</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conceptpower_uri</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">BASE_URI_NAMESPACE</span> <span class="o">+</span> <span class="n">reverse</span><span class="p">(</span><span class="s1">&#39;user_details&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="GroupManager"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.GroupManager">[docs]</a><span class="k">class</span> <span class="nc">GroupManager</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Manager</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The manager for the auth&#39;s Group model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">use_in_migrations</span> <span class="o">=</span> <span class="bp">True</span>
+
+<div class="viewcode-block" id="GroupManager.get_by_natural_key"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.GroupManager.get_by_natural_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_by_natural_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="VogonGroup"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonGroup">[docs]</a><span class="k">class</span> <span class="nc">VogonGroup</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">permissions</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span>
+        <span class="n">Permission</span><span class="p">,</span>
+        <span class="n">verbose_name</span><span class="o">=</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;permissions&#39;</span><span class="p">),</span>
+        <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">objects</span> <span class="o">=</span> <span class="n">GroupManager</span><span class="p">()</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;group&#39;</span><span class="p">)</span>
+        <span class="n">verbose_name_plural</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s1">&#39;groups&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+<div class="viewcode-block" id="VogonGroup.natural_key"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.VogonGroup.natural_key">[docs]</a>    <span class="k">def</span> <span class="nf">natural_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,)</span></div></div>
+
+
+<div class="viewcode-block" id="TupleField"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.TupleField">[docs]</a><span class="k">class</span> <span class="nc">TupleField</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">):</span>
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">SubfieldBase</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Stores a Python tuple of instances of built-in types&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TupleField</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TupleField.to_python"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.TupleField.to_python">[docs]</a>    <span class="k">def</span> <span class="nf">to_python</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="TupleField.get_prep_value"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.TupleField.get_prep_value">[docs]</a>    <span class="k">def</span> <span class="nf">get_prep_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="nb">unicode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TupleField.value_to_string"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.TupleField.value_to_string">[docs]</a>    <span class="k">def</span> <span class="nf">value_to_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_val_from_obj</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_prep_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="QuadrigaAccession"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.QuadrigaAccession">[docs]</a><span class="k">class</span> <span class="nc">QuadrigaAccession</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Records the event that a set of :class:`.RelationSet`\s are accessioned to</span>
+<span class="sd">    Quadriga.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">createdBy</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;VogonUser&#39;</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;accessions&#39;</span><span class="p">)</span>
+    <span class="n">project_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">workspace_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">network_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TextCollection"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.TextCollection">[docs]</a><span class="k">class</span> <span class="nc">TextCollection</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is referred to as a &quot;Project&quot; in most cases.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+
+    <span class="n">ownedBy</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">VogonUser</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;collections&#39;</span><span class="p">)</span>
+    <span class="n">texts</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="s1">&#39;Text&#39;</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;partOf&#39;</span><span class="p">,</span>
+                                   <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">participants</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">VogonUser</span><span class="p">,</span>
+                                          <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;contributes_to&#39;</span><span class="p">)</span>
+
+    <span class="n">quadriga_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                   <span class="n">help_text</span><span class="o">=</span><span class="n">help_text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Use this field to</span>
+<span class="s2">                                   specify the ID of an existing project in</span>
+<span class="s2">                                   Quadriga with which this project should be</span>
+<span class="s2">                                   associated.&quot;&quot;&quot;</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This ID will be used when submitting :class:`.RelationSet`\s to Quadriga.</span>
+<span class="sd">    If not set, the default value (see ``QUADRIGA_PROJECT`` in settings) will</span>
+<span class="sd">    be used instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="Text"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Text">[docs]</a><span class="k">class</span> <span class="nc">Text</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents a document that is available for annotation.</span>
+
+<span class="sd">    .. todo:: Add a field to store arbitrary metadata about the document.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">uri</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="n">help_text</span><span class="p">(</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uniform Resource Identifier. This should be sufficient to retrieve text</span>
+<span class="sd">    from a repository.</span>
+<span class="sd">    &quot;&quot;&quot;</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This identifier is used when submitting :class:`.RelationSet`\s to</span>
+<span class="sd">    Quadriga.</span>
+
+<span class="sd">    .. todo:: Make this field non-changeable once it is set.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tokenizedContent</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Text should already be tagged, with &lt;word&gt; elements delimiting tokens.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="n">help_text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;The</span>
+<span class="s2">                             original title of the document.&quot;&quot;&quot;</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot;The original title of the document.&quot;&quot;&quot;</span>
+
+    <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="n">help_text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;The</span>
+<span class="s2">                               publication or creation date of the original</span>
+<span class="s2">                               document.&quot;&quot;&quot;</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot;The publication or creation date of the original document.&quot;&quot;&quot;</span>
+
+    <span class="n">added</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The date and time when the text was added to VogonWeb.&quot;&quot;&quot;</span>
+
+    <span class="n">addedBy</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">VogonUser</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;addedTexts&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The user who added the text to VogonWeb.&quot;&quot;&quot;</span>
+
+    <span class="n">source</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;Repository&quot;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                               <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;loadedTexts&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The repository (if applicable) from which the text was retrieved.</span>
+
+<span class="sd">    .. todo:: This should target :class:`repository.Repository` rather than</span>
+<span class="sd">              :class:`annotations.Repository`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">originalResource</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">URLField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The (online) location of the original resource, or its digital</span>
+<span class="sd">    surrogate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">annotators</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">VogonUser</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;userTexts&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a text is non-public, these users are authorized to access and</span>
+<span class="sd">    annotate that text.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">public</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If ``True`` (default), the full content of this text will be made publicly</span>
+<span class="sd">    available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">annotation_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The combined number of :class:`.Appellation`\s and :class:`.Relation`\s</span>
+<span class="sd">        that have been created using this text.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">appellation_set</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">relation_set</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">relation_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The number of :class:`.RelationSet`\s that have been created using this</span>
+<span class="sd">        text.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">relation_set</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">permissions</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s1">&#39;view_text&#39;</span><span class="p">,</span> <span class="s1">&#39;View text&#39;</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Repository"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Repository">[docs]</a><span class="k">class</span> <span class="nc">Repository</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents an online repository from which :class:`.Text`\s can be</span>
+<span class="sd">    retrieved.</span>
+
+<span class="sd">    .. deprecated:: 0.5</span>
+<span class="sd">       Use :class:`repository.models.Repository` instead.</span>
+
+<span class="sd">    We assume that there is a manager (see :mod:`annotations.managers`\) for</span>
+<span class="sd">    each :class:`.Repository` that provides CRUD methods.</span>
+
+<span class="sd">    .. todo:: Can we gracefully remove this without breaking migrations?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The human-readable name that will be presented to end users.&quot;&quot;&quot;</span>
+
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">repositoryManagers</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The name of the manager class for this repository.&quot;&quot;&quot;</span>
+
+    <span class="n">endpoint</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The base URL for the repository API.&quot;&quot;&quot;</span>
+
+    <span class="n">oauth_client_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. todo:: This should be moved to a more general formatted configuration</span>
+<span class="sd">       in :mod:`repository`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">oauth_secret_key</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. todo:: This should be moved to a more general formatted configuration</span>
+<span class="sd">       in :mod:`repository`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">unicode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Authorization"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Authorization">[docs]</a><span class="k">class</span> <span class="nc">Authorization</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Represents an authorization token for an external service.</span>
+
+<span class="sd">    .. deprecated:: 0.5</span>
+<span class="sd">       Repository-related models and methods should be implemented in</span>
+<span class="sd">       :mod:`repository`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">repository</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;Repository&#39;</span><span class="p">)</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">VogonUser</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;authorizations&#39;</span><span class="p">)</span>
+
+    <span class="n">access_token</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="n">token_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="n">lifetime</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">refresh_token</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Annotation"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Annotation">[docs]</a><span class="k">class</span> <span class="nc">Annotation</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin (abstract) for text-based annotations.</span>
+
+<span class="sd">    Provides fields for :class:`.Text` association, the creation event, and</span>
+<span class="sd">    Quadriga accession.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">occursIn</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;Text&quot;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The :class:`.Text` to which the :class:`.Annotation` refers.&quot;&quot;&quot;</span>
+
+    <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The date and time that the :class:`.Annotation` was created.&quot;&quot;&quot;</span>
+
+    <span class="n">createdBy</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">VogonUser</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The :class:`.VogonUser` who created the :class:`.Annotation`\.&quot;&quot;&quot;</span>
+
+    <span class="n">submitted</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Indicates whether or not the :class:`.Annotation` has been accessioned to</span>
+<span class="sd">    Quadriga.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">submittedOn</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The date and time that the :class:`.Annotation` was accessioned to Quadriga.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">submittedWith</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;QuadrigaAccession&#39;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                      <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If the :class:`.Annotation` has been added to Quadriga, this refers to the</span>
+<span class="sd">    :class:`.QuadrigaAccession` with which it was submitted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Annotation.Meta"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Annotation.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">abstract</span> <span class="o">=</span> <span class="bp">True</span></div></div>
+
+
+<div class="viewcode-block" id="Interpreted"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Interpreted">[docs]</a><span class="k">class</span> <span class="nc">Interpreted</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin for :class:`.Annotation`\s that refer to a :class:`concepts.Concept`\.</span>
+
+<span class="sd">    .. todo:: Should this subclass :class:`Annotation`\? Does it matter?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">interpretation</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Concept</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The :class:`.Concept` to which the :class:`.Annotation` refers.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interpretation_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The primary-key identifier of the referenced</span>
+<span class="sd">        :class:`concepts.Concept`\s associated :class:`concepts.Type`\.</span>
+
+<span class="sd">        If the :class:`concepts.Concept` has no type, returns ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpretation</span><span class="o">.</span><span class="n">typed</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpretation</span><span class="o">.</span><span class="n">typed</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interpretation_label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The referenced :class:`concepts.Concept`&#39;s lemma/label.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpretation</span><span class="o">.</span><span class="n">label</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interpretation_type_label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The lemma/label of the referenced :class:`concepts.Concept`\&#39;s</span>
+<span class="sd">        associated :class:`concepts.Type`\.</span>
+
+<span class="sd">        If the :class:`concepts.Concept` has no type, returns ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        unicode or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpretation</span><span class="o">.</span><span class="n">typed</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpretation</span><span class="o">.</span><span class="n">typed</span><span class="o">.</span><span class="n">label</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="Interpreted.Meta"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Interpreted.Meta">[docs]</a>    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">abstract</span> <span class="o">=</span> <span class="bp">True</span></div></div>
+
+
+<div class="viewcode-block" id="DateAppellation"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.DateAppellation">[docs]</a><span class="k">class</span> <span class="nc">DateAppellation</span><span class="p">(</span><span class="n">Annotation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dates can be represented as ISO-8601 literals, with variable precision.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">year</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">PositiveIntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">day</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__unicode__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an ISO-8601 compliant unicode representation of the date.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">u&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">unicode</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;part&#39;</span><span class="p">))</span>
+                          <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;day&#39;</span><span class="p">]</span>
+                          <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;part&#39;</span><span class="p">)])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">precision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is mainly for display. Indicates the precision of the</span>
+<span class="sd">        :class:`.DateAppellation`\: &#39;year&#39;, &#39;month&#39;, or &#39;day&#39;. Precision will</span>
+<span class="sd">        vary depending on the confidence/interpretation of the user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">day</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;day&#39;</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">month</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;month&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;year&#39;</span></div>
+
+
+<div class="viewcode-block" id="Appellation"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Appellation">[docs]</a><span class="k">class</span> <span class="nc">Appellation</span><span class="p">(</span><span class="n">Annotation</span><span class="p">,</span> <span class="n">Interpreted</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An Appellation represents a user&#39;s interpretation of a specific passage of</span>
+<span class="sd">    text. In particular, it captures the user&#39;s belief that the passage in</span>
+<span class="sd">    question refers to a specific concept (e.g. of a person, place, etc).</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    ``startPos`` and ``endPos`` are deprecated -- these can be created</span>
+<span class="sd">    on-the-fly, and don&#39;t apply to non-plain-text use-cases.</span>
+
+<span class="sd">    ``controlling_verb`` is deprecated as of v0.3. This is no longer necessary,</span>
+<span class="sd">    since we now implement the full quadruple model in VogonWeb.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tokenIds</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    IDs of words (in the tokenizedContent) selected for this Appellation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">stringRep</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plain-text snippet spanning the selected text.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">startPos</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Character offset from the beginning of the (plain text) document.</span>
+
+<span class="sd">    .. deprecated:: 0.5</span>
+<span class="sd">       Text positions will be represented using :class:`.DocumentPosition`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="n">endPos</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Character offset from the end of the (plain text) document.</span>
+
+<span class="sd">    .. deprecated:: 0.5</span>
+<span class="sd">       Text positions will be represented using :class:`.DocumentPosition`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Reverse generic relations to Relation.</span>
+    <span class="n">relationsFrom</span> <span class="o">=</span> <span class="n">GenericRelation</span><span class="p">(</span><span class="s1">&#39;Relation&#39;</span><span class="p">,</span>
+                                    <span class="n">content_type_field</span><span class="o">=</span><span class="s1">&#39;source_content_type&#39;</span><span class="p">,</span>
+                                    <span class="n">object_id_field</span><span class="o">=</span><span class="s1">&#39;source_object_id&#39;</span><span class="p">,</span>
+                                    <span class="n">related_query_name</span><span class="o">=</span><span class="s1">&#39;source_appellations&#39;</span><span class="p">)</span>
+    <span class="n">relationsTo</span> <span class="o">=</span> <span class="n">GenericRelation</span><span class="p">(</span><span class="s1">&#39;Relation&#39;</span><span class="p">,</span>
+                                    <span class="n">content_type_field</span><span class="o">=</span><span class="s1">&#39;object_content_type&#39;</span><span class="p">,</span>
+                                    <span class="n">object_id_field</span><span class="o">=</span><span class="s1">&#39;object_object_id&#39;</span><span class="p">,</span>
+                                    <span class="n">related_query_name</span><span class="o">=</span><span class="s1">&#39;object_appellations&#39;</span><span class="p">)</span>
+
+    <span class="n">asPredicate</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Indicates whether this Appellation should function as a predicate for a</span>
+<span class="sd">    Relation. As of version 0.3, this basically just controls whether or not</span>
+<span class="sd">    the Appellation should be displayed in the text annotation view.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">IS</span> <span class="o">=</span> <span class="s1">&#39;is&#39;</span>
+    <span class="n">HAS</span> <span class="o">=</span> <span class="s1">&#39;has&#39;</span>
+    <span class="n">NONE</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">VCHOICES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">NONE</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">IS</span><span class="p">,</span> <span class="s1">&#39;is/was&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">HAS</span><span class="p">,</span> <span class="s1">&#39;has/had&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">controlling_verb</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">VCHOICES</span><span class="p">,</span>
+                                        <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. deprecated:: 0.4</span>
+<span class="sd">       We now fully implement the quadruple data model, so this is no longer</span>
+<span class="sd">       relevant.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="RelationSet"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.RelationSet">[docs]</a><span class="k">class</span> <span class="nc">RelationSet</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A :class:`.RelationSet` organizes :class:`.Relation`\s into complete</span>
+<span class="sd">    statements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">template</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;RelationTemplate&#39;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                 <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;instantiations&#39;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If this RelationSet was created from a RelationTemplate, we can use the</span>
+<span class="sd">    template to make decisions about display.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">created</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now_add</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">createdBy</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;VogonUser&#39;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The user who created the RelationSet.&quot;&quot;&quot;</span>
+
+    <span class="n">occursIn</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;Text&#39;</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;relationsets&#39;</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;The text on which this RelationSet is based.&quot;&quot;&quot;</span>
+
+    <span class="n">pending</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A :class:`.RelationSet` is pending if it has been selected for submission,</span>
+<span class="sd">    but the submission process has not yet completed. The primary purpose of</span>
+<span class="sd">    this field is to prevent duplicate submissions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">submitted</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Whether or not the :class:`.RelationSet` has been accessioned to Quadriga.</span>
+<span class="sd">    This is set ``True`` only if the :class:`.RelationSet` was added</span>
+<span class="sd">    successfully.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">submittedOn</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The date/time when the :class:`.RelationSet` was (successfully) accessioned</span>
+<span class="sd">    to Quadriga.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">submittedWith</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;QuadrigaAccession&#39;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The :class:`.QuadrigaAccession` tracks the entire set of RelationSets that</span>
+<span class="sd">    were accessioned together in a single query.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">root</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Identifies and retrieves the highest-level or &quot;starting&quot;</span>
+<span class="sd">        :class:`.Relation` in the :class:`.RelationSet`\.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If this RelationSet is not nested, then there will by only one</span>
+        <span class="c1">#  Relation -- that&#39;s all we need.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="n">relation_type</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Relation</span><span class="p">)</span>
+
+        <span class="c1"># The &quot;starting&quot; Relation will be the only Relation that is not</span>
+        <span class="c1">#  referenced by any other Relation. If we represent the RelationSet</span>
+        <span class="c1">#  as a directed graph, this will be the node with an in-degree of 0.</span>
+        <span class="n">dg</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+                <span class="n">target_type</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_content_type&#39;</span> <span class="o">%</span> <span class="n">part</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">target_type</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">relation_type</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                    <span class="n">target</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">relation</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_object_id&#39;</span> <span class="o">%</span> <span class="n">part</span><span class="p">)</span>
+                    <span class="c1"># Each node represents a Relation by its primary key ID.</span>
+                    <span class="n">dg</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">relation</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+        <span class="c1"># Topological sort is supposed to be faster than calculating in-degree</span>
+        <span class="c1">#  and searching for the 0-valued node.</span>
+        <span class="k">return</span> <span class="n">Relation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">topological_sort</span><span class="p">(</span><span class="n">dg</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">label</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The label displayed in lists of :class:`RelationSet`\s.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        unicode</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="s1">u&#39;Untemplated relation created by </span><span class="si">%s</span><span class="s1"> at </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createdBy</span><span class="p">,</span>
+                                                               <span class="bp">self</span><span class="o">.</span><span class="n">created</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">label</span>
+
+<div class="viewcode-block" id="RelationSet.ready"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.RelationSet.ready">[docs]</a>    <span class="k">def</span> <span class="nf">ready</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check whether or not the constituent :class:`.Concept`\s in this</span>
+<span class="sd">        :class:`.RelationSet` have been resolved (or merged).</span>
+
+<span class="sd">        This aids the process of submitting annotations to Quadriga: all</span>
+<span class="sd">        :class:`.Concept`\s must be present in Conceptpower prior to submission.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">criteria</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">Concept</span><span class="o">.</span><span class="n">RESOLVED</span> <span class="ow">or</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">concepts</span><span class="p">()</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;concept_state&#39;</span><span class="p">,</span> <span class="s1">&#39;merged_with&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">criteria</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span></div>
+    <span class="n">ready</span><span class="o">.</span><span class="n">boolean</span> <span class="o">=</span> <span class="bp">True</span>    <span class="c1"># So that we can display a nifty icon in changelist.</span>
+
+<div class="viewcode-block" id="RelationSet.appellations"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.RelationSet.appellations">[docs]</a>    <span class="k">def</span> <span class="nf">appellations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all non-predicate appellations in child :class:`.Relation`\s.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`django.db.models.query.QuerySet`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">appellation_type</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+
+        <span class="n">appellation_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">relation</span><span class="o">.</span><span class="n">source_content_type</span> <span class="o">==</span> <span class="n">appellation_type</span><span class="p">:</span>
+                <span class="n">appellation_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">relation</span><span class="o">.</span><span class="n">source_object_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">relation</span><span class="o">.</span><span class="n">object_content_type</span> <span class="o">==</span> <span class="n">appellation_type</span><span class="p">:</span>
+                <span class="n">appellation_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">relation</span><span class="o">.</span><span class="n">object_object_id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk__in</span><span class="o">=</span><span class="n">appellation_ids</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="RelationSet.concepts"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.RelationSet.concepts">[docs]</a>    <span class="k">def</span> <span class="nf">concepts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all of the Concept instances connected to non-predicate</span>
+<span class="sd">        Appellation instances.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`django.db.models.query.QuerySet`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">appellations</span><span class="p">()</span><span class="o">.</span><span class="n">values_list</span><span class="p">(</span><span class="s1">&#39;interpretation_id&#39;</span><span class="p">,</span> <span class="n">flat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">interpretation_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">qs</span><span class="p">)</span>    <span class="c1"># &lt;-- DB hit.</span>
+        <span class="k">return</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk__in</span><span class="o">=</span><span class="n">interpretation_ids</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Relation"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.Relation">[docs]</a><span class="k">class</span> <span class="nc">Relation</span><span class="p">(</span><span class="n">Annotation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A :class:`.Relation` captures a user&#39;s assertion that a passage of text</span>
+<span class="sd">    implies a specific relation between two concepts.</span>
+
+<span class="sd">    The ``source`` and/or ``object`` of the :class:`.Relation` can be a</span>
+<span class="sd">    :class:`.Appellation`\, :class:`.DateAppellation`\, or another</span>
+<span class="sd">    :class:`.Relation`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">part_of</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;RelationSet&#39;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;constituents&#39;</span><span class="p">)</span>
+
+    <span class="n">source_content_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ContentType</span><span class="p">,</span>
+                                            <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+                                            <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;as_source_in_relation&#39;</span><span class="p">,</span>
+                                            <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">source_object_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">PositiveIntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">source_content_object</span> <span class="o">=</span> <span class="n">GenericForeignKey</span><span class="p">(</span><span class="s1">&#39;source_content_type&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;source_object_id&#39;</span><span class="p">)</span>
+
+    <span class="n">predicate</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;Appellation&quot;</span><span class="p">,</span> <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;relationsAs&quot;</span><span class="p">)</span>
+
+    <span class="n">object_content_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">ContentType</span><span class="p">,</span>
+                                            <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">CASCADE</span><span class="p">,</span>
+                                            <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;as_object_in_relation&#39;</span><span class="p">,</span>
+                                            <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">object_object_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">PositiveIntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">object_content_object</span> <span class="o">=</span> <span class="n">GenericForeignKey</span><span class="p">(</span><span class="s1">&#39;object_content_type&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;object_object_id&#39;</span><span class="p">)</span>
+
+    <span class="n">bounds</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s2">&quot;TemporalBounds&quot;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. deprecated:: 0.5</span>
+<span class="sd">       We now fully implement the quadruple model in VogonWeb.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="RelationTemplate"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.RelationTemplate">[docs]</a><span class="k">class</span> <span class="nc">RelationTemplate</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides a template for complex relations, allowing the user to simply</span>
+<span class="sd">    fill in fields without worrying about the structure of the quadruple.</span>
+
+<span class="sd">    .. todo:: Add ``created_by`` field, perhaps others.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A descriptive name used in menus in the annotation interface.&quot;&quot;&quot;</span>
+
+    <span class="n">description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;A longer-form description of the relation.&quot;&quot;&quot;</span>
+
+    <span class="n">expression</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Pattern for representing the relation in normal language.&quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The fields that we need the user to fill to create a</span>
+<span class="sd">        :class:`.RelationSet` from this :class:`.RelationSet`\.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tpart</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_parts</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;predicate&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+                <span class="n">evidenceRequired</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tpart</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_prompt_text&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                <span class="n">nodeType</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tpart</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_node_type&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                <span class="c1"># The user needs to provide specific concepts for TYPE fields.</span>
+                <span class="k">if</span> <span class="n">nodeType</span> <span class="o">==</span> <span class="n">RelationTemplatePart</span><span class="o">.</span><span class="n">TYPE</span><span class="p">:</span>
+                    <span class="n">part_type</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tpart</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_type&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                    <span class="n">part_label</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tpart</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_label&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                    <span class="n">part_description</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tpart</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_description&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                    <span class="n">concept_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">part_type</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="n">concept_label</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">part_type</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;TP&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;part_id&#39;</span><span class="p">:</span> <span class="n">tpart</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                        <span class="s1">&#39;part_field&#39;</span><span class="p">:</span> <span class="n">field</span><span class="p">,</span>
+                        <span class="s1">&#39;concept_id&#39;</span><span class="p">:</span> <span class="n">concept_id</span><span class="p">,</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">part_label</span><span class="p">,</span>
+                        <span class="s1">&#39;concept_label&#39;</span><span class="p">:</span> <span class="n">concept_label</span><span class="p">,</span>
+                        <span class="s1">&#39;evidence_required&#39;</span><span class="p">:</span> <span class="n">evidenceRequired</span><span class="p">,</span>
+                        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="n">part_description</span><span class="p">,</span>
+                    <span class="p">})</span>
+
+                <span class="c1"># Even if there is an explicit concept, we may require textual</span>
+                <span class="c1">#  evidence from the user.</span>
+                <span class="k">elif</span> <span class="n">evidenceRequired</span> <span class="ow">and</span> <span class="n">nodeType</span> <span class="o">==</span> <span class="n">RelationTemplatePart</span><span class="o">.</span><span class="n">CONCEPT</span><span class="p">:</span>
+                    <span class="n">part_concept</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tpart</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_concept&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                    <span class="n">concept_id</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">part_concept</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="n">concept_label</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">part_concept</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+                    <span class="n">part_label</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tpart</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_label&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                    <span class="n">part_description</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tpart</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_description&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                    <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;CO&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;part_id&#39;</span><span class="p">:</span> <span class="n">tpart</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                        <span class="s1">&#39;part_field&#39;</span><span class="p">:</span> <span class="n">field</span><span class="p">,</span>
+                        <span class="s1">&#39;concept_id&#39;</span><span class="p">:</span> <span class="n">concept_id</span><span class="p">,</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">part_label</span><span class="p">,</span>
+                        <span class="s1">&#39;concept_label&#39;</span><span class="p">:</span> <span class="n">concept_label</span><span class="p">,</span>
+                        <span class="s1">&#39;evidence_required&#39;</span><span class="p">:</span> <span class="n">evidenceRequired</span><span class="p">,</span>
+                        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="n">part_description</span><span class="p">,</span>
+                    <span class="p">})</span>
+        <span class="k">return</span> <span class="n">fields</span></div>
+
+
+<div class="viewcode-block" id="RelationTemplatePart"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.RelationTemplatePart">[docs]</a><span class="k">class</span> <span class="nc">RelationTemplatePart</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Template for a :class:`.Relation` constituent to a :class:`.RelationSet`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="s1">&#39;TP&#39;</span>
+    <span class="n">CONCEPT</span> <span class="o">=</span> <span class="s1">&#39;CO&#39;</span>
+    <span class="n">TOBE</span> <span class="o">=</span> <span class="s1">&#39;IS&#39;</span>
+    <span class="n">HAS</span> <span class="o">=</span> <span class="s1">&#39;HA&#39;</span>
+    <span class="n">RELATION</span> <span class="o">=</span> <span class="s1">&#39;RE&#39;</span>
+    <span class="n">NODE_CHOICES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">TYPE</span><span class="p">,</span> <span class="s1">&#39;Concept type&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">CONCEPT</span><span class="p">,</span> <span class="s1">&#39;Specific concept&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">RELATION</span><span class="p">,</span> <span class="s1">&#39;Relation&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">PRED_CHOICES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">TYPE</span><span class="p">,</span> <span class="s1">&#39;Concept type&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">CONCEPT</span><span class="p">,</span> <span class="s1">&#39;Specific concept&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">TOBE</span><span class="p">,</span> <span class="s1">&#39;Is/was&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">HAS</span><span class="p">,</span> <span class="s1">&#39;Has/had&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">part_of</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;RelationTemplate&#39;</span><span class="p">,</span>
+                                <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;template_parts&quot;</span><span class="p">)</span>
+
+    <span class="n">internal_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">source_node_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">NODE_CHOICES</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                        <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">source_label</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">source_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;used_as_type_for_source&#39;</span><span class="p">)</span>
+    <span class="n">source_concept</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                       <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;used_as_concept_for_source&#39;</span><span class="p">)</span>
+    <span class="n">source_relationtemplate</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;RelationTemplatePart&#39;</span><span class="p">,</span>
+                                                <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;used_as_source&#39;</span><span class="p">)</span>
+    <span class="n">source_relationtemplate_internal_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">source_prompt_text</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Indicates whether the user should be asked for evidence for source.&quot;&quot;&quot;</span>
+
+    <span class="n">source_description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">predicate_node_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">PRED_CHOICES</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                           <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">predicate_label</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">predicate_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                       <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;used_as_type_for_predicate&#39;</span><span class="p">)</span>
+    <span class="n">predicate_concept</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                          <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;used_as_concept_for_predicate&#39;</span><span class="p">)</span>
+    <span class="n">predicate_prompt_text</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Indicates whether the user should be asked for evidence for predicate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">predicate_description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">object_node_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="n">NODE_CHOICES</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                                        <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">object_label</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">object_type</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                    <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;used_as_type_for_object&#39;</span><span class="p">)</span>
+    <span class="n">object_concept</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                       <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;used_as_concept_for_object&#39;</span><span class="p">)</span>
+    <span class="n">object_relationtemplate</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;RelationTemplatePart&#39;</span><span class="p">,</span>
+                                                <span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                                <span class="n">related_name</span><span class="o">=</span><span class="s1">&#39;used_as_object&#39;</span><span class="p">)</span>
+    <span class="n">object_relationtemplate_internal_id</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">object_prompt_text</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">BooleanField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Indicates whether the user should be asked for evidence for object.&quot;&quot;&quot;</span>
+
+    <span class="n">object_description</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TemporalBounds"><a class="viewcode-back" href="../../annotations.models.html#annotations.models.TemporalBounds">[docs]</a><span class="k">class</span> <span class="nc">TemporalBounds</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. deprecated:: 0.5</span>
+<span class="sd">       We now fully implement the Quadruple model in VogonWeb. See</span>
+<span class="sd">       :class:`.DateAppellation`\.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">TupleField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">occur</span> <span class="o">=</span> <span class="n">TupleField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">TupleField</span><span class="p">(</span><span class="n">blank</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.views.rest_views module &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="index.html" />
+    <link rel="up" title="annotations.views package" href="annotations.views.html" />
+    <link rel="next" title="annotations.views.search_views module" href="annotations.views.search_views.html" />
+    <link rel="prev" title="annotations.views.repository_views module" href="annotations.views.repository_views.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="annotations.html">annotations package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="annotations.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#module-annotations">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="annotations.html">annotations package</a><ul>
+  <li><a href="annotations.views.html">annotations.views package</a><ul>
+      <li>Previous: <a href="annotations.views.repository_views.html" title="previous chapter">annotations.views.repository_views module</a></li>
+      <li>Next: <a href="annotations.views.search_views.html" title="next chapter">annotations.views.search_views module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-annotations.views.rest_views">
+<span id="annotations-views-rest-views-module"></span><h1>annotations.views.rest_views module<a class="headerlink" href="#module-annotations.views.rest_views" title="Permalink to this headline">¶</a></h1>
+<p>Provides all of the class-based views for the REST API.</p>
+<dl class="class">
+<dt id="annotations.views.rest_views.AnnotationFilterMixin">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">AnnotationFilterMixin</code><a class="reference internal" href="_modules/annotations/views/rest_views.html#AnnotationFilterMixin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.AnnotationFilterMixin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Mixin for <code class="xref py py-class docutils literal"><span class="pre">viewsets.ModelViewSet</span></code> that provides filtering by
+<a class="reference internal" href="annotations.models.html#annotations.models.Text" title="annotations.models.Text"><code class="xref py py-class docutils literal"><span class="pre">Text</span></code></a> and <code class="xref py py-class docutils literal"><span class="pre">User</span></code>.</p>
+<dl class="method">
+<dt id="annotations.views.rest_views.AnnotationFilterMixin.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#AnnotationFilterMixin.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.AnnotationFilterMixin.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.AppellationViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">AppellationViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#AppellationViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.AppellationViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#annotations.views.rest_views.AnnotationFilterMixin" title="annotations.views.rest_views.AnnotationFilterMixin"><code class="xref py py-class docutils literal"><span class="pre">annotations.views.rest_views.AnnotationFilterMixin</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="method">
+<dt id="annotations.views.rest_views.AppellationViewSet.create">
+<code class="descname">create</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#AppellationViewSet.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.AppellationViewSet.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.views.rest_views.AppellationViewSet.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#AppellationViewSet.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.AppellationViewSet.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.AppellationViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.AppellationViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.AppellationViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, '...(remaining elements truncated)...']</em><a class="headerlink" href="#annotations.views.rest_views.AppellationViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.AppellationViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.AppellationViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">AppellationSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.AppellationViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.AppellationViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.ConceptViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">ConceptViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#ConceptViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.ConceptViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="method">
+<dt id="annotations.views.rest_views.ConceptViewSet.create">
+<code class="descname">create</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#ConceptViewSet.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.ConceptViewSet.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.views.rest_views.ConceptViewSet.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#ConceptViewSet.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.ConceptViewSet.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter by part of speach (<code class="docutils literal"><span class="pre">pos</span></code>).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.ConceptViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.ConceptViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.ConceptViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;Concept: What&gt;, &lt;Concept: Henry Cowles&gt;, &lt;Concept: asdf&gt;, &lt;Concept: ASDFASDF&gt;, &lt;Concept: kjjlkjlkjkljlkjlkjasdf&gt;, &lt;Concept: fdsafdsa&gt;, &lt;Concept: Andrew Zachary Fire&gt;, &lt;Concept: verify&gt;, &lt;Concept: None&gt;, &lt;Concept: britt&gt;, &lt;Concept: britt&gt;, &lt;Concept: Britten&gt;, &lt;Concept: James Cullen&gt;, &lt;Concept: migration&gt;, &lt;Concept: migration&gt;, &lt;Concept: migration&gt;, &lt;Concept: migration&gt;, &lt;Concept: Yulian Zhao&gt;, &lt;Concept: Howard Zacur&gt;, &lt;Concept: Lisa Kolp&gt;, '...(remaining elements truncated)...']</em><a class="headerlink" href="#annotations.views.rest_views.ConceptViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.ConceptViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.ConceptViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">ConceptSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.ConceptViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.ConceptViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.PredicateViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">PredicateViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#PredicateViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.PredicateViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#annotations.views.rest_views.AnnotationFilterMixin" title="annotations.views.rest_views.AnnotationFilterMixin"><code class="xref py py-class docutils literal"><span class="pre">annotations.views.rest_views.AnnotationFilterMixin</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="attribute">
+<dt id="annotations.views.rest_views.PredicateViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.PredicateViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.PredicateViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, &lt;Appellation: Appellation object&gt;, '...(remaining elements truncated)...']</em><a class="headerlink" href="#annotations.views.rest_views.PredicateViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.PredicateViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.PredicateViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">AppellationSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.PredicateViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.PredicateViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.RelationSetViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">RelationSetViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RelationSetViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RelationSetViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="method">
+<dt id="annotations.views.rest_views.RelationSetViewSet.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RelationSetViewSet.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RelationSetViewSet.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RelationSetViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.RelationSetViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RelationSetViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, &lt;RelationSet: RelationSet object&gt;, '...(remaining elements truncated)...']</em><a class="headerlink" href="#annotations.views.rest_views.RelationSetViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RelationSetViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.RelationSetViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">RelationSetSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RelationSetViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.RelationSetViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.RelationViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">RelationViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RelationViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RelationViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="method">
+<dt id="annotations.views.rest_views.RelationViewSet.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RelationViewSet.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RelationViewSet.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Supports filtering by <a class="reference internal" href="annotations.models.html#annotations.models.Text" title="annotations.models.Text"><code class="xref py py-class docutils literal"><span class="pre">Text</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">User</span></code>, node concept
+type, and predicate concept type.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RelationViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.RelationViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RelationViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, &lt;Relation: Relation object&gt;, '...(remaining elements truncated)...']</em><a class="headerlink" href="#annotations.views.rest_views.RelationViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RelationViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.RelationViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">RelationSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RelationViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.RelationViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.RemoteCollectionViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">RemoteCollectionViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RemoteCollectionViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RemoteCollectionViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ViewSet</span></code></p>
+<dl class="method">
+<dt id="annotations.views.rest_views.RemoteCollectionViewSet.list">
+<code class="descname">list</code><span class="sig-paren">(</span><em>request</em>, <em>repository_pk=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RemoteCollectionViewSet.list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RemoteCollectionViewSet.list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.views.rest_views.RemoteCollectionViewSet.retrieve">
+<code class="descname">retrieve</code><span class="sig-paren">(</span><em>request</em>, <em>pk=None</em>, <em>repository_pk=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RemoteCollectionViewSet.retrieve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RemoteCollectionViewSet.retrieve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RemoteCollectionViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.RemoteCollectionViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.RemoteResourceViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">RemoteResourceViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RemoteResourceViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RemoteResourceViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ViewSet</span></code></p>
+<dl class="method">
+<dt id="annotations.views.rest_views.RemoteResourceViewSet.list">
+<code class="descname">list</code><span class="sig-paren">(</span><em>request</em>, <em>collection_pk=None</em>, <em>repository_pk=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RemoteResourceViewSet.list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RemoteResourceViewSet.list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.views.rest_views.RemoteResourceViewSet.retrieve">
+<code class="descname">retrieve</code><span class="sig-paren">(</span><em>request</em>, <em>pk=None</em>, <em>collection_pk=None</em>, <em>repository_pk=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RemoteResourceViewSet.retrieve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RemoteResourceViewSet.retrieve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RemoteResourceViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.RemoteResourceViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.RepositoryViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">RepositoryViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#RepositoryViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.RepositoryViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RepositoryViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticated'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.RepositoryViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RepositoryViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;Repository: JHB Dataset&gt;]</em><a class="headerlink" href="#annotations.views.rest_views.RepositoryViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RepositoryViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.RepositoryViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">RepositorySerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.RepositoryViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.RepositoryViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.StandardResultsSetPagination">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">StandardResultsSetPagination</code><a class="reference internal" href="_modules/annotations/views/rest_views.html#StandardResultsSetPagination"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.StandardResultsSetPagination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.pagination.PageNumberPagination</span></code></p>
+<dl class="attribute">
+<dt id="annotations.views.rest_views.StandardResultsSetPagination.max_page_size">
+<code class="descname">max_page_size</code><em class="property"> = 1000</em><a class="headerlink" href="#annotations.views.rest_views.StandardResultsSetPagination.max_page_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.StandardResultsSetPagination.page_size">
+<code class="descname">page_size</code><em class="property"> = 100</em><a class="headerlink" href="#annotations.views.rest_views.StandardResultsSetPagination.page_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.StandardResultsSetPagination.page_size_query_param">
+<code class="descname">page_size_query_param</code><em class="property"> = 'page_size'</em><a class="headerlink" href="#annotations.views.rest_views.StandardResultsSetPagination.page_size_query_param" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.TemporalBoundsViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">TemporalBoundsViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#TemporalBoundsViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.TemporalBoundsViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code>, <a class="reference internal" href="#annotations.views.rest_views.AnnotationFilterMixin" title="annotations.views.rest_views.AnnotationFilterMixin"><code class="xref py py-class docutils literal"><span class="pre">annotations.views.rest_views.AnnotationFilterMixin</span></code></a></p>
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TemporalBoundsViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.TemporalBoundsViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TemporalBoundsViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, &lt;TemporalBounds: TemporalBounds object&gt;, '...(remaining elements truncated)...']</em><a class="headerlink" href="#annotations.views.rest_views.TemporalBoundsViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TemporalBoundsViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.TemporalBoundsViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">TemporalBoundsSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TemporalBoundsViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.TemporalBoundsViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.TextCollectionViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">TextCollectionViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#TextCollectionViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.TextCollectionViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="method">
+<dt id="annotations.views.rest_views.TextCollectionViewSet.create">
+<code class="descname">create</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#TextCollectionViewSet.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.TextCollectionViewSet.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.views.rest_views.TextCollectionViewSet.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#TextCollectionViewSet.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.TextCollectionViewSet.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TextCollectionViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticated'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.TextCollectionViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TextCollectionViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;TextCollection: My_Sample&gt;, &lt;TextCollection: Embryo Project&gt;, &lt;TextCollection: Journal of the History of Biology&gt;, &lt;TextCollection: My Test Project&gt;, &lt;TextCollection: My Test Project&gt;, &lt;TextCollection: Another Project&gt;]</em><a class="headerlink" href="#annotations.views.rest_views.TextCollectionViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TextCollectionViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.TextCollectionViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">TextCollectionSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TextCollectionViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.TextCollectionViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.TextViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">TextViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#TextViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.TextViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="method">
+<dt id="annotations.views.rest_views.TextViewSet.get_queryset">
+<code class="descname">get_queryset</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#TextViewSet.get_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.TextViewSet.get_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>A user can see only their own <a class="reference internal" href="annotations.models.html#annotations.models.TextCollection" title="annotations.models.TextCollection"><code class="xref py py-class docutils literal"><span class="pre">TextCollection</span></code></a>s.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TextViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.TextViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TextViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;Text: Felix Anton Dohrn&gt;, &lt;Text: John Philip Trinkaus (1918-2003)&gt;, &lt;Text: Andrew Zachary Fire (1959- )&gt;, &lt;Text: Ectopic Pregnancy&gt;, &lt;Text: Umbilical Cord Blood Stem Cells (UCBSC)&gt;, &lt;Text: Robert Geoffrey Edwards (1925-2013)&gt;, &lt;Text: Images of Embryos in Life Magazine in the 1950s&gt;, &lt;Text: Pregnancy Tests&gt;, &lt;Text: Meiosis in Humans&gt;, &lt;Text: Intracytoplasmic Sperm Injection&gt;, &lt;Text: Ziegler Wax Embryo Models&gt;, &lt;Text: Enovid: The First Hormonal Birth Control Pill&gt;, &lt;Text: &quot;Mechanistic Science and Metaphysical Romance&quot; (1915), by Jacques Loeb&gt;, &lt;Text: The Eugenics Record Office at Cold Spring Harbor Laboratory (1910-1939)&gt;, &lt;Text: Zhang Lizhu (1921- )&gt;, &lt;Text: The Effects of Bisphenol A on Embryonic Development&gt;, &lt;Text: Johns Hopkins Fertility Center&gt;, &lt;Text: Hysterectomy&gt;, &lt;Text: Endoscopy&gt;, &lt;Text: Intrauterine Insemination&gt;, '...(remaining elements truncated)...']</em><a class="headerlink" href="#annotations.views.rest_views.TextViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TextViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.TextViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">TextSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TextViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.TextViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.TypeViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">TypeViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#TypeViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.TypeViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TypeViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.TypeViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TypeViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;Type: E21 Person&gt;, &lt;Type: E28 Conceptual Object&gt;, &lt;Type: E40 Legal Body&gt;, &lt;Type: E20 Biological Object&gt;, &lt;Type: E31 Document&gt;, &lt;Type: E71 Man-Made Thing&gt;, &lt;Type: E74 Group&gt;, &lt;Type: E89 Propositional Object&gt;, &lt;Type: E55 Type&gt;, &lt;Type: E73 Information Object&gt;, &lt;Type: E72 Legal Object&gt;, &lt;Type: E22 Man-Made Object&gt;, &lt;Type: E10 Transfer of Custody&gt;, &lt;Type: E29 Design or Procedure&gt;, &lt;Type: E5 Event&gt;, &lt;Type: Predicate&gt;, &lt;Type: E19 Physical Object&gt;, &lt;Type: E75 Conceptual Object Appellation&gt;, &lt;Type: E18 Physical Thing&gt;, &lt;Type: E53 Place&gt;, '...(remaining elements truncated)...']</em><a class="headerlink" href="#annotations.views.rest_views.TypeViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TypeViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.TypeViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">TypeSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.TypeViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.TypeViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.views.rest_views.UserViewSet">
+<em class="property">class </em><code class="descclassname">annotations.views.rest_views.</code><code class="descname">UserViewSet</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/rest_views.html#UserViewSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.rest_views.UserViewSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">rest_framework.viewsets.ModelViewSet</span></code></p>
+<dl class="attribute">
+<dt id="annotations.views.rest_views.UserViewSet.permission_classes">
+<code class="descname">permission_classes</code><em class="property"> = (&lt;class 'rest_framework.permissions.IsAuthenticatedOrReadOnly'&gt;,)</em><a class="headerlink" href="#annotations.views.rest_views.UserViewSet.permission_classes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.UserViewSet.queryset">
+<code class="descname">queryset</code><em class="property"> = [&lt;VogonUser: jdamerow&gt;, &lt;VogonUser: rmidura&gt;, &lt;VogonUser: cwarren&gt;, &lt;VogonUser: shivam7891&gt;, &lt;VogonUser: pramodh&gt;, &lt;VogonUser: ebottino&gt;, &lt;VogonUser: Yogananda&gt;, &lt;VogonUser: gpirotte&gt;, &lt;VogonUser: nvelezcruz&gt;, &lt;VogonUser: kardanitin&gt;, &lt;VogonUser: AnonymousUser&gt;, &lt;VogonUser: erickpeirson&gt;]</em><a class="headerlink" href="#annotations.views.rest_views.UserViewSet.queryset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.UserViewSet.serializer_class">
+<code class="descname">serializer_class</code><a class="headerlink" href="#annotations.views.rest_views.UserViewSet.serializer_class" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">UserSerializer</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.views.rest_views.UserViewSet.suffix">
+<code class="descname">suffix</code><em class="property"> = None</em><a class="headerlink" href="#annotations.views.rest_views.UserViewSet.suffix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/annotations.views.rest_views.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

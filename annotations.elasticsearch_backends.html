@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.elasticsearch_backends module &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="index.html" />
+    <link rel="up" title="annotations package" href="annotations.html" />
+    <link rel="next" title="annotations.exceptions module" href="annotations.exceptions.html" />
+    <link rel="prev" title="annotations.display_helpers module" href="annotations.display_helpers.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="annotations.html">annotations package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="annotations.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#module-annotations">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="annotations.html">annotations package</a><ul>
+      <li>Previous: <a href="annotations.display_helpers.html" title="previous chapter">annotations.display_helpers module</a></li>
+      <li>Next: <a href="annotations.exceptions.html" title="next chapter">annotations.exceptions module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-annotations.elasticsearch_backends">
+<span id="annotations-elasticsearch-backends-module"></span><h1>annotations.elasticsearch_backends module<a class="headerlink" href="#module-annotations.elasticsearch_backends" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend">
+<em class="property">class </em><code class="descclassname">annotations.elasticsearch_backends.</code><code class="descname">JHBElasticsearch2SearchBackend</code><span class="sig-paren">(</span><em>connection_alias</em>, <em>**connection_options</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/elasticsearch_backends.html#JHBElasticsearch2SearchBackend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">haystack.backends.elasticsearch2_backend.Elasticsearch2SearchBackend</span></code></p>
+<dl class="attribute">
+<dt id="annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend.DEFAULT_SETTINGS">
+<code class="descname">DEFAULT_SETTINGS</code><em class="property"> = {'settings': {'analysis': {'filter': {'haystack_edgengram': {'max_gram': 15, 'type': 'edgeNGram', 'min_gram': 3}, 'haystack_ngram': {'max_gram': 15, 'type': 'nGram', 'min_gram': 3}}, 'tokenizer': {'haystack_ngram_tokenizer': {'max_gram': 15, 'type': 'nGram', 'min_gram': 3}, 'haystack_edgengram_tokenizer': {'max_gram': 15, 'type': 'edgeNGram', 'side': 'front', 'min_gram': 3}}, 'analyzer': {'edgengram_analyzer': {'filter': ['haystack_edgengram', 'lowercase'], 'type': 'custom', 'tokenizer': 'standard'}, 'ngram_analyzer': {'filter': ['haystack_ngram', 'lowercase'], 'type': 'custom', 'tokenizer': 'standard'}}}}}</em><a class="headerlink" href="#annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend.DEFAULT_SETTINGS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend.RESERVED_CHARACTERS">
+<code class="descname">RESERVED_CHARACTERS</code><em class="property"> = ('\\', '+', '-', '&amp;&amp;', '||', '!', '(', ')', '{', '}', '[', ']', '^', '&quot;', '~', ':', '/')</em><a class="headerlink" href="#annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend.RESERVED_CHARACTERS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend.search">
+<code class="descname">search</code><span class="sig-paren">(</span><em>query_string</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/elasticsearch_backends.html#JHBElasticsearch2SearchBackend.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend.search" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine">
+<em class="property">class </em><code class="descclassname">annotations.elasticsearch_backends.</code><code class="descname">JHBElasticsearch2SearchEngine</code><span class="sig-paren">(</span><em>using=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/elasticsearch_backends.html#JHBElasticsearch2SearchEngine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine</span></code></p>
+<dl class="attribute">
+<dt id="annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine.backend">
+<code class="descname">backend</code><a class="headerlink" href="#annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine.backend" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend" title="annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend"><code class="xref py py-class docutils literal"><span class="pre">JHBElasticsearch2SearchBackend</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/annotations.elasticsearch_backends.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

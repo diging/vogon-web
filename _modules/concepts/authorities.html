@@ -1,0 +1,348 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>concepts.authorities &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for concepts.authorities</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">Type</span>
+
+<span class="kn">from</span> <span class="nn">conceptpower</span> <span class="kn">import</span> <span class="n">Conceptpower</span>
+<span class="kn">from</span> <span class="nn">urlparse</span> <span class="kn">import</span> <span class="n">urlparse</span>
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AuthorityManager"><a class="viewcode-back" href="../../concepts.authorities.html#concepts.authorities.AuthorityManager">[docs]</a><span class="k">class</span> <span class="nc">AuthorityManager</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="ConceptpowerAuthority"><a class="viewcode-back" href="../../concepts.authorities.html#concepts.authorities.ConceptpowerAuthority">[docs]</a><span class="k">class</span> <span class="nc">ConceptpowerAuthority</span><span class="p">(</span><span class="n">AuthorityManager</span><span class="p">,</span> <span class="n">Conceptpower</span><span class="p">):</span>
+    <span class="n">__name__</span> <span class="o">=</span> <span class="s1">&#39;ConceptpowerAuthority&#39;</span>
+
+    <span class="n">endpoint</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">CONCEPTPOWER_ENDPOINT</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">CONCEPTPOWER_NAMESPACE</span></div>
+
+<span class="c1">#</span>
+<span class="c1"># class VogonAuthority(AuthorityManager):</span>
+<span class="c1">#     __name__ = &quot;VogonAuthority&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#     def search(self, query, pos=&#39;noun&#39;):</span>
+<span class="c1">#         return Concept.objects.filter(label__contains=query).filter(pos=pos)</span>
+<span class="c1">#</span>
+<span class="c1">#     def get(self, uri):</span>
+<span class="c1">#         return Concept.object.get(uri=uri)</span>
+<span class="c1">#</span>
+<span class="c1">#     def get_type(self, uri):</span>
+<span class="c1">#         return Type.objects.get(uri=uri)</span>
+<span class="c1">#</span>
+<span class="c1">#     namespace = &#39;{http://vogon.asu.edu/}&#39;</span>
+
+
+<span class="c1"># Register AuthorityManagers here.</span>
+<span class="n">authority_managers</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ConceptpowerAuthority</span><span class="p">,</span>
+    <span class="c1"># VogonAuthority,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="search"><a class="viewcode-back" href="../../concepts.authorities.html#concepts.authorities.search">[docs]</a><span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="s1">&#39;noun&#39;</span><span class="p">):</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">manager</span> <span class="ow">in</span> <span class="n">authority_managers</span>
+               <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">manager</span><span class="p">()</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">)]</span>
+
+
+    <span class="n">concepts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">r</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;lemma&#39;</span><span class="p">]</span>
+        <span class="n">instance</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+                                <span class="n">uri</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span>
+                                <span class="n">authority</span><span class="o">=</span><span class="n">manager</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">created</span><span class="p">:</span>
+            <span class="n">instance</span> <span class="o">=</span> <span class="n">update_instance</span><span class="p">(</span><span class="n">Concept</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="n">concepts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">concepts</span></div>
+
+
+<div class="viewcode-block" id="update_instance"><a class="viewcode-back" href="../../concepts.authorities.html#concepts.authorities.update_instance">[docs]</a><span class="k">def</span> <span class="nf">update_instance</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">concept_data</span><span class="p">,</span> <span class="n">authority</span><span class="p">):</span>
+    <span class="c1"># Update description, label, (and typed).</span>
+    <span class="n">instance</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">concept_data</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+
+    <span class="n">instance</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">concept_data</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;pos&#39;</span> <span class="ow">in</span> <span class="n">concept_data</span><span class="p">:</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">concept_data</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
+
+    <span class="c1"># For Types, this will create a cascade of post_save</span>
+    <span class="c1">#  signals resulting in a crawl up the Type ontology</span>
+    <span class="c1">#  based on the ``supertype`` property.</span>
+    <span class="k">if</span> <span class="n">sender</span> <span class="ow">is</span> <span class="n">Concept</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;type_uri&#39;</span> <span class="ow">in</span> <span class="n">concept_data</span><span class="p">:</span>
+            <span class="n">type_uri</span> <span class="o">=</span> <span class="n">concept_data</span><span class="p">[</span><span class="s1">&#39;type_uri&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">type_uri</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">elif</span> <span class="n">sender</span> <span class="ow">is</span> <span class="n">Type</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;supertype_uri&#39;</span> <span class="ow">in</span> <span class="n">concept_data</span><span class="p">:</span>
+            <span class="n">type_uri</span> <span class="o">=</span> <span class="n">concept_data</span><span class="p">[</span><span class="s1">&#39;supertype_uri&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">type_uri</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">if</span> <span class="n">type_uri</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">type_instance</span> <span class="o">=</span> <span class="n">Type</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="n">type_uri</span><span class="p">,</span> <span class="n">authority</span><span class="o">=</span><span class="n">authority</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">instance</span><span class="o">.</span><span class="n">typed</span> <span class="o">=</span> <span class="n">type_instance</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;Added Type {0} to Concept {1}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="n">type_instance</span><span class="o">.</span><span class="n">uri</span><span class="p">,</span> <span class="n">instance</span><span class="o">.</span><span class="n">uri</span><span class="p">))</span>
+    <span class="n">instance</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">instance</span></div>
+
+
+<div class="viewcode-block" id="resolve"><a class="viewcode-back" href="../../concepts.authorities.html#concepts.authorities.resolve">[docs]</a><span class="k">def</span> <span class="nf">resolve</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Resolve :class:`.Concept`\s and :class:`.Type`\s using the registered</span>
+<span class="sd">    :class:`.AuthorityManager`\s.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sender : class</span>
+<span class="sd">    instance : :class:`.Type` or :class:`.Concept`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="s1">&#39;Received post_save signal for Concept {0}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">instance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># Configure based on sender model class.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">instance_cast</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">cast</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span>
+            
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">instance_cast</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Concept</span><span class="p">:</span>
+            <span class="n">get_method</span> <span class="o">=</span> <span class="s1">&#39;get&#39;</span>
+            <span class="n">label_field</span> <span class="o">=</span> <span class="s1">&#39;lemma&#39;</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">instance_cast</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Type</span><span class="p">:</span>
+            <span class="n">get_method</span> <span class="o">=</span> <span class="s1">&#39;get_type&#39;</span>
+            <span class="n">label_field</span> <span class="o">=</span> <span class="s1">&#39;type&#39;</span>
+
+        <span class="c1"># Skip any instance that has already been resolved, or that lacks a URI.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">instance</span><span class="o">.</span><span class="n">resolved</span> <span class="ow">and</span> <span class="n">instance</span><span class="o">.</span><span class="n">uri</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Instance {0} not yet resolved.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+
+            <span class="c1"># Get AuthorityManager classes by namespace.</span>
+            <span class="n">managers</span> <span class="o">=</span> <span class="n">get_by_namespace</span><span class="p">(</span><span class="n">get_namespace</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">uri</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Found {0} managers for {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">managers</span><span class="p">),</span><span class="n">instance</span><span class="o">.</span><span class="n">uri</span><span class="p">))</span>
+
+            <span class="c1"># Try each AuthorityManager...</span>
+            <span class="k">for</span> <span class="n">manager_class</span> <span class="ow">in</span> <span class="n">managers</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">resolved</span><span class="p">:</span> <span class="k">break</span> <span class="c1"># ...until success.</span>
+
+                <span class="n">manager</span> <span class="o">=</span> <span class="n">manager_class</span><span class="p">()</span>
+                <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="n">get_method</span><span class="p">)</span>
+                <span class="n">concept_data</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">uri</span><span class="p">)</span>
+                <span class="n">concept_data</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">concept_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label_field</span><span class="p">,</span> <span class="s1">&#39;No label&#39;</span><span class="p">)</span>
+                <span class="n">instance</span><span class="o">.</span><span class="n">authority</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">__name__</span>
+
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Trying AuthorityManager {0}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">manager</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span>
+
+                <span class="n">instance</span><span class="o">.</span><span class="n">resolved</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">instance</span><span class="o">.</span><span class="n">concept_state</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">RESOLVED</span>
+                <span class="n">update_instance</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">concept_data</span><span class="p">,</span> <span class="n">manager</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_namespace"><a class="viewcode-back" href="../../concepts.authorities.html#concepts.authorities.get_namespace">[docs]</a><span class="k">def</span> <span class="nf">get_namespace</span><span class="p">(</span><span class="n">uri</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract namespace from URI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">o</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">scheme</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span> <span class="o">+</span> <span class="n">o</span><span class="o">.</span><span class="n">netloc</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+
+    <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">scheme</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">o</span><span class="o">.</span><span class="n">netloc</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not determine namespace for {0}.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">uri</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="s2">&quot;{&quot;</span> <span class="o">+</span> <span class="n">namespace</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span></div>
+
+
+<div class="viewcode-block" id="get_by_namespace"><a class="viewcode-back" href="../../concepts.authorities.html#concepts.authorities.get_by_namespace">[docs]</a><span class="k">def</span> <span class="nf">get_by_namespace</span><span class="p">(</span><span class="n">namespace</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve a registered :class:`AuthorityManager` by its namespace.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="p">[</span> <span class="n">manager</span> <span class="k">for</span> <span class="n">manager</span> <span class="ow">in</span> <span class="n">authority_managers</span>
+                <span class="k">if</span> <span class="n">manager</span><span class="o">.</span><span class="n">namespace</span> <span class="o">==</span> <span class="n">namespace</span> <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="add"><a class="viewcode-back" href="../../concepts.authorities.html#concepts.authorities.add">[docs]</a><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">instance</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add the approved concept to Conceptpower</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    instance : :class:&#39;.Concept&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    response : dict</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">       &gt;&gt;&gt; add(concept)</span>
+<span class="sd">       {</span>
+<span class="sd">           u&#39;word&#39;: u&#39;Askania-Nova&#39;,</span>
+<span class="sd">           u&#39;description&#39;: u&#39;A biosphere reserve located in Kherson Oblast, Ukraine&#39;,</span>
+<span class="sd">           u&#39;conceptlist&#39;: u&#39;VogonWeb Concepts&#39;,</span>
+<span class="sd">           u&#39;type&#39;: u&#39;http://www.digitalhps.org/types/TYPE_dfc95f97-f128-42ae-b54c-ee40333eae8c&#39;,</span>
+<span class="sd">           u&#39;equals&#39;: [],</span>
+<span class="sd">           u&#39;pos&#39;: u&#39;noun&#39;,</span>
+<span class="sd">           u&#39;synonymids&#39;: [],</span>
+<span class="sd">           u&#39;similar&#39;: [],</span>
+<span class="sd">           u&#39;id&#39;: u&#39;CONf3a936bd-f9fe-415c-8e9e-e463de7d4bbf&#39;</span>
+<span class="sd">       }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">concept_list</span> <span class="o">=</span> <span class="s1">&#39;VogonWeb Concepts&#39;</span>
+    <span class="n">conceptpower</span> <span class="o">=</span> <span class="n">ConceptpowerAuthority</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">conceptpower</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">CONCEPTPOWER_USERID</span><span class="p">,</span>
+                                   <span class="n">settings</span><span class="o">.</span><span class="n">CONCEPTPOWER_PASSWORD</span><span class="p">,</span>
+                                   <span class="n">instance</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+                                   <span class="n">instance</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span>
+                                   <span class="n">concept_list</span><span class="p">,</span>
+                                   <span class="n">instance</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
+                                   <span class="n">instance</span><span class="o">.</span><span class="n">typed</span><span class="o">.</span><span class="n">uri</span><span class="p">)</span>
+    <span class="c1"># This is kind of hacky, but the current version of Conceptpower does not</span>
+    <span class="c1">#  return the full URI of the new Concept -- just its ID. We can remove this</span>
+    <span class="c1">#  when the new version of Conceptpower is released.</span>
+    <span class="k">if</span> <span class="s1">&#39;uri&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+        <span class="n">response</span><span class="p">[</span><span class="s1">&#39;uri&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">u&#39;http://www.digitalhps.org/concepts/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

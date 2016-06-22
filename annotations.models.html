@@ -1,0 +1,1802 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.models module &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="index.html" />
+    <link rel="up" title="annotations package" href="annotations.html" />
+    <link rel="next" title="annotations.quadriga module" href="annotations.quadriga.html" />
+    <link rel="prev" title="annotations.managers module" href="annotations.managers.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="annotations.html">annotations package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="annotations.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#module-annotations">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="annotations.html">annotations package</a><ul>
+      <li>Previous: <a href="annotations.managers.html" title="previous chapter">annotations.managers module</a></li>
+      <li>Next: <a href="annotations.quadriga.html" title="next chapter">annotations.quadriga module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-annotations.models">
+<span id="annotations-models-module"></span><h1>annotations.models module<a class="headerlink" href="#module-annotations.models" title="Permalink to this headline">¶</a></h1>
+<p>Models for the <a class="reference internal" href="annotations.html#module-annotations" title="annotations"><code class="xref py py-mod docutils literal"><span class="pre">annotations</span></code></a> app.</p>
+<div class="section" id="texts-and-projects">
+<h2>Texts and projects<a class="headerlink" href="#texts-and-projects" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#annotations.models.Text" title="annotations.models.Text"><code class="xref py py-obj docutils literal"><span class="pre">Text</span></code></a></td>
+<td>Represents a document that is available for annotation.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#annotations.models.TextCollection" title="annotations.models.TextCollection"><code class="xref py py-obj docutils literal"><span class="pre">TextCollection</span></code></a></td>
+<td>This is referred to as a &#8220;Project&#8221; in most cases.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="annotations">
+<h2>Annotations<a class="headerlink" href="#annotations" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-obj docutils literal"><span class="pre">Annotation</span></code></a></td>
+<td>Mixin (abstract) for text-based annotations.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#annotations.models.Appellation" title="annotations.models.Appellation"><code class="xref py py-obj docutils literal"><span class="pre">Appellation</span></code></a></td>
+<td>An Appellation represents a user&#8217;s interpretation of a specific passage of text.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#annotations.models.DateAppellation" title="annotations.models.DateAppellation"><code class="xref py py-obj docutils literal"><span class="pre">DateAppellation</span></code></a></td>
+<td>Dates can be represented as ISO-8601 literals, with variable precision.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#annotations.models.Interpreted" title="annotations.models.Interpreted"><code class="xref py py-obj docutils literal"><span class="pre">Interpreted</span></code></a></td>
+<td>Mixin for <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a>s that refer to a <code class="xref py py-class docutils literal"><span class="pre">concepts.Concept</span></code>.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#annotations.models.QuadrigaAccession" title="annotations.models.QuadrigaAccession"><code class="xref py py-obj docutils literal"><span class="pre">QuadrigaAccession</span></code></a></td>
+<td>Records the event that a set of <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>s are accessioned to Quadriga.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-obj docutils literal"><span class="pre">Relation</span></code></a></td>
+<td>A <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a> captures a user&#8217;s assertion that a passage of text implies a specific relation between two concepts.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-obj docutils literal"><span class="pre">RelationSet</span></code></a></td>
+<td>A <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> organizes <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a>s into complete statements.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#annotations.models.RelationTemplate" title="annotations.models.RelationTemplate"><code class="xref py py-obj docutils literal"><span class="pre">RelationTemplate</span></code></a></td>
+<td>Provides a template for complex relations, allowing the user to simply fill in fields without worrying about the structure of the quadruple.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#annotations.models.RelationTemplatePart" title="annotations.models.RelationTemplatePart"><code class="xref py py-obj docutils literal"><span class="pre">RelationTemplatePart</span></code></a></td>
+<td>Template for a <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a> constituent to a <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="users-and-groups">
+<h2>Users and groups<a class="headerlink" href="#users-and-groups" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#annotations.models.GroupManager" title="annotations.models.GroupManager"><code class="xref py py-obj docutils literal"><span class="pre">GroupManager</span></code></a></td>
+<td>The manager for the auth&#8217;s Group model.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#annotations.models.VogonGroup" title="annotations.models.VogonGroup"><code class="xref py py-obj docutils literal"><span class="pre">VogonGroup</span></code></a></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#annotations.models.VogonUser" title="annotations.models.VogonUser"><code class="xref py py-obj docutils literal"><span class="pre">VogonUser</span></code></a></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#annotations.models.VogonUserManager" title="annotations.models.VogonUserManager"><code class="xref py py-obj docutils literal"><span class="pre">VogonUserManager</span></code></a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="detailed-descriptions">
+<h2>Detailed descriptions<a class="headerlink" href="#detailed-descriptions" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="annotations.models.Annotation">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">Annotation</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#Annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Annotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Mixin (abstract) for text-based annotations.</p>
+<p>Provides fields for <a class="reference internal" href="#annotations.models.Text" title="annotations.models.Text"><code class="xref py py-class docutils literal"><span class="pre">Text</span></code></a> association, the creation event, and
+Quadriga accession.</p>
+<dl class="class">
+<dt id="annotations.models.Annotation.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="_modules/annotations/models.html#Annotation.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Annotation.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="annotations.models.Annotation.Meta.abstract">
+<code class="descname">abstract</code><em class="property"> = False</em><a class="headerlink" href="#annotations.models.Annotation.Meta.abstract" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Annotation.created">
+<code class="descclassname">Annotation.</code><code class="descname">created</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Annotation.created" title="Permalink to this definition">¶</a></dt>
+<dd><p>The date and time that the <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a> was created.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Annotation.createdBy">
+<code class="descclassname">Annotation.</code><code class="descname">createdBy</code><a class="headerlink" href="#annotations.models.Annotation.createdBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="#annotations.models.VogonUser" title="annotations.models.VogonUser"><code class="xref py py-class docutils literal"><span class="pre">VogonUser</span></code></a> who created the <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Annotation.get_next_by_created">
+<code class="descclassname">Annotation.</code><code class="descname">get_next_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Annotation.get_next_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Annotation.get_previous_by_created">
+<code class="descclassname">Annotation.</code><code class="descname">get_previous_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Annotation.get_previous_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Annotation.occursIn">
+<code class="descclassname">Annotation.</code><code class="descname">occursIn</code><a class="headerlink" href="#annotations.models.Annotation.occursIn" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="#annotations.models.Text" title="annotations.models.Text"><code class="xref py py-class docutils literal"><span class="pre">Text</span></code></a> to which the <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a> refers.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Annotation.submitted">
+<code class="descclassname">Annotation.</code><code class="descname">submitted</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Annotation.submitted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether or not the <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a> has been accessioned to
+Quadriga.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Annotation.submittedOn">
+<code class="descclassname">Annotation.</code><code class="descname">submittedOn</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Annotation.submittedOn" title="Permalink to this definition">¶</a></dt>
+<dd><p>The date and time that the <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a> was accessioned to Quadriga.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Annotation.submittedWith">
+<code class="descclassname">Annotation.</code><code class="descname">submittedWith</code><a class="headerlink" href="#annotations.models.Annotation.submittedWith" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a> has been added to Quadriga, this refers to the
+<a class="reference internal" href="#annotations.models.QuadrigaAccession" title="annotations.models.QuadrigaAccession"><code class="xref py py-class docutils literal"><span class="pre">QuadrigaAccession</span></code></a> with which it was submitted.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.Appellation">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">Appellation</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#Appellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Appellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">annotations.models.Annotation</span></code></a>, <a class="reference internal" href="#annotations.models.Interpreted" title="annotations.models.Interpreted"><code class="xref py py-class docutils literal"><span class="pre">annotations.models.Interpreted</span></code></a></p>
+<p>An Appellation represents a user&#8217;s interpretation of a specific passage of
+text. In particular, it captures the user&#8217;s belief that the passage in
+question refers to a specific concept (e.g. of a person, place, etc).</p>
+<p class="rubric">Notes</p>
+<p><code class="docutils literal"><span class="pre">startPos</span></code> and <code class="docutils literal"><span class="pre">endPos</span></code> are deprecated &#8211; these can be created
+on-the-fly, and don&#8217;t apply to non-plain-text use-cases.</p>
+<p><code class="docutils literal"><span class="pre">controlling_verb</span></code> is deprecated as of v0.3. This is no longer necessary,
+since we now implement the full quadruple model in VogonWeb.</p>
+<dl class="exception">
+<dt id="annotations.models.Appellation.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.Appellation.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.HAS">
+<code class="descclassname">Appellation.</code><code class="descname">HAS</code><em class="property"> = 'has'</em><a class="headerlink" href="#annotations.models.Appellation.HAS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.IS">
+<code class="descclassname">Appellation.</code><code class="descname">IS</code><em class="property"> = 'is'</em><a class="headerlink" href="#annotations.models.Appellation.IS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.Appellation.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Appellation.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.Appellation.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.NONE">
+<code class="descclassname">Appellation.</code><code class="descname">NONE</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Appellation.NONE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.VCHOICES">
+<code class="descclassname">Appellation.</code><code class="descname">VCHOICES</code><em class="property"> = ((None, ''), ('is', 'is/was'), ('has', 'has/had'))</em><a class="headerlink" href="#annotations.models.Appellation.VCHOICES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.asPredicate">
+<code class="descclassname">Appellation.</code><code class="descname">asPredicate</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Appellation.asPredicate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether this Appellation should function as a predicate for a
+Relation. As of version 0.3, this basically just controls whether or not
+the Appellation should be displayed in the text annotation view.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.controlling_verb">
+<code class="descclassname">Appellation.</code><code class="descname">controlling_verb</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Appellation.controlling_verb" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id1"><span class="problematic" id="id2">**</span></a>.. deprecated* &#8211;* &#8211; 0.4
+We now fully implement the quadruple data model, so this is no longer
+relevant.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.createdBy">
+<code class="descclassname">Appellation.</code><code class="descname">createdBy</code><a class="headerlink" href="#annotations.models.Appellation.createdBy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.endPos">
+<code class="descclassname">Appellation.</code><code class="descname">endPos</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Appellation.endPos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Character offset from the end of the (plain text) document.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.5: </span>Text positions will be represented using <code class="xref py py-class docutils literal"><span class="pre">DocumentPosition</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Appellation.get_controlling_verb_display">
+<code class="descclassname">Appellation.</code><code class="descname">get_controlling_verb_display</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Appellation.get_controlling_verb_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Appellation.get_next_by_created">
+<code class="descclassname">Appellation.</code><code class="descname">get_next_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Appellation.get_next_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Appellation.get_previous_by_created">
+<code class="descclassname">Appellation.</code><code class="descname">get_previous_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Appellation.get_previous_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.interpretation">
+<code class="descclassname">Appellation.</code><code class="descname">interpretation</code><a class="headerlink" href="#annotations.models.Appellation.interpretation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.objects">
+<code class="descclassname">Appellation.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.Appellation.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.occursIn">
+<code class="descclassname">Appellation.</code><code class="descname">occursIn</code><a class="headerlink" href="#annotations.models.Appellation.occursIn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.relationsAs">
+<code class="descclassname">Appellation.</code><code class="descname">relationsAs</code><a class="headerlink" href="#annotations.models.Appellation.relationsAs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.relationsFrom">
+<code class="descclassname">Appellation.</code><code class="descname">relationsFrom</code><a class="headerlink" href="#annotations.models.Appellation.relationsFrom" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class provides the functionality that makes the related-object
+managers available as attributes on a model class, for fields that have
+multiple &#8220;remote&#8221; values and have a GenericRelation defined in their model
+(rather than having another model pointed <em>at</em> them). In the example
+&#8220;article.publications&#8221;, the publications attribute is a
+ReverseGenericRelatedObjectsDescriptor instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.relationsTo">
+<code class="descclassname">Appellation.</code><code class="descname">relationsTo</code><a class="headerlink" href="#annotations.models.Appellation.relationsTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class provides the functionality that makes the related-object
+managers available as attributes on a model class, for fields that have
+multiple &#8220;remote&#8221; values and have a GenericRelation defined in their model
+(rather than having another model pointed <em>at</em> them). In the example
+&#8220;article.publications&#8221;, the publications attribute is a
+ReverseGenericRelatedObjectsDescriptor instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.startPos">
+<code class="descclassname">Appellation.</code><code class="descname">startPos</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Appellation.startPos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Character offset from the beginning of the (plain text) document.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.5: </span>Text positions will be represented using <code class="xref py py-class docutils literal"><span class="pre">DocumentPosition</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.stringRep">
+<code class="descclassname">Appellation.</code><code class="descname">stringRep</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Appellation.stringRep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plain-text snippet spanning the selected text.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.submittedWith">
+<code class="descclassname">Appellation.</code><code class="descname">submittedWith</code><a class="headerlink" href="#annotations.models.Appellation.submittedWith" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Appellation.tokenIds">
+<code class="descclassname">Appellation.</code><code class="descname">tokenIds</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Appellation.tokenIds" title="Permalink to this definition">¶</a></dt>
+<dd><p>IDs of words (in the tokenizedContent) selected for this Appellation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.Authorization">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">Authorization</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#Authorization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Authorization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Represents an authorization token for an external service.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.5: </span>Repository-related models and methods should be implemented in
+<a class="reference internal" href="repository.html#module-repository" title="repository"><code class="xref py py-mod docutils literal"><span class="pre">repository</span></code></a>.</p>
+</div>
+<dl class="exception">
+<dt id="annotations.models.Authorization.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.Authorization.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.Authorization.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Authorization.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.Authorization.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Authorization.objects">
+<code class="descclassname">Authorization.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.Authorization.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Authorization.repository">
+<code class="descclassname">Authorization.</code><code class="descname">repository</code><a class="headerlink" href="#annotations.models.Authorization.repository" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Authorization.user">
+<code class="descclassname">Authorization.</code><code class="descname">user</code><a class="headerlink" href="#annotations.models.Authorization.user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.DateAppellation">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">DateAppellation</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#DateAppellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.DateAppellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">annotations.models.Annotation</span></code></a></p>
+<p>Dates can be represented as ISO-8601 literals, with variable precision.</p>
+<dl class="exception">
+<dt id="annotations.models.DateAppellation.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.DateAppellation.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.DateAppellation.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">DateAppellation.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.DateAppellation.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.DateAppellation.createdBy">
+<code class="descclassname">DateAppellation.</code><code class="descname">createdBy</code><a class="headerlink" href="#annotations.models.DateAppellation.createdBy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.DateAppellation.get_next_by_created">
+<code class="descclassname">DateAppellation.</code><code class="descname">get_next_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.DateAppellation.get_next_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.DateAppellation.get_previous_by_created">
+<code class="descclassname">DateAppellation.</code><code class="descname">get_previous_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.DateAppellation.get_previous_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.DateAppellation.objects">
+<code class="descclassname">DateAppellation.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.DateAppellation.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.DateAppellation.occursIn">
+<code class="descclassname">DateAppellation.</code><code class="descname">occursIn</code><a class="headerlink" href="#annotations.models.DateAppellation.occursIn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.DateAppellation.precision">
+<code class="descclassname">DateAppellation.</code><code class="descname">precision</code><a class="headerlink" href="#annotations.models.DateAppellation.precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is mainly for display. Indicates the precision of the
+<a class="reference internal" href="#annotations.models.DateAppellation" title="annotations.models.DateAppellation"><code class="xref py py-class docutils literal"><span class="pre">DateAppellation</span></code></a>: &#8216;year&#8217;, &#8216;month&#8217;, or &#8216;day&#8217;. Precision will
+vary depending on the confidence/interpretation of the user.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.DateAppellation.submittedWith">
+<code class="descclassname">DateAppellation.</code><code class="descname">submittedWith</code><a class="headerlink" href="#annotations.models.DateAppellation.submittedWith" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.GroupManager">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">GroupManager</code><a class="reference internal" href="_modules/annotations/models.html#GroupManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.GroupManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.manager.Manager</span></code></p>
+<p>The manager for the auth&#8217;s Group model.</p>
+<dl class="method">
+<dt id="annotations.models.GroupManager.get_by_natural_key">
+<code class="descname">get_by_natural_key</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#GroupManager.get_by_natural_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.GroupManager.get_by_natural_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.GroupManager.use_in_migrations">
+<code class="descname">use_in_migrations</code><em class="property"> = True</em><a class="headerlink" href="#annotations.models.GroupManager.use_in_migrations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.Interpreted">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">Interpreted</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#Interpreted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Interpreted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Mixin for <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a>s that refer to a <code class="xref py py-class docutils literal"><span class="pre">concepts.Concept</span></code>.</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Should this subclass <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a>? Does it matter?</p>
+</div>
+<dl class="class">
+<dt id="annotations.models.Interpreted.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="_modules/annotations/models.html#Interpreted.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Interpreted.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="annotations.models.Interpreted.Meta.abstract">
+<code class="descname">abstract</code><em class="property"> = False</em><a class="headerlink" href="#annotations.models.Interpreted.Meta.abstract" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Interpreted.interpretation">
+<code class="descclassname">Interpreted.</code><code class="descname">interpretation</code><a class="headerlink" href="#annotations.models.Interpreted.interpretation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="concepts.models.html#concepts.models.Concept" title="concepts.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a> to which the <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">Annotation</span></code></a> refers.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Interpreted.interpretation_label">
+<code class="descclassname">Interpreted.</code><code class="descname">interpretation_label</code><a class="headerlink" href="#annotations.models.Interpreted.interpretation_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>The referenced <code class="xref py py-class docutils literal"><span class="pre">concepts.Concept</span></code>&#8216;s lemma/label.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Interpreted.interpretation_type">
+<code class="descclassname">Interpreted.</code><code class="descname">interpretation_type</code><a class="headerlink" href="#annotations.models.Interpreted.interpretation_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The primary-key identifier of the referenced
+<code class="xref py py-class docutils literal"><span class="pre">concepts.Concept</span></code>s associated <code class="xref py py-class docutils literal"><span class="pre">concepts.Type</span></code>.</p>
+<p>If the <code class="xref py py-class docutils literal"><span class="pre">concepts.Concept</span></code> has no type, returns <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Interpreted.interpretation_type_label">
+<code class="descclassname">Interpreted.</code><code class="descname">interpretation_type_label</code><a class="headerlink" href="#annotations.models.Interpreted.interpretation_type_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>The lemma/label of the referenced <code class="xref py py-class docutils literal"><span class="pre">concepts.Concept</span></code>&#8216;s
+associated <code class="xref py py-class docutils literal"><span class="pre">concepts.Type</span></code>.</p>
+<p>If the <code class="xref py py-class docutils literal"><span class="pre">concepts.Concept</span></code> has no type, returns <code class="docutils literal"><span class="pre">None</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">unicode or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.QuadrigaAccession">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">QuadrigaAccession</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#QuadrigaAccession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.QuadrigaAccession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Records the event that a set of <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>s are accessioned to
+Quadriga.</p>
+<dl class="exception">
+<dt id="annotations.models.QuadrigaAccession.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.QuadrigaAccession.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.QuadrigaAccession.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">QuadrigaAccession.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.QuadrigaAccession.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.QuadrigaAccession.appellation_set">
+<code class="descclassname">QuadrigaAccession.</code><code class="descname">appellation_set</code><a class="headerlink" href="#annotations.models.QuadrigaAccession.appellation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.QuadrigaAccession.createdBy">
+<code class="descclassname">QuadrigaAccession.</code><code class="descname">createdBy</code><a class="headerlink" href="#annotations.models.QuadrigaAccession.createdBy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.QuadrigaAccession.dateappellation_set">
+<code class="descclassname">QuadrigaAccession.</code><code class="descname">dateappellation_set</code><a class="headerlink" href="#annotations.models.QuadrigaAccession.dateappellation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.QuadrigaAccession.get_next_by_created">
+<code class="descclassname">QuadrigaAccession.</code><code class="descname">get_next_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.QuadrigaAccession.get_next_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.QuadrigaAccession.get_previous_by_created">
+<code class="descclassname">QuadrigaAccession.</code><code class="descname">get_previous_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.QuadrigaAccession.get_previous_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.QuadrigaAccession.objects">
+<code class="descclassname">QuadrigaAccession.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.QuadrigaAccession.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.QuadrigaAccession.relation_set">
+<code class="descclassname">QuadrigaAccession.</code><code class="descname">relation_set</code><a class="headerlink" href="#annotations.models.QuadrigaAccession.relation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.QuadrigaAccession.relationset_set">
+<code class="descclassname">QuadrigaAccession.</code><code class="descname">relationset_set</code><a class="headerlink" href="#annotations.models.QuadrigaAccession.relationset_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.Relation">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">Relation</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#Relation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Relation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#annotations.models.Annotation" title="annotations.models.Annotation"><code class="xref py py-class docutils literal"><span class="pre">annotations.models.Annotation</span></code></a></p>
+<p>A <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a> captures a user&#8217;s assertion that a passage of text
+implies a specific relation between two concepts.</p>
+<p>The <code class="docutils literal"><span class="pre">source</span></code> and/or <code class="docutils literal"><span class="pre">object</span></code> of the <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a> can be a
+<a class="reference internal" href="#annotations.models.Appellation" title="annotations.models.Appellation"><code class="xref py py-class docutils literal"><span class="pre">Appellation</span></code></a>, <a class="reference internal" href="#annotations.models.DateAppellation" title="annotations.models.DateAppellation"><code class="xref py py-class docutils literal"><span class="pre">DateAppellation</span></code></a>, or another
+<a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a>.</p>
+<dl class="exception">
+<dt id="annotations.models.Relation.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.Relation.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.Relation.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Relation.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.Relation.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.bounds">
+<code class="descclassname">Relation.</code><code class="descname">bounds</code><a class="headerlink" href="#annotations.models.Relation.bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id3"><span class="problematic" id="id4">**</span></a>.. deprecated* &#8211;* &#8211; 0.5
+We now fully implement the quadruple model in VogonWeb.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.createdBy">
+<code class="descclassname">Relation.</code><code class="descname">createdBy</code><a class="headerlink" href="#annotations.models.Relation.createdBy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Relation.get_next_by_created">
+<code class="descclassname">Relation.</code><code class="descname">get_next_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Relation.get_next_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Relation.get_previous_by_created">
+<code class="descclassname">Relation.</code><code class="descname">get_previous_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Relation.get_previous_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.object_appellations">
+<code class="descclassname">Relation.</code><code class="descname">object_appellations</code><a class="headerlink" href="#annotations.models.Relation.object_appellations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.object_content_object">
+<code class="descclassname">Relation.</code><code class="descname">object_content_object</code><a class="headerlink" href="#annotations.models.Relation.object_content_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a generic relation to any object through content-type/object-id
+fields.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.object_content_type">
+<code class="descclassname">Relation.</code><code class="descname">object_content_type</code><a class="headerlink" href="#annotations.models.Relation.object_content_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.objects">
+<code class="descclassname">Relation.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.Relation.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.occursIn">
+<code class="descclassname">Relation.</code><code class="descname">occursIn</code><a class="headerlink" href="#annotations.models.Relation.occursIn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.part_of">
+<code class="descclassname">Relation.</code><code class="descname">part_of</code><a class="headerlink" href="#annotations.models.Relation.part_of" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.predicate">
+<code class="descclassname">Relation.</code><code class="descname">predicate</code><a class="headerlink" href="#annotations.models.Relation.predicate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.source_appellations">
+<code class="descclassname">Relation.</code><code class="descname">source_appellations</code><a class="headerlink" href="#annotations.models.Relation.source_appellations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.source_content_object">
+<code class="descclassname">Relation.</code><code class="descname">source_content_object</code><a class="headerlink" href="#annotations.models.Relation.source_content_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a generic relation to any object through content-type/object-id
+fields.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.source_content_type">
+<code class="descclassname">Relation.</code><code class="descname">source_content_type</code><a class="headerlink" href="#annotations.models.Relation.source_content_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Relation.submittedWith">
+<code class="descclassname">Relation.</code><code class="descname">submittedWith</code><a class="headerlink" href="#annotations.models.Relation.submittedWith" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.RelationSet">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">RelationSet</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#RelationSet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.RelationSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>A <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> organizes <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a>s into complete
+statements.</p>
+<dl class="exception">
+<dt id="annotations.models.RelationSet.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.RelationSet.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.RelationSet.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">RelationSet.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.RelationSet.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.RelationSet.appellations">
+<code class="descclassname">RelationSet.</code><code class="descname">appellations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#RelationSet.appellations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.RelationSet.appellations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all non-predicate appellations in child <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a>s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">django.db.models.query.QuerySet</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.RelationSet.concepts">
+<code class="descclassname">RelationSet.</code><code class="descname">concepts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#RelationSet.concepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.RelationSet.concepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all of the Concept instances connected to non-predicate
+Appellation instances.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">django.db.models.query.QuerySet</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.constituents">
+<code class="descclassname">RelationSet.</code><code class="descname">constituents</code><a class="headerlink" href="#annotations.models.RelationSet.constituents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.createdBy">
+<code class="descclassname">RelationSet.</code><code class="descname">createdBy</code><a class="headerlink" href="#annotations.models.RelationSet.createdBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>The user who created the RelationSet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.RelationSet.get_next_by_created">
+<code class="descclassname">RelationSet.</code><code class="descname">get_next_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.RelationSet.get_next_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.RelationSet.get_previous_by_created">
+<code class="descclassname">RelationSet.</code><code class="descname">get_previous_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.RelationSet.get_previous_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.label">
+<code class="descclassname">RelationSet.</code><code class="descname">label</code><a class="headerlink" href="#annotations.models.RelationSet.label" title="Permalink to this definition">¶</a></dt>
+<dd><p>The label displayed in lists of <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">unicode</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.objects">
+<code class="descclassname">RelationSet.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.RelationSet.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.occursIn">
+<code class="descclassname">RelationSet.</code><code class="descname">occursIn</code><a class="headerlink" href="#annotations.models.RelationSet.occursIn" title="Permalink to this definition">¶</a></dt>
+<dd><p>The text on which this RelationSet is based.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.pending">
+<code class="descclassname">RelationSet.</code><code class="descname">pending</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationSet.pending" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> is pending if it has been selected for submission,
+but the submission process has not yet completed. The primary purpose of
+this field is to prevent duplicate submissions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.RelationSet.ready">
+<code class="descclassname">RelationSet.</code><code class="descname">ready</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#RelationSet.ready"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.RelationSet.ready" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check whether or not the constituent <a class="reference internal" href="concepts.models.html#concepts.models.Concept" title="concepts.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a>s in this
+<a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> have been resolved (or merged).</p>
+<p>This aids the process of submitting annotations to Quadriga: all
+<a class="reference internal" href="concepts.models.html#concepts.models.Concept" title="concepts.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a>s must be present in Conceptpower prior to submission.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.root">
+<code class="descclassname">RelationSet.</code><code class="descname">root</code><a class="headerlink" href="#annotations.models.RelationSet.root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifies and retrieves the highest-level or &#8220;starting&#8221;
+<a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a> in the <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.submitted">
+<code class="descclassname">RelationSet.</code><code class="descname">submitted</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationSet.submitted" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether or not the <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> has been accessioned to Quadriga.
+This is set <code class="docutils literal"><span class="pre">True</span></code> only if the <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> was added
+successfully.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.submittedOn">
+<code class="descclassname">RelationSet.</code><code class="descname">submittedOn</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationSet.submittedOn" title="Permalink to this definition">¶</a></dt>
+<dd><p>The date/time when the <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> was (successfully) accessioned
+to Quadriga.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.submittedWith">
+<code class="descclassname">RelationSet.</code><code class="descname">submittedWith</code><a class="headerlink" href="#annotations.models.RelationSet.submittedWith" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <a class="reference internal" href="#annotations.models.QuadrigaAccession" title="annotations.models.QuadrigaAccession"><code class="xref py py-class docutils literal"><span class="pre">QuadrigaAccession</span></code></a> tracks the entire set of RelationSets that
+were accessioned together in a single query.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationSet.template">
+<code class="descclassname">RelationSet.</code><code class="descname">template</code><a class="headerlink" href="#annotations.models.RelationSet.template" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this RelationSet was created from a RelationTemplate, we can use the
+template to make decisions about display.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.RelationTemplate">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">RelationTemplate</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#RelationTemplate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.RelationTemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Provides a template for complex relations, allowing the user to simply
+fill in fields without worrying about the structure of the quadruple.</p>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">Add <code class="docutils literal"><span class="pre">created_by</span></code> field, perhaps others.</p>
+</div>
+<dl class="exception">
+<dt id="annotations.models.RelationTemplate.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.RelationTemplate.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.RelationTemplate.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">RelationTemplate.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.RelationTemplate.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplate.description">
+<code class="descclassname">RelationTemplate.</code><code class="descname">description</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationTemplate.description" title="Permalink to this definition">¶</a></dt>
+<dd><p>A longer-form description of the relation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplate.expression">
+<code class="descclassname">RelationTemplate.</code><code class="descname">expression</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationTemplate.expression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pattern for representing the relation in normal language.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplate.fields">
+<code class="descclassname">RelationTemplate.</code><code class="descname">fields</code><a class="headerlink" href="#annotations.models.RelationTemplate.fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>The fields that we need the user to fill to create a
+<a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> from this <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplate.instantiations">
+<code class="descclassname">RelationTemplate.</code><code class="descname">instantiations</code><a class="headerlink" href="#annotations.models.RelationTemplate.instantiations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplate.name">
+<code class="descclassname">RelationTemplate.</code><code class="descname">name</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationTemplate.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A descriptive name used in menus in the annotation interface.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplate.objects">
+<code class="descclassname">RelationTemplate.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.RelationTemplate.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplate.template_parts">
+<code class="descclassname">RelationTemplate.</code><code class="descname">template_parts</code><a class="headerlink" href="#annotations.models.RelationTemplate.template_parts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.RelationTemplatePart">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">RelationTemplatePart</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#RelationTemplatePart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.RelationTemplatePart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Template for a <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a> constituent to a <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>.</p>
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.CONCEPT">
+<code class="descname">CONCEPT</code><em class="property"> = 'CO'</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.CONCEPT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.RelationTemplatePart.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.HAS">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">HAS</code><em class="property"> = 'HA'</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.HAS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.RelationTemplatePart.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">RelationTemplatePart.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.NODE_CHOICES">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">NODE_CHOICES</code><em class="property"> = (('TP', 'Concept type'), ('CO', 'Specific concept'), ('RE', 'Relation'))</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.NODE_CHOICES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.PRED_CHOICES">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">PRED_CHOICES</code><em class="property"> = (('TP', 'Concept type'), ('CO', 'Specific concept'), ('IS', 'Is/was'), ('HA', 'Has/had'))</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.PRED_CHOICES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.RELATION">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">RELATION</code><em class="property"> = 'RE'</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.RELATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.TOBE">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">TOBE</code><em class="property"> = 'IS'</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.TOBE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.TYPE">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">TYPE</code><em class="property"> = 'TP'</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.TYPE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.RelationTemplatePart.get_object_node_type_display">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">get_object_node_type_display</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.RelationTemplatePart.get_object_node_type_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.RelationTemplatePart.get_predicate_node_type_display">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">get_predicate_node_type_display</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.RelationTemplatePart.get_predicate_node_type_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.RelationTemplatePart.get_source_node_type_display">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">get_source_node_type_display</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.RelationTemplatePart.get_source_node_type_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.object_concept">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">object_concept</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.object_concept" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.object_prompt_text">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">object_prompt_text</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.object_prompt_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the user should be asked for evidence for object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.object_relationtemplate">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">object_relationtemplate</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.object_relationtemplate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.object_type">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">object_type</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.object_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.objects">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.part_of">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">part_of</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.part_of" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.predicate_concept">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">predicate_concept</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.predicate_concept" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.predicate_prompt_text">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">predicate_prompt_text</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.predicate_prompt_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the user should be asked for evidence for predicate.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.predicate_type">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">predicate_type</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.predicate_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.source_concept">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">source_concept</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.source_concept" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.source_prompt_text">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">source_prompt_text</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.RelationTemplatePart.source_prompt_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates whether the user should be asked for evidence for source.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.source_relationtemplate">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">source_relationtemplate</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.source_relationtemplate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.source_type">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">source_type</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.source_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.used_as_object">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">used_as_object</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.used_as_object" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.RelationTemplatePart.used_as_source">
+<code class="descclassname">RelationTemplatePart.</code><code class="descname">used_as_source</code><a class="headerlink" href="#annotations.models.RelationTemplatePart.used_as_source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.Repository">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">Repository</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#Repository"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Repository" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Represents an online repository from which <a class="reference internal" href="#annotations.models.Text" title="annotations.models.Text"><code class="xref py py-class docutils literal"><span class="pre">Text</span></code></a>s can be
+retrieved.</p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.5: </span>Use <a class="reference internal" href="repository.models.html#repository.models.Repository" title="repository.models.Repository"><code class="xref py py-class docutils literal"><span class="pre">repository.models.Repository</span></code></a> instead.</p>
+</div>
+<p>We assume that there is a manager (see <a class="reference internal" href="annotations.managers.html#module-annotations.managers" title="annotations.managers"><code class="xref py py-mod docutils literal"><span class="pre">annotations.managers</span></code></a>) for
+each <a class="reference internal" href="#annotations.models.Repository" title="annotations.models.Repository"><code class="xref py py-class docutils literal"><span class="pre">Repository</span></code></a> that provides CRUD methods.</p>
+<div class="admonition-todo admonition" id="index-2">
+<p class="first admonition-title">Todo</p>
+<p class="last">Can we gracefully remove this without breaking migrations?</p>
+</div>
+<dl class="exception">
+<dt id="annotations.models.Repository.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.Repository.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.Repository.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Repository.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.Repository.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Repository.authorization_set">
+<code class="descclassname">Repository.</code><code class="descname">authorization_set</code><a class="headerlink" href="#annotations.models.Repository.authorization_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Repository.endpoint">
+<code class="descclassname">Repository.</code><code class="descname">endpoint</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Repository.endpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base URL for the repository API.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Repository.get_manager_display">
+<code class="descclassname">Repository.</code><code class="descname">get_manager_display</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Repository.get_manager_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Repository.loadedTexts">
+<code class="descclassname">Repository.</code><code class="descname">loadedTexts</code><a class="headerlink" href="#annotations.models.Repository.loadedTexts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Repository.manager">
+<code class="descclassname">Repository.</code><code class="descname">manager</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Repository.manager" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the manager class for this repository.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Repository.name">
+<code class="descclassname">Repository.</code><code class="descname">name</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Repository.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The human-readable name that will be presented to end users.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Repository.oauth_client_id">
+<code class="descclassname">Repository.</code><code class="descname">oauth_client_id</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Repository.oauth_client_id" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id5"><span class="problematic" id="id6">**</span></a>.. todo* &#8211;* &#8211; This should be moved to a more general formatted configuration
+in <a class="reference internal" href="repository.html#module-repository" title="repository"><code class="xref py py-mod docutils literal"><span class="pre">repository</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Repository.oauth_secret_key">
+<code class="descclassname">Repository.</code><code class="descname">oauth_secret_key</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Repository.oauth_secret_key" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id7"><span class="problematic" id="id8">**</span></a>.. todo* &#8211;* &#8211; This should be moved to a more general formatted configuration
+in <a class="reference internal" href="repository.html#module-repository" title="repository"><code class="xref py py-mod docutils literal"><span class="pre">repository</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Repository.objects">
+<code class="descclassname">Repository.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.Repository.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.TemporalBounds">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">TemporalBounds</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#TemporalBounds"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.TemporalBounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.5: </span>We now fully implement the Quadruple model in VogonWeb. See
+<a class="reference internal" href="#annotations.models.DateAppellation" title="annotations.models.DateAppellation"><code class="xref py py-class docutils literal"><span class="pre">DateAppellation</span></code></a>.</p>
+</div>
+<dl class="exception">
+<dt id="annotations.models.TemporalBounds.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.TemporalBounds.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.TemporalBounds.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">TemporalBounds.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.TemporalBounds.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TemporalBounds.end">
+<code class="descclassname">TemporalBounds.</code><code class="descname">end</code><a class="headerlink" href="#annotations.models.TemporalBounds.end" title="Permalink to this definition">¶</a></dt>
+<dd><p>A placeholder class that provides a way to set the attribute on the model.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TemporalBounds.objects">
+<code class="descclassname">TemporalBounds.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.TemporalBounds.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TemporalBounds.occur">
+<code class="descclassname">TemporalBounds.</code><code class="descname">occur</code><a class="headerlink" href="#annotations.models.TemporalBounds.occur" title="Permalink to this definition">¶</a></dt>
+<dd><p>A placeholder class that provides a way to set the attribute on the model.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TemporalBounds.relation_set">
+<code class="descclassname">TemporalBounds.</code><code class="descname">relation_set</code><a class="headerlink" href="#annotations.models.TemporalBounds.relation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TemporalBounds.start">
+<code class="descclassname">TemporalBounds.</code><code class="descname">start</code><a class="headerlink" href="#annotations.models.TemporalBounds.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>A placeholder class that provides a way to set the attribute on the model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.Text">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">Text</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#Text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.Text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>Represents a document that is available for annotation.</p>
+<div class="admonition-todo admonition" id="index-3">
+<p class="first admonition-title">Todo</p>
+<p class="last">Add a field to store arbitrary metadata about the document.</p>
+</div>
+<dl class="exception">
+<dt id="annotations.models.Text.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.Text.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.Text.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Text.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.Text.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.added">
+<code class="descclassname">Text.</code><code class="descname">added</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Text.added" title="Permalink to this definition">¶</a></dt>
+<dd><p>The date and time when the text was added to VogonWeb.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.addedBy">
+<code class="descclassname">Text.</code><code class="descname">addedBy</code><a class="headerlink" href="#annotations.models.Text.addedBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>The user who added the text to VogonWeb.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.annotation_count">
+<code class="descclassname">Text.</code><code class="descname">annotation_count</code><a class="headerlink" href="#annotations.models.Text.annotation_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>The combined number of <a class="reference internal" href="#annotations.models.Appellation" title="annotations.models.Appellation"><code class="xref py py-class docutils literal"><span class="pre">Appellation</span></code></a>s and <a class="reference internal" href="#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a>s
+that have been created using this text.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.annotators">
+<code class="descclassname">Text.</code><code class="descname">annotators</code><a class="headerlink" href="#annotations.models.Text.annotators" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a text is non-public, these users are authorized to access and
+annotate that text.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.appellation_set">
+<code class="descclassname">Text.</code><code class="descname">appellation_set</code><a class="headerlink" href="#annotations.models.Text.appellation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.created">
+<code class="descclassname">Text.</code><code class="descname">created</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Text.created" title="Permalink to this definition">¶</a></dt>
+<dd><p>The publication or creation date of the original document.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.dateappellation_set">
+<code class="descclassname">Text.</code><code class="descname">dateappellation_set</code><a class="headerlink" href="#annotations.models.Text.dateappellation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Text.get_next_by_added">
+<code class="descclassname">Text.</code><code class="descname">get_next_by_added</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Text.get_next_by_added" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.Text.get_previous_by_added">
+<code class="descclassname">Text.</code><code class="descname">get_previous_by_added</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.Text.get_previous_by_added" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.objects">
+<code class="descclassname">Text.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.Text.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.originalResource">
+<code class="descclassname">Text.</code><code class="descname">originalResource</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Text.originalResource" title="Permalink to this definition">¶</a></dt>
+<dd><p>The (online) location of the original resource, or its digital
+surrogate.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.partOf">
+<code class="descclassname">Text.</code><code class="descname">partOf</code><a class="headerlink" href="#annotations.models.Text.partOf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.public">
+<code class="descclassname">Text.</code><code class="descname">public</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Text.public" title="Permalink to this definition">¶</a></dt>
+<dd><p>If <code class="docutils literal"><span class="pre">True</span></code> (default), the full content of this text will be made publicly
+available.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.relation_count">
+<code class="descclassname">Text.</code><code class="descname">relation_count</code><a class="headerlink" href="#annotations.models.Text.relation_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>s that have been created using this
+text.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.relation_set">
+<code class="descclassname">Text.</code><code class="descname">relation_set</code><a class="headerlink" href="#annotations.models.Text.relation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.relationsets">
+<code class="descclassname">Text.</code><code class="descname">relationsets</code><a class="headerlink" href="#annotations.models.Text.relationsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.source">
+<code class="descclassname">Text.</code><code class="descname">source</code><a class="headerlink" href="#annotations.models.Text.source" title="Permalink to this definition">¶</a></dt>
+<dd><p>The repository (if applicable) from which the text was retrieved.</p>
+<div class="admonition-todo admonition" id="index-4">
+<p class="first admonition-title">Todo</p>
+<p class="last">This should target <code class="xref py py-class docutils literal"><span class="pre">repository.Repository</span></code> rather than
+<code class="xref py py-class docutils literal"><span class="pre">annotations.Repository</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.title">
+<code class="descclassname">Text.</code><code class="descname">title</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Text.title" title="Permalink to this definition">¶</a></dt>
+<dd><p>The original title of the document.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.tokenizedContent">
+<code class="descclassname">Text.</code><code class="descname">tokenizedContent</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Text.tokenizedContent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Text should already be tagged, with &lt;word&gt; elements delimiting tokens.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.Text.uri">
+<code class="descclassname">Text.</code><code class="descname">uri</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.Text.uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>This identifier is used when submitting <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>s to
+Quadriga.</p>
+<div class="admonition-todo admonition" id="index-5">
+<p class="first admonition-title">Todo</p>
+<p class="last">Make this field non-changeable once it is set.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.TextCollection">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">TextCollection</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#TextCollection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.TextCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>This is referred to as a &#8220;Project&#8221; in most cases.</p>
+<dl class="exception">
+<dt id="annotations.models.TextCollection.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.TextCollection.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.TextCollection.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">TextCollection.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.TextCollection.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.TextCollection.get_next_by_created">
+<code class="descclassname">TextCollection.</code><code class="descname">get_next_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.TextCollection.get_next_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.TextCollection.get_previous_by_created">
+<code class="descclassname">TextCollection.</code><code class="descname">get_previous_by_created</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.TextCollection.get_previous_by_created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TextCollection.objects">
+<code class="descclassname">TextCollection.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#annotations.models.TextCollection.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TextCollection.ownedBy">
+<code class="descclassname">TextCollection.</code><code class="descname">ownedBy</code><a class="headerlink" href="#annotations.models.TextCollection.ownedBy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TextCollection.participants">
+<code class="descclassname">TextCollection.</code><code class="descname">participants</code><a class="headerlink" href="#annotations.models.TextCollection.participants" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TextCollection.quadriga_id">
+<code class="descclassname">TextCollection.</code><code class="descname">quadriga_id</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.TextCollection.quadriga_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>This ID will be used when submitting <a class="reference internal" href="#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a>s to Quadriga.
+If not set, the default value (see <code class="docutils literal"><span class="pre">QUADRIGA_PROJECT</span></code> in settings) will
+be used instead.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TextCollection.texts">
+<code class="descclassname">TextCollection.</code><code class="descname">texts</code><a class="headerlink" href="#annotations.models.TextCollection.texts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.TupleField">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">TupleField</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#TupleField"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.TupleField" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.fields.TextField</span></code></p>
+<dl class="method">
+<dt id="annotations.models.TupleField.contribute_to_class">
+<code class="descname">contribute_to_class</code><span class="sig-paren">(</span><em>cls</em>, <em>name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.TupleField.contribute_to_class" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.TupleField.description">
+<code class="descname">description</code><em class="property"> = 'Stores a Python tuple of instances of built-in types'</em><a class="headerlink" href="#annotations.models.TupleField.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.TupleField.get_prep_value">
+<code class="descname">get_prep_value</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#TupleField.get_prep_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.TupleField.get_prep_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.TupleField.to_python">
+<code class="descname">to_python</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#TupleField.to_python"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.TupleField.to_python" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.TupleField.value_to_string">
+<code class="descname">value_to_string</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#TupleField.value_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.TupleField.value_to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.VogonGroup">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">VogonGroup</code><span class="sig-paren">(</span><em>id</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonGroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<dl class="exception">
+<dt id="annotations.models.VogonGroup.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.VogonGroup.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.VogonGroup.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">VogonGroup.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.VogonGroup.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.VogonGroup.natural_key">
+<code class="descclassname">VogonGroup.</code><code class="descname">natural_key</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonGroup.natural_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonGroup.natural_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonGroup.objects">
+<code class="descclassname">VogonGroup.</code><code class="descname">objects</code><em class="property"> = &lt;annotations.models.GroupManager object&gt;</em><a class="headerlink" href="#annotations.models.VogonGroup.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonGroup.permissions">
+<code class="descclassname">VogonGroup.</code><code class="descname">permissions</code><a class="headerlink" href="#annotations.models.VogonGroup.permissions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.VogonUser">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">VogonUser</code><span class="sig-paren">(</span><em>id</em>, <em>password</em>, <em>last_login</em>, <em>is_superuser</em>, <em>username</em>, <em>email</em>, <em>affiliation</em>, <em>location</em>, <em>link</em>, <em>full_name</em>, <em>conceptpower_uri</em>, <em>imagefile</em>, <em>is_active</em>, <em>is_admin</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonUser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonUser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.auth.models.AbstractBaseUser</span></code>, <code class="xref py py-class docutils literal"><span class="pre">django.contrib.auth.models.PermissionsMixin</span></code></p>
+<dl class="exception">
+<dt id="annotations.models.VogonUser.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#annotations.models.VogonUser.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="annotations.models.VogonUser.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">VogonUser.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#annotations.models.VogonUser.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.REQUIRED_FIELDS">
+<code class="descclassname">VogonUser.</code><code class="descname">REQUIRED_FIELDS</code><em class="property"> = ['email']</em><a class="headerlink" href="#annotations.models.VogonUser.REQUIRED_FIELDS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.USERNAME_FIELD">
+<code class="descclassname">VogonUser.</code><code class="descname">USERNAME_FIELD</code><em class="property"> = 'username'</em><a class="headerlink" href="#annotations.models.VogonUser.USERNAME_FIELD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.accessions">
+<code class="descclassname">VogonUser.</code><code class="descname">accessions</code><a class="headerlink" href="#annotations.models.VogonUser.accessions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.VogonUser.add_obj_perm">
+<code class="descclassname">VogonUser.</code><code class="descname">add_obj_perm</code><span class="sig-paren">(</span><em>perm</em>, <em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.VogonUser.add_obj_perm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.addedTexts">
+<code class="descclassname">VogonUser.</code><code class="descname">addedTexts</code><a class="headerlink" href="#annotations.models.VogonUser.addedTexts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.affiliation">
+<code class="descclassname">VogonUser.</code><code class="descname">affiliation</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.VogonUser.affiliation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The user&#8217;s home institution or employer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.appellation_set">
+<code class="descclassname">VogonUser.</code><code class="descname">appellation_set</code><a class="headerlink" href="#annotations.models.VogonUser.appellation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.authorizations">
+<code class="descclassname">VogonUser.</code><code class="descname">authorizations</code><a class="headerlink" href="#annotations.models.VogonUser.authorizations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.collections">
+<code class="descclassname">VogonUser.</code><code class="descname">collections</code><a class="headerlink" href="#annotations.models.VogonUser.collections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.conceptpower_uri">
+<code class="descclassname">VogonUser.</code><code class="descname">conceptpower_uri</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.VogonUser.conceptpower_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ideally, each <a class="reference internal" href="#annotations.models.VogonUser" title="annotations.models.VogonUser"><code class="xref py py-class docutils literal"><span class="pre">VogonUser</span></code></a> will have a corresponding record in
+Conceptpower that we can submit to Quadriga along with annotations. This is
+not typicaly at the moment, but we should create a mechanism to make this
+easy.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.contributes_to">
+<code class="descclassname">VogonUser.</code><code class="descname">contributes_to</code><a class="headerlink" href="#annotations.models.VogonUser.contributes_to" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.dateappellation_set">
+<code class="descclassname">VogonUser.</code><code class="descname">dateappellation_set</code><a class="headerlink" href="#annotations.models.VogonUser.dateappellation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.VogonUser.del_obj_perm">
+<code class="descclassname">VogonUser.</code><code class="descname">del_obj_perm</code><span class="sig-paren">(</span><em>perm</em>, <em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.VogonUser.del_obj_perm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="annotations.models.VogonUser.get_anonymous">
+<em class="property">static </em><code class="descclassname">VogonUser.</code><code class="descname">get_anonymous</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#annotations.models.VogonUser.get_anonymous" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.VogonUser.get_full_name">
+<code class="descclassname">VogonUser.</code><code class="descname">get_full_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonUser.get_full_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonUser.get_full_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.VogonUser.get_short_name">
+<code class="descclassname">VogonUser.</code><code class="descname">get_short_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonUser.get_short_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonUser.get_short_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.groups">
+<code class="descclassname">VogonUser.</code><code class="descname">groups</code><a class="headerlink" href="#annotations.models.VogonUser.groups" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.VogonUser.has_module_perms">
+<code class="descclassname">VogonUser.</code><code class="descname">has_module_perms</code><span class="sig-paren">(</span><em>app_label</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonUser.has_module_perms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonUser.has_module_perms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does the user have permissions to view the app <cite>app_label</cite>?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.VogonUser.has_perm">
+<code class="descclassname">VogonUser.</code><code class="descname">has_perm</code><span class="sig-paren">(</span><em>perm</em>, <em>obj=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonUser.has_perm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonUser.has_perm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does the user have a specific permission?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.imagefile">
+<code class="descclassname">VogonUser.</code><code class="descname">imagefile</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.VogonUser.imagefile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Location of the user&#8217;s profile picture. This will usually be in our AWS S3
+bucket.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.is_active">
+<code class="descclassname">VogonUser.</code><code class="descname">is_active</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.VogonUser.is_active" title="Permalink to this definition">¶</a></dt>
+<dd><p>If this field is <code class="docutils literal"><span class="pre">False</span></code>, the user will not be able to log in.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.is_staff">
+<code class="descclassname">VogonUser.</code><code class="descname">is_staff</code><a class="headerlink" href="#annotations.models.VogonUser.is_staff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the user a member of staff?</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.link">
+<code class="descclassname">VogonUser.</code><code class="descname">link</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.VogonUser.link" title="Permalink to this definition">¶</a></dt>
+<dd><p>The location of the user&#8217;s online bio or homepage.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.location">
+<code class="descclassname">VogonUser.</code><code class="descname">location</code><em class="property"> = None</em><a class="headerlink" href="#annotations.models.VogonUser.location" title="Permalink to this definition">¶</a></dt>
+<dd><p>The user&#8217;s current geographical location.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.logentry_set">
+<code class="descclassname">VogonUser.</code><code class="descname">logentry_set</code><a class="headerlink" href="#annotations.models.VogonUser.logentry_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.objects">
+<code class="descclassname">VogonUser.</code><code class="descname">objects</code><em class="property"> = &lt;annotations.models.VogonUserManager object&gt;</em><a class="headerlink" href="#annotations.models.VogonUser.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.relation_set">
+<code class="descclassname">VogonUser.</code><code class="descname">relation_set</code><a class="headerlink" href="#annotations.models.VogonUser.relation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.relationset_set">
+<code class="descclassname">VogonUser.</code><code class="descname">relationset_set</code><a class="headerlink" href="#annotations.models.VogonUser.relationset_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.uri">
+<code class="descclassname">VogonUser.</code><code class="descname">uri</code><a class="headerlink" href="#annotations.models.VogonUser.uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Uniform Resource Identifier (URI) for this <a class="reference internal" href="#annotations.models.VogonUser" title="annotations.models.VogonUser"><code class="xref py py-class docutils literal"><span class="pre">VogonUser</span></code></a>.</p>
+<p>This is required for accessioning annotations into Quadriga.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">unicode</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.userTexts">
+<code class="descclassname">VogonUser.</code><code class="descname">userTexts</code><a class="headerlink" href="#annotations.models.VogonUser.userTexts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.user_permissions">
+<code class="descclassname">VogonUser.</code><code class="descname">user_permissions</code><a class="headerlink" href="#annotations.models.VogonUser.user_permissions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.models.VogonUser.userobjectpermission_set">
+<code class="descclassname">VogonUser.</code><code class="descname">userobjectpermission_set</code><a class="headerlink" href="#annotations.models.VogonUser.userobjectpermission_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.models.VogonUserManager">
+<em class="property">class </em><code class="descclassname">annotations.models.</code><code class="descname">VogonUserManager</code><a class="reference internal" href="_modules/annotations/models.html#VogonUserManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonUserManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.contrib.auth.models.BaseUserManager</span></code></p>
+<dl class="method">
+<dt id="annotations.models.VogonUserManager.create_superuser">
+<code class="descname">create_superuser</code><span class="sig-paren">(</span><em>username</em>, <em>email</em>, <em>password</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonUserManager.create_superuser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonUserManager.create_superuser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.models.VogonUserManager.create_user">
+<code class="descname">create_user</code><span class="sig-paren">(</span><em>username</em>, <em>email</em>, <em>password=None</em>, <em>full_name=None</em>, <em>affiliation=None</em>, <em>location=None</em>, <em>link=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/models.html#VogonUserManager.create_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.models.VogonUserManager.create_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/annotations.models.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

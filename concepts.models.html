@@ -1,0 +1,328 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>concepts.models module &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="index.html" />
+    <link rel="up" title="concepts package" href="concepts.html" />
+    <link rel="next" title="concepts.signals module" href="concepts.signals.html" />
+    <link rel="prev" title="concepts.autocomplete_light_registry module" href="concepts.autocomplete_light_registry.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="annotations.html">annotations package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="concepts.html">concepts package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="concepts.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="concepts.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html#module-concepts">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="concepts.html">concepts package</a><ul>
+      <li>Previous: <a href="concepts.autocomplete_light_registry.html" title="previous chapter">concepts.autocomplete_light_registry module</a></li>
+      <li>Next: <a href="concepts.signals.html" title="next chapter">concepts.signals module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-concepts.models">
+<span id="concepts-models-module"></span><h1>concepts.models module<a class="headerlink" href="#module-concepts.models" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="concepts.models.Concept">
+<em class="property">class </em><code class="descclassname">concepts.models.</code><code class="descname">Concept</code><span class="sig-paren">(</span><em>id</em>, <em>real_type</em>, <em>label</em>, <em>uri</em>, <em>resolved</em>, <em>typed</em>, <em>description</em>, <em>authority</em>, <em>pos</em>, <em>concept_state</em>, <em>merged_with</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/models.html#Concept"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.models.Concept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#concepts.models.HeritableObject" title="concepts.models.HeritableObject"><code class="xref py py-class docutils literal"><span class="pre">concepts.models.HeritableObject</span></code></a></p>
+<dl class="attribute">
+<dt id="concepts.models.Concept.APPROVED">
+<code class="descname">APPROVED</code><em class="property"> = 'Approved'</em><a class="headerlink" href="#concepts.models.Concept.APPROVED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="concepts.models.Concept.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#concepts.models.Concept.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.ObjectDoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="concepts.models.Concept.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Concept.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#concepts.models.Concept.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.core.exceptions.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.PENDING">
+<code class="descclassname">Concept.</code><code class="descname">PENDING</code><em class="property"> = 'Pending'</em><a class="headerlink" href="#concepts.models.Concept.PENDING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.REJECTED">
+<code class="descclassname">Concept.</code><code class="descname">REJECTED</code><em class="property"> = 'Rejected'</em><a class="headerlink" href="#concepts.models.Concept.REJECTED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.RESOLVED">
+<code class="descclassname">Concept.</code><code class="descname">RESOLVED</code><em class="property"> = 'Resolved'</em><a class="headerlink" href="#concepts.models.Concept.RESOLVED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.appellation_set">
+<code class="descclassname">Concept.</code><code class="descname">appellation_set</code><a class="headerlink" href="#concepts.models.Concept.appellation_set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.concept_state_choices">
+<code class="descclassname">Concept.</code><code class="descname">concept_state_choices</code><em class="property"> = (('Pending', 'Pending'), ('Rejected', 'Rejected'), ('Approved', 'Approved'), ('Resolved', 'Resolved'))</em><a class="headerlink" href="#concepts.models.Concept.concept_state_choices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="concepts.models.Concept.get_concept_state_display">
+<code class="descclassname">Concept.</code><code class="descname">get_concept_state_display</code><span class="sig-paren">(</span><em>*moreargs</em>, <em>**morekwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#concepts.models.Concept.get_concept_state_display" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.merged_concepts">
+<code class="descclassname">Concept.</code><code class="descname">merged_concepts</code><a class="headerlink" href="#concepts.models.Concept.merged_concepts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.merged_with">
+<code class="descclassname">Concept.</code><code class="descname">merged_with</code><a class="headerlink" href="#concepts.models.Concept.merged_with" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.objects">
+<code class="descclassname">Concept.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#concepts.models.Concept.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.real_type">
+<code class="descclassname">Concept.</code><code class="descname">real_type</code><a class="headerlink" href="#concepts.models.Concept.real_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.type">
+<code class="descclassname">Concept.</code><code class="descname">type</code><a class="headerlink" href="#concepts.models.Concept.type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.typed">
+<code class="descclassname">Concept.</code><code class="descname">typed</code><a class="headerlink" href="#concepts.models.Concept.typed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.typed_label">
+<code class="descclassname">Concept.</code><code class="descname">typed_label</code><a class="headerlink" href="#concepts.models.Concept.typed_label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.used_as_concept_for_object">
+<code class="descclassname">Concept.</code><code class="descname">used_as_concept_for_object</code><a class="headerlink" href="#concepts.models.Concept.used_as_concept_for_object" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.used_as_concept_for_predicate">
+<code class="descclassname">Concept.</code><code class="descname">used_as_concept_for_predicate</code><a class="headerlink" href="#concepts.models.Concept.used_as_concept_for_predicate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Concept.used_as_concept_for_source">
+<code class="descclassname">Concept.</code><code class="descname">used_as_concept_for_source</code><a class="headerlink" href="#concepts.models.Concept.used_as_concept_for_source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.models.HeritableObject">
+<em class="property">class </em><code class="descclassname">concepts.models.</code><code class="descname">HeritableObject</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/models.html#HeritableObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.models.HeritableObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">django.db.models.base.Model</span></code></p>
+<p>An object that is aware of its &#8220;real&#8221; type, i.e. the subclass that it
+instantiates.</p>
+<dl class="class">
+<dt id="concepts.models.HeritableObject.Meta">
+<em class="property">class </em><code class="descname">Meta</code><a class="reference internal" href="_modules/concepts/models.html#HeritableObject.Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.models.HeritableObject.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="concepts.models.HeritableObject.Meta.abstract">
+<code class="descname">abstract</code><em class="property"> = False</em><a class="headerlink" href="#concepts.models.HeritableObject.Meta.abstract" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="concepts.models.HeritableObject.cast">
+<code class="descclassname">HeritableObject.</code><code class="descname">cast</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/models.html#HeritableObject.cast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.models.HeritableObject.cast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Re-cast this object using its &#8220;real&#8221; subclass.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.HeritableObject.real_type">
+<code class="descclassname">HeritableObject.</code><code class="descname">real_type</code><a class="headerlink" href="#concepts.models.HeritableObject.real_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="concepts.models.HeritableObject.save">
+<code class="descclassname">HeritableObject.</code><code class="descname">save</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/models.html#HeritableObject.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.models.HeritableObject.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="concepts.models.Type">
+<em class="property">class </em><code class="descclassname">concepts.models.</code><code class="descname">Type</code><span class="sig-paren">(</span><em>id</em>, <em>real_type</em>, <em>label</em>, <em>uri</em>, <em>resolved</em>, <em>typed</em>, <em>description</em>, <em>authority</em>, <em>pos</em>, <em>concept_state</em>, <em>merged_with</em>, <em>concept_ptr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/concepts/models.html#Type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#concepts.models.Type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#concepts.models.Concept" title="concepts.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">concepts.models.Concept</span></code></a></p>
+<dl class="exception">
+<dt id="concepts.models.Type.DoesNotExist">
+<em class="property">exception </em><code class="descname">DoesNotExist</code><a class="headerlink" href="#concepts.models.Type.DoesNotExist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">concepts.models.DoesNotExist</span></code></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="concepts.models.Type.MultipleObjectsReturned">
+<em class="property">exception </em><code class="descclassname">Type.</code><code class="descname">MultipleObjectsReturned</code><a class="headerlink" href="#concepts.models.Type.MultipleObjectsReturned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">concepts.models.MultipleObjectsReturned</span></code></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Type.concept_ptr">
+<code class="descclassname">Type.</code><code class="descname">concept_ptr</code><a class="headerlink" href="#concepts.models.Type.concept_ptr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Type.instances">
+<code class="descclassname">Type.</code><code class="descname">instances</code><a class="headerlink" href="#concepts.models.Type.instances" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Type.objects">
+<code class="descclassname">Type.</code><code class="descname">objects</code><em class="property"> = &lt;django.db.models.manager.Manager object&gt;</em><a class="headerlink" href="#concepts.models.Type.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Type.used_as_type_for_object">
+<code class="descclassname">Type.</code><code class="descname">used_as_type_for_object</code><a class="headerlink" href="#concepts.models.Type.used_as_type_for_object" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Type.used_as_type_for_predicate">
+<code class="descclassname">Type.</code><code class="descname">used_as_type_for_predicate</code><a class="headerlink" href="#concepts.models.Type.used_as_type_for_predicate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="concepts.models.Type.used_as_type_for_source">
+<code class="descclassname">Type.</code><code class="descname">used_as_type_for_source</code><a class="headerlink" href="#concepts.models.Type.used_as_type_for_source" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/concepts.models.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

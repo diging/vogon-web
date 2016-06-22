@@ -1,0 +1,305 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.search_indexes module &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="index.html" />
+    <link rel="up" title="annotations package" href="annotations.html" />
+    <link rel="next" title="annotations.serializers module" href="annotations.serializers.html" />
+    <link rel="prev" title="annotations.quadriga module" href="annotations.quadriga.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="annotations.html">annotations package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="annotations.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#module-annotations">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="annotations.html">annotations package</a><ul>
+      <li>Previous: <a href="annotations.quadriga.html" title="previous chapter">annotations.quadriga module</a></li>
+      <li>Next: <a href="annotations.serializers.html" title="next chapter">annotations.serializers module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-annotations.search_indexes">
+<span id="annotations-search-indexes-module"></span><h1>annotations.search_indexes module<a class="headerlink" href="#module-annotations.search_indexes" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="annotations.search_indexes.ConceptIndex">
+<em class="property">class </em><code class="descclassname">annotations.search_indexes.</code><code class="descname">ConceptIndex</code><a class="reference internal" href="_modules/annotations/search_indexes.html#ConceptIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.ConceptIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">haystack.indexes.SearchIndex</span></code>, <code class="xref py py-class docutils literal"><span class="pre">haystack.constants.Indexable</span></code></p>
+<p>Index <a class="reference internal" href="concepts.models.html#concepts.models.Concept" title="concepts.models.Concept"><code class="xref py py-class docutils literal"><span class="pre">Concept</span></code></a>s that have been used in <a class="reference internal" href="annotations.models.html#annotations.models.Appellation" title="annotations.models.Appellation"><code class="xref py py-class docutils literal"><span class="pre">Appellation</span></code></a>s.</p>
+<dl class="attribute">
+<dt id="annotations.search_indexes.ConceptIndex.description">
+<code class="descname">description</code><em class="property"> = &lt;haystack.fields.CharField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.ConceptIndex.fields">
+<code class="descname">fields</code><em class="property"> = {u'typed_exact': &lt;haystack.fields.FacetCharField object&gt;, 'description': &lt;haystack.fields.CharField object&gt;, 'typed': &lt;haystack.fields.CharField object&gt;, 'text': &lt;haystack.fields.CharField object&gt;, 'uri': &lt;haystack.fields.CharField object&gt;, 'label': &lt;haystack.fields.EdgeNgramField object&gt;}</em><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.ConceptIndex.get_model">
+<code class="descname">get_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#ConceptIndex.get_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.get_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.ConceptIndex.index_queryset">
+<code class="descname">index_queryset</code><span class="sig-paren">(</span><em>using=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#ConceptIndex.index_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.index_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only index Concepts that have been used in annotations.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.ConceptIndex.label">
+<code class="descname">label</code><em class="property"> = &lt;haystack.fields.EdgeNgramField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.ConceptIndex.objects">
+<code class="descname">objects</code><em class="property"> = &lt;haystack.manager.SearchIndexManager object&gt;</em><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.ConceptIndex.prepare_description">
+<code class="descname">prepare_description</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#ConceptIndex.prepare_description"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.prepare_description" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.ConceptIndex.prepare_label">
+<code class="descname">prepare_label</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#ConceptIndex.prepare_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.prepare_label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.ConceptIndex.prepare_text">
+<code class="descname">prepare_text</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#ConceptIndex.prepare_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.prepare_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.ConceptIndex.prepare_typed">
+<code class="descname">prepare_typed</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#ConceptIndex.prepare_typed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.prepare_typed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.ConceptIndex.prepare_uri">
+<code class="descname">prepare_uri</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#ConceptIndex.prepare_uri"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.prepare_uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.ConceptIndex.text">
+<code class="descname">text</code><em class="property"> = &lt;haystack.fields.CharField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.ConceptIndex.typed">
+<code class="descname">typed</code><em class="property"> = &lt;haystack.fields.CharField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.typed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.ConceptIndex.uri">
+<code class="descname">uri</code><em class="property"> = &lt;haystack.fields.CharField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.ConceptIndex.uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="annotations.search_indexes.TextIndex">
+<em class="property">class </em><code class="descclassname">annotations.search_indexes.</code><code class="descname">TextIndex</code><a class="reference internal" href="_modules/annotations/search_indexes.html#TextIndex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.TextIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">haystack.indexes.SearchIndex</span></code>, <code class="xref py py-class docutils literal"><span class="pre">haystack.constants.Indexable</span></code></p>
+<p>Index annotatable texts.</p>
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.added">
+<code class="descname">added</code><em class="property"> = &lt;haystack.fields.DateField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.added" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.addedBy">
+<code class="descname">addedBy</code><em class="property"> = &lt;haystack.fields.CharField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.addedBy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.collections">
+<code class="descname">collections</code><em class="property"> = &lt;haystack.fields.MultiValueField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.collections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.created">
+<code class="descname">created</code><em class="property"> = &lt;haystack.fields.DateField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.created" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.fields">
+<code class="descname">fields</code><em class="property"> = {'added': &lt;haystack.fields.DateField object&gt;, 'title': &lt;haystack.fields.EdgeNgramField object&gt;, u'created_exact': &lt;haystack.fields.FacetDateField object&gt;, 'created': &lt;haystack.fields.DateField object&gt;, 'uri': &lt;haystack.fields.CharField object&gt;, 'addedBy': &lt;haystack.fields.CharField object&gt;, 'collections': &lt;haystack.fields.MultiValueField object&gt;, 'relation_count': &lt;haystack.fields.CharField object&gt;, 'text': &lt;haystack.fields.CharField object&gt;, u'collections_exact': &lt;haystack.fields.FacetMultiValueField object&gt;, u'added_exact': &lt;haystack.fields.FacetDateField object&gt;}</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.TextIndex.get_model">
+<code class="descname">get_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#TextIndex.get_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.TextIndex.get_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get model to be used for indexing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.TextIndex.index_queryset">
+<code class="descname">index_queryset</code><span class="sig-paren">(</span><em>using=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#TextIndex.index_queryset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.TextIndex.index_queryset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used when entire index for model is updated</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.objects">
+<code class="descname">objects</code><em class="property"> = &lt;haystack.manager.SearchIndexManager object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.TextIndex.prepare_added">
+<code class="descname">prepare_added</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#TextIndex.prepare_added"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.TextIndex.prepare_added" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.TextIndex.prepare_collections">
+<code class="descname">prepare_collections</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#TextIndex.prepare_collections"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.TextIndex.prepare_collections" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="annotations.search_indexes.TextIndex.prepare_text">
+<code class="descname">prepare_text</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/search_indexes.html#TextIndex.prepare_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.search_indexes.TextIndex.prepare_text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.relation_count">
+<code class="descname">relation_count</code><em class="property"> = &lt;haystack.fields.CharField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.relation_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.text">
+<code class="descname">text</code><em class="property"> = &lt;haystack.fields.CharField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.title">
+<code class="descname">title</code><em class="property"> = &lt;haystack.fields.EdgeNgramField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.title" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="annotations.search_indexes.TextIndex.uri">
+<code class="descname">uri</code><em class="property"> = &lt;haystack.fields.CharField object&gt;</em><a class="headerlink" href="#annotations.search_indexes.TextIndex.uri" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/annotations.search_indexes.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

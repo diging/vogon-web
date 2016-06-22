@@ -1,0 +1,392 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.tasks &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.tasks</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">We should probably write some documentation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">from</span> <span class="nn">django.contrib.auth.models</span> <span class="kn">import</span> <span class="n">Group</span>
+<span class="kn">from</span> <span class="nn">django.utils.safestring</span> <span class="kn">import</span> <span class="n">SafeText</span>
+<span class="kn">from</span> <span class="nn">django.contrib.contenttypes.models</span> <span class="kn">import</span> <span class="n">ContentType</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">from</span> <span class="nn">guardian.shortcuts</span> <span class="kn">import</span> <span class="n">assign_perm</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">groupby</span>
+
+<span class="kn">import</span> <span class="nn">slate</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">managers</span>
+<span class="kn">from</span> <span class="nn">annotations.models</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">annotations</span> <span class="kn">import</span> <span class="n">quadriga</span>
+
+<span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">shared_task</span>
+
+
+<div class="viewcode-block" id="get_manager"><a class="viewcode-back" href="../../annotations.tasks.html#annotations.tasks.get_manager">[docs]</a><span class="k">def</span> <span class="nf">get_manager</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">print</span> <span class="nb">dir</span><span class="p">(</span><span class="n">managers</span><span class="p">),</span> <span class="n">name</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">managers</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No such manager.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tokenize"><a class="viewcode-back" href="../../annotations.tasks.html#annotations.tasks.tokenize">[docs]</a><span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">u&#39; &#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    In order to annotate a text, we must first wrap &quot;annotatable&quot; tokens</span>
+<span class="sd">    in &lt;word&gt;&lt;/word&gt; tags, with arbitrary IDs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    content : unicode</span>
+<span class="sd">    delimiter : unicode</span>
+<span class="sd">        Character or sequence by which to split and join tokens.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tokenizedContent : unicode</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">delimiter</span><span class="p">)</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="s1">u&#39;&lt;word id=&quot;{0}&quot;&gt;{1}&lt;/word&gt;&#39;</span>
+    <span class="k">return</span> <span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">pattern</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chunks</span><span class="p">)])</span></div>
+
+
+<div class="viewcode-block" id="retrieve"><a class="viewcode-back" href="../../annotations.tasks.html#annotations.tasks.retrieve">[docs]</a><span class="k">def</span> <span class="nf">retrieve</span><span class="p">(</span><span class="n">repository</span><span class="p">,</span> <span class="n">resource</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the content of a resource.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    repository : :class:`.Repository`</span>
+<span class="sd">    resource : unicode or int</span>
+<span class="sd">        Identifier by which the resource can be retrieved from ``repository``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    content : unicode</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">repository</span><span class="o">.</span><span class="n">getContent</span><span class="p">(</span><span class="n">resource</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="scrape"><a class="viewcode-back" href="../../annotations.tasks.html#annotations.tasks.scrape">[docs]</a><span class="k">def</span> <span class="nf">scrape</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve text content from a website.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : unicode</span>
+<span class="sd">        Location of web resource.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    textData : dict</span>
+<span class="sd">        Metadata and text content retrieved from ``url``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c1"># TODO : consider plugging in something like DiffBot.</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+
+    <span class="n">textData</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">soup</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">string</span><span class="p">,</span>
+        <span class="s1">&#39;content&#39;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+        <span class="s1">&#39;content-type&#39;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;content-type&#39;</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">textData</span></div>
+
+
+<div class="viewcode-block" id="extract_text_file"><a class="viewcode-back" href="../../annotations.tasks.html#annotations.tasks.extract_text_file">[docs]</a><span class="k">def</span> <span class="nf">extract_text_file</span><span class="p">(</span><span class="n">uploaded_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the text file, and return its content</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    uploaded_file : InMemoryUploadedFile</span>
+<span class="sd">        The uploaded text file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Content of the text file as a string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">uploaded_file</span><span class="o">.</span><span class="n">content_type</span> <span class="o">!=</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;uploaded_file file should be a plain text file&#39;</span><span class="p">)</span>
+    <span class="n">filecontent</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">uploaded_file</span><span class="p">:</span>
+        <span class="n">filecontent</span> <span class="o">+=</span> <span class="n">line</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span>
+    <span class="k">return</span> <span class="n">filecontent</span></div>
+
+
+<div class="viewcode-block" id="extract_pdf_file"><a class="viewcode-back" href="../../annotations.tasks.html#annotations.tasks.extract_pdf_file">[docs]</a><span class="k">def</span> <span class="nf">extract_pdf_file</span><span class="p">(</span><span class="n">uploaded_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract a PDF file and return its content</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    uploaded_file : InMemoryUploadedFile</span>
+<span class="sd">        The uploaded PDF file</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Content of the PDF file as a string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">uploaded_file</span><span class="o">.</span><span class="n">content_type</span> <span class="o">!=</span> <span class="s1">&#39;application/pdf&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;uploaded_file file should be a PDF file&#39;</span><span class="p">)</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">slate</span><span class="o">.</span><span class="n">PDF</span><span class="p">(</span><span class="n">uploaded_file</span><span class="p">)</span>
+    <span class="n">filecontent</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">doc</span><span class="p">:</span>
+        <span class="n">filecontent</span> <span class="o">+=</span> <span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+    <span class="k">return</span> <span class="n">filecontent</span></div>
+
+
+<span class="c1"># TODO: refactor!! This signature stinks.</span>
+<div class="viewcode-block" id="save_text_instance"><a class="viewcode-back" href="../../annotations.tasks.html#annotations.tasks.save_text_instance">[docs]</a><span class="k">def</span> <span class="nf">save_text_instance</span><span class="p">(</span><span class="n">tokenized_content</span><span class="p">,</span> <span class="n">text_title</span><span class="p">,</span> <span class="n">date_created</span><span class="p">,</span> <span class="n">is_public</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method creates and saves the text instance based on the parameters passed</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tokenized_content : String</span>
+<span class="sd">        The tokenized text</span>
+<span class="sd">    text_title : String</span>
+<span class="sd">        The title of the text instance</span>
+<span class="sd">    date_created : Date</span>
+<span class="sd">        The date to be associated with text instance</span>
+<span class="sd">    is_public : Boolean</span>
+<span class="sd">        Whether the text content is public or not</span>
+<span class="sd">    user : User</span>
+<span class="sd">        The user who saved the text content</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">uri</span><span class="p">:</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="s1">&#39;http://vogonweb.net/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid1</span><span class="p">())</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="n">tokenizedContent</span><span class="o">=</span><span class="n">tokenized_content</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">text_title</span><span class="p">,</span>
+            <span class="n">created</span><span class="o">=</span><span class="n">date_created</span><span class="p">,</span>
+            <span class="n">public</span><span class="o">=</span><span class="n">is_public</span><span class="p">,</span>
+            <span class="n">addedBy</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+            <span class="n">uri</span><span class="o">=</span><span class="n">uri</span><span class="p">)</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="n">assign_perm</span><span class="p">(</span><span class="s1">&#39;annotations.view_text&#39;</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_public</span><span class="p">:</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">Group</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Public&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">assign_perm</span><span class="p">(</span><span class="s1">&#39;annotations.view_text&#39;</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+
+
+<span class="nd">@shared_task</span>
+<span class="k">def</span> <span class="nf">submit_relationsets_to_quadriga</span><span class="p">(</span><span class="n">relationsets</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">status</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">quadriga</span><span class="o">.</span><span class="n">submit_relationsets</span><span class="p">(</span><span class="n">relationsets</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">status</span><span class="p">:</span>
+        <span class="n">accession</span> <span class="o">=</span> <span class="n">QuadrigaAccession</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">**</span><span class="p">{</span>
+            <span class="s1">&#39;createdBy&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
+            <span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project_id&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;workspace_id&#39;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workspace_id&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;network_id&#39;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;networkid&#39;</span><span class="p">)</span>
+        <span class="p">})</span>
+
+        <span class="k">for</span> <span class="n">relationset</span> <span class="ow">in</span> <span class="n">relationsets</span><span class="p">:</span>
+            <span class="n">relationset</span><span class="o">.</span><span class="n">submitted</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">relationset</span><span class="o">.</span><span class="n">submittedOn</span> <span class="o">=</span> <span class="n">accession</span><span class="o">.</span><span class="n">created</span>
+            <span class="n">relationset</span><span class="o">.</span><span class="n">submittedWith</span> <span class="o">=</span> <span class="n">accession</span>
+            <span class="n">relationset</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="n">relationset</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">submitted</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">submittedOn</span> <span class="o">=</span> <span class="n">accession</span><span class="o">.</span><span class="n">created</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">submittedWith</span> <span class="o">=</span> <span class="n">accession</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">appellation</span> <span class="ow">in</span> <span class="n">relationset</span><span class="o">.</span><span class="n">appellations</span><span class="p">():</span>
+                <span class="n">appellation</span><span class="o">.</span><span class="n">submitted</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">appellation</span><span class="o">.</span><span class="n">submittedOn</span> <span class="o">=</span> <span class="n">accession</span><span class="o">.</span><span class="n">created</span>
+                <span class="n">appellation</span><span class="o">.</span><span class="n">submittedWith</span> <span class="o">=</span> <span class="n">accession</span>
+                <span class="n">appellation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+
+<span class="nd">@shared_task</span>
+<span class="k">def</span> <span class="nf">accession_ready_relationsets</span><span class="p">():</span>
+
+    <span class="n">qs</span> <span class="o">=</span> <span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">submitted</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">pending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="c1"># Do not submit a relationset to Quadriga if the constituent interpretations</span>
+    <span class="c1">#  involve concepts that are not resolved.</span>
+    <span class="n">all_rsets</span> <span class="o">=</span> <span class="p">[</span><span class="n">rs</span> <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">qs</span> <span class="k">if</span> <span class="n">rs</span><span class="o">.</span><span class="n">ready</span><span class="p">()]</span>
+
+    <span class="k">print</span> <span class="s1">&#39;processing </span><span class="si">%i</span><span class="s1"> relationsets&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_rsets</span><span class="p">)</span>
+    <span class="n">project_grouper</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">rs</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">partOf</span><span class="o">.</span><span class="n">first</span><span class="p">(),</span> <span class="s1">&#39;quadriga_id&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">project_id</span><span class="p">,</span> <span class="n">project_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">all_rsets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">project_grouper</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="n">project_grouper</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">project_id</span>
+        <span class="k">for</span> <span class="n">text_id</span><span class="p">,</span> <span class="n">text_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">project_group</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="n">rs</span><span class="o">.</span><span class="n">occursIn</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">Text</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">text_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">user_group</span> <span class="ow">in</span> <span class="n">groupby</span><span class="p">(</span><span class="n">text_group</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">rs</span><span class="p">:</span> <span class="n">rs</span><span class="o">.</span><span class="n">createdBy</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+                <span class="n">user</span> <span class="o">=</span> <span class="n">VogonUser</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+                <span class="c1"># We lose the iterator after the first pass, so we want a list here.</span>
+                <span class="n">rsets</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">rs</span> <span class="ow">in</span> <span class="n">user_group</span><span class="p">:</span>
+                    <span class="n">rsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span>
+                    <span class="n">rs</span><span class="o">.</span><span class="n">pending</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">rs</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">if</span> <span class="n">project_id</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                        <span class="s1">&#39;project_id&#39;</span><span class="p">:</span> <span class="n">project_id</span><span class="p">,</span>
+                    <span class="p">})</span>
+                <span class="n">submit_relationsets_to_quadriga</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">rsets</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="handle_file_upload"><a class="viewcode-back" href="../../annotations.tasks.html#annotations.tasks.handle_file_upload">[docs]</a><span class="k">def</span> <span class="nf">handle_file_upload</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handle the uploaded file and route it to corresponding handlers</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+<span class="sd">    form : `django.forms.Form`</span>
+<span class="sd">        The form with uploaded content</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="p">[</span><span class="s1">&#39;filetoupload&#39;</span><span class="p">]</span>
+    <span class="n">uri</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;uri&#39;</span><span class="p">]</span>
+    <span class="n">text_title</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+    <span class="n">date_created</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;datecreated&#39;</span><span class="p">]</span>
+    <span class="n">is_public</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;ispublic&#39;</span><span class="p">]</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
+    <span class="n">file_content</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">uploaded_file</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="s1">&#39;text/plain&#39;</span><span class="p">:</span>
+        <span class="n">file_content</span> <span class="o">=</span> <span class="n">extract_text_file</span><span class="p">(</span><span class="n">uploaded_file</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">uploaded_file</span><span class="o">.</span><span class="n">content_type</span> <span class="o">==</span> <span class="s1">&#39;application/pdf&#39;</span><span class="p">:</span>
+        <span class="n">file_content</span> <span class="o">=</span> <span class="n">extract_pdf_file</span><span class="p">(</span><span class="n">uploaded_file</span><span class="p">)</span>
+
+    <span class="c1"># Save the content if the above extractors extracted something</span>
+    <span class="k">if</span> <span class="n">file_content</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">tokenized_content</span> <span class="o">=</span> <span class="n">tokenize</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">save_text_instance</span><span class="p">(</span><span class="n">tokenized_content</span><span class="p">,</span> <span class="n">text_title</span><span class="p">,</span> <span class="n">date_created</span><span class="p">,</span> <span class="n">is_public</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">uri</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

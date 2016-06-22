@@ -1,0 +1,581 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.views.network_views &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.views.network_views</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides network visualization views.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">caches</span>
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">HttpResponse</span><span class="p">,</span> <span class="n">JsonResponse</span>
+<span class="kn">from</span> <span class="nn">django.template</span> <span class="kn">import</span> <span class="n">RequestContext</span><span class="p">,</span> <span class="n">loader</span>
+
+<span class="kn">from</span> <span class="nn">annotations.forms</span> <span class="kn">import</span> <span class="n">RelationSetFilterForm</span>
+<span class="kn">from</span> <span class="nn">annotations.utils</span> <span class="kn">import</span> <span class="n">basepath</span>
+<span class="kn">from</span> <span class="nn">annotations.display_helpers</span> <span class="kn">import</span> <span class="n">filter_relationset</span>
+<span class="kn">from</span> <span class="nn">annotations.models</span> <span class="kn">import</span> <span class="n">RelationSet</span><span class="p">,</span> <span class="n">Relation</span><span class="p">,</span> <span class="n">Appellation</span><span class="p">,</span> <span class="n">Text</span>
+<span class="kn">from</span> <span class="nn">concepts.models</span> <span class="kn">import</span> <span class="n">Concept</span><span class="p">,</span> <span class="n">Type</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">Counter</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">igraph</span>
+
+
+<div class="viewcode-block" id="network"><a class="viewcode-back" href="../../../annotations.views.network_views.html#annotations.views.network_views.network">[docs]</a><span class="k">def</span> <span class="nf">network</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides a network browser view.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    request : `django.http.requests.HttpRequest`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    ----------</span>
+<span class="sd">    :class:`django.http.response.HttpResponse`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s1">&#39;annotations/network.html&#39;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">RelationSetFilterForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">)</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;baselocation&#39;</span><span class="p">:</span> <span class="n">basepath</span><span class="p">(</span><span class="n">request</span><span class="p">),</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+        <span class="s1">&#39;form&#39;</span><span class="p">:</span> <span class="n">form</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">HttpResponse</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="network_for_text"><a class="viewcode-back" href="../../../annotations.views.network_views.html#annotations.views.network_views.network_for_text">[docs]</a><span class="k">def</span> <span class="nf">network_for_text</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">text_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides network data for the graph tab in the text annotation view.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">relationsets</span> <span class="o">=</span> <span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">occursIn_id</span><span class="o">=</span><span class="n">text_id</span><span class="p">)</span>
+    <span class="n">appellations</span> <span class="o">=</span> <span class="n">Appellation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">asPredicate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                                              <span class="n">occursIn_id</span><span class="o">=</span><span class="n">text_id</span><span class="p">)</span>
+
+    <span class="c1"># We may want to show this graph on the public (non-annotation) text view,</span>
+    <span class="c1">#  and thus want to load appellations created by everyone.</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">user_id</span><span class="p">:</span>
+        <span class="n">relationsets</span> <span class="o">=</span> <span class="n">relationsets</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">createdBy_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+        <span class="n">appellations</span> <span class="o">=</span> <span class="n">appellations</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">createdBy_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+
+    <span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">generate_network_data</span><span class="p">(</span><span class="n">relationsets</span><span class="p">,</span> <span class="n">text_id</span><span class="o">=</span><span class="n">text_id</span><span class="p">,</span>
+                                         <span class="n">appellation_queryset</span><span class="o">=</span><span class="n">appellations</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s1">&#39;elements&#39;</span><span class="p">:</span> <span class="n">nodes</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="o">+</span> <span class="n">edges</span><span class="o">.</span><span class="n">values</span><span class="p">()})</span></div>
+
+
+<div class="viewcode-block" id="generate_network_data"><a class="viewcode-back" href="../../../annotations.views.network_views.html#annotations.views.network_views.generate_network_data">[docs]</a><span class="k">def</span> <span class="nf">generate_network_data</span><span class="p">(</span><span class="n">relationset_queryset</span><span class="p">,</span> <span class="n">text_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                          <span class="n">appellation_queryset</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a network of :class:`.Concept` instances based on</span>
+<span class="sd">    :class:.`.RelationSet` instances in ``relationset_queryset``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># TODO: break this up a bit.</span>
+
+    <span class="n">edges</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>      <span class="c1"># Appellation ids.</span>
+    <span class="c1"># If we want to show any non-related appellations, we can include them</span>
+    <span class="c1">#  in this separate appellation_queryset.</span>
+    <span class="k">if</span> <span class="n">appellation_queryset</span><span class="p">:</span>
+        <span class="c1"># Using select_related gathers all of our database queries related to</span>
+        <span class="c1">#  this queryset into a single call; this is way more performant than</span>
+        <span class="c1">#  performing queries each time we access a related field.</span>
+        <span class="n">related_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;interpretation&#39;</span><span class="p">,</span> <span class="s1">&#39;interpretation__appellation&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;interpretation__appellation__occursIn&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;interpretation__typed&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn&#39;</span><span class="p">]</span>
+        <span class="n">appellation_queryset</span> <span class="o">=</span> <span class="n">appellation_queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">asPredicate</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>\
+                                                <span class="o">.</span><span class="n">select_related</span><span class="p">(</span><span class="o">*</span><span class="n">related_fields</span><span class="p">)</span>
+
+        <span class="c1"># Rather than load whole objects, we only load the fields from the</span>
+        <span class="c1">#  related models that we actually need. This expands the resultset</span>
+        <span class="c1">#  quite a bit, because we will get a result object for each target of</span>
+        <span class="c1">#  the furthest downstream M2M relation (Concept.appellation_set in</span>
+        <span class="c1">#  this case). But it cuts down our database overhead enormously.</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;interpretation__id&#39;</span><span class="p">,</span>  <span class="s1">&#39;interpretation__label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__uri&#39;</span><span class="p">,</span> <span class="s1">&#39;interpretation__description&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__typed__id&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__appellation__id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__appellation__occursIn__id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__appellation__occursIn__title&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__label&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__uri&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__description&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__typed__id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__appellation__id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__appellation__occursIn__id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;interpretation__merged_with__appellation__occursIn__title&#39;</span>
+        <span class="p">]</span>
+
+        <span class="c1"># This will yield one object per text, so we will see the same</span>
+        <span class="c1">#  appellation and corresponding interpretations several times.</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">appellation_queryset</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">fields</span><span class="p">):</span>
+            <span class="n">appell_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+
+            <span class="c1"># If the concept used in this appellation has been merged with</span>
+            <span class="c1">#  another concept, we need to use that master/target concept</span>
+            <span class="c1">#  instead. In that case, ``merged_with`` will be Truthy. We use</span>
+            <span class="c1">#  string interpolation below to insert the ``merged_with`` relation</span>
+            <span class="c1">#  into field lookups. If there is no master/target concept, we will</span>
+            <span class="c1">#  simply interpolate an empty string.</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__merged_with__id&#39;</span><span class="p">):</span>
+                <span class="n">mw</span> <span class="o">=</span> <span class="s1">&#39;merged_with__&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mw</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+            <span class="c1"># Nodes represent concepts (target of interpretation). We</span>
+            <span class="c1">#  interpolate ``mw`` in case the concept has been merged.</span>
+            <span class="n">node_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__</span><span class="si">%s</span><span class="s1">id&#39;</span> <span class="o">%</span> <span class="n">mw</span><span class="p">)</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__</span><span class="si">%s</span><span class="s1">typed__id&#39;</span> <span class="o">%</span> <span class="n">mw</span><span class="p">)</span>
+            <span class="n">node_label</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__</span><span class="si">%s</span><span class="s1">label&#39;</span> <span class="o">%</span> <span class="n">mw</span><span class="p">)</span>
+            <span class="n">node_uri</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__</span><span class="si">%s</span><span class="s1">uri&#39;</span> <span class="o">%</span> <span class="n">mw</span><span class="p">)</span>
+            <span class="n">node_description</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__</span><span class="si">%s</span><span class="s1">description&#39;</span> <span class="o">%</span> <span class="n">mw</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">node_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>    <span class="c1"># Only one node per concept.</span>
+                <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">node_id</span><span class="p">,</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">node_label</span><span class="p">,</span>
+                        <span class="s1">&#39;uri&#39;</span><span class="p">:</span> <span class="n">node_uri</span><span class="p">,</span>
+                        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="n">node_description</span><span class="p">,</span>
+                        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">node_type</span><span class="p">,</span>
+                        <span class="s1">&#39;appellations&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
+                        <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="mf">1.</span><span class="p">,</span>
+                        <span class="s1">&#39;texts&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">([])</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>   <span class="c1"># Don&#39;t need to add it again.</span>
+                <span class="c1"># Node is already in the network, so we just increment weight.</span>
+                <span class="k">if</span> <span class="n">appell_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>   <span class="c1"># But only once per appellation.</span>
+                    <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.</span>
+                    <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">appell_id</span><span class="p">)</span>
+            <span class="c1"># These are useful in the main network view for displaying</span>
+            <span class="c1">#  information about the texts associated with each concept.</span>
+            <span class="n">text_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__</span><span class="si">%s</span><span class="s1">appellation__occursIn__id&#39;</span> <span class="o">%</span> <span class="n">mw</span><span class="p">)</span>
+            <span class="n">text_title</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__</span><span class="si">%s</span><span class="s1">appellation__occursIn__title&#39;</span> <span class="o">%</span> <span class="n">mw</span><span class="p">)</span>
+
+            <span class="c1"># We avoid duplicates by using a set; this needs to be recast to</span>
+            <span class="c1">#  a dict before we return the data.</span>
+            <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;texts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">text_id</span><span class="p">,</span> <span class="n">text_title</span><span class="p">))</span>
+
+            <span class="c1"># A set again; must recast to list.</span>
+            <span class="n">interp_app_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interpretation__</span><span class="si">%s</span><span class="s1">appellation__id&#39;</span> <span class="o">%</span> <span class="n">mw</span><span class="p">)</span>
+            <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;appellations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">interp_app_id</span><span class="p">)</span>
+
+    <span class="c1"># Rather than load whole objects, we only load the fields from the</span>
+    <span class="c1">#  related models that we actually need. This expands the resultset</span>
+    <span class="c1">#  quite a bit, because we will get a result object for each target of</span>
+    <span class="c1">#  the furthest downstream M2M relation. But it cuts down our database</span>
+    <span class="c1">#  overhead enormously.</span>
+    <span class="n">related_fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn__id&#39;</span><span class="p">,</span> <span class="s1">&#39;occursIn__title&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__predicate__interpretation__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__predicate__interpretation__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__predicate__interpretation__uri&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__predicate__interpretation__description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__predicate__interpretation__merged_with__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__predicate__interpretation__merged_with__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__predicate__interpretation__merged_with__uri&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__predicate__interpretation__merged_with__description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__asPredicate&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__asPredicate&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__uri&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__uri&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__typed__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__typed__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__merged_with__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__merged_with__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__merged_with__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__merged_with__label&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__merged_with__uri&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__merged_with__uri&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__merged_with__description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__merged_with__description&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__source_appellations__interpretation__merged_with__typed__id&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;constituents__object_appellations__interpretation__merged_with__typed__id&#39;</span><span class="p">,]</span>
+
+    <span class="c1"># We&#39;re agnostic about the structure and meaning of the RelationSet, and so</span>
+    <span class="c1">#  are simply adding edges between any non-predicate concepts that occur</span>
+    <span class="c1">#  together in a RelationSet. Since we aren&#39;t accessing the RelationSet</span>
+    <span class="c1">#  object directly (only via fields, as described above) we can&#39;t get all</span>
+    <span class="c1">#  of its concepts at once, so we gather them together here in sets. Later</span>
+    <span class="c1">#  on we iterate over pairs of concepts within each RelationSet using</span>
+    <span class="c1">#  combinations() to fill in the graph edges.</span>
+    <span class="n">relationset_nodes</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>    <span class="c1"># Holds Concept (node) ids.</span>
+
+    <span class="c1"># Hold on to text ID and title for each RelationSet, so that we can populate</span>
+    <span class="c1">#  each edge&#39;s ``data.texts`` property later on.</span>
+    <span class="n">relationset_texts</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+
+    <span class="c1"># We want to display how each pair of concepts is related. Since we&#39;re</span>
+    <span class="c1">#  agnostic about the structure and meaning of the RelationSet, we simply</span>
+    <span class="c1">#  gather together all non-generic concepts (i.e. not &quot;be&quot; or &quot;have&quot;) used</span>
+    <span class="c1">#  as &quot;predicates&quot; in the RelationSet. We use the Counter (one per concept)</span>
+    <span class="c1">#  to keep track of the number of RelationSets that used that predicate for</span>
+    <span class="c1">#  each pair of concepts.</span>
+    <span class="n">relationset_predicates</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">Counter</span><span class="p">)</span>
+
+    <span class="n">concept_descriptions</span> <span class="o">=</span> <span class="p">{}</span>   <span class="c1"># For ease of access, later.</span>
+
+    <span class="c1"># We get one result per constituent Relation in the RelationSet.</span>
+    <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">relationset_queryset</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="o">*</span><span class="n">related_fields</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+            <span class="c1"># If the concept used in this appellation has been merged with</span>
+            <span class="c1">#  another concept, we need to use that master/target concept</span>
+            <span class="c1">#  instead. In that case, ``merged_with`` will be Truthy. We use</span>
+            <span class="c1">#  string interpolation below to insert the ``merged_with`` relation</span>
+            <span class="c1">#  into field lookups.</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__interpretation__merged_with__id&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">):</span>
+                <span class="n">mw</span> <span class="o">=</span> <span class="s1">&#39;merged_with__&#39;</span>
+            <span class="c1"># If there is no master/target concept, we will simply interpolate</span>
+            <span class="c1">#  an empty string.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mw</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+            <span class="n">appell_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__id&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+            <span class="n">appell_asPredicate</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__asPredicate&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+            <span class="n">node_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__interpretation__</span><span class="si">%s</span><span class="s1">id&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">mw</span><span class="p">))</span>
+
+            <span class="c1"># Node may be a Relation or a DateAppellation, which we don&#39;t want</span>
+            <span class="c1">#  in the network.</span>
+            <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">appell_asPredicate</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">node_label</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__interpretation__</span><span class="si">%s</span><span class="s1">label&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">mw</span><span class="p">))</span>
+            <span class="n">node_uri</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__interpretation__</span><span class="si">%s</span><span class="s1">uri&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">mw</span><span class="p">))</span>
+            <span class="n">node_description</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__interpretation__</span><span class="si">%s</span><span class="s1">description&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">mw</span><span class="p">))</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__interpretation__</span><span class="si">%s</span><span class="s1">typed__id&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">mw</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">node_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>    <span class="c1"># Only one node per concept.</span>
+                <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">node_id</span><span class="p">,</span>
+                        <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="n">node_label</span><span class="p">,</span>
+                        <span class="s1">&#39;uri&#39;</span><span class="p">:</span> <span class="n">node_uri</span><span class="p">,</span>
+                        <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="n">node_description</span><span class="p">,</span>
+                        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">node_type</span><span class="p">,</span>
+                        <span class="s1">&#39;appellations&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
+                        <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="mf">1.</span><span class="p">,</span>
+                        <span class="s1">&#39;texts&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">([])</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>   <span class="c1"># Don&#39;t need to add it again.</span>
+                <span class="c1"># Node is already in the network, so we just increment weight.</span>
+                <span class="k">if</span> <span class="n">appell_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>   <span class="c1"># But only once per appellation.</span>
+                    <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.</span>
+                    <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">appell_id</span><span class="p">)</span>
+
+            <span class="c1"># These are useful in the main network view for displaying</span>
+            <span class="c1">#  information about the texts associated with each concept.</span>
+            <span class="n">text_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;occursIn__id&#39;</span><span class="p">)</span>
+            <span class="n">text_title</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;occursIn__title&#39;</span><span class="p">)</span>
+
+            <span class="c1"># We avoid duplicates by using a set; this needs to be recast to</span>
+            <span class="c1">#  a dict before we return the data.</span>
+            <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;texts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">text_id</span><span class="p">,</span> <span class="n">text_title</span><span class="p">))</span>
+
+            <span class="c1"># A set again; must recast to list.</span>
+            <span class="n">interp_app_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__</span><span class="si">%s</span><span class="s1">_appellations__id&#39;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+            <span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;appellations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">interp_app_id</span><span class="p">)</span>
+
+        <span class="c1"># Check for merged concepts. We&#39;ll use string interpolation as before</span>
+        <span class="c1">#  to select the correct concept.</span>
+        <span class="c1">#</span>
+        <span class="c1"># TODO: can we wrap this logic into the block above?</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__source_appellations__interpretation__merged_with__id&#39;</span><span class="p">):</span>
+            <span class="n">source_mw</span> <span class="o">=</span> <span class="s1">&#39;merged_with__&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">source_mw</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__object_appellations__interpretation__merged_with__id&#39;</span><span class="p">):</span>
+            <span class="n">object_mw</span> <span class="o">=</span> <span class="s1">&#39;merged_with__&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">object_mw</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__predicate__interpretation__merged_with__id&#39;</span><span class="p">):</span>
+            <span class="n">predicate_mw</span> <span class="o">=</span> <span class="s1">&#39;merged_with__&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">predicate_mw</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">source_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__source_appellations__interpretation__</span><span class="si">%s</span><span class="s1">id&#39;</span> <span class="o">%</span> <span class="n">source_mw</span><span class="p">)</span>
+        <span class="n">source_asPredicate</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__source_appellations__asPredicate&#39;</span><span class="p">)</span>
+        <span class="n">source_label</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__source_appellations__interpretation__</span><span class="si">%s</span><span class="s1">label&#39;</span> <span class="o">%</span> <span class="n">source_mw</span><span class="p">)</span>
+        <span class="n">source_uri</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__source_appellations__interpretation__</span><span class="si">%s</span><span class="s1">uri&#39;</span> <span class="o">%</span> <span class="n">source_mw</span><span class="p">)</span>
+        <span class="n">object_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__object_appellations__interpretation__</span><span class="si">%s</span><span class="s1">id&#39;</span> <span class="o">%</span> <span class="n">object_mw</span><span class="p">)</span>
+        <span class="n">object_asPredicate</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__object_appellations__asPredicate&#39;</span><span class="p">)</span>
+        <span class="n">object_label</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__object_appellations__interpretation__</span><span class="si">%s</span><span class="s1">label&#39;</span> <span class="o">%</span> <span class="n">object_mw</span><span class="p">)</span>
+        <span class="n">object_uri</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__object_appellations__interpretation__</span><span class="si">%s</span><span class="s1">uri&#39;</span> <span class="o">%</span> <span class="n">object_mw</span><span class="p">)</span>
+        <span class="n">text_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;occursIn__id&#39;</span><span class="p">)</span>
+        <span class="n">text_title</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;occursIn__title&#39;</span><span class="p">)</span>
+
+        <span class="n">predicate_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__predicate__interpretation__</span><span class="si">%s</span><span class="s1">id&#39;</span> <span class="o">%</span> <span class="n">predicate_mw</span><span class="p">)</span>
+        <span class="n">predicate_label</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__predicate__interpretation__</span><span class="si">%s</span><span class="s1">label&#39;</span> <span class="o">%</span> <span class="n">predicate_mw</span><span class="p">)</span>
+        <span class="n">predicate_uri</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__predicate__interpretation__</span><span class="si">%s</span><span class="s1">uri&#39;</span> <span class="o">%</span> <span class="n">predicate_mw</span><span class="p">)</span>
+
+        <span class="n">relationset_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">source_id</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">source_asPredicate</span><span class="p">:</span>
+                <span class="n">relationset_nodes</span><span class="p">[</span><span class="n">relationset_id</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">source_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">source_uri</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">PREDICATES</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">concept_descriptions</span><span class="p">[</span><span class="n">source_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__source_appellations__interpretation__</span><span class="si">%s</span><span class="s1">description&#39;</span> <span class="o">%</span> <span class="n">source_mw</span><span class="p">)</span>
+                <span class="n">relationset_predicates</span><span class="p">[</span><span class="n">relationset_id</span><span class="p">][(</span><span class="n">source_id</span><span class="p">,</span> <span class="n">source_label</span><span class="p">)]</span> <span class="o">+=</span> <span class="mf">1.</span>
+
+        <span class="k">if</span> <span class="n">object_id</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">object_asPredicate</span><span class="p">:</span>
+                <span class="n">relationset_nodes</span><span class="p">[</span><span class="n">relationset_id</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">object_id</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">object_uri</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">PREDICATES</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">concept_descriptions</span><span class="p">[</span><span class="n">object_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__object_appellations__interpretation__</span><span class="si">%s</span><span class="s1">description&#39;</span> <span class="o">%</span> <span class="n">object_mw</span><span class="p">)</span>
+                <span class="n">relationset_predicates</span><span class="p">[</span><span class="n">relationset_id</span><span class="p">][(</span><span class="n">object_id</span><span class="p">,</span> <span class="n">object_label</span><span class="p">)]</span> <span class="o">+=</span> <span class="mf">1.</span>
+
+        <span class="k">if</span> <span class="n">predicate_id</span> <span class="ow">and</span> <span class="n">predicate_uri</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">PREDICATES</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">concept_descriptions</span><span class="p">[</span><span class="n">predicate_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;constituents__predicate__interpretation__</span><span class="si">%s</span><span class="s1">description&#39;</span> <span class="o">%</span> <span class="n">predicate_mw</span><span class="p">)</span>
+            <span class="n">relationset_predicates</span><span class="p">[</span><span class="n">relationset_id</span><span class="p">][(</span><span class="n">predicate_id</span><span class="p">,</span> <span class="n">predicate_label</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">relationset_texts</span><span class="p">[</span><span class="n">relationset_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">text_id</span><span class="p">,</span> <span class="n">text_title</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">relationset_id</span><span class="p">,</span> <span class="n">relation_nodes</span> <span class="ow">in</span> <span class="n">relationset_nodes</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">source_id</span><span class="p">,</span> <span class="n">object_id</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">relation_nodes</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">edge_key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">((</span><span class="n">source_id</span><span class="p">,</span> <span class="n">object_id</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">edge_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
+                <span class="n">edges</span><span class="p">[</span><span class="n">edge_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">),</span>
+                        <span class="s1">&#39;source&#39;</span><span class="p">:</span> <span class="n">source_id</span><span class="p">,</span>
+                        <span class="s1">&#39;target&#39;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">,</span>
+                        <span class="s1">&#39;weight&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+                        <span class="s1">&#39;texts&#39;</span><span class="p">:</span> <span class="nb">set</span><span class="p">([]),</span>
+                        <span class="s1">&#39;relations&#39;</span><span class="p">:</span> <span class="n">Counter</span><span class="p">(),</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="n">edges</span><span class="p">[</span><span class="n">edge_key</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;texts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">relationset_texts</span><span class="p">[</span><span class="n">relationset_id</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">relationset_predicates</span><span class="p">[</span><span class="n">relationset_id</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">edges</span><span class="p">[</span><span class="n">edge_key</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;relations&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span>
+            <span class="n">edges</span><span class="p">[</span><span class="n">edge_key</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;texts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                                  <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;texts&#39;</span><span class="p">])]</span>
+        <span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;appellations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;appellations&#39;</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">edges</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;texts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+                                  <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;texts&#39;</span><span class="p">])]</span>
+        <span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;relations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span>
+            <span class="s1">&#39;concept_id&#39;</span><span class="p">:</span> <span class="n">relkey</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;concept_label&#39;</span><span class="p">:</span> <span class="n">relkey</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;count&#39;</span><span class="p">:</span> <span class="n">count</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="n">concept_descriptions</span><span class="p">[</span><span class="n">relkey</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+        <span class="p">}</span> <span class="k">for</span> <span class="n">relkey</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;relations&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+
+    <span class="k">return</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span></div>
+
+
+<div class="viewcode-block" id="network_data"><a class="viewcode-back" href="../../../annotations.views.network_views.html#annotations.views.network_views.network_data">[docs]</a><span class="k">def</span> <span class="nf">network_data</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates JSON data for Cytoscape.js graph visualization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># project = request.GET.get(&#39;project&#39;, None)</span>
+    <span class="c1"># user = request.GET.get(&#39;user&#39;, None)</span>
+    <span class="c1"># text = request.GET.get(&#39;text&#39;, None)</span>
+
+    <span class="c1"># TODO: farm some of this out to a utility function (e.g. the igraph bits).</span>
+
+    <span class="n">cache_key</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_full_path</span><span class="p">()</span>
+    <span class="n">cache</span> <span class="o">=</span> <span class="n">caches</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span>
+
+    <span class="n">response_data</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cache_key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">response_data</span><span class="p">:</span>
+        <span class="n">queryset</span> <span class="o">=</span> <span class="n">filter_relationset</span><span class="p">(</span><span class="n">RelationSet</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="p">)</span>
+        <span class="c1"># if project:</span>
+        <span class="c1">#     queryset = queryset.filter(occursIn__partOf_id=project)</span>
+        <span class="c1"># if user:</span>
+        <span class="c1">#     queryset = queryset.filter(createdBy_id=user)</span>
+        <span class="c1"># if text:</span>
+        <span class="c1">#     queryset = queryset.filter(occursIn_id=text)</span>
+
+        <span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">generate_network_data</span><span class="p">(</span><span class="n">queryset</span><span class="p">)</span>
+        <span class="n">nodes_rebased</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">edges_rebased</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">node_lookup</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">max_edge</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">max_node</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nodes</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">ogn_id</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+            <span class="n">nodes_rebased</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="c1"># nodes_rebased[i].update({&#39;id&#39;: i})</span>
+            <span class="n">nodes_rebased</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">nodes_rebased</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;concept_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ogn_id</span>
+
+            <span class="n">node_lookup</span><span class="p">[</span><span class="n">ogn_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+            <span class="k">if</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">max_node</span><span class="p">:</span>
+                <span class="n">max_node</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">edge</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">edges</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">ogn_id</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">])</span>
+            <span class="n">edges_rebased</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+
+            <span class="n">edges_rebased</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes_rebased</span><span class="p">)})</span>
+            <span class="n">edges_rebased</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodes_rebased</span><span class="p">[</span><span class="n">node_lookup</span><span class="p">[</span><span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;source&#39;</span><span class="p">]]][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+            <span class="n">edges_rebased</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;target&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodes_rebased</span><span class="p">[</span><span class="n">node_lookup</span><span class="p">[</span><span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;target&#39;</span><span class="p">]]][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">max_edge</span><span class="p">:</span>
+                <span class="n">max_edge</span> <span class="o">=</span> <span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">edges_rebased</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">edge</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">max_edge</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes_rebased</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">50</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]))</span><span class="o">/</span><span class="n">max_node</span>
+
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">igraph</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_vertices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes_rebased</span><span class="p">))</span>
+
+        <span class="n">graph</span><span class="o">.</span><span class="n">add_edges</span><span class="p">([(</span><span class="n">relation</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;source&#39;</span><span class="p">],</span> <span class="n">relation</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;target&#39;</span><span class="p">])</span>
+                         <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="n">edges_rebased</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">layout_graphopt</span><span class="p">()</span>
+        <span class="c1"># layout = graph.layout_fruchterman_reingold(maxiter=500)</span>
+
+        <span class="k">for</span> <span class="n">coords</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">_coords</span><span class="p">,</span> <span class="n">nodes_rebased</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">node</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span>
+            <span class="p">}</span>
+
+        <span class="n">response_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;elements&#39;</span><span class="p">:</span> <span class="n">nodes_rebased</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="o">+</span> <span class="n">edges_rebased</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+        <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">response_data</span><span class="p">,</span> <span class="mi">300</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">(</span><span class="n">response_data</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

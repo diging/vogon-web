@@ -1,0 +1,291 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.tasks module &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="index.html" />
+    <link rel="up" title="annotations package" href="annotations.html" />
+    <link rel="next" title="annotations.transformation_tasks module" href="annotations.transformation_tasks.html" />
+    <link rel="prev" title="annotations.serializers module" href="annotations.serializers.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="annotations.html">annotations package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="annotations.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#module-annotations">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="annotations.html">annotations package</a><ul>
+      <li>Previous: <a href="annotations.serializers.html" title="previous chapter">annotations.serializers module</a></li>
+      <li>Next: <a href="annotations.transformation_tasks.html" title="next chapter">annotations.transformation_tasks module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-annotations.tasks">
+<span id="annotations-tasks-module"></span><h1>annotations.tasks module<a class="headerlink" href="#module-annotations.tasks" title="Permalink to this headline">¶</a></h1>
+<p>We should probably write some documentation.</p>
+<dl class="function">
+<dt id="annotations.tasks.extract_pdf_file">
+<code class="descclassname">annotations.tasks.</code><code class="descname">extract_pdf_file</code><span class="sig-paren">(</span><em>uploaded_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/tasks.html#extract_pdf_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.tasks.extract_pdf_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract a PDF file and return its content</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uploaded_file</strong> (<em>InMemoryUploadedFile</em>) &#8211; The uploaded PDF file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Content of the PDF file as a string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.tasks.extract_text_file">
+<code class="descclassname">annotations.tasks.</code><code class="descname">extract_text_file</code><span class="sig-paren">(</span><em>uploaded_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/tasks.html#extract_text_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.tasks.extract_text_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the text file, and return its content</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>uploaded_file</strong> (<em>InMemoryUploadedFile</em>) &#8211; The uploaded text file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">Content of the text file as a string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.tasks.get_manager">
+<code class="descclassname">annotations.tasks.</code><code class="descname">get_manager</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/tasks.html#get_manager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.tasks.get_manager" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="annotations.tasks.handle_file_upload">
+<code class="descclassname">annotations.tasks.</code><code class="descname">handle_file_upload</code><span class="sig-paren">(</span><em>request</em>, <em>form</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/tasks.html#handle_file_upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.tasks.handle_file_upload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle the uploaded file and route it to corresponding handlers</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>request</strong> (<cite>django.http.requests.HttpRequest</cite>) &#8211; </li>
+<li><strong>form</strong> (<cite>django.forms.Form</cite>) &#8211; The form with uploaded content</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.tasks.retrieve">
+<code class="descclassname">annotations.tasks.</code><code class="descname">retrieve</code><span class="sig-paren">(</span><em>repository</em>, <em>resource</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/tasks.html#retrieve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.tasks.retrieve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the content of a resource.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>repository</strong> (<a class="reference internal" href="repository.models.html#repository.models.Repository" title="repository.models.Repository"><code class="xref py py-class docutils literal"><span class="pre">Repository</span></code></a>) &#8211; </li>
+<li><strong>resource</strong> (<em>unicode or int</em>) &#8211; Identifier by which the resource can be retrieved from <code class="docutils literal"><span class="pre">repository</span></code>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>content</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">unicode</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.tasks.save_text_instance">
+<code class="descclassname">annotations.tasks.</code><code class="descname">save_text_instance</code><span class="sig-paren">(</span><em>tokenized_content</em>, <em>text_title</em>, <em>date_created</em>, <em>is_public</em>, <em>user</em>, <em>uri=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/tasks.html#save_text_instance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.tasks.save_text_instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method creates and saves the text instance based on the parameters passed</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tokenized_content</strong> (<em>String</em>) &#8211; The tokenized text</li>
+<li><strong>text_title</strong> (<em>String</em>) &#8211; The title of the text instance</li>
+<li><strong>date_created</strong> (<em>Date</em>) &#8211; The date to be associated with text instance</li>
+<li><strong>is_public</strong> (<em>Boolean</em>) &#8211; Whether the text content is public or not</li>
+<li><strong>user</strong> (<em>User</em>) &#8211; The user who saved the text content</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.tasks.scrape">
+<code class="descclassname">annotations.tasks.</code><code class="descname">scrape</code><span class="sig-paren">(</span><em>url</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/tasks.html#scrape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.tasks.scrape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve text content from a website.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>url</strong> (<em>unicode</em>) &#8211; Location of web resource.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>textData</strong> &#8211; Metadata and text content retrieved from <code class="docutils literal"><span class="pre">url</span></code>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.tasks.tokenize">
+<code class="descclassname">annotations.tasks.</code><code class="descname">tokenize</code><span class="sig-paren">(</span><em>content</em>, <em>delimiter=u' '</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/tasks.html#tokenize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.tasks.tokenize" title="Permalink to this definition">¶</a></dt>
+<dd><p>In order to annotate a text, we must first wrap &#8220;annotatable&#8221; tokens
+in &lt;word&gt;&lt;/word&gt; tags, with arbitrary IDs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>content</strong> (<em>unicode</em>) &#8211; </li>
+<li><strong>delimiter</strong> (<em>unicode</em>) &#8211; Character or sequence by which to split and join tokens.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>tokenizedContent</strong></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">unicode</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/annotations.tasks.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

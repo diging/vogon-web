@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.views.relationtemplate_views module &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="index.html" />
+    <link rel="up" title="annotations.views package" href="annotations.views.html" />
+    <link rel="next" title="annotations.views.repository_views module" href="annotations.views.repository_views.html" />
+    <link rel="prev" title="annotations.views.quadruple_views module" href="annotations.views.quadruple_views.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="annotations.html">annotations package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="annotations.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotations.html#module-annotations">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="annotations.html">annotations package</a><ul>
+  <li><a href="annotations.views.html">annotations.views package</a><ul>
+      <li>Previous: <a href="annotations.views.quadruple_views.html" title="previous chapter">annotations.views.quadruple_views module</a></li>
+      <li>Next: <a href="annotations.views.repository_views.html" title="next chapter">annotations.views.repository_views module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-annotations.views.relationtemplate_views">
+<span id="annotations-views-relationtemplate-views-module"></span><h1>annotations.views.relationtemplate_views module<a class="headerlink" href="#module-annotations.views.relationtemplate_views" title="Permalink to this headline">¶</a></h1>
+<p>Provides <a class="reference internal" href="annotations.models.html#annotations.models.RelationTemplate" title="annotations.models.RelationTemplate"><code class="xref py py-class docutils literal"><span class="pre">RelationTemplate</span></code></a>-related views.</p>
+<dl class="function">
+<dt id="annotations.views.relationtemplate_views.add_relationtemplate">
+<code class="descclassname">annotations.views.relationtemplate_views.</code><code class="descname">add_relationtemplate</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/relationtemplate_views.html#add_relationtemplate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.relationtemplate_views.add_relationtemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Staff can use this view to create <a class="reference internal" href="annotations.models.html#annotations.models.RelationTemplate" title="annotations.models.RelationTemplate"><code class="xref py py-class docutils literal"><span class="pre">RelationTemplate</span></code></a>s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>project_id</strong> (<em>int</em>) &#8211; </li>
+<li><strong>request</strong> (<cite>django.http.requests.HttpRequest</cite>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">django.http.response.HttpResponse</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.views.relationtemplate_views.create_from_relationtemplate">
+<code class="descclassname">annotations.views.relationtemplate_views.</code><code class="descname">create_from_relationtemplate</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/relationtemplate_views.html#create_from_relationtemplate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.relationtemplate_views.create_from_relationtemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a <a class="reference internal" href="annotations.models.html#annotations.models.RelationSet" title="annotations.models.RelationSet"><code class="xref py py-class docutils literal"><span class="pre">RelationSet</span></code></a> and constituent <a class="reference internal" href="annotations.models.html#annotations.models.Relation" title="annotations.models.Relation"><code class="xref py py-class docutils literal"><span class="pre">Relation</span></code></a>s from
+a <a class="reference internal" href="annotations.models.html#annotations.models.RelationTemplate" title="annotations.models.RelationTemplate"><code class="xref py py-class docutils literal"><span class="pre">RelationTemplate</span></code></a> and user annotations.</p>
+<p>This is mainly used by the RelationTemplateController in the text
+annotation  view.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<cite>django.http.requests.HttpRequest</cite>) &#8211; </li>
+<li><strong>template_id</strong> (<em>int</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">django.http.response.HttpResponse</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.views.relationtemplate_views.get_relationtemplate">
+<code class="descclassname">annotations.views.relationtemplate_views.</code><code class="descname">get_relationtemplate</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/relationtemplate_views.html#get_relationtemplate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.relationtemplate_views.get_relationtemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns data on fillable fields in a <a class="reference internal" href="annotations.models.html#annotations.models.RelationTemplate" title="annotations.models.RelationTemplate"><code class="xref py py-class docutils literal"><span class="pre">RelationTemplate</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<cite>django.http.requests.HttpRequest</cite>) &#8211; </li>
+<li><strong>template_id</strong> (<em>int</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-class docutils literal"><span class="pre">django.http.response.HttpResponse</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="annotations.views.relationtemplate_views.list_relationtemplate">
+<code class="descclassname">annotations.views.relationtemplate_views.</code><code class="descname">list_relationtemplate</code><span class="sig-paren">(</span><em>request</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/annotations/views/relationtemplate_views.html#list_relationtemplate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#annotations.views.relationtemplate_views.list_relationtemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of all <a class="reference internal" href="annotations.models.html#annotations.models.RelationTemplate" title="annotations.models.RelationTemplate"><code class="xref py py-class docutils literal"><span class="pre">RelationTemplate</span></code></a>s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>request</strong> (<cite>django.http.requests.HttpRequest</cite>) &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">django.http.response.HttpResponse</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/annotations.views.relationtemplate_views.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

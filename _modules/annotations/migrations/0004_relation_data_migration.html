@@ -1,0 +1,262 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.migrations.0004_relation_data_migration &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.migrations.0004_relation_data_migration</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span><span class="p">,</span> <span class="n">migrations</span>
+<span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+
+
+<div class="viewcode-block" id="populate_relation_generic_fields"><a class="viewcode-back" href="../../../annotations.migrations.0004_relation_data_migration.html#annotations.migrations.0004_relation_data_migration.populate_relation_generic_fields">[docs]</a><span class="k">def</span> <span class="nf">populate_relation_generic_fields</span><span class="p">(</span><span class="n">apps</span><span class="p">,</span> <span class="n">schema_editor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Move old references to Appellations in Relation.source and Relation.object</span>
+<span class="sd">    to new GenericForeignKey fields on Relation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Relation</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;annotations&quot;</span><span class="p">,</span> <span class="s2">&quot;Relation&quot;</span><span class="p">)</span>
+    <span class="n">RelationSet</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;annotations&quot;</span><span class="p">,</span> <span class="s2">&quot;RelationSet&quot;</span><span class="p">)</span>
+    <span class="n">Appellation</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;annotations&quot;</span><span class="p">,</span> <span class="s2">&quot;Appellation&quot;</span><span class="p">)</span>
+    <span class="n">Concept</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;concepts&quot;</span><span class="p">,</span> <span class="s2">&quot;Concept&quot;</span><span class="p">)</span>
+    <span class="n">ContentType</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s1">&#39;contenttypes&#39;</span><span class="p">,</span> <span class="s1">&#39;ContentType&#39;</span><span class="p">)</span>
+    <span class="n">conceptType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Concept</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">have</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9&quot;</span><span class="p">)</span><span class="c1">#[0]#, defaults={&#39;real_type_id&#39;: conceptType.id})[0]</span>
+    <span class="k">except</span> <span class="n">Concept</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+        <span class="n">have</span> <span class="o">=</span> <span class="n">Concept</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9&quot;</span><span class="p">,</span> <span class="n">authority</span><span class="o">=</span><span class="s1">&#39;Conceptpower&#39;</span><span class="p">,</span> <span class="n">real_type</span><span class="o">=</span><span class="n">conceptType</span><span class="p">)</span>
+        <span class="n">have</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">be</span> <span class="o">=</span> <span class="n">Concept</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316&quot;</span><span class="p">)</span><span class="c1">#[0]#, defaults={&#39;real_type_id&#39;: conceptType.id})[0]</span>
+    <span class="k">except</span> <span class="n">Concept</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+        <span class="n">be</span> <span class="o">=</span> <span class="n">Concept</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316&quot;</span><span class="p">,</span> <span class="n">authority</span><span class="o">=</span><span class="s1">&#39;Conceptpower&#39;</span><span class="p">,</span> <span class="n">real_type</span><span class="o">=</span><span class="n">conceptType</span><span class="p">)</span>
+        <span class="n">be</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+    <span class="n">appellationType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Appellation</span><span class="p">)</span>
+    <span class="n">relationType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_for_model</span><span class="p">(</span><span class="n">Relation</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="n">Relation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">relationSet</span> <span class="o">=</span> <span class="n">RelationSet</span><span class="p">(</span>
+            <span class="n">createdBy_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">createdBy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="n">occursIn</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">occursIn</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">relationSet</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="c1"># Need to look at the controlling_verb, and if set create nested</span>
+        <span class="c1">#  Relations accordingly.</span>
+        <span class="k">if</span> <span class="n">relation</span><span class="o">.</span><span class="n">predicate</span><span class="o">.</span><span class="n">controlling_verb</span><span class="p">:</span>
+            <span class="c1"># Create baseless appellations for have and be.</span>
+            <span class="n">haveAppellation</span> <span class="o">=</span> <span class="n">Appellation</span><span class="p">(</span>
+                <span class="n">occursIn</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">occursIn</span><span class="p">,</span>
+                <span class="n">createdBy_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">createdBy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">asPredicate</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">haveAppellation</span><span class="o">.</span><span class="n">interpretation</span> <span class="o">=</span> <span class="n">have</span>
+            <span class="n">haveAppellation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="n">beAppellation</span> <span class="o">=</span> <span class="n">Appellation</span><span class="p">(</span>
+                <span class="n">occursIn</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">occursIn</span><span class="p">,</span>
+                <span class="n">createdBy_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">createdBy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">asPredicate</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">beAppellation</span><span class="o">.</span><span class="n">interpretation</span> <span class="o">=</span> <span class="n">be</span>
+            <span class="n">beAppellation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">relation</span><span class="o">.</span><span class="n">predicate</span><span class="o">.</span><span class="n">controlling_verb</span> <span class="o">==</span> <span class="s1">&#39;has&#39;</span><span class="p">:</span>
+                <span class="n">downRelation</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span>
+                    <span class="n">source_content_type</span> <span class="o">=</span> <span class="n">appellationType</span><span class="p">,</span>
+                    <span class="n">source_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">predicate</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="n">source</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">predicate</span><span class="p">,</span>
+                    <span class="n">predicate</span> <span class="o">=</span> <span class="n">beAppellation</span><span class="p">,</span>
+                    <span class="n">object_content_type</span> <span class="o">=</span> <span class="n">appellationType</span><span class="p">,</span>
+                    <span class="n">object_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="nb">object</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">object</span><span class="p">,</span>
+                    <span class="n">createdBy_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">createdBy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="n">occursIn</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">occursIn</span><span class="p">,</span>
+                    <span class="n">part_of</span> <span class="o">=</span> <span class="n">relationSet</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">downRelation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+                <span class="n">relation</span><span class="o">.</span><span class="n">source_content_type</span> <span class="o">=</span> <span class="n">appellationType</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">source_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">predicate</span> <span class="o">=</span> <span class="n">haveAppellation</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">object_content_type</span>  <span class="o">=</span> <span class="n">relationType</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">object_object_id</span> <span class="o">=</span> <span class="n">downRelation</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">part_of</span> <span class="o">=</span> <span class="n">relationSet</span>
+            <span class="k">elif</span> <span class="n">relation</span><span class="o">.</span><span class="n">predicate</span><span class="o">.</span><span class="n">controlling_verb</span> <span class="o">==</span> <span class="s1">&#39;is&#39;</span><span class="p">:</span>
+                <span class="n">upRelation</span> <span class="o">=</span> <span class="n">Relation</span><span class="p">(</span>
+                    <span class="n">source_content_type</span> <span class="o">=</span> <span class="n">appellationType</span><span class="p">,</span>
+                    <span class="n">source_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="n">source</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">object</span><span class="p">,</span>
+                    <span class="n">predicate</span> <span class="o">=</span> <span class="n">haveAppellation</span><span class="p">,</span>
+                    <span class="n">object_content_type</span> <span class="o">=</span> <span class="n">relationType</span><span class="p">,</span>
+                    <span class="n">object_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="nb">object</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">object</span><span class="p">,</span>
+                    <span class="n">occursIn</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">occursIn</span><span class="p">,</span>
+                    <span class="n">createdBy_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">createdBy</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                    <span class="n">part_of</span> <span class="o">=</span> <span class="n">relationSet</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">upRelation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+                <span class="n">relation</span><span class="o">.</span><span class="n">source_content_type</span> <span class="o">=</span> <span class="n">appellationType</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">source_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">predicate</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">predicate</span> <span class="o">=</span> <span class="n">beAppellation</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">object_content_type</span> <span class="o">=</span> <span class="n">appellationType</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">object_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">relation</span><span class="o">.</span><span class="n">part_of</span> <span class="o">=</span> <span class="n">relationSet</span>
+
+        <span class="k">else</span><span class="p">:</span>   <span class="c1"># No nesting, just migrate source/object data to new fields.</span>
+            <span class="n">relation</span><span class="o">.</span><span class="n">source_content_type</span> <span class="o">=</span> <span class="n">appellationType</span>
+            <span class="n">relation</span><span class="o">.</span><span class="n">object_content_type</span> <span class="o">=</span> <span class="n">appellationType</span>
+            <span class="n">relation</span><span class="o">.</span><span class="n">source_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">id</span>
+            <span class="n">relation</span><span class="o">.</span><span class="n">object_object_id</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">id</span>
+            <span class="n">relation</span><span class="o">.</span><span class="n">part_of</span> <span class="o">=</span> <span class="n">relationSet</span>
+            <span class="n">relation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+
+        <span class="n">relation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="populate_relation_generic_fields_reverse"><a class="viewcode-back" href="../../../annotations.migrations.0004_relation_data_migration.html#annotations.migrations.0004_relation_data_migration.populate_relation_generic_fields_reverse">[docs]</a><span class="k">def</span> <span class="nf">populate_relation_generic_fields_reverse</span><span class="p">(</span><span class="n">apps</span><span class="p">,</span> <span class="n">schema_editor</span><span class="p">):</span>
+    <span class="n">Relation</span> <span class="o">=</span> <span class="n">apps</span><span class="o">.</span><span class="n">get_model</span><span class="p">(</span><span class="s2">&quot;annotations&quot;</span><span class="p">,</span> <span class="s2">&quot;Relation&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">relation</span> <span class="ow">in</span> <span class="n">Relation</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">relation</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">source_content_object</span>
+        <span class="n">relation</span><span class="o">.</span><span class="n">object</span> <span class="o">=</span> <span class="n">relation</span><span class="o">.</span><span class="n">object_content_object</span>
+        <span class="n">relation</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Migration"><a class="viewcode-back" href="../../../annotations.migrations.0004_relation_data_migration.html#annotations.migrations.0004_relation_data_migration.Migration">[docs]</a><span class="k">class</span> <span class="nc">Migration</span><span class="p">(</span><span class="n">migrations</span><span class="o">.</span><span class="n">Migration</span><span class="p">):</span>
+
+    <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;contenttypes&#39;</span><span class="p">,</span> <span class="s1">&#39;0002_remove_content_type_name&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;concepts&#39;</span><span class="p">,</span> <span class="s1">&#39;__first__&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;annotations&#39;</span><span class="p">,</span> <span class="s1">&#39;0003_auto_relation_generic_fields&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="n">operations</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">migrations</span><span class="o">.</span><span class="n">RunPython</span><span class="p">(</span>
+            <span class="n">populate_relation_generic_fields</span><span class="p">,</span>
+            <span class="n">populate_relation_generic_fields_reverse</span>
+        <span class="p">),</span>
+    <span class="p">]</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

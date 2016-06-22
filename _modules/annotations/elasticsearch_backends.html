@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>annotations.elasticsearch_backends &mdash; VogonWeb  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="VogonWeb  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/VogonSmall.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">VogonWeb</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=diging&repo=vogon-web&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+    
+
+<p>
+<a href="https://travis-ci.org/diging/vogon-web">
+    <img
+        alt="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+        src="https://secure.travis-ci.org/diging/vogon-web.svg?branch=master"
+    />
+</a>
+</p>
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../annotations.html">annotations package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../concepts.html">concepts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manage.html">manage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../repository.html">repository package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../vogon.html">vogon package</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for annotations.elasticsearch_backends</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">haystack.backends.elasticsearch2_backend</span> <span class="kn">import</span> <span class="n">Elasticsearch2SearchBackend</span><span class="p">,</span> <span class="n">Elasticsearch2SearchEngine</span>
+<span class="kn">from</span> <span class="nn">haystack.models</span> <span class="kn">import</span> <span class="n">SearchResult</span>
+<span class="kn">import</span> <span class="nn">elasticsearch</span>
+
+<div class="viewcode-block" id="JHBElasticsearch2SearchBackend"><a class="viewcode-back" href="../../annotations.elasticsearch_backends.html#annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend">[docs]</a><span class="k">class</span> <span class="nc">JHBElasticsearch2SearchBackend</span><span class="p">(</span><span class="n">Elasticsearch2SearchBackend</span><span class="p">):</span>
+    <span class="n">RESERVED_CHARACTERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39;||&#39;</span><span class="p">,</span> <span class="s1">&#39;!&#39;</span><span class="p">,</span> <span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;{&#39;</span><span class="p">,</span> <span class="s1">&#39;}&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;~&#39;</span><span class="p">,</span>  <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="c1">#&#39;*&#39;, &#39;?&#39;,</span>
+    <span class="p">)</span>
+
+    <span class="n">DEFAULT_SETTINGS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;settings&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;analysis&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;analyzer&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;ngram_analyzer&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;tokenizer&quot;</span><span class="p">:</span> <span class="s2">&quot;standard&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;haystack_ngram&quot;</span><span class="p">,</span> <span class="s2">&quot;lowercase&quot;</span><span class="p">]</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;edgengram_analyzer&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;custom&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;tokenizer&quot;</span><span class="p">:</span> <span class="s2">&quot;standard&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;haystack_edgengram&quot;</span><span class="p">,</span> <span class="s2">&quot;lowercase&quot;</span><span class="p">]</span>
+                    <span class="p">}</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;tokenizer&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;haystack_ngram_tokenizer&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nGram&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;min_gram&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                        <span class="s2">&quot;max_gram&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;haystack_edgengram_tokenizer&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;edgeNGram&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;min_gram&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                        <span class="s2">&quot;max_gram&quot;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+                        <span class="s2">&quot;side&quot;</span><span class="p">:</span> <span class="s2">&quot;front&quot;</span>
+                    <span class="p">}</span>
+                <span class="p">},</span>
+                <span class="s2">&quot;filter&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;haystack_ngram&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;nGram&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;min_gram&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                        <span class="s2">&quot;max_gram&quot;</span><span class="p">:</span> <span class="mi">15</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;haystack_edgengram&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;edgeNGram&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;min_gram&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                        <span class="s2">&quot;max_gram&quot;</span><span class="p">:</span> <span class="mi">15</span>
+                    <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="JHBElasticsearch2SearchBackend.search"><a class="viewcode-back" href="../../annotations.elasticsearch_backends.html#annotations.elasticsearch_backends.JHBElasticsearch2SearchBackend.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_string</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_string</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;results&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;hits&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="p">}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_complete</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+
+        <span class="n">search_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_search_kwargs</span><span class="p">(</span><span class="n">query_string</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">search_kwargs</span><span class="p">[</span><span class="s1">&#39;from&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_offset&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">order_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">search_kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sort&#39;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">order_fields</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="n">geo_sort</span> <span class="o">=</span> <span class="s1">&#39;_geo_distance&#39;</span> <span class="ow">in</span> <span class="n">order_fields</span>
+
+        <span class="n">end_offset</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;end_offset&#39;</span><span class="p">)</span>
+        <span class="n">start_offset</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_offset&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">end_offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">end_offset</span> <span class="o">&gt;</span> <span class="n">start_offset</span><span class="p">:</span>
+            <span class="n">search_kwargs</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">end_offset</span> <span class="o">-</span> <span class="n">start_offset</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">raw_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="n">search_kwargs</span><span class="p">,</span>
+                                           <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index_name</span><span class="p">,</span>
+                                           <span class="n">doc_type</span><span class="o">=</span><span class="s1">&#39;modelresult&#39;</span><span class="p">,</span>
+                                           <span class="n">_source</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">elasticsearch</span><span class="o">.</span><span class="n">TransportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">silently_fail</span><span class="p">:</span>
+                <span class="k">raise</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to query Elasticsearch using &#39;</span><span class="si">%s</span><span class="s2">&#39;: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">query_string</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">raw_results</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_results</span><span class="p">(</span><span class="n">raw_results</span><span class="p">,</span>
+                                     <span class="n">highlight</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;highlight&#39;</span><span class="p">),</span>
+                                     <span class="n">result_class</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;result_class&#39;</span><span class="p">,</span> <span class="n">SearchResult</span><span class="p">),</span>
+                                     <span class="n">distance_point</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;distance_point&#39;</span><span class="p">),</span>
+                                     <span class="n">geo_sort</span><span class="o">=</span><span class="n">geo_sort</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="JHBElasticsearch2SearchEngine"><a class="viewcode-back" href="../../annotations.elasticsearch_backends.html#annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine">[docs]</a><span class="k">class</span> <span class="nc">JHBElasticsearch2SearchEngine</span><span class="p">(</span><span class="n">Elasticsearch2SearchEngine</span><span class="p">):</span>
+    <span class="n">backend</span> <span class="o">=</span> <span class="n">JHBElasticsearch2SearchBackend</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2016, Author.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
