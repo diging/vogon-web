@@ -172,9 +172,6 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
     return text
 
 
-
-
-
 @shared_task
 def submit_relationsets_to_quadriga(relationsets, text, user, **kwargs):
     status, response = quadriga.submit_relationsets(relationsets, text, user, **kwargs)

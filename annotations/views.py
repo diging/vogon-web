@@ -851,7 +851,8 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
 
     def get_queryset(self, *args, **kwargs):
 
@@ -867,8 +868,6 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
             queryset = queryset.filter(interpretation_id=concept)
         if text:
             queryset = queryset.filter(occursIn_id=text)
-
-
         return queryset
 
 
@@ -1094,7 +1093,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
         if max_results:
             return queryset[:max_results]
         return queryset
-
 
 
 @login_required
