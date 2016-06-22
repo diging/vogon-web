@@ -368,7 +368,6 @@ class Appellation(Annotation, Interpreted):
     Applies only if the Appellation is a predicate.""")
 
 
-
 class RelationSet(models.Model):
     """
     A :class:`.RelationSet` organizes :class:`.Relation`\s into complete
