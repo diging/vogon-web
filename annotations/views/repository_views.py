@@ -9,8 +9,8 @@ from django.shortcuts import get_object_or_404
 from django.template import RequestContext, loader
 
 from annotations.forms import RepositorySearchForm
-from annotations.models import Repository
 from annotations.tasks import tokenize
+from repository.models import Repository
 
 
 @login_required

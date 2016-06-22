@@ -25,41 +25,41 @@ from concepts import views as conceptViews
 
 
 router = routers.DefaultRouter(trailing_slash=False)
-router.register(r'appellation', views.rest.AppellationViewSet)
-router.register(r'predicate', views.rest.PredicateViewSet)
-router.register(r'relation', views.rest.RelationViewSet)
-router.register(r'relationset', views.rest.RelationSetViewSet)
-router.register(r'text', views.rest.TextViewSet)
-router.register(r'repository', views.rest.RepositoryViewSet)
-router.register(r'temporalbounds', views.rest.TemporalBoundsViewSet)
-router.register(r'user', views.rest.UserViewSet)
-router.register(r'concept', views.rest.ConceptViewSet)
-router.register(r'type', views.rest.TypeViewSet)
-router.register(r'textcollection', views.rest.TextCollectionViewSet)
+router.register(r'appellation', views.rest_views.AppellationViewSet)
+router.register(r'predicate', views.rest_views.PredicateViewSet)
+router.register(r'relation', views.rest_views.RelationViewSet)
+router.register(r'relationset', views.rest_views.RelationSetViewSet)
+router.register(r'text', views.rest_views.TextViewSet)
+router.register(r'repository', views.rest_views.RepositoryViewSet)
+router.register(r'temporalbounds', views.rest_views.TemporalBoundsViewSet)
+router.register(r'user', views.rest_views.UserViewSet)
+router.register(r'concept', views.rest_views.ConceptViewSet)
+router.register(r'type', views.rest_views.TypeViewSet)
+router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 
 # TODO: do we still need this nested router business?
 repository_router = nrouters.NestedSimpleRouter(router, r'repository', lookup='repository')
-repository_router.register('collection', views.rest.RemoteCollectionViewSet, base_name='repository')
+repository_router.register('collection', views.rest_views.RemoteCollectionViewSet, base_name='repository')
 
 remotecollection_router = nrouters.NestedSimpleRouter(repository_router, r'collection', lookup='collection')
-remotecollection_router.register('resource', views.rest.RemoteResourceViewSet, base_name='collection')
+remotecollection_router.register('resource', views.rest_views.RemoteResourceViewSet, base_name='collection')
 
 
 #Error Handlers
 handler403 = 'annotations.exceptions.custom_403_handler'
 
 urlpatterns = [
-    url(r'^$', views.main.home, name='home'),
-    url(r'^about/$', views.main.about, name='about'),
+    url(r'^$', views.main_views.home, name='home'),
+    url(r'^about/$', views.main_views.about, name='about'),
 
-    url(r'^users/$', views.user.list_user, name='users'),
-    url(r'^activity/$', views.main.recent_activity),
+    url(r'^users/$', views.user_views.list_user, name='users'),
+    url(r'^activity/$', views.main_views.recent_activity),
 
-    url(r'^users/(?P<userid>[0-9]+)/$', views.user.user_details, name="user_details"),
-    url(r'^accounts/profile/', views.user.dashboard, name='dashboard'),
-    url(r'^accounts/projects/', views.user.user_projects, name='user_projects'),
-    url(r'^accounts/settings/$', views.user.user_settings, name='settings'),
-    url(r'^accounts/register/$', views.user.register, name='register'),
+    url(r'^users/(?P<userid>[0-9]+)/$', views.user_views.user_details, name="user_details"),
+    url(r'^accounts/profile/', views.user_views.dashboard, name='dashboard'),
+    url(r'^accounts/projects/', views.user_views.user_projects, name='user_projects'),
+    url(r'^accounts/settings/$', views.user_views.user_settings, name='settings'),
+    url(r'^accounts/register/$', views.user_views.register, name='register'),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
                           {'next_page': '/accounts/login/'}),
     url(r'^accounts/', include('django.contrib.auth.urls')),
@@ -70,51 +70,51 @@ urlpatterns = [
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
 
-    url(r'^text/$', views.search.TextSearchView.as_view(), name='text_search'),
+    url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
 
-    url(r'^network/$', views.network.network, name="network"),
-    url(r'^network/data/$', views.network.network_data, name="network-data"),
-    url(r'^network/text/(?P<text_id>[0-9]+)/$', views.network.network_for_text, name="network_for_text"),
+    url(r'^network/$', views.network_views.network, name="network"),
+    url(r'^network/data/$', views.network_views.network_data, name="network-data"),
+    url(r'^network/text/(?P<text_id>[0-9]+)/$', views.network_views.network_for_text, name="network_for_text"),
 
-    url(r'^relationtemplate/add/$', views.relationtemplate.add_relationtemplate, name="add_relationtemplate"),
-    url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.relationtemplate.get_relationtemplate, name="get_relationtemplate"),
-    url(r'^relationtemplate/(?P<template_id>[0-9]+)/create/$', views.relationtemplate.create_from_relationtemplate, name="create_from_relationtemplate"),
-    url(r'^relationtemplate[/]?$', views.relationtemplate.list_relationtemplate, name='list_relationtemplate'),
+    url(r'^relationtemplate/add/$', views.relationtemplate_views.add_relationtemplate, name="add_relationtemplate"),
+    url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.relationtemplate_views.get_relationtemplate, name="get_relationtemplate"),
+    url(r'^relationtemplate/(?P<template_id>[0-9]+)/create/$', views.relationtemplate_views.create_from_relationtemplate, name="create_from_relationtemplate"),
+    url(r'^relationtemplate[/]?$', views.relationtemplate_views.list_relationtemplate, name='list_relationtemplate'),
 
-    url(r'^text/add/upload/$', views.text.upload_file, name="file_upload"),
-    url(r'^text/(?P<textid>[0-9]+)/$', views.text.text, name="text"),
+    url(r'^text/add/upload/$', views.text_views.upload_file, name="file_upload"),
+    url(r'^text/(?P<textid>[0-9]+)/$', views.text_views.text, name="text"),
 
-    url(r'^project/(?P<project_id>[0-9]+)/$', views.project.view_project, name='view_project'),
-    url(r'^project/(?P<project_id>[0-9]+)/edit/$', views.project.edit_project, name='edit_project'),
-    url(r'^project/create/$', views.project.create_project, name='create_project'),
-    url(r'^project/$', views.project.list_projects, name='list_projects'),
+    url(r'^project/(?P<project_id>[0-9]+)/$', views.project_views.view_project, name='view_project'),
+    url(r'^project/(?P<project_id>[0-9]+)/edit/$', views.project_views.edit_project, name='edit_project'),
+    url(r'^project/create/$', views.project_views.create_project, name='create_project'),
+    url(r'^project/$', views.project_views.list_projects, name='list_projects'),
 
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^autocomplete/', include('autocomplete_light.urls')),    # TODO: are we still using this?
 
-    url(r'^sign_s3$', views.aws.sign_s3, name="sign_s3"),
+    url(r'^sign_s3$', views.aws_views.sign_s3, name="sign_s3"),
 
-    url(r'^concept/(?P<conceptid>[0-9]+)/$', views.data.concept_details, name='concept_details'),
-    url(r'^relations/(?P<source_concept_id>[0-9]+)/(?P<target_concept_id>[0-9]+)/$', views.data.relation_details, name="relation_details"),
+    url(r'^concept/(?P<conceptid>[0-9]+)/$', views.data_views.concept_details, name='concept_details'),
+    url(r'^relations/(?P<source_concept_id>[0-9]+)/(?P<target_concept_id>[0-9]+)/$', views.data_views.relation_details, name="relation_details"),
 
     url(r'^concept/types$', conceptViews.list_concept_types),
     url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type"),
 
-    url(r'^concept_autocomplete/', views.search.concept_autocomplete, name='concept_autocomplete'),
+    url(r'^concept_autocomplete/', views.search_views.concept_autocomplete, name='concept_autocomplete'),
 
-    url(r'^quadruples/appellation/(?P<appellation_id>[0-9]+).xml$', views.quadruple.appellation_xml, name='appellation_xml'),
-    url(r'^quadruples/relation/(?P<relation_id>[0-9]+).xml$', views.quadruple.relation_xml, name='relation_xml'),
-    url(r'^quadruples/relationset/(?P<relationset_id>[0-9]+).xml$', views.quadruple.relationset_xml, name='relationset_xml'),
-    url(r'^quadruples/text/(?P<text_id>[0-9]+)/(?P<user_id>[0-9]+).xml$', views.quadruple.text_xml, name='text_xml'),
+    url(r'^quadruples/appellation/(?P<appellation_id>[0-9]+).xml$', views.quadruple_views.appellation_xml, name='appellation_xml'),
+    url(r'^quadruples/relation/(?P<relation_id>[0-9]+).xml$', views.quadruple_views.relation_xml, name='relation_xml'),
+    url(r'^quadruples/relationset/(?P<relationset_id>[0-9]+).xml$', views.quadruple_views.relationset_xml, name='relationset_xml'),
+    url(r'^quadruples/text/(?P<text_id>[0-9]+)/(?P<user_id>[0-9]+).xml$', views.quadruple_views.text_xml, name='text_xml'),
 
 
-    url(r'^repository/(?P<repository_id>[0-9]+)/collections/$', views.repository_collections, name='repository_collections'),
-    url(r'^repository/(?P<repository_id>[0-9]+)/browse/$', views.repository_browse, name='repository_browse'),
-    url(r'^repository/(?P<repository_id>[0-9]+)/search/$', views.repository_search, name='repository_search'),
-    url(r'^repository/(?P<repository_id>[0-9]+)/collections/(?P<collection_id>[0-9]+)/$', views.repository_collection, name='repository_collection'),
-    url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/$', views.repository_text, name='repository_text'),
-    url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/content/(?P<content_id>[0-9]+)/$', views.repository_text_content, name='repository_text_content'),
-    url(r'^repository/(?P<repository_id>[0-9]+)/$', views.repository_details, name='repository_details'),
-    url(r'^repository/$', views.repository_list, name='repository_list'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/collections/$', views.repository_views.repository_collections, name='repository_collections'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/browse/$', views.repository_views.repository_browse, name='repository_browse'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/search/$', views.repository_views.repository_search, name='repository_search'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/collections/(?P<collection_id>[0-9]+)/$', views.repository_views.repository_collection, name='repository_collection'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/$', views.repository_views.repository_text, name='repository_text'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/content/(?P<content_id>[0-9]+)/$', views.repository_views.repository_text_content, name='repository_text_content'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/$', views.repository_views.repository_details, name='repository_details'),
+    url(r'^repository/$', views.repository_views.repository_list, name='repository_list'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
