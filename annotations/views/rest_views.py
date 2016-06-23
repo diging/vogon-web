@@ -21,6 +21,7 @@ from annotations.tasks import get_manager
 from annotations.models import (VogonUser, Repository, Appellation, RelationSet,
                                 Relation, TemporalBounds, Text, TextCollection)
 from concepts.models import Concept, Type
+from concepts.tasks import search_concept
 
 import uuid
 
@@ -100,10 +101,41 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
+
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
+
+    def perform_create(self, serializer):
+        """
+        Calls :meth:`.AppellationSerializer.save`\.
+
+        Overridden to use the new :class:`.DocumentPosition`\.
+
+        .. todo:: This should really happen on the serializer, not here, but
+           for the short-term it would be nice to avoid making changes to the
+           text annotation Angular app.
+        """
+
+        # Prior to 0.5, the selected tokens were stored directly in Appellation,
+        #  as ``tokenIds``. Now that we have several different annotation
+        #  modes (e.g. images, HT/XML), we use the more flexible
+        #  DocumentPosition model instead. For now, however, the JS app in the
+        #  text annotation interface still relies on the original tokenId field.
+        #  So until we modify that JS app, we still need to store tokenIds on
+        #  Appellation, in addition to creating and linking a DocumentPosition.
+        tokenIDs = serializer.data.get('tokenIds', None)
+        text_id = serializer.data.get('occursIn')
+        if tokenIDs:
+            position = DocumentPosition.objects.create(
+                        occursIn_id=text_id,
+                        position_type=DocumentPosition.TOKEN_ID,
+                        position_value=tokenIDs)
+
+        instance = serializer.save()
+        instance.position = position
+        instance.save()
 
     def get_queryset(self, *args, **kwargs):
 

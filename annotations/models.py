@@ -586,9 +586,20 @@ class Appellation(Annotation, Interpreted):
     since we now implement the full quadruple model in VogonWeb.
     """
 
+    position = models.ForeignKey('DocumentPosition', blank=True, null=True,
+                                 related_name='appellations')
+    """
+    Represents the specific location (phrase or passage) for which the user
+    has registered an interpretation.
+    """
+
     tokenIds = models.TextField()
     """
     IDs of words (in the tokenizedContent) selected for this Appellation.
+
+    .. deprecated:: 0.5
+       Text positions will be represented using :class:`.DocumentPosition`\.
+       See :attr:`.position`\.
     """
 
     stringRep = models.TextField()
@@ -602,6 +613,7 @@ class Appellation(Annotation, Interpreted):
 
     .. deprecated:: 0.5
        Text positions will be represented using :class:`.DocumentPosition`\.
+       See :attr:`.position`\.
     """
 
 
@@ -611,6 +623,7 @@ class Appellation(Annotation, Interpreted):
 
     .. deprecated:: 0.5
        Text positions will be represented using :class:`.DocumentPosition`\.
+       See :attr:`.position`\.
     """
 
     # Reverse generic relations to Relation.
@@ -687,7 +700,7 @@ class RelationSet(models.Model):
     to Quadriga.
     """
 
-    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True)
+    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True, null=True)
     """
     The :class:`.QuadrigaAccession` tracks the entire set of RelationSets that
     were accessioned together in a single query.
@@ -976,3 +989,48 @@ class TemporalBounds(models.Model):
     start = TupleField(blank=True, null=True)
     occur = TupleField(blank=True, null=True)
     end = TupleField(blank=True, null=True)
+
+
+class DocumentPosition(models.Model):
+    """
+    Represents a specific passage or area in a :class:`.Text`\.
+
+    The passage can be indicated by token IDs, a bounding box, character
+    offsets (start/end), or XPaths.
+    """
+
+    occursIn = models.ForeignKey('Text', related_name='positions')
+
+    TOKEN_ID = 'TI'
+    BOUNDING_BOX = 'BB'
+    XPATH = 'XP'
+    CHARACTER_OFFSET = 'CO'
+    WHOLE_DOCUMENT = 'WD'
+    TYPE_CHOICES = (
+        (TOKEN_ID, 'Token IDs'),
+        (BOUNDING_BOX, 'Bounding box'),
+        (XPATH, 'XPath'),
+        (CHARACTER_OFFSET, 'Character offsets'),
+        (WHOLE_DOCUMENT, 'Whole document')
+    )
+    position_type = models.CharField(max_length=2, choices=TYPE_CHOICES)
+    """
+    Used to control snippet rendering, and included in Quadriga accessions.
+
+    Currently supported types:
+
+    * ``TI`` - Token IDs: word identifiers in a tokenized plain-text document.
+    * ``BB`` - Bounding box: X,Y offset and width, height.
+    * ``XP`` - XPath
+    * ``CO`` - Character offset. The original Vogon desktop application used
+      this. Currently not used in VogonWeb.
+    * ``WD`` - Whole document.
+    """
+
+    position_value = models.TextField()
+    """
+    Plain-text representation of the position.
+
+    If :attr:`.position_type` is :attr:`.WHOLE_DOCUMENT`\, then this can be
+    blank.
+    """
