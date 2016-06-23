@@ -553,9 +553,9 @@ class DateAppellation(Annotation):
         """
         Returns an ISO-8601 compliant unicode representation of the date.
         """
-        return u'-'.join([unicode(getattr(self, 'part'))
+        return u'-'.join([unicode(getattr(self, part))
                           for part in ['year', 'month', 'day']
-                          if getattr(self, 'part')])
+                          if hasattr(self, part)])
 
     @property
     def precision(self):

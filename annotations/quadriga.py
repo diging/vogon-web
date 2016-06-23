@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 
-from annotations.models import Relation, Appellation, DateAppellation
+from annotations.models import Relation, Appellation, DateAppellation, DocumentPosition
 
 import xml.etree.ElementTree as ET
 import datetime
@@ -66,15 +66,16 @@ def to_appellationevent(appellation, toString=False):
 
     printed_representation = _created_element(ET.SubElement(term, 'printed_representation'), appellation)
 
-    for tokenId in appellation.tokenIds.split(','):
-        term_part = _created_element(ET.SubElement(printed_representation, 'term_part'), appellation)
-        pos, exp = _get_token(tokenId, appellation.occursIn.tokenizedContent)
-        if pos:
-            position = ET.SubElement(term_part, 'position')
-            position.text = str(pos)
-        if exp:
-            expression = ET.SubElement(term_part, 'expression')
-            expression.text = exp
+    if appellation.position.position_type == DocumentPosition.TOKEN_ID:
+        for tokenId in appellation.position.position_value.split(','):
+            term_part = _created_element(ET.SubElement(printed_representation, 'term_part'), appellation)
+            pos, exp = _get_token(tokenId, appellation.occursIn.tokenizedContent)
+            if pos:
+                position = ET.SubElement(term_part, 'position')
+                position.text = str(pos)
+            if exp:
+                expression = ET.SubElement(term_part, 'expression')
+                expression.text = exp
 
     if toString:
         return ET.tostring(appellation_event)
