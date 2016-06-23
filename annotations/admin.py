@@ -125,7 +125,8 @@ class RelationSetAdmin(admin.ModelAdmin):
     class Meta:
         model = RelationSet
 
-    list_display = ('id', 'createdBy', 'occursIn', 'created', 'ready', 'pending', 'submitted', )
+    list_display = ('id', 'createdBy', 'occursIn', 'created', 'ready',
+                    'pending', 'submitted', )
     actions = (submit_relationsets, submit_relationsets_synch)
 
 
@@ -140,7 +141,6 @@ admin.site.register(VogonUser, VogonUserAdmin)
 admin.site.register(Appellation, AppellationAdmin)
 admin.site.register(Text, TextAdmin)
 admin.site.register(TextCollection)
-admin.site.register(Repository)
 admin.site.register(Relation, RelationAdmin)
 admin.site.register(RelationSet, RelationSetAdmin)
 admin.site.register(RelationTemplate)

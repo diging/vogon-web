@@ -443,3 +443,8 @@ try:
         exclusive = forms.BooleanField(required=False)
 except ProgrammingError:
     pass
+
+
+
+class RepositorySearchForm(forms.Form):
+    query = forms.CharField(max_length=255, widget=widgets.TextInput(attrs={'class': 'form-control'}))

@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'guardian',
     'djcelery',
     'haystack',
+    'repository',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -208,7 +209,8 @@ djcelery.setup_loader()
 # AWS Access Key and Secret Key credentials
 AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
 AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
-S3_BUCKET = 'vogonweb-test'
+S3_BUCKET = os.environ.get('AWS_SECRET_KEY', 'vogonweb-test')
+
 DEFAULT_USER_IMAGE = 'https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png'
 
 

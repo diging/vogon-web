@@ -1,3 +1,46 @@
+"""
+Models for the :mod:`annotations` app.
+
+Texts and projects
+------------------
+
+.. autosummary::
+   :nosignatures:
+
+   Text
+   TextCollection
+
+Annotations
+-----------
+
+.. autosummary::
+   :nosignatures:
+
+   Annotation
+   Appellation
+   DateAppellation
+   Interpreted
+   QuadrigaAccession
+   Relation
+   RelationSet
+   RelationTemplate
+   RelationTemplatePart
+
+Users and groups
+----------------
+
+.. autosummary::
+   :nosignatures:
+
+   GroupManager
+   VogonGroup
+   VogonUser
+   VogonUserManager
+
+Detailed descriptions
+---------------------
+"""
+
 from django.db import models
 
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -61,34 +104,42 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     )
 
     affiliation = models.CharField(max_length=255, blank=True, null=True,
-                                   help_text=help_text(
-    """Your home institution or employer."""))
+                                   help_text="Your home institution or employer.")
+    """The user's home institution or employer."""
 
     location = models.CharField(max_length=255, blank=True, null=True,
-                                help_text=help_text(
-    """Your current geographical location."""))
+                                help_text="Your current geographical location.")
+    """The user's current geographical location."""
 
     link = models.URLField(max_length=500, blank=True, null=True,
-                           help_text=help_text(
-    """The location of your online bio or homepage."""))
+                           help_text="The location of your online bio or homepage.")
+    """The location of the user's online bio or homepage."""
 
     full_name = models.CharField(max_length=255, blank=True, null=True)
 
     conceptpower_uri = models.URLField(max_length=500, blank=True, null=True,
-                                       help_text=help_text(
+                                       help_text=help_text("""Advanced: if you
+                                       have an entry for yourself in the
+                                       Conceptpower authority service, please
+                                       enter it here."""))
     """
-    Advanced: if you have an entry for yourself in the Conceptpower
-    authority service, please enter it here.
-    """))
+    Ideally, each :class:`.VogonUser` will have a corresponding record in
+    Conceptpower that we can submit to Quadriga along with annotations. This is
+    not typicaly at the moment, but we should create a mechanism to make this
+    easy.
+    """
 
-    imagefile = models.URLField(blank=True, null=True, label="Mugshot",
+    imagefile = models.URLField(blank=True, null=True,
                                 help_text="Upload a profile picture.")
-
-    is_active = models.BooleanField(default=True, help_text=help_text(
     """
-    Un-set this field to deactivate a user. This is extremely preferable to
-    deletion.
-    """))
+    Location of the user's profile picture. This will usually be in our AWS S3
+    bucket.
+    """
+
+    is_active = models.BooleanField(default=True, help_text=help_text("""Un-set
+                                    this field to deactivate a user. This is
+                                    extremely preferable to deletion."""))
+    """If this field is ``False``, the user will not be able to log in."""
 
     is_admin = models.BooleanField(default=False)
 
@@ -238,63 +289,85 @@ class TextCollection(models.Model):
                                           related_name='contributes_to')
 
     quadriga_id = models.CharField(max_length=255, blank=True, null=True,
-                                   help_text=help_text(
+                                   help_text=help_text("""Use this field to
+                                   specify the ID of an existing project in
+                                   Quadriga with which this project should be
+                                   associated."""))
     """
-    Use this field to specify the ID of an existing project in Quadriga with
-    which this project should be associated.
-    """))
+    This ID will be used when submitting :class:`.RelationSet`\s to Quadriga.
+    If not set, the default value (see ``QUADRIGA_PROJECT`` in settings) will
+    be used instead.
+    """
 
     def __unicode__(self):
         return self.name
 
 
 class Text(models.Model):
+    """
+    Represents a document that is available for annotation.
+
+    .. todo:: Add a field to store arbitrary metadata about the document.
+    """
+
     uri = models.CharField(max_length=255, unique=True, help_text=help_text(
     """
     Uniform Resource Identifier. This should be sufficient to retrieve text
-    from repository.
+    from a repository.
     """))
+    """
+    This identifier is used when submitting :class:`.RelationSet`\s to
+    Quadriga.
+
+    .. todo:: Make this field non-changeable once it is set.
+    """
 
     tokenizedContent = models.TextField()
     """
     Text should already be tagged, with <word> elements delimiting tokens.
     """
 
-    title = models.CharField(max_length=1000, help_text=help_text(
-    """The original title of the document."""))
+    title = models.CharField(max_length=1000, help_text=help_text("""The
+                             original title of the document."""))
+    """The original title of the document."""
 
-    created = models.DateField(blank=True, null=True, help_text=help_text(
-    """The publication or creation date of the original document."""))
+    created = models.DateField(blank=True, null=True, help_text=help_text("""The
+                               publication or creation date of the original
+                               document."""))
+    """The publication or creation date of the original document."""
 
-    added = models.DateTimeField(auto_now_add=True, help_text=help_text(
-    """The date and time when the text was added to VogonWeb."""))
+    added = models.DateTimeField(auto_now_add=True)
+    """The date and time when the text was added to VogonWeb."""
 
-    addedBy = models.ForeignKey(VogonUser, related_name="addedTexts",
-                                help_text=help_text(
-    """The user who added the text to VogonWeb."""))
+    addedBy = models.ForeignKey(VogonUser, related_name="addedTexts")
+    """The user who added the text to VogonWeb."""
 
     source = models.ForeignKey("Repository", blank=True, null=True,
-                               related_name="loadedTexts", help_text(
-    """The repository (if applicable) from which the text was retrieved."""))
+                               related_name="loadedTexts")
+    """
+    The repository (if applicable) from which the text was retrieved.
 
-    originalResource = models.URLField(blank=True, null=True,
-                                       help_text=help_text(
+    .. todo:: This should target :class:`repository.Repository` rather than
+              :class:`annotations.Repository`\.
+    """
+
+    originalResource = models.URLField(blank=True, null=True)
     """
     The (online) location of the original resource, or its digital
     surrogate.
-    """))
+    """
 
-    annotators = models.ManyToManyField(VogonUser, related_name="userTexts",
-                                        help_text=help_text("""
+    annotators = models.ManyToManyField(VogonUser, related_name="userTexts")
+    """
     If a text is non-public, these users are authorized to access and
     annotate that text.
-    """))
-
-    public = models.BooleanField(default=True, help_text=help_text(
     """
-    If True (default), the full content of this text will be made publicly
+
+    public = models.BooleanField(default=True)
+    """
+    If ``True`` (default), the full content of this text will be made publicly
     available.
-    """))
+    """
 
     @property
     def annotation_count(self):
@@ -326,34 +399,46 @@ class Repository(models.Model):
     Represents an online repository from which :class:`.Text`\s can be
     retrieved.
 
+    .. deprecated:: 0.5
+       Use :class:`repository.models.Repository` instead.
+
     We assume that there is a manager (see :mod:`annotations.managers`\) for
     each :class:`.Repository` that provides CRUD methods.
 
-    TODO
-    ----
-    * Support additional configuration.
-
+    .. todo:: Can we gracefully remove this without breaking migrations?
     """
-    name = models.CharField(max_length=255, help_text=help_text(
-    """The human-readable name that will be presented to end users."""))
+    name = models.CharField(max_length=255)
+    """The human-readable name that will be presented to end users."""
 
-    manager = models.CharField(max_length=255, choices=repositoryManagers,
-    """The name of the manager class for this repository.""")
+    manager = models.CharField(max_length=255, choices=repositoryManagers)
+    """The name of the manager class for this repository."""
 
-    endpoint = models.CharField(max_length=255, help_text=help_text(
-    """The base URL for the repository API."""))
+    endpoint = models.CharField(max_length=255)
+    """The base URL for the repository API."""
 
-    # TODO: this should be moved to a more general formatted configuration
-    #  field. Or something.
     oauth_client_id = models.CharField(max_length=255)
+    """
+    .. todo:: This should be moved to a more general formatted configuration
+       in :mod:`repository`\.
+    """
     oauth_secret_key = models.CharField(max_length=255)
+    """
+    .. todo:: This should be moved to a more general formatted configuration
+       in :mod:`repository`\.
+    """
 
     def __unicode__(self):
         return unicode(self.name)
 
 
-# TODO: this should be generalized for other authorization models.
 class Authorization(models.Model):
+    """
+    Represents an authorization token for an external service.
+
+    .. deprecated:: 0.5
+       Repository-related models and methods should be implemented in
+       :mod:`repository`\.
+    """
     repository = models.ForeignKey('Repository')
     user = models.ForeignKey(VogonUser, related_name='authorizations')
 
@@ -365,17 +450,38 @@ class Authorization(models.Model):
 
 class Annotation(models.Model):
     """
-    Base class for text-based annotations.
+    Mixin (abstract) for text-based annotations.
+
+    Provides fields for :class:`.Text` association, the creation event, and
+    Quadriga accession.
     """
 
     occursIn = models.ForeignKey("Text")
+    """The :class:`.Text` to which the :class:`.Annotation` refers."""
+
     created = models.DateTimeField(auto_now_add=True)
+    """The date and time that the :class:`.Annotation` was created."""
+
     createdBy = models.ForeignKey(VogonUser)
+    """The :class:`.VogonUser` who created the :class:`.Annotation`\."""
 
     submitted = models.BooleanField(default=False)
+    """
+    Indicates whether or not the :class:`.Annotation` has been accessioned to
+    Quadriga.
+    """
+
     submittedOn = models.DateTimeField(null=True, blank=True)
+    """
+    The date and time that the :class:`.Annotation` was accessioned to Quadriga.
+    """
+
     submittedWith = models.ForeignKey('QuadrigaAccession', blank=True,
                                       null=True)
+    """
+    If the :class:`.Annotation` has been added to Quadriga, this refers to the
+    :class:`.QuadrigaAccession` with which it was submitted.
+    """
 
     class Meta:
         abstract = True
@@ -383,11 +489,13 @@ class Annotation(models.Model):
 
 class Interpreted(models.Model):
     """
-    Mixin for :class:`.Annotation`\s that involve or refer to a
-    :class:`concepts.Concept`\.
+    Mixin for :class:`.Annotation`\s that refer to a :class:`concepts.Concept`\.
+
+    .. todo:: Should this subclass :class:`Annotation`\? Does it matter?
     """
 
     interpretation = models.ForeignKey(Concept)
+    """The :class:`.Concept` to which the :class:`.Annotation` refers."""
 
     @property
     def interpretation_type(self):
@@ -478,26 +586,32 @@ class Appellation(Annotation, Interpreted):
     since we now implement the full quadruple model in VogonWeb.
     """
 
-    tokenIds = models.TextField(help_text=help_text(
+    tokenIds = models.TextField()
     """
     IDs of words (in the tokenizedContent) selected for this Appellation.
-    """))
+    """
 
-    stringRep = models.TextField(help_text=help_text(
+    stringRep = models.TextField()
     """
     Plain-text snippet spanning the selected text.
-    """))
-
-    startPos = models.IntegerField(blank=True, null=True, help_text=help_text(
     """
-    DEPRECATED. Character offset from the beginning of the (plain text)
-    document.
-    """))
 
-    endPos = models.IntegerField(blank=True, null=True, help_text=help_text(
+    startPos = models.IntegerField(blank=True, null=True)
     """
-    DEPRECATED. Character offset from the end of the (plain text) document.
-    """))
+    Character offset from the beginning of the (plain text) document.
+
+    .. deprecated:: 0.5
+       Text positions will be represented using :class:`.DocumentPosition`\.
+    """
+
+
+    endPos = models.IntegerField(blank=True, null=True)
+    """
+    Character offset from the end of the (plain text) document.
+
+    .. deprecated:: 0.5
+       Text positions will be represented using :class:`.DocumentPosition`\.
+    """
 
     # Reverse generic relations to Relation.
     relationsFrom = GenericRelation('Relation',
@@ -525,9 +639,12 @@ class Appellation(Annotation, Interpreted):
         (HAS, 'has/had'),
     )
     controlling_verb = models.CharField(max_length=4, choices=VCHOICES,
-                                        null=True, blank=True,
-                                        help_text=help_text(
-    """DEPRECATED. Applies only if the Appellation is a predicate."""))
+                                        null=True, blank=True)
+    """
+    .. deprecated:: 0.4
+       We now fully implement the quadruple data model, so this is no longer
+       relevant.
+    """
 
 
 class RelationSet(models.Model):
@@ -537,47 +654,44 @@ class RelationSet(models.Model):
     """
 
     template = models.ForeignKey('RelationTemplate', blank=True, null=True,
-                                 related_name='instantiations',
-                                 help_text=help_text(
-     """
-     If this RelationSet was created from a RelationTemplate, we can use the
-     template to make decisions about display.
-     """))
+                                 related_name='instantiations')
+    """
+    If this RelationSet was created from a RelationTemplate, we can use the
+    template to make decisions about display.
+    """
 
     created = models.DateTimeField(auto_now_add=True)
-    createdBy = models.ForeignKey('VogonUser', help_text=help_text(
-    """The user who created the RelationSet."""))
+    createdBy = models.ForeignKey('VogonUser')
+    """The user who created the RelationSet."""
 
-    occursIn = models.ForeignKey('Text', related_name='relationsets',
-                                 help_text=help_text(
-    """The text on which this RelationSet is based."""))
+    occursIn = models.ForeignKey('Text', related_name='relationsets')
+    """The text on which this RelationSet is based."""
 
-    pending = models.BooleanField(default=False, help_text=help_text(
+    pending = models.BooleanField(default=False)
     """
-    A RelationSet is pending if it has been selected for submission, but the
-    submission process has not yet completed. The primary purpose of this field
-    is to prevent duplicate submissions.
-    """))
-
-    submitted = models.BooleanField(default=False help_text=help_text(
+    A :class:`.RelationSet` is pending if it has been selected for submission,
+    but the submission process has not yet completed. The primary purpose of
+    this field is to prevent duplicate submissions.
     """
-    Whether or not the RelationSet has been accessioned to Quadriga. This is
-    set True only if the RelationSet was added successfully.
-    """))
 
-    submittedOn = models.DateTimeField(null=True, blank=True,
-                                       help_text=help_text(
+    submitted = models.BooleanField(default=False)
     """
-    The date/time when the RelationSet was (successfully) accessioned to
-    Quadriga.
-    """))
+    Whether or not the :class:`.RelationSet` has been accessioned to Quadriga.
+    This is set ``True`` only if the :class:`.RelationSet` was added
+    successfully.
+    """
 
-    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True,
-                                      null=True, help_text=help_text(
+    submittedOn = models.DateTimeField(null=True, blank=True)
     """
-    The QuadrigaAccession tracks the entire set of RelationSets that were
-    accessioned together in a single query.
-    """))
+    The date/time when the :class:`.RelationSet` was (successfully) accessioned
+    to Quadriga.
+    """
+
+    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True)
+    """
+    The :class:`.QuadrigaAccession` tracks the entire set of RelationSets that
+    were accessioned together in a single query.
+    """
 
     @property
     def root(self):
@@ -704,9 +818,11 @@ class Relation(Annotation):
     object_content_object = GenericForeignKey('object_content_type',
                                               'object_object_id')
 
-    bounds = models.ForeignKey("TemporalBounds", blank=True, null=True,
-                               help_text=help_text(
-    """DEPRECATED. We now fully implement the quadruple model in VogonWeb."""))
+    bounds = models.ForeignKey("TemporalBounds", blank=True, null=True)
+    """
+    .. deprecated:: 0.5
+       We now fully implement the quadruple model in VogonWeb.
+    """
 
 
 class RelationTemplate(models.Model):
@@ -714,19 +830,17 @@ class RelationTemplate(models.Model):
     Provides a template for complex relations, allowing the user to simply
     fill in fields without worrying about the structure of the quadruple.
 
-    TODO
-    ----
-    * Add ``created_by`` field, perhaps others.
+    .. todo:: Add ``created_by`` field, perhaps others.
     """
 
-    name = models.CharField(max_length=255, help_text=help_text(
-    """A descriptive name used in menus in the annotation interface."""))
+    name = models.CharField(max_length=255)
+    """A descriptive name used in menus in the annotation interface."""
 
-    description = models.TextField(help_text=help_text(
-    """A longer-form description of the relation."""))
+    description = models.TextField()
+    """A longer-form description of the relation."""
 
-    expression = models.TextField(null=True, help_text=help_text(
-    """Pattern for representing the relation in normal language."""))
+    expression = models.TextField(null=True)
+    """Pattern for representing the relation in normal language."""
 
     @property
     def fields(self):
@@ -817,8 +931,8 @@ class RelationTemplatePart(models.Model):
                                                 related_name='used_as_source')
     source_relationtemplate_internal_id = models.IntegerField(default=-1)
 
-    source_prompt_text = models.BooleanField(default=True, help_text=help_text(
-    """Indicates whether the user should be asked for evidence for source."""))
+    source_prompt_text = models.BooleanField(default=True)
+    """Indicates whether the user should be asked for evidence for source."""
 
     source_description = models.TextField(blank=True, null=True)
 
@@ -829,28 +943,36 @@ class RelationTemplatePart(models.Model):
                                        related_name='used_as_type_for_predicate')
     predicate_concept = models.ForeignKey(Concept, blank=True, null=True,
                                           related_name='used_as_concept_for_predicate')
-    predicate_prompt_text = models.BooleanField(default=True,
-    help_text=help_text(
+    predicate_prompt_text = models.BooleanField(default=True)
     """
     Indicates whether the user should be asked for evidence for predicate.
-    """))
+    """
 
     predicate_description = models.TextField(blank=True, null=True)
 
-    object_node_type = models.CharField(choices=NODE_CHOICES, max_length=2, null=True, blank=True)
+    object_node_type = models.CharField(choices=NODE_CHOICES, max_length=2,
+                                        null=True, blank=True)
     object_label = models.CharField(max_length=100, null=True, blank=True)
-    object_type = models.ForeignKey(Type, blank=True, null=True, related_name='used_as_type_for_object')
-    object_concept = models.ForeignKey(Concept, blank=True, null=True, related_name='used_as_concept_for_object')
-    object_relationtemplate = models.ForeignKey('RelationTemplatePart',  blank=True, null=True, related_name='used_as_object')
+    object_type = models.ForeignKey(Type, blank=True, null=True,
+                                    related_name='used_as_type_for_object')
+    object_concept = models.ForeignKey(Concept, blank=True, null=True,
+                                       related_name='used_as_concept_for_object')
+    object_relationtemplate = models.ForeignKey('RelationTemplatePart',
+                                                blank=True, null=True,
+                                                related_name='used_as_object')
     object_relationtemplate_internal_id = models.IntegerField(default=-1)
     object_prompt_text = models.BooleanField(default=True)
     """Indicates whether the user should be asked for evidence for object."""
+
     object_description = models.TextField(blank=True, null=True)
 
 
-
-
 class TemporalBounds(models.Model):
+    """
+    .. deprecated:: 0.5
+       We now fully implement the Quadruple model in VogonWeb. See
+       :class:`.DateAppellation`\.
+    """
     start = TupleField(blank=True, null=True)
     occur = TupleField(blank=True, null=True)
     end = TupleField(blank=True, null=True)

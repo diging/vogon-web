@@ -1,0 +1,43 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+{% block main %}
+
+<div class="container">
+    <div class="h3">Resource: {{ result.data.title.render_value }} <span class="small">in repository <strong>{{repository.name}}</strong></span></div>
+
+    <dl class="dl-horizontal">
+    {% for name, fieldvalue in result.iteritems %}
+    {% if name != 'title' %}
+    {{ fieldvalue.render }}
+    {% endif %}
+    {% endfor %}
+    </dl>
+
+    {% if result.content %}
+    <p class="text-info">
+        The following content objects are associated with this resource. Select a content object to
+        begin annotating that object in VogonWeb.
+    </p>
+    <div class="list-group">
+        {% for content_id, content_object in result.content.items %}
+        <a class="list-group-item"
+            href="{% url "repository_text_content" repository.id result.id.value content_id %}">
+            <div class="h4">{{ content_object.data.name.value }}</div>
+            <dl class="dl-horizontal">
+            {% for name, fieldvalue in content_object.data.iteritems %}
+            {% if name != 'name' %}
+            {{ fieldvalue.render }}
+            {% endif %}
+            {% endfor %}
+            </dl>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>This resource has no associated content.</p>
+    {% endif %}
+
+</div>
+{% endblock %}
