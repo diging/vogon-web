@@ -1,6 +1,12 @@
 {% verbatim %}
 <p class="h4">Create a new appellation</p>
-<p>You selected <span class="text text-info bg-info">"{{ selectedText }}"</span>.</p>
+<p>
+    You selected
+    <span ng-show="selectedText != null" class="text text-info bg-info">"{{ selectedText }}"</span>
+    <div ng-show="selectedRegions != null"
+        id="digilib-selection-container">
+    </div>
+</p>
 <div ng-controller='ConceptSearchController'>
     <div id="concept-search">
         <div class="input-group">

@@ -4,23 +4,31 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         word_success_callbacks: [],
         word_failure_callbacks: [],
 
+        // Region callback hoppers.
+        region_success_callbacks: [],
+        region_failure_callbacks: [],
+
         // Appellation callback hoppers.
         appellation_success_callbacks: [],
         appellation_failure_callbacks: [],
 
         // Current selection. Holds {jQuery} objects.
         selected_words: $(),
+        selected_regions: null,
         selected_appellation: null,
 
         deferred: {
             word_success_callbacks: [],
             word_failure_callbacks: [],
+            region_success_callbacks: [],
+            region_failure_callbacks: [],
             appellation_success_callbacks: [],
             appellation_failure_callbacks: [],
         },
 
         skipAppellationPopover: false,
         skipWordPopover: false,
+        skipRegionPopover: false,
         persistHighlighting: false,
     }
 
@@ -75,6 +83,15 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     /**
+      * Unselect all regions.
+      */
+    service.resetRegionSelection = function() {
+    //   service.selected_regions.removeClass("selected");
+        $($('.popover').attr('parent')).popover('destroy');
+        service.selected_regions = null;
+    }
+
+    /**
       * Unselect all appellations.
       *
       * This is kind of weird at the moment, since we only select one
@@ -94,6 +111,14 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     service.resetWordCallbacks = function() {
         service.word_success_callbacks = [];
         service.word_failure_callbacks = [];
+    }
+
+    /**
+      *  Clear region callback hoppers.
+      */
+    service.resetRegionCallbacks = function() {
+        service.region_success_callbacks = [];
+        service.region_failure_callbacks = [];
     }
 
     /**
@@ -125,6 +150,30 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
 
         if (service.autorelease) service.releaseWords();
     }
+
+    /**
+      *  Handle the failure to select a word.
+      */
+    service.failRegionExpectation = function() {
+        service.region_failure_callbacks.forEach(function(callback) {
+            callback();
+        });
+        service.resetRegionCallbacks();
+        service.resetRegionSelection();
+    }
+
+    /**
+      *  Handle successful region selection.
+      */
+    service.succeedRegionExpectation = function() {
+        service.region_success_callbacks.forEach(function(callback) {
+            callback(service.selected_regions);
+        });
+
+        if (service.autorelease) service.releaseRegions();
+    }
+
+
 
     /**
       *  Handle the failure to select an appellation.
@@ -177,6 +226,22 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         service.autorelease = autorelease;
     }
 
+    /**
+      *  Register success and failure callbacks for region selection events.
+      *  @param {function} success_callback - Function to be called when the user selects a region.
+      *  @param {function} failure_callback - Function to be called when the user fails to select a region.
+      *  @param {bool} autorelease - If false, region selection will not be released until service.releaseRegions() is called.
+      */
+    service.expectRegion = function(success_callback, failure_callback, autorelease) {
+        if (success_callback) service.region_success_callbacks.push(success_callback);
+        if (failure_callback) service.region_failure_callbacks.push(failure_callback);
+        service.autorelease = autorelease;
+    }
+
+    service.releaseRegions = function() {
+        service.resetRegionSelection();
+    }
+
     service.releaseWords = function() {
         service.resetWordSelection();
     }
@@ -195,6 +260,21 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     service.expectAppellation = function(success_callback, failure_callback) {
         if (success_callback) service.appellation_success_callbacks.push(success_callback);
         if (failure_callback) service.appellation_failure_callbacks.push(failure_callback);
+    }
+
+    /**
+      * Callback for DigiLib region selection event.
+      * @param {jQuery.Event} event - Click event with a valid ``target``.
+      * @param {Object} data - DigiLib data object.
+      * @param {Object} rect - DigiLib rect object.
+      */
+    service.handleRegion = function(event, data, elem, coords) {
+        service.replaceRegionSelection({
+            'data': data,
+            'elem': elem,
+            'coords': coords
+        });
+        service.succeedRegionExpectation();
     }
 
     /**
@@ -226,6 +306,11 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     service.replaceWordSelection = function(word) {
         service.resetWordSelection();
         service.selected_words = word;
+    }
+
+    service.replaceRegionSelection = function(region) {
+        service.resetRegionSelection();
+        service.selected_regions = region;
     }
 
     service.unhighlightAppellations = function() {
@@ -263,7 +348,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.selectedWordPopover = function() {
         var lastId = service.selected_words[service.selected_words.length - 1].id;
-        console.log($('#' + $('.popover').attr('parent')));
         $($('.popover').attr('parent')).popover('destroy');
         $('word#' + lastId).popover({
             html: true,
@@ -275,13 +359,29 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     /**
+      * Display a popover with button on the selected region.
+      */
+    service.selectedRegionPopover = function() {
+        console.log('popover');
+        $($('.popover').attr('parent')).popover('destroy');
+        var selectedRegionElem = service.selected_regions.elem;
+        console.log(service.selected_regions);
+        $(service.selected_regions.elem).popover({
+            html: true,
+            template: '<div class="popover" parent="#' + selectedRegionElem[0].id + '" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
+            content:'<a class="btn btn-xs glyphicon glyphicon-tag region-popover-button"></a>',
+
+        });
+        $(service.selected_regions.elem).popover('show');
+        console.log('selectedRegionElem', selectedRegionElem);
+    }
+
+    /**
       * Display a popover with button on the last selected word.
       */
     service.selectedAppellationPopover = function() {
         var selector = $('word[appellation=' + service.selected_appellation.id + ']');
-
         $($('.popover').attr('parent')).popover('destroy');
-
         selector.last().popover({
             html: true,
             template: '<div class="popover" parent="word[appellation=' + service.selected_appellation.id + ']" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
@@ -296,8 +396,15 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event
       */
     service.handleSelectWord = function(event) {
-
         service.succeedWordExpectation();
+    }
+
+    /**
+      *  Callback for select region event.
+      *  @param {jQuery.Event} event
+      */
+    service.handleSelectRegion = function(event) {
+        service.succeedRegionExpectation();
     }
 
     /**
@@ -375,13 +482,16 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     service.bindWords = function() {
+        console.log('-----bindwords----');
         $('body').on('click', function(e) {
-               var Elem = e.target;
-               if (Elem.localName == 'word'){
-                   service.handleClick(e);
-               }
+            var Elem = e.target;
+            if (Elem.localName == 'word'){
+                service.handleClick(e);
+            }
+        });
 
-        })
+        // A region has been selected in the jquery.digilib.vogon plugin.
+        $('body').on('regionSelected', service.handleRegion);
 
         // $('word').click(service.handleClick);
 
@@ -390,6 +500,11 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         $('body').on('click', '.word-popover-button', function() {
             $($('.popover').attr('parent')).popover('destroy');
             service.handleSelectWord();
+        });
+
+        $('body').on('click', '.region-popover-button', function() {
+            $($('.popover').attr('parent')).popover('destroy');
+            service.handleSelectRegion();
         });
 
         $('body').on('click', '.appellation-popover-button', function() {

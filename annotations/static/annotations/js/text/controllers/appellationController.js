@@ -68,14 +68,56 @@ angular.module('annotationApp')
         $scope.hideCreateConcept = true;
         $scope.hideCreateConceptDetails = true;
 
-        // Listen for the user to select a word.
-        selectionService.expectWords(function(data) {
-            $scope.hideAppellationCreate = false;
-            $scope.selectedWords = data;
-            $scope.selectedText = getStringRep(data, ' ');
-            $scope.$emit('appellationTab');
-            $scope.$apply();
-        });
+        if (MODE == 'text') {
+            // Listen for the user to select a word.
+            selectionService.expectWords(function(data) {
+                $scope.hideAppellationCreate = false;
+                $scope.selectedWords = data;
+                $scope.selectedText = getStringRep(data, ' ');
+                $scope.$emit('appellationTab');
+                $scope.$apply();
+
+            });
+        }
+
+        if (MODE == 'image') {
+            selectionService.expectRegion(function(data) {
+
+                $scope.hideAppellationCreate = false;
+                $scope.selectedRegions = data;
+                $scope.selectedImage = null;
+
+                var cparts = data.coords.split(',');
+                console.log(data.coords);
+                var wx = cparts[0],
+                    wy = cparts[1],
+                    ww = cparts[2],
+                    wh = cparts[3];
+
+                $('#digilib-selection-container').empty();
+                $('#digilib-selection-container').append('<div id="digilib-selection-preview" style="position: relative;"><img src="" /></div>');
+                var previewWidth = $('#tabAppellations').width();
+                var imageLocation = 'http://diging.asu.edu:8080/digilib/servlet/Scaler?dw='+previewWidth+'&fn=testImage&wx='+wx+'&wy='+wy+'&ww='+ww+'&wh='+wh;
+                console.log(imageLocation);
+                $('#digilib-selection-preview img').attr('src', imageLocation);
+                $('#digilib-selection-preview').digilib({
+                    interactionMode: 'embedded',
+                    digilibBaseUrl: '/static/annotations/js/digilib',
+                    buttonSettings : {
+                        'embedded': {
+                            'imagePath': '',
+                            'buttonSetWidth': 0,
+                            'buttonSets': [],
+                            'standardSet': [],
+                            'specialSet': [],
+                            'pageSet': [],
+                        }
+                    },
+                });
+                $scope.$emit('appellationTab');
+                $scope.$apply();
+            });
+        }
 
         // Re-populate the list of existing Appellations.
         appellationService.getAppellations(function(appellations) {
