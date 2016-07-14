@@ -322,6 +322,18 @@ class Text(models.Model):
     .. todo:: Make this field non-changeable once it is set.
     """
 
+    PLAIN_TEXT = 'PT'
+    IMAGE = 'IM'
+    HYPERTEXT = 'HP'
+    TYPE_CHOICES = (
+        (PLAIN_TEXT, 'Plain text'),
+        (IMAGE, 'Image'),
+        (HYPERTEXT, 'Hypertext'),
+    )
+    document_type = models.CharField(max_length=2, choices=TYPE_CHOICES,
+                                     null=True, blank=True)
+    document_location = models.CharField(max_length=1000, null=True, blank=True)
+
     tokenizedContent = models.TextField()
     """
     Text should already be tagged, with <word> elements delimiting tokens.

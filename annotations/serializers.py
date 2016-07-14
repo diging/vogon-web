@@ -33,13 +33,30 @@ class RelationSerializer(serializers.ModelSerializer):
         model = Relation
 
 
-class AppellationSerializer(serializers.ModelSerializer):
+class DocumentPositionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Appellation
-        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
-                  'interpretation', 'interpretation_type', 'occursIn',
-                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label')
+        model = DocumentPosition
+        # fields = '__all__'
+
+
+class TextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Text
+        fields = ('id', 'uri', 'title', 'created', 'added',
+                  'addedBy', 'source', 'annotators', 'annotation_count')
+
+    def create(self, validated_data):
+        repository = Repository.objects.get(pk=validated_data['source'])
+        # TODO: Make retrieval/tokenization/other processing asynchronous.
+        tokenizedContent = tokenize(retrieve(repository, validated_data['uri']))
+
+        text = Text(uri=validated_data['uri'],
+                    title=validated_data['title'],
+                    source=repository,
+                    addedBy=self.context['request'].user,
+                    tokenizedContent=tokenizedContent)
+        text.save()
+        return HttpResponse(text.id)
 
 
 class ConceptSerializer(serializers.ModelSerializer):
@@ -47,6 +64,37 @@ class ConceptSerializer(serializers.ModelSerializer):
         model = Concept
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
                   'description', 'pos', 'resolved', 'typed_label')
+
+
+class AppellationSerializer(serializers.ModelSerializer):
+    position = DocumentPositionSerializer(required=False)
+    tokenIds = serializers.CharField(required=False)
+    stringRep = serializers.CharField(required=False)
+    occursIn = TextSerializer(required=False)
+    interpretation = ConceptSerializer(required=False)
+
+    class Meta:
+        model = Appellation
+        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
+                  'interpretation', 'interpretation_type', 'occursIn',
+                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
+                  'interpretation_type_label', 'position')
+
+
+class AppellationPOSTSerializer(serializers.ModelSerializer):
+    position = DocumentPositionSerializer(required=False)
+    tokenIds = serializers.CharField(required=False)
+    stringRep = serializers.CharField(required=False)
+
+    class Meta:
+        model = Appellation
+        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
+                  'interpretation', 'interpretation_type', 'occursIn',
+                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
+                  'interpretation_type_label', 'position')
+
+
+
 
 
 class TypeSerializer(serializers.ModelSerializer):
@@ -68,25 +116,6 @@ class TemporalBoundsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TemporalBounds
 
-
-class TextSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Text
-        fields = ('id', 'uri', 'title', 'created', 'added',
-                  'addedBy', 'source', 'annotators', 'annotation_count')
-
-    def create(self, validated_data):
-        repository = Repository.objects.get(pk=validated_data['source'])
-        # TODO: Make retrieval/tokenization/other processing asynchronous.
-        tokenizedContent = tokenize(retrieve(repository, validated_data['uri']))
-
-        text = Text(uri=validated_data['uri'],
-                    title=validated_data['title'],
-                    source=repository,
-                    addedBy=self.context['request'].user,
-                    tokenizedContent=tokenizedContent)
-        text.save()
-        return HttpResponse(text.id)
 
 
 class TextCollectionSerializer(serializers.ModelSerializer):

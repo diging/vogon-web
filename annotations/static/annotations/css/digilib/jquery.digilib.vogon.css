@@ -1,13 +1,21 @@
-div.dl-digilib div.dl-region {
+div.dl-digilib div.dl-region.appellation {
 	position: absolute;
 	border: none;
     color: white;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: 11px;
-	background-color: red;
-    opacity: 0.3;
+	background-color: orange;
+    opacity: 0.1;
 	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
 	filter: alpha(opacity=30);
+}
+
+div.dl-digilib div.dl-region.notcommitted {
+    background-color: green;
+}
+
+div.dl-digilib div.dl-region.selected {
+    background-color: blue;
 }
 
 div.dl-digilib div.dl-region a:link,
@@ -16,7 +24,7 @@ div.dl-digilib div.dl-region a:visited {
 }
 
 div.dl-digilib div.dl-region:hover {
-	background-color: transparent;
+    opacity: 0.2;
 	border: 2px solid orange;
 }
 

@@ -356,6 +356,19 @@ function($) {
             zoomBy(data, factor);
         },
 
+
+        defineArea : function (data, onComplete, cls) {
+            defineArea(data, onComplete, cls);
+        },
+
+        redisplay : function (data) {
+            redisplay(data);
+        },
+
+        getGeom : function() {
+            return fn.geometry;
+        },
+
         /** zoom to area (or interactive)
          *
          * @param data
@@ -1295,6 +1308,7 @@ function($) {
      *
      */
     var zoomBy = function(data, factor) {
+        console.log(data);
         var area = data.zoomArea;
         var newarea = area.copy();
         // scale
@@ -1334,6 +1348,17 @@ function($) {
         $elem.append($areaDiv);
         $scaler.addClass(CSS+'definearea');
 
+        $('body').on("keydown", function(evt) {
+            if(evt.which == 27) { // esc key.
+                console.log('esc key');
+                $overlayDiv.off("mousemove.dlArea", areaMove);
+                $overlayDiv.off("mouseup.dlArea", areaEnd);
+                $overlayDiv.off('mousedown.dlArea', areaStart);
+                withdraw($areaDiv);
+                withdraw($overlayDiv);
+            }
+        });
+
         var areaStart = function (evt) {
             pt1 = geom.position(evt);
             // setup and show area div
@@ -1343,6 +1368,7 @@ function($) {
             // register events
             $overlayDiv.on("mousemove.dlArea", areaMove);
             $overlayDiv.on("mouseup.dlArea", areaEnd);
+
             return false;
         };
 
@@ -1373,6 +1399,7 @@ function($) {
             clickRect.clipTo(picRect);
             var rect = data.imgTrafo.invtransform(clickRect);
             // execute callback
+            console.log(onComplete);
             onComplete(data, rect);
             // destroy area div
             withdraw($areaDiv);

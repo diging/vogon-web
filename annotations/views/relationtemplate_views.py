@@ -313,6 +313,10 @@ def create_from_relationtemplate(request, template_id):
         relation_set.save()
 
         def create_appellation(field_data, template_part, field, evidence_required=True):
+            """
+            Some fields may have data for appellations that have not yet been
+            created. So we do that here.
+            """
             node_type = getattr(template_part, '%s_node_type' % field)
 
             appellation_data = {
@@ -320,11 +324,21 @@ def create_from_relationtemplate(request, template_id):
                 'createdBy_id': request.user.id,
             }
             if evidence_required and field_data:
+                # We may be dealing with an image appellation, in which case
+                #  we should expect to find position data in the request.
+                position_data = field_data.pop('position', None)
+                if position_data:
+                    position = DocumentPosition.objects.create(**position_data)
+                    appellation_data.update({
+                        'position': position,
+                    })
+
+                # These should be blank instead of null.
                 appellation_data.update({
-                    'tokenIds': field_data['data']['tokenIds'],
-                    'stringRep': field_data['data']['stringRep'],
+                    'tokenIds': field_data['data'].get('tokenIds', ''),
+                    'stringRep': field_data['data'].get('stringRep', ''),
                 })
-            else:
+            else:    # TODO: is this necessary?
                 appellation_data.update({'asPredicate': True})
 
             if node_type == RelationTemplatePart.CONCEPT:

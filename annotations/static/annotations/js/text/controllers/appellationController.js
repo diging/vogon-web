@@ -41,22 +41,44 @@ angular.module('annotationApp')
       *   words and concept.
       */
     $scope.createAppellation = function() {
-        var data = {
-            "tokenIds": getTokenIds($scope.selectedWords),
-            "stringRep": getStringRep($scope.selectedWords, ' '),
-            "startPos": null,
-            "endPos": null,
-            "asPredicate": false,
-            "occursIn": TEXTID,
-            "createdBy": USERID,
-            "interpretation": $scope.data.selectedConcept.id,
+        if (MODE == 'text') {
+            // TODO: use `position` instead of `tokenIds`.
+            var data = {
+                "tokenIds": getTokenIds($scope.selectedWords),
+                "stringRep": getStringRep($scope.selectedWords, ' '),
+                "startPos": null,
+                "endPos": null,
+                "asPredicate": false,
+                "occursIn": TEXTID,
+                "createdBy": USERID, // TODO: this is odd.
+                "interpretation": $scope.data.selectedConcept.id,
+            };
+        } else if (MODE == 'image') {
+            var data = {
+                "occursIn": TEXTID,
+                "createdBy": USERID,
+                "interpretation": $scope.data.selectedConcept.id,
+                "position": {
+                    "position_type": "BB",
+                    "position_value": $scope.selectedRegions.coords,
+                    "occursIn": TEXTID,
+                }
+            };
         }
 
+        console.log('createAppellation with data', data);
         appellationService.createAppellation(data).then(function(appellation) {
-            $scope.selectAppellation(appellation);
+            console.log('created appellation and got response', appellation);
+            if (data.position) {
+                appellation.coords = data.position.position_value;
+            }
             $scope.$emit('appellationCreated');
             reloadGraph();  // Wait until the appellation is actually created.
             $scope.reset();
+            $(data.regionDiv).attr({'appellation': appellation.id});
+            selectionService.bindWords();
+            $(data.regionDiv).trigger('click');
+            $scope.selectAppellation(appellation);
         });
 
     }
@@ -76,19 +98,18 @@ angular.module('annotationApp')
                 $scope.selectedText = getStringRep(data, ' ');
                 $scope.$emit('appellationTab');
                 $scope.$apply();
-
             });
         }
 
         if (MODE == 'image') {
+            // Listen for user to finish selecting a region in the main image
+            //  panel.
             selectionService.expectRegion(function(data) {
-
                 $scope.hideAppellationCreate = false;
                 $scope.selectedRegions = data;
                 $scope.selectedImage = null;
 
                 var cparts = data.coords.split(',');
-                console.log(data.coords);
                 var wx = cparts[0],
                     wy = cparts[1],
                     ww = cparts[2],
@@ -98,22 +119,7 @@ angular.module('annotationApp')
                 $('#digilib-selection-container').append('<div id="digilib-selection-preview" style="position: relative;"><img src="" /></div>');
                 var previewWidth = $('#tabAppellations').width();
                 var imageLocation = 'http://diging.asu.edu:8080/digilib/servlet/Scaler?dw='+previewWidth+'&fn=testImage&wx='+wx+'&wy='+wy+'&ww='+ww+'&wh='+wh;
-                console.log(imageLocation);
                 $('#digilib-selection-preview img').attr('src', imageLocation);
-                $('#digilib-selection-preview').digilib({
-                    interactionMode: 'embedded',
-                    digilibBaseUrl: '/static/annotations/js/digilib',
-                    buttonSettings : {
-                        'embedded': {
-                            'imagePath': '',
-                            'buttonSetWidth': 0,
-                            'buttonSets': [],
-                            'standardSet': [],
-                            'specialSet': [],
-                            'pageSet': [],
-                        }
-                    },
-                });
                 $scope.$emit('appellationTab');
                 $scope.$apply();
             });
@@ -130,6 +136,19 @@ angular.module('annotationApp')
         $scope.$broadcast('reset');
     }
 
+    $scope.scrollToAppellation = function(elem) {
+        console.log('scroll to appellation', elem);
+        var offset = elem.offset();
+        if (offset) {
+            $('.appellation-list').animate({ scrollTop: offset.top - 20}, 500);
+        }
+    }
+
+    $scope.scrollToWord = function(elem) {
+        // Scroll to the word (leave an offset at the top).
+        $('html, body').animate({ scrollTop: elem.offset().top - 20,}, 500);
+    }
+
     /**
       *  Trigger Appellation selection service via click event.
       */
@@ -139,13 +158,25 @@ angular.module('annotationApp')
 
         // Select the last word.
         var tokenIds = appellation.tokenIds.split(',');
-        var elem = $('word#' + tokenIds[tokenIds.length - 1]);
+        if (tokenIds.length > 0 && MODE == 'text') {
+            var elem = $('word#' + tokenIds[tokenIds.length - 1]);
+            $scope.scrollToWord(elem);
+            // Then click!
+            elem.trigger('click');
+        } else if (MODE == 'image') {
+            console.log('selected an image-based appellation');
 
-        // Scroll to the word (leave an offset at the top).
-        $('html, body').animate({ scrollTop: elem.offset().top - 20,}, 500);
+            var elem = $('[appellation="' + appellation.id + '"]');
+            $scope.scrollToAppellation($('#appellation-list-item-' + appellation.id));
+            // $('.vogonOverlay[appellation=' + appellation.id + ']').trigger('click');
+            // elem.trigger('click');
+            console.log('this is the selected appellation', appellation);
 
-        // Then click!
-        elem.trigger('click');
+            selectionService.replaceAppellationSelectionDirect(appellation);
+            selectionService.succeedAppellationExpectation();
+
+        };
+
     }
 
     $scope.reset();

@@ -26,6 +26,24 @@ from concepts.tasks import search_concept
 import uuid
 
 
+# http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
+class SwappableSerializerMixin(object):
+    def get_serializer_class(self):
+        try:
+            return self.serializer_classes[self.request.method]
+        except AttributeError:
+            logger.debug('%(cls)s does not have the required serializer_classes'
+                         'property' % {'cls': self.__class__.__name__})
+            raise AttributeError
+        except KeyError:
+            logger.debug('request method %(method)s is not listed'
+                         ' in %(cls)s serializer_classes' %
+                         {'cls': self.__class__.__name__,
+                          'method': self.request.method})
+            # required if you don't include all the methods (option, etc) in your serializer_class
+            return super(SwappableSerializerMixin, self).get_serializer_class()
+
+
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 100
     page_size_query_param = 'page_size'
@@ -90,33 +108,28 @@ class RemoteResourceViewSet(viewsets.ViewSet):
         return Response(manager.resource(pk))
 
 
-class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
+class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
+    serializer_classes = {
+        'GET': AppellationSerializer,
+        'POST': AppellationPOSTSerializer
+    }
     # pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
         data = request.data
-
-        serializer = self.get_serializer(data=data)
+        position = data.pop('position', None)
+        # occursIn = data.pop('occursIn', None)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=data)
+        # if occursIn:
+        #     text = Text.objects.get(pk=occursIn)
+        #     data
         serializer.is_valid(raise_exception=True)
-
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
-                        headers=headers)
-
-    def perform_create(self, serializer):
-        """
-        Calls :meth:`.AppellationSerializer.save`\.
-
-        Overridden to use the new :class:`.DocumentPosition`\.
-
-        .. todo:: This should really happen on the serializer, not here, but
-           for the short-term it would be nice to avoid making changes to the
-           text annotation Angular app.
-        """
+        # raise AttributeError('asdf')
+        instance = serializer.save()
 
         # Prior to 0.5, the selected tokens were stored directly in Appellation,
         #  as ``tokenIds``. Now that we have several different annotation
@@ -126,16 +139,32 @@ class AppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         #  So until we modify that JS app, we still need to store tokenIds on
         #  Appellation, in addition to creating and linking a DocumentPosition.
         tokenIDs = serializer.data.get('tokenIds', None)
+
         text_id = serializer.data.get('occursIn')
+
         if tokenIDs:
             position = DocumentPosition.objects.create(
                         occursIn_id=text_id,
                         position_type=DocumentPosition.TOKEN_ID,
                         position_value=tokenIDs)
 
-        instance = serializer.save()
-        instance.position = position
-        instance.save()
+            instance.position = position
+            instance.save()
+
+        if position:
+            position_serializer = DocumentPositionSerializer(data=position)
+            position_serializer.is_valid(raise_exception=True)
+            position = position_serializer.save()
+            # position = DocumentPosition.objects.create(**position)
+
+            instance.position = position
+            instance.save()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
+
+
 
     def get_queryset(self, *args, **kwargs):
 

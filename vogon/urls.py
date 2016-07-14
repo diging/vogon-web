@@ -116,6 +116,6 @@ urlpatterns = [
     url(r'^repository/(?P<repository_id>[0-9]+)/$', views.repository_views.repository_details, name='repository_details'),
     url(r'^repository/$', views.repository_views.repository_list, name='repository_list'),
 
-    url(r'^annotate/image/$', views.annotation_views.annotate_image, name='annotate_image'),
+    url(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
