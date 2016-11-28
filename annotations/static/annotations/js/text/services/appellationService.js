@@ -166,8 +166,6 @@ angular.module('annotationApp').factory('appellationService',
           * Create and index a new Appellation.
           */
         createAppellation: function(data) {
-            console.log('create appellation');
-            console.log(data);
             var appellation = new Appellation(data);
             var service = this;
 

@@ -88,8 +88,10 @@
 
         <!-- Mobile support. We want to be slightly zoomed out, or else the interface is simply too mashed. -->
         <meta name="viewport" content="width=device-width, initial-scale=0.75">
+
     </head>
     <body  ng-app="annotationApp">
+        <span us-spinner="{radius:30, width:8, length: 16}"></span>
         {% include "annotations/header.html" %}
 
         <!-- csrf_ajax.js gets the CSRF token for this page, and pre-configures AJAX requests. -->

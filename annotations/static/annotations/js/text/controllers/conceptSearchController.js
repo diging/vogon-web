@@ -9,8 +9,11 @@ app.controller('ConceptSearchController',
     $scope.search = function() {
         if ($scope.query.length > 2 & !$scope.creatingConcept) {
             var params = {search: $scope.query, pos: 'noun', typed: $scope.conceptType, remote: true}
+            $scope.concepts = [];
+            $scope.message = 'Searching...';
             Concept.query(params).$promise.then(function(data){
                 $scope.concepts = data.results;
+                $scope.message = null;
             });
         }
     }
@@ -101,7 +104,7 @@ app.controller('ConceptSearchController',
             pos: 'noun',
         }
         var concept = new Concept(data);
-        
+
         concept.$save().then(function(c) {
             $scope.data.selectedConcept = c;
             $scope.createAppellation();

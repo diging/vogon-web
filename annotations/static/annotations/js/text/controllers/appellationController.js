@@ -72,7 +72,6 @@ angular.module('annotationApp')
             };
         }
 
-        console.log('createAppellation with data', data);
         appellationService.createAppellation(data).then(function(appellation) {
             console.log('created appellation and got response', appellation);
             if (data.position) {
