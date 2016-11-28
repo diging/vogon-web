@@ -398,12 +398,18 @@ class MySplitDateTimeWidget(forms.widgets.SplitDateTimeWidget):
 #  these exceptions.
 try:
     class RelationSetFilterForm(forms.Form):
-        text = forms.MultipleChoiceField(choices=Text.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'title'),
-                                              required=False,
-                                              widget=forms.widgets.SelectMultiple(attrs={
-                                                    'class': 'form-control ymultiselect'
-                                                }))
-        project = forms.MultipleChoiceField(choices=TextCollection.objects.all().values_list('id', 'name'),
+        def __init__(self, *args, **kwargs):
+            super(RelationSetFilterForm, self).__init__(*args, **kwargs)
+            self.fields['text'].choices = Text.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'title')
+            self.fields['project'].choices = TextCollection.objects.all().values_list('id', 'name')
+            self.fields['user'].choices = VogonUser.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'username')
+
+
+        text = forms.MultipleChoiceField(choices=[], required=False,
+                                         widget=forms.widgets.SelectMultiple(
+                                            attrs={'class': 'form-control ymultiselect'}
+                                         ))
+        project = forms.MultipleChoiceField(choices=[],
                                                  required=False,
                                                  widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
         text_published_from = forms.DateField(required=False,
@@ -413,14 +419,12 @@ try:
                                                     'placeholder': 'YYYY-MM-DD'
                                                 }))
         text_published_through = forms.DateField(required=False,
-
-                                              widget=forms.widgets.DateInput(attrs={
-                                                    'class': 'datepicker form-control',
-                                                    'placeholder': 'YYYY-MM-DD'
-                                                }))
-        user = forms.MultipleChoiceField(choices=VogonUser.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'username'),
-                                      required=False,
-                                      widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
+                                                  widget=forms.widgets.DateInput(attrs={
+                                                        'class': 'datepicker form-control',
+                                                        'placeholder': 'YYYY-MM-DD'
+                                                    }))
+        user = forms.MultipleChoiceField(choices=[], required=False,
+                                         widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
         created_from = forms.SplitDateTimeField(required=False,
                                                 widget=MySplitDateTimeWidget(attrs={
                                                      'date_class': 'datepicker form-control',

@@ -70,7 +70,8 @@ urlpatterns = [
     url(r'^rest/', include(repository_router.urls)),
     url(r'^rest/', include(remotecollection_router.urls)),
 
-    url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
+    # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
+    url(r'^text/$', views.main_views.home, name='text_search'),
 
     url(r'^network/$', views.network_views.network, name="network"),
     url(r'^network/data/$', views.network_views.network_data, name="network-data"),

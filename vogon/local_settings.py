@@ -47,7 +47,6 @@ INSTALLED_APPS = (
     'crispy_forms',
     'guardian',
     'djcelery',
-    'haystack',
     'repository',
 )
 
@@ -112,9 +111,9 @@ DATABASES = {
 }
 
 # TravisCI uses postgres/<blank> by default.
-if 'TRAVIS' in os.environ:
-    DATABASES['default']['USER'] = 'postgres'
-    DATABASES['default']['PASSWORD'] = ''
+# if 'TRAVIS' in os.environ:
+#     DATABASES['default']['USER'] = 'postgres'
+#     DATABASES['default']['PASSWORD'] = ''
 
 # DATABASES = {
 #     'default': {
@@ -190,20 +189,6 @@ LOGGING = {
 
 
 
-# Haystack
-# http://django-haystack.readthedocs.org/en/v2.4.0/index.html
-
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine',
-        'URL': 'http://127.0.0.1:9200/',
-        'INDEX_NAME': 'vogon',
-    },
-}
-# if not 'TRAVIS' in os.environ:
-    # HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
-
-
 djcelery.setup_loader()
 
 # AWS Access Key and Secret Key credentials
@@ -262,3 +247,6 @@ CELERY_TIMEZONE = 'UTC'
 GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)
 
 VERSION = '0.4'
+
+CELERYD_CONCURRENCY = 8
+CELERYD_PREFETCH_MULTIPLIER = 8

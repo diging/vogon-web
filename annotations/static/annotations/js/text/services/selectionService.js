@@ -365,7 +365,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event - Click event with a valid ``target``.
       */
     service.handleClick = function(event) {
-        console.log('handleClick for', event.target);
+        // console.log('handleClick for', event.target);
         if (event.target.localName != 'word' && event.target.localName != 'div') return;
         event.stopPropagation();
 

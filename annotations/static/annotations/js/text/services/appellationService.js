@@ -66,11 +66,15 @@ angular.module('annotationApp').factory('appellationService',
                     if (appellation.position.position_type == 'BB' && MODE == 'image') service.tagRegionAsAppellation(appellation);
                 };
             });
-            var $elem = $('#digilib-image-container');
-            var data = $elem.data('digilib');
-            packRegions(data);
-            renderRegions(data);
-            $elem.digilib.apply($elem, ['redisplay', data]);
+
+            // Used only when annotating an image.
+            if (typeof packRegions != 'undefined') {
+                var $elem = $('#digilib-image-container');
+                var data = $elem.data('digilib');
+                packRegions(data);
+                renderRegions(data);
+                $elem.digilib.apply($elem, ['redisplay', data]);
+            }
         },
 
         /**
@@ -162,6 +166,8 @@ angular.module('annotationApp').factory('appellationService',
           * Create and index a new Appellation.
           */
         createAppellation: function(data) {
+            console.log('create appellation');
+            console.log(data);
             var appellation = new Appellation(data);
             var service = this;
 

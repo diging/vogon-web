@@ -4,7 +4,8 @@
     <ul class="list-group" ng-show="hideRelationCreate">
         <a class="list-group-item relation-list-item"
             ng-repeat="relation in relations"
-            ng-click="highlightAppellations(relation.appellations)">{{ relation.label }} <span class="label label-success" style="margin-right: 5px;" ng-repeat="concept in relation.concepts">{{ concept.label }}</span>
+            ng-click="highlightAppellations(relation.appellations)">{{ relation.label }}
+            <span class="text-warning" style="margin-right: 5px;" ng-repeat="concept in relation.concepts">{{ concept.label }}</span>
         </a>
     </ul>
 

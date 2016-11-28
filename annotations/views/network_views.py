@@ -16,7 +16,7 @@ from concepts.models import Concept, Type
 from itertools import combinations
 from collections import defaultdict, Counter
 import copy
-import igraph
+# import igraph
 
 
 def network(request):

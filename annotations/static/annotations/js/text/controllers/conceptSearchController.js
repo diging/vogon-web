@@ -1,5 +1,9 @@
-
-app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function($scope, Concept, Type) {
+/**
+  * The ConceptSearchController handles queries for, and creation of, concepts
+  *  in the appellation creation process.
+  */
+app.controller('ConceptSearchController',
+               ['$scope', 'Concept', 'Type', function($scope, Concept, Type) {
     $scope.assertUnique = false;
 
     $scope.search = function() {
@@ -11,6 +15,9 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
         }
     }
 
+    /**
+      * The "selected" concept is available for appellation-related actions.
+      */
     $scope.select = function(concept) {
         $scope.data.selectedConcept = concept;
         $scope.query = concept.label;
@@ -26,10 +33,13 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
         $scope.concept = null;
     }
 
+    /**
+      * Clear search results, creation data, and unselect the current selected
+      *  concept.
+      */
     $scope.reset  = function() {
         $scope.concepts = [];
         $scope.newConcept = {};
-
         $scope.unselectConcept();
     }
 
@@ -72,6 +82,15 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
         return ($scope.newConcept.typed != null & $scope.newConcept.description != null);
     }
 
+    /**
+      * Assuming that the user has entered data for a new Concept, this method
+      *  should submit those data to create a new Concept and then trigger
+      *  appellation creation (provided to the current scope by the
+      *  AppellationController).
+      *
+      * Setting `uri` to 'generate' tells the Concept endpoint that this is a
+      *  brand new concept.
+      */
     $scope.createConceptAndAppellation = function() {
         var data = {
             uri: 'generate',
@@ -82,7 +101,7 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
             pos: 'noun',
         }
         var concept = new Concept(data);
-        console.log(data);
+        
         concept.$save().then(function(c) {
             $scope.data.selectedConcept = c;
             $scope.createAppellation();

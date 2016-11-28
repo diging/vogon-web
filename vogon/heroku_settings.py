@@ -49,7 +49,6 @@ INSTALLED_APPS = (
     'crispy_forms',
     'guardian',
     'djcelery',
-    'haystack',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -159,19 +158,6 @@ AUTH_USER_MODEL = 'annotations.VogonUser'
 
 es = urlparse(os.environ.get('SEARCHBOX_URL') or 'http://127.0.0.1:9200/')
 port = es.port or 80
-
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'annotations.elasticsearch_backends.JHBElasticsearch2SearchEngine',
-        'URL': es.scheme + '://' + es.hostname + ':' + str(port),
-        'INDEX_NAME': 'documents',
-        'TIMEOUT': 3600,
-    },
-}
-
-if es.username:
-    HAYSTACK_CONNECTIONS['default']['KWARGS'] = {"http_auth": es.username + ':' + es.password}
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 # AWS Access Key and Secret Key credentials
 AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)

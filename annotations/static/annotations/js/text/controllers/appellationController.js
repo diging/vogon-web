@@ -43,6 +43,12 @@ angular.module('annotationApp')
     $scope.createAppellation = function() {
         if (MODE == 'text') {
             // TODO: use `position` instead of `tokenIds`.
+            var identifier;
+            if ($scope.data.selectedConcept.id != null) {
+                identifier = $scope.data.selectedConcept.id;
+            } else if ($scope.data.selectedConcept.uri) {
+                identifier = $scope.data.selectedConcept.uri;
+            }
             var data = {
                 "tokenIds": getTokenIds($scope.selectedWords),
                 "stringRep": getStringRep($scope.selectedWords, ' '),
@@ -51,7 +57,7 @@ angular.module('annotationApp')
                 "asPredicate": false,
                 "occursIn": TEXTID,
                 "createdBy": USERID, // TODO: this is odd.
-                "interpretation": $scope.data.selectedConcept.id,
+                "interpretation": identifier,
             };
         } else if (MODE == 'image') {
             var data = {

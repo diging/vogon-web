@@ -10,6 +10,7 @@ angular.module('annotationApp').factory('Concept', function($resource) {
         query: {
             method: 'GET',
             isArray: false,
+            url: '/rest/concept/search/'
         },
         save: {
             method: 'POST',

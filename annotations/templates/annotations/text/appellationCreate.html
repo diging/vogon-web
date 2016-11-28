@@ -17,22 +17,25 @@
                 name="search"
                 id="concept-search-id"
                 ng-model="query"
-                ng-change="search()"
                 class="form-control"
                 ng-disabled="data.selectedConcept"
                 placeholder="To what does this passage refer?">
             </input>
             <!-- Until a Concept is selected, show a green search icon. -->
-            <span class="input-group-addon btn btn-sm btn-success" ng-show="!data.selectedConcept">
+            <span class="input-group-addon btn btn-sm btn-success" ng-show="!data.selectedConcept" ng-click="search()">
                 <span class="glyphicon glyphicon-search"></span>
             </span>
             <!-- When a Concept is selected, show a red X that allows the user to deselect the Concept. -->
-            <span class="input-group-addon btn btn-sm btn-danger" ng-click="unselectConcept()" ng-show="data.selectedConcept">
+            <span class="input-group-addon btn btn-sm btn-danger"
+                ng-click="unselectConcept()"
+                ng-show="data.selectedConcept">
                 <span class="glyphicon glyphicon-remove"></span>
             </span>
         </div>
         <ul class="list-group concept-search-results" ng-hide="creatingConcept">
-            <a class="list-group-item" ng-repeat="concept in concepts" ng-click="select(concept)">
+            <a class="list-group-item"
+                ng-repeat="concept in concepts"
+                ng-click="select(concept)">
                 <span class="h5">{{ concept.label }} <label class="label label-primary">{{ concept.typed_label }}</label></span>
                 <p><span class="text text-muted">{{ concept.description }}</span></p>
             </a>

@@ -25,6 +25,10 @@ from concepts.tasks import search_concept
 
 import uuid
 
+import goat
+goat.GOAT = 'http://127.0.0.1:8000'
+goat.GOAT_APP_TOKEN = 'd22bbda9b5b507dc6cd032d80d6a3d299fda10fe'
+
 
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
 class SwappableSerializerMixin(object):
@@ -119,8 +123,36 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
     # pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
-        data = request.data
+        data = request.data.copy()
         position = data.pop('position', None)
+
+        interpretation = data.get('interpretation')
+        if interpretation.startswith('http'):
+            try:
+                concept = Concept.objects.get(uri=interpretation)
+            except Concept.DoesNotExist:
+                concept_data = goat.Concept.retrieve(identifier=interpretation)
+                type_uri = concept_data.data.get('concept_type')
+                type_instance = None
+                if type_uri:
+                    try:
+                        type_instance = Type.objects.get(uri=type_uri)
+                    except Type.DoesNotExist:
+                        type_data = goat.Concept.retrieve(identifier=type_uri)
+                        type_instance = Type.objects.create(
+                            uri = type_uri,
+                            label = type_data.data.get('name'),
+                            description = type_data.data.get('description'),
+                        )
+
+                concept = Concept.objects.create(
+                    uri = interpretation,
+                    label = concept_data.data.get('name'),
+                    description = concept_data.data.get('description'),
+                    typed = type_instance
+                )
+            data['interpretation'] = concept.id
+
         # occursIn = data.pop('occursIn', None)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=data)
@@ -128,6 +160,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         #     text = Text.objects.get(pk=occursIn)
         #     data
         serializer.is_valid(raise_exception=True)
+
         # raise AttributeError('asdf')
         instance = serializer.save()
 
@@ -151,11 +184,12 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             instance.position = position
             instance.save()
 
+
         if position:
-            position_serializer = DocumentPositionSerializer(data=position)
-            position_serializer.is_valid(raise_exception=True)
-            position = position_serializer.save()
-            # position = DocumentPosition.objects.create(**position)
+            if type(position) is not DocumentPosition:
+                position_serializer = DocumentPositionSerializer(data=position)
+                position_serializer.is_valid(raise_exception=True)
+                position = position_serializer.save()
 
             instance.position = position
             instance.save()
@@ -266,9 +300,6 @@ class TemporalBoundsViewSet(viewsets.ModelViewSet, AnnotationFilterMixin):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
-
-
-
 class TextViewSet(viewsets.ModelViewSet):
     queryset = Text.objects.all()
     serializer_class = TextSerializer
@@ -363,6 +394,21 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_201_CREATED,
                         headers=headers)
 
+    @list_route()
+    def search(self, request, **kwargs):
+        q = request.GET.get('search', None)
+        pos = request.GET.get('pos', None)
+
+        concepts = goat.Concept.search(q=q, pos=pos)
+        def _relabel(datum):
+            _fields = {
+                'name': 'label',
+                'id': 'alt_id',
+                'identifier': 'uri'
+            }
+            return {_fields.get(k, k): v for k, v in datum.iteritems()}
+        return Response({'results': map(_relabel, [c.data for c in concepts])})
+
 
     def get_queryset(self, *args, **kwargs):
         """
@@ -398,10 +444,16 @@ class ConceptViewSet(viewsets.ModelViewSet):
             if pos == 'all':
                 pos = None
 
-            if remote:  # Spawn asynchronous calls to authority services.
-                search_concept.delay(query, pos=pos)
+            # if remote:  # Spawn asynchronous calls to authority services.
+            #     search_concept.delay(query, pos=pos)
             queryset = queryset.filter(label__icontains=query)
 
         if max_results:
             return queryset[:max_results]
         return queryset
+
+
+def concept_search(request):
+    q = request.get('search', None)
+    pos = self.request.query_params.get('pos', None)
+    return goat.Concept.search(q=q, pos=pos)

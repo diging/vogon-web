@@ -312,7 +312,8 @@ def create_from_relationtemplate(request, template_id):
         )
         relation_set.save()
 
-        def create_appellation(field_data, template_part, field, evidence_required=True):
+        def _create_appellation(field_data, template_part, field,
+                               evidence_required=True):
             """
             Some fields may have data for appellations that have not yet been
             created. So we do that here.
@@ -400,7 +401,7 @@ def create_from_relationtemplate(request, template_id):
                     relation_dependency_graph.add_edge(part_id, part_data['%s_object_id' % field])
                 else:   # We will need to create an Appellation.
                     field_data = relation_data[part_id].get(field, None)
-                    part_data['%s_object_id' % field] = create_appellation(field_data, template_part, field, evidence_required).id
+                    part_data['%s_object_id' % field] = _create_appellation(field_data, template_part, field, evidence_required).id
                     part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
 
             part_data['predicate_id'] = part_data['predicate_object_id']
