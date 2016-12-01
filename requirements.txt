@@ -49,3 +49,4 @@ networkx
 elasticsearch
 xmltodict
 black-goat-client>=0.2.3
+python-social-auth==0.2.21
