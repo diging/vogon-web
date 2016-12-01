@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load i18n %}
 
 <div id="header">
 	<nav class="navbar navbar-inverse">
@@ -51,8 +52,7 @@
 					</ul>
 					{% else %}
 					<div class="btn-group" role="group" aria-label="usermgmt">
-						<a href="/accounts/register/" class="btn btn-primary" id="registerButton">Register</a>
-						<a href="/accounts/login/" class="btn btn-primary" id="loginButton">Log In</a>
+                        <a class="btn btn-sm" href="{% url 'social:begin' 'github' %}"><i class="fa fa-github" aria-hidden="true"></i> {% trans 'Log in' %}</a>
 					</div>
 					{% endif %}
 				</div>

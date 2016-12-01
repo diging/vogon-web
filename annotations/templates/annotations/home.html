@@ -111,9 +111,8 @@ $('body').on('hide.bs.collapse', function(e) {
     						{% endif %}
     					</ul>
     					{% else %}
-    					<div class="btn-group" role="group" aria-label="usermgmt">
-    						<a href="/accounts/register/" class="btn btn-primary" id="registerButton">Register</a>
-    						<a href="/accounts/login/" class="btn btn-primary" id="loginButton">Log In</a>
+                        <div class="btn-group" role="group" aria-label="usermgmt">
+                            <a class="btn btn-sm" href="{% url 'social:begin' 'github' %}"><i class="fa fa-github" aria-hidden="true"></i> {% trans 'Log in' %}</a>
     					</div>
     					{% endif %}
     				</div>
@@ -263,7 +262,8 @@ $('body').on('hide.bs.collapse', function(e) {
     <div id="build" class="container-fluid section" style="margin-top: 15px;">
     	<div class="text-center panel-heading">
     		<span class="pull-right">
-    			<a href="{% url 'login' %}">Log in</a> or <a href="{% url 'register' %}">sign up</a> to get started!
+
+                <a class="btn btn-sm" href="{% url 'social:begin' 'github' %}"><i class="fa fa-github" aria-hidden="true"></i> {% trans 'Log in' %}</a> to get started!
                 <!-- with <a href="#" class="fa fa-github" aria-hidden="true"> GitHub</a> -->
     		</span>
     		<div class="h1">Let's build the epistemic web, together.</div>

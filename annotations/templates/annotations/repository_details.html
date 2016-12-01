@@ -10,17 +10,17 @@
     <div class="h3">Repository <strong>{{ repository.name }}</strong></div>
     <p class="">{{ repository.description }}</p>
     <ul class="nav nav-pills text-center">
-        {% if repository.search %}
+        {% if repository.can_search %}
         <li>
             <a href="{% url "repository_search" repository.id %}">Search</a>
         </li>
         {% endif %}
-        {% if repository.list %}
+        {% if repository.can_list %}
         <li>
             <a href="{% url "repository_browse" repository.id %}">Browse</a>
         </li>
         {% endif %}
-        {% if repository.collections %}
+        {% if repository.can_collections %}
         <li>
             <a href="{% url "repository_collections" repository.id %}">Collections</a>
         </li>

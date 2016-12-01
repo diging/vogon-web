@@ -11,6 +11,9 @@ from django.template import RequestContext, loader
 from annotations.forms import RepositorySearchForm
 from annotations.tasks import tokenize
 from repository.models import Repository
+from annotations.models import Text
+
+import requests
 
 
 @login_required
@@ -21,6 +24,7 @@ def repository_collections(request, repository_id):
     context = RequestContext(request, {
         'user': request.user,
         'repository': repository,
+        'collections': repository.collections(user=request.user),
         'title': 'Browse collections in %s' % repository.name,
     })
 
@@ -31,7 +35,8 @@ def repository_collections(request, repository_id):
 def repository_collection(request, repository_id, collection_id):
     template = loader.get_template('annotations/repository_collection.html')
     repository = get_object_or_404(Repository, pk=repository_id)
-    collection = repository.collection(id=collection_id)
+    collection = repository.collection(id=collection_id, user=request.user)
+    print collection.results[0].__dict__
 
     context = RequestContext(request, {
         'user': request.user,
@@ -115,7 +120,7 @@ def repository_text(request, repository_id, text_id):
     template = loader.get_template('annotations/repository_text_details.html')
 
     repository = get_object_or_404(Repository, pk=repository_id)
-    result = repository.read(id=int(text_id))
+    result = repository.read(id=int(text_id), user=request.user)
 
     context = RequestContext(request, {
         'user': request.user,
@@ -130,7 +135,7 @@ def repository_text(request, repository_id, text_id):
 @login_required
 def repository_text_content(request, repository_id, text_id, content_id):
     repository = get_object_or_404(Repository, pk=repository_id)
-    result = repository.read(id=int(text_id))
+    result = repository.read(id=int(text_id), user=request.user)
     content = result.content.contents.get(int(content_id))    # Not a dict.
     content_type = content.data.get('content_type', None)
     if content_type and content_type.value == 'text/plain':

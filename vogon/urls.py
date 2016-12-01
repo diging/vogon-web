@@ -59,9 +59,10 @@ urlpatterns = [
     url(r'^accounts/profile/', views.user_views.dashboard, name='dashboard'),
     url(r'^accounts/projects/', views.user_views.user_projects, name='user_projects'),
     url(r'^accounts/settings/$', views.user_views.user_settings, name='settings'),
-    url(r'^accounts/register/$', views.user_views.register, name='register'),
+    # url(r'^accounts/register/$', views.user_views.register, name='register'),
+    url('', include('social.apps.django_app.urls', namespace='social')),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
-                          {'next_page': '/accounts/login/'}),
+                          {'next_page': '/'}),
     url(r'^accounts/', include('django.contrib.auth.urls')),
 
     url(r'^admin/', include(admin.site.urls)),

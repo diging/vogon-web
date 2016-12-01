@@ -48,6 +48,7 @@ INSTALLED_APPS = (
     'guardian',
     'djcelery',
     'repository',
+    'social.apps.django_app.default',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -125,8 +126,14 @@ DATABASES = {
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # default
     'guardian.backends.ObjectPermissionBackend',
+    'social.backends.github.GithubOAuth2',
 )
 ANONYMOUS_USER_ID = -1
+BASE_URL = os.environ.get('BASE_URL', '/')
+SOCIAL_AUTH_GITHUB_KEY = os.environ.get('SOCIAL_AUTH_GITHUB_KEY', None)
+SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('SOCIAL_AUTH_GITHUB_SECRET', None)
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = BASE_URL
+SOCIAL_AUTH_GITHUB_SCOPE = ['user']
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
