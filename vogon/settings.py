@@ -11,8 +11,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
-import sys
+import os, sys, requests
 from urlparse import urlparse
 import socket
 import dj_database_url
@@ -225,3 +224,17 @@ CELERY_TIMEZONE = 'UTC'
 GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)
 
 VERSION = '0.4'
+
+
+# Giles and HTTP.
+GILES = os.environ.get('GILES', 'https://diging-dev.asu.edu/giles-review')
+IMAGE_AFFIXES = ['png', 'jpg', 'jpeg', 'tiff', 'tif']
+GET = requests.get
+POST = requests.post
+GILES_APP_TOKEN = os.environ.get('GILES_APP_TOKEN', 'nope')
+GILES_DEFAULT_PROVIDER = os.environ.get('GILES_DEFAULT_PROVIDER', 'github')
+MAX_GILES_UPLOADS = 20
+
+
+GOAT = os.environ.get('GOAT', 'http://127.0.0.1:8000')
+GOAT_APP_TOKEN = os.environ.get('GOAT_APP_TOKEN')

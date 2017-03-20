@@ -11,38 +11,38 @@ logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
 
 
-### Handle Concept and Type signals. ###
-@receiver(post_save, sender=Concept)
-def concept_post_save_receiver(sender, **kwargs):
-    """
-    When a :class:`.Concept` is saved, attempt to resolve it using one of the
-    registered :class:`.AuthorityManager` classes if the :class:`.Concept` is
-    not already :prop:`.resolved`\.
-    """
-    instance = kwargs.get('instance', None)
-    if instance:
-        resolve_concept.delay(sender, instance)
-
-
-@receiver(post_save, sender=Concept)
-def concept_post_save_approve_receiver(sender, **kwargs):
-    """
-    When a :class:`.Concept` is saved, attempt to add it using one of the
-    registered :class:`.AuthorityManager` classes to ConceptPower if the
-    :class:`.Concept` is :prop:`.approved`\.
-    """
-    instance = kwargs.get('instance', None)
-    if instance and instance.concept_state == Concept.APPROVED:
-        add_concept.delay(sender, instance)
-
-
-@receiver(post_save, sender=Type)
-def type_post_save_receiver(sender, **kwargs):
-    """
-    When a :class:`.Type` is saved, attempt to resolve it using one of the
-    registered :class:`.AuthorityManager` classes if the :class:`.Type` is
-    not already :prop:`.resolved`\.
-    """
-    instance = kwargs.get('instance', None)
-    if instance:
-        resolve_concept.delay(sender, instance)
+# ### Handle Concept and Type signals. ###
+# @receiver(post_save, sender=Concept)
+# def concept_post_save_receiver(sender, **kwargs):
+#     """
+#     When a :class:`.Concept` is saved, attempt to resolve it using one of the
+#     registered :class:`.AuthorityManager` classes if the :class:`.Concept` is
+#     not already :prop:`.resolved`\.
+#     """
+#     instance = kwargs.get('instance', None)
+#     if instance:
+#         resolve_concept.delay(sender, instance)
+#
+#
+# @receiver(post_save, sender=Concept)
+# def concept_post_save_approve_receiver(sender, **kwargs):
+#     """
+#     When a :class:`.Concept` is saved, attempt to add it using one of the
+#     registered :class:`.AuthorityManager` classes to ConceptPower if the
+#     :class:`.Concept` is :prop:`.approved`\.
+#     """
+#     instance = kwargs.get('instance', None)
+#     if instance and instance.concept_state == Concept.APPROVED:
+#         add_concept.delay(sender, instance)
+#
+#
+# @receiver(post_save, sender=Type)
+# def type_post_save_receiver(sender, **kwargs):
+#     """
+#     When a :class:`.Type` is saved, attempt to resolve it using one of the
+#     registered :class:`.AuthorityManager` classes if the :class:`.Type` is
+#     not already :prop:`.resolved`\.
+#     """
+#     instance = kwargs.get('instance', None)
+#     if instance:
+#         resolve_concept.delay(sender, instance)

@@ -6,7 +6,7 @@
 
 <script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
 <div class="container">
-    <a href="{% url "repository_details" repository.id %}" class="text-small btn" style="margin-top: 10px;">&#9664; Back to repository details</a>
+    <a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="text-small btn" style="margin-top: 10px;">&#9664; Back to repository details</a>
     <div class="h3">Search repository <strong>{{ repository.name }}</strong></div>
     <form class="form" action="." method="GET">
         {% csrf_token %}
@@ -17,15 +17,9 @@
     <div class="h4">Showing {{ results.count }} results for query <strong>{{ query }}</strong></div>
     <div class="list-group">
         {% for result in results  %}
-        <a class="list-group-item">
-            <div class="h5">{{ result.title.render_value }}</div>
-            <dl class="dl-horizontal">
-            {% for name, fieldvalue in result.iteritems %}
-            {% if name != 'title' %}
-            {{ fieldvalue.render }}
-            {% endif %}
-            {% endfor %}
-            </dl>
+        <a class="list-group-item"
+            href="{% url "repository_text" repository.id result.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
+            <div class="h5">{{ result.title }}</div>
         </a>
         {% endfor %}
     </div>

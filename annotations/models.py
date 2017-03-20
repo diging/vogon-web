@@ -303,6 +303,15 @@ class TextCollection(models.Model):
         return self.name
 
 
+# class Resource(models.Model):
+#     uri = models.CharField(max_length=255, unique=True)
+#     source = models.ForeignKey("Repository", blank=True, null=True,
+#                                related_name="resources")
+#     source_id = models.IntegerField(default=-1, blank=True, null=True)
+#     original_uri = models.CharField(max_length=255, unique=True)
+#
+
+
 class Text(models.Model):
     """
     Represents a document that is available for annotation.
@@ -310,16 +319,16 @@ class Text(models.Model):
     .. todo:: Add a field to store arbitrary metadata about the document.
     """
 
-    uri = models.CharField(max_length=255, unique=True, help_text=help_text(
-    """
-    Uniform Resource Identifier. This should be sufficient to retrieve text
-    from a repository.
-    """))
+    part_of = models.ForeignKey('Text', related_name='parts', null=True, blank=True)
+
+    uri = models.CharField(max_length=255, unique=True,
+                           help_text="Uniform Resource Identifier. This should"
+                           " be sufficient to retrieve text from a repository.")
     """
     This identifier is used when submitting :class:`.RelationSet`\s to
     Quadriga.
 
-    .. todo:: Make this field non-changeable once it is set.
+    .. todo:: Make this field immutable once set.
     """
 
     PLAIN_TEXT = 'PT'
@@ -362,6 +371,12 @@ class Text(models.Model):
     .. todo:: This should target :class:`repository.Repository` rather than
               :class:`annotations.Repository`\.
     """
+    # source_id = models.IntegerField(default=-1, blank=True, null=True)
+
+    repository = models.ForeignKey("repository.Repository", blank=True, null=True, related_name='texts')
+    repository_source_id = models.IntegerField(default=-1, blank=True, null=True)
+    content_type = models.CharField(max_length=255)
+    """MIME type"""
 
     originalResource = models.URLField(blank=True, null=True)
     """
@@ -397,13 +412,17 @@ class Text(models.Model):
         """
         return self.relation_set.count()
 
+    @property
+    def top_level_text(self):
+        def _re(text):
+            if text.part_of:
+                return _re(text.part_of)
+            return text
+        return _re(self)
+
+
     def __unicode__(self):
         return self.title
-
-    class Meta:
-        permissions = (
-            ('view_text', 'View text'),
-        )
 
 
 class Repository(models.Model):

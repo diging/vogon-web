@@ -8,7 +8,7 @@
 <div class="container">
     <div class="h3">Repositories</div>
     {% for repository in repositories %}
-    <a class="list-group-item clearfix" href="{% url "repository_details" repository.id %}">
+    <a class="list-group-item clearfix" href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
         <div class="h4">{{ repository.name }}</div>
         <div class="text-muted text-small">{{ repository.description }}</div>
     </a>

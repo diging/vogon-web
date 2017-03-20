@@ -5,6 +5,9 @@
     <head>
         <!-- Google Analytics -->
         <script>
+        var IMAGE_LOCATION = "{{ location|safe }}";
+        </script>
+        <script>
           (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
           (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
           m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
@@ -71,12 +74,12 @@
                 $('#sticky').addClass('col-xs-12');
 
                 // The action panel should scale vertically with window height.
-                $('.action-body').css('max-height', window_height/4);
+                $('.action-body').css('max-height', screen.height / 5);
 
             // If the window is wide enough, the action panel stays on the far
             //  right, and sticks to the top of the window as the user scrolls.
             } else {
-                $('.action-body').css('max-height', 300);
+                $('.action-body').css('max-height', screen.height - 400);
                 $('#sticky').removeClass('fixed-bottom');
                 $('#sticky').removeClass('col-xs-12');
                 if (window_top > div_top) {
@@ -121,7 +124,7 @@
             </div>
             <div class="row">
                 <div class="col-sm-8">
-                    <div class="h2">
+                    <div class="h3">
                         {{ text.title }}
                         {% if text.originalResource %}
                         <a href="{{ text.originalResource }}"
@@ -131,16 +134,24 @@
                             <span class="glyphicon glyphicon-new-window "></span>
                         </a>
                         {% endif %}
-                        <div class="small">
-                            Created on {{ text.created }}
-                        </div>
+                    </div>
+                    <div class="text-warning">
+                        Added on {{ text.added }} from <a href="{% url "repository_details" text.repository.id  %}">{{ text.repository.name }}</a>.
+                        {% if text.part_of %}Part of <a href="{% url "repository_text" text.top_level_text.repository.id text.top_level_text.repository_source_id %}">{{ text.top_level_text.title }}</a>.{% endif %}
                     </div>
                     <p class="text-warning">
                         {{ text.uri }}
                     </p>
-                    <p class="h5 text-muted">
-
-                    </p>
+                    <div class="clearfix">
+                        {% if previous %}
+                        <a href="{% url "repository_text_content" repository_id previous previous_content  %}{% if text.part_of %}?part_of={{ text.top_level_text.repository_source_id }}{% endif %}">Previous page</a>
+                        {% endif %}
+                        {% if next %}
+                        <span class="pull-right">
+                            <a href="{% url "repository_text_content" repository_id next next_content  %}{% if text.part_of %}?part_of={{ text.top_level_text.repository_source_id }}{% endif %}">Next page</a>
+                        </span>
+                        {% endif %}
+                    </div>
 
                     <div class="panel panel-default">
                         <div class="panel-heading clearfix">
@@ -242,7 +253,13 @@
         $(document).ready(function(){
             var container_parent = $('.image-container-panel-body');
             var width = container_parent.width();
-            $('#digilib-image').attr('src', 'http://diging.asu.edu/digilib/servlet/Scaler?dw='+width+'&fn=testImage');
+            // Uses URI.js to rewrite Giles URLs, so that we can preserve
+            //  tokens and other parameters.
+            var target = URI(IMAGE_LOCATION)
+                            .removeSearch('dw')
+                            .addSearch('dw', width)
+                            .toString();
+            $('#digilib-image').attr('src', target);
             $('#digilib-image-container').digilib({
                 interactionMode: 'embedded',
                 isRegionVisible: true,
@@ -263,11 +280,10 @@
                 var container_parent = $('.image-container-panel-body');
                 var width = container_parent.width();
                 var image_container = $('#digilib-image-container').width(width);
-
-                $('#digilib-image-container img').attr('src', 'http://diging.asu.edu:8080/digilib/servlet/Scaler?dw='+width+'&fn=testImage');
+                var target = URI(IMAGE_LOCATION).removeSearch('dw').addSearch('dw', width).toString();
+                $('#digilib-image-container img').attr('src', target);
                 var data = $('#digilib-image-container').data('digilib');
                 data.settings.dw = String(width);
-                console.log(data.settings.dw);
                 $('#digilib-image-container').data('digilib', data);
                 $($('#digilib-image-container').data('digilib')).trigger('update');
 

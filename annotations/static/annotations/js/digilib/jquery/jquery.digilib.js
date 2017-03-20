@@ -60,7 +60,7 @@ function($) {
         'cssPrefix' : 'dl-',
         // list of Scaler parameters
         'scalerParamNames' : ['fn','pn','dw','dh','ww','wh','wx','wy','ws','mo',
-                              'rot','cont','brgt','rgbm','rgba','ddpi','ddpix','ddpiy','colop'],
+                              'rot','cont','brgt','rgbm','rgba','ddpi','ddpix','ddpiy','colop','accessToken'],
         // Scaler parameter defaults
         'pn' : 1,
         'ww' : 1.0,
@@ -79,7 +79,7 @@ function($) {
         'ddpiy' : null,
         'colop' : null,
         // list of digilib parameters
-        'digilibParamNames' : ['fn','pn','ww','wh','wx','wy','ws','mo','rot','cont','brgt','rgbm','rgba','ddpi','colop','mk','clop'],
+        'digilibParamNames' : ['fn','pn','ww','wh','wx','wy','ws','mo','rot','cont','brgt','rgbm','rgba','ddpi','colop','mk','clop', 'accessToken'],
         // digilib parameter defaults
         'mk' : '',
         'clop' : '',
@@ -99,7 +99,7 @@ function($) {
         // maximum width or height of preview background image for drag-scroll
         'maxBgSize' : 10000,
         // parameters used by background image
-        'previewImgParamNames' : ['fn','pn','dw','dh','mo','rot'],
+        'previewImgParamNames' : ['fn','pn','dw','dh','mo','rot', 'accessToken'],
         // reserved space in full page display (default value accounts for body margins)
         'scalerInsets' : { 'x' : 26, 'y': 20 }
         };
@@ -1047,7 +1047,6 @@ function($) {
      * updates image transform, etc.
      */
     var handleUpdate = function (evt) {
-        console.log('handleUpdate');
         var data = this;
         updateImgTrafo(data);
         setupZoomDrag(data);
@@ -1308,7 +1307,6 @@ function($) {
      *
      */
     var zoomBy = function(data, factor) {
-        console.log(data);
         var area = data.zoomArea;
         var newarea = area.copy();
         // scale
@@ -1350,7 +1348,6 @@ function($) {
 
         $('body').on("keydown", function(evt) {
             if(evt.which == 27) { // esc key.
-                console.log('esc key');
                 $overlayDiv.off("mousemove.dlArea", areaMove);
                 $overlayDiv.off("mouseup.dlArea", areaEnd);
                 $overlayDiv.off('mousedown.dlArea', areaStart);
@@ -1376,6 +1373,7 @@ function($) {
         var areaMove = function (evt) {
             pt2 = geom.position(evt);
             var rect = geom.rectangle(pt1, pt2);
+
             rect.clipTo(picRect);
             // update area div
             rect.adjustDiv($areaDiv);
@@ -1399,7 +1397,6 @@ function($) {
             clickRect.clipTo(picRect);
             var rect = data.imgTrafo.invtransform(clickRect);
             // execute callback
-            console.log(onComplete);
             onComplete(data, rect);
             // destroy area div
             withdraw($areaDiv);

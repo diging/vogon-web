@@ -72,7 +72,7 @@ urlpatterns = [
     url(r'^rest/', include(remotecollection_router.urls)),
 
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
-    url(r'^text/$', views.main_views.home, name='text_search'),
+    url(r'^text/$', views.text_views.texts, name='text_search'),
 
     url(r'^network/$', views.network_views.network, name="network"),
     url(r'^network/data/$', views.network_views.network_data, name="network-data"),
@@ -83,8 +83,9 @@ urlpatterns = [
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/create/$', views.relationtemplate_views.create_from_relationtemplate, name="create_from_relationtemplate"),
     url(r'^relationtemplate[/]?$', views.relationtemplate_views.list_relationtemplate, name='list_relationtemplate'),
 
-    url(r'^text/add/upload/$', views.text_views.upload_file, name="file_upload"),
-    url(r'^text/(?P<textid>[0-9]+)/$', views.text_views.text, name="text"),
+    # url(r'^text/add/upload/$', views.text_views.upload_file, name="file_upload"),
+    # url(r'^text/(?P<textid>[0-9]+)/$', views.text_views.text, name="text"),
+    url(r'^annotate/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate, name="annotate"),
 
     url(r'^project/(?P<project_id>[0-9]+)/$', views.project_views.view_project, name='view_project'),
     url(r'^project/(?P<project_id>[0-9]+)/edit/$', views.project_views.edit_project, name='edit_project'),

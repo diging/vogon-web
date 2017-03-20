@@ -7,9 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.template import RequestContext, loader
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.db.models import Q
 
 from annotations.display_helpers import get_snippet_relation
 from annotations.forms import UploadFileForm
@@ -99,6 +100,7 @@ def _get_relations_data(relationset_qs):
     return relationsets
 
 
+
 @ensure_csrf_cookie
 def text(request, textid):
     """
@@ -114,10 +116,15 @@ def text(request, textid):
     """
 
     text = get_object_or_404(Text, pk=textid)
+    from annotations.annotators import annotator_factory
+
+    annotator = annotator_factory(request, text)
+
     context_data = {
         'text': text,
         'textid': textid,
         'title': 'Annotate Text',
+        'content': annotator.get_content(),
         'baselocation' : basepath(request)
     }
 
@@ -214,3 +221,8 @@ def upload_file(request):
         'subpath': settings.SUBPATH,
     })
     return HttpResponse(template.render(context))
+
+
+def texts(request):
+    qs = Text.objects.filter(Q(addedBy=request.user))
+    return render(request, 'annotations/list_texts.html', {'object_list': qs})

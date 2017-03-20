@@ -5,7 +5,7 @@
 {% block main %}
 
 <div class="container">
-    <div class="h3">Resource: {{ result.data.title.render_value }} <span class="small">in repository <strong>{{repository.name}}</strong></span></div>
+    <div class="h3">{{ result.title }} <span class="small">in repository <strong>{{repository.name}}</strong></span></div>
 
     <dl class="dl-horizontal">
     {% for name, fieldvalue in result.iteritems %}
@@ -20,19 +20,61 @@
         The following content objects are associated with this resource. Select a content object to
         begin annotating that object in VogonWeb.
     </p>
+    {% if serial_content %}
+    <div class="h4">Serial Content</div>
+    <p>
+        The following content are serialized parts of this resource, such as individuated pages.
+        Multiple content types may be available.
+    </p>
     <div class="list-group">
-        {% for content_id, content_object in result.content.items %}
-        <a class="list-group-item"
-            href="{% url "repository_text_content" repository.id result.id.value content_id %}">
-            <div class="h4">{{ content_object.data.name.value }}</div>
+    {% for obj in serial_content %}
+        <div class="list-group-item">
+            {{ obj.content_type }}
+            <div class="btn-group pull-right">
+                <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id obj.source_id obj.content_id %}?part_of={{ result.id }}">
+                    <span class="glyphicon glyphicon-tag"></span> Annotate
+                </a>
+                {% if project_id %}
+                <a class="btn btn-xs btn-primary" href="{% url "repository_text_content" repository.id obj.source_id obj.content_id %}?part_of={{ result.id }}&action=addtoproject&project_id={{ project_id }}">
+                    <span class="glyphicon glyphicon-plus"></span> Add to {{ project.name }}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="h4">Additional Content</div>
+    <p>
+        The following content represent the resource as a whole. This may include complex objects
+        like PDF documents, whole-text OCR documents, or other files.
+    </p>
+    <div class="list-group">
+        {% for content_object in result.content %}
+        <div class="list-group-item">
+            <div>{{ content_object.name }}
+                <div class="btn-group pull-right">
+                    <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id result.id content_object.id %}">
+                        <span class="glyphicon glyphicon-tag"></span> Annotate
+                    </a>
+                    {% if project_id %}
+                    <a class="btn btn-xs btn-primary" href="{% url "repository_text_content" repository.id result.id content_object.id %}?action=addtoproject&project_id={{ project_id }}">
+                        <span class="glyphicon glyphicon-plus"></span> Add to {{ project.name }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
             <dl class="dl-horizontal">
+                <dt>Content type</dt>
+                <dd>{{ content_object.content_type }}
             {% for name, fieldvalue in content_object.data.iteritems %}
             {% if name != 'name' %}
             {{ fieldvalue.render }}
             {% endif %}
             {% endfor %}
-            </dl>
-        </a>
+
+        </div>
         {% endfor %}
     </div>
     {% else %}

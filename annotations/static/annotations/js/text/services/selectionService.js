@@ -36,7 +36,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       * Put existing expectations on hold.
       */
     service.defer = function() {
-        console.log('selectionService: defer expectations');
         service.deferred.word_success_callbacks = service.word_success_callbacks;
         service.deferred.word_failure_callbacks = service.word_failure_callbacks;
         service.deferred.appellation_success_callbacks = service.appellation_success_callbacks;
@@ -56,7 +55,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       * Re-instate deferred expectations.
       */
     service.resume = function() {
-        console.log('selectionService: resume expectations');
         service.word_success_callbacks = service.deferred.word_success_callbacks;
         service.word_failure_callbacks = service.deferred.word_failure_callbacks;
         service.appellation_success_callbacks = service.deferred.appellation_success_callbacks;
@@ -95,6 +93,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       * Unselect all regions.
       */
     service.resetRegionSelection = function() {
+
     //   service.selected_regions.removeClass("selected");
         $($('.popover').attr('parent')).popover('destroy');
         service.selected_regions = null;
@@ -112,7 +111,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
 
     service.startSelectingRegion = function(evt) {
         evt.stopPropagation();
-        console.log('start selecting region');
         service.removeNonCommittedRegions();
 
         var $elem = $('#digilib-image-container');
@@ -195,7 +193,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
         service.word_success_callbacks.forEach(function(expectation) {
             expectation.callback(service.selected_words);
             if (expectation.autorelease) {
-                return;
+                // pass
             } else {
                 remainder.push(expectation);
             }
@@ -208,6 +206,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  Handle the failure to select a word.
       */
     service.failRegionExpectation = function() {
+
         service.region_failure_callbacks.forEach(function(expectation) {
             expectation.callback();
         });
@@ -219,12 +218,12 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  Handle successful region selection.
       */
     service.succeedRegionExpectation = function() {
-        console.log("succeedRegionExpectation with " + service.region_success_callbacks.length + " callback pending");
+
         var remainder = [];
         service.region_success_callbacks.forEach(function(expectation) {
             expectation.callback(service.selected_regions);
             if (expectation.autorelease) {
-                return;
+                // pass
             } else {
                 remainder.push(expectation);
             }
@@ -249,13 +248,11 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  Handle successful appellation selection.
       */
     service.succeedAppellationExpectation = function() {
-        console.log("succeedAppellationExpectation with " + service.appellation_success_callbacks.length + " callback pending");
         var remainder = [];
         service.appellation_success_callbacks.forEach(function(expectation) {
-            console.log('succeedAppellationExpectation: ' + service.selected_appellation.id)
             expectation.callback(service.selected_appellation);
             if (expectation.autorelease) {
-                return;
+                // pass
             } else {
                 remainder.push(expectation);
             }
@@ -304,6 +301,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {bool} autorelease - If false, region selection will not be released until service.releaseRegions() is called.
       */
     service.expectRegion = function(success_callback, failure_callback, autorelease) {
+
         if (success_callback) service.region_success_callbacks.push({
             'callback': success_callback,
             'autorelease': autorelease,
@@ -312,18 +310,21 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
             'callback': failure_callback,
             'autorelease': autorelease,
         });
+
     }
 
     service.releaseRegions = function() {
+
         service.resetRegionSelection();
+        service.resetRegionCallbacks();
     }
 
     service.releaseWords = function() {
         service.resetWordSelection();
+        service.resetWordCallbacks();
     }
 
     service.releaseAppellations = function() {
-        console.log('releaseAppellations');
         service.resetAppellationCallbacks();
         service.resetAppellationSelection();
     }
@@ -351,7 +352,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       * @param {Object} rect - DigiLib rect object.
       */
     service.handleRegion = function(event, coords, regionDiv) {
-        console.log('handleRegion', coords);
         service.replaceRegionSelection({
             'coords': coords,
             'regionDiv': regionDiv,
@@ -365,14 +365,12 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event - Click event with a valid ``target``.
       */
     service.handleClick = function(event) {
-        // console.log('handleClick for', event.target);
         if (event.target.localName != 'word' && event.target.localName != 'div') return;
         event.stopPropagation();
 
         var word = $(event.target);
         // If the word is part of an appellation, select it.
         if (service.isAppellation(word)) {
-            console.log('is a word', word);
             // service.handleSelectAppellation(event);
             service.replaceAppellationSelection(word);
 
@@ -397,6 +395,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     service.replaceRegionSelection = function(region) {
+
         service.resetRegionSelection();
         service.selected_regions = region;
     }
@@ -406,13 +405,11 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     service.highlightAppellation = function(appellation) {
-        console.log('highlight');
         var elem = $('[appellation=' + appellation.id + ']');
         elem.addClass('selected');
     }
 
     service.scrollToAppellation = function(elem) {
-        console.log('scroll to appellation', elem);
         var pos = elem.position();
         if (pos) {
             $('.action-body').animate({ scrollTop: pos.top}, 500);
@@ -469,7 +466,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     service.selectedRegionPopover = function() {
         $($('.popover').attr('parent')).popover('destroy');
         var selectedRegionElem = service.selected_regions.elem;
-        console.log(service.selected_regions);
         $(service.selected_regions.elem).popover({
             html: true,
             template: '<div class="popover" parent="#' + selectedRegionElem[0].id + '" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content popover-action"></div></div>',
@@ -477,7 +473,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
 
         });
         $(service.selected_regions.elem).popover('show');
-        console.log('selectedRegionElem', selectedRegionElem);
     }
 
     /**
@@ -508,6 +503,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event
       */
     service.handleSelectRegion = function(event) {
+        
         service.succeedRegionExpectation();
     }
 
@@ -531,7 +527,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.handleEsc = function(event) {
         service.releaseWords();
-        service.releaseRegions();
         service.removeNonCommittedRegions();
         $($('.popover').attr('parent')).popover('destroy');
     }
@@ -589,6 +584,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
 
     service.bindWords = function() {
         $('a').click(service.defineUserRegion);
+        $('body').unbind("click");
         $('body').on('click', '#image-select-region', service.startSelectingRegion);
         $('body').on('click', service.handleClick);
 
@@ -613,21 +609,24 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
             service.handleSelectAppellation();
         });
 
-        $(document).keydown(function(event) {
-            if(event.which == 13) service.handleEnter(event);
-            if(event.which == 27) service.handleEsc(event);
-        });
+        $(document).unbind('keydown', service.handleKeydown);
+        $(document).keydown(service.handleKeydown);
 
     }
+    service.handleKeydown = function(event) {
+        if(event.which == 13) service.handleEnter(event);
+        if(event.which == 27) service.handleEsc(event);
+    }
+
     service.bindWords();
 
-    $(document).keydown(function(event) {
-        if(event.which == 27) {     // ESC key.
-            service.resetAppellationSelection();
-            service.resetWordSelection();
-            service.resetRegionSelection();
-            service.bindWords();
-        }
-    });
+    // $(document).keydown(function(event) {
+    //     if(event.which == 27) {     // ESC key.
+    //         service.resetAppellationSelection();
+    //         service.resetWordSelection();
+    //         service.resetRegionSelection();
+    //         service.bindWords();
+    //     }
+    // });
     return service;
 }]);

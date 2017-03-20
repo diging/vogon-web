@@ -52,12 +52,13 @@
                 $('#sticky').addClass('col-xs-12');
 
                 // The action panel should scale vertically with window height.
-                $('.action-body').css('max-height', window_height/4);
+                $('.action-body').css('max-height', screen.height / 5);
 
             // If the window is wide enough, the action panel stays on the far
             //  right, and sticks to the top of the window as the user scrolls.
             } else {
-                $('.action-body').css('max-height', 300);
+                console.log(window_height);
+                $('.action-body').css('max-height', screen.height - 400);
                 $('#sticky').removeClass('fixed-bottom');
                 $('#sticky').removeClass('col-xs-12');
                 if (window_top > div_top) {
@@ -98,16 +99,9 @@
         <script src="{% static "annotations/js/csrf_ajax.js" %}"></script>
 
         <div class="container-fluid" id="main-container">
-            <div class="row" style="padding: 5px;">
-                <ul class="nav nav-pills">
-                     <li class="active"><a href="{% url 'text' text.id %}?mode=annotate">Annotate</a></li>
-                     <li><a href="{% url 'text' text.id %}?mode=user_annotations">My Annotations</a></li>
-                     <li><a href="{% url 'text' text.id %}">View</a></li>
-                </ul>
-            </div>
             <div class="row">
                 <div class="col-sm-8">
-                    <div class="h2">
+                    <div class="h3">
                         {{ text.title }}
                         {% if text.originalResource %}
                         <a href="{{ text.originalResource }}"
@@ -117,22 +111,29 @@
                             <span class="glyphicon glyphicon-new-window "></span>
                         </a>
                         {% endif %}
-                        <div class="small">
-                            Created on {{ text.created }}
-                        </div>
+
                     </div>
-                    <p class="text-warning">
+                    <div class="text-warning">
+                        Added on {{ text.added }} from <a href="{% url "repository_details" text.repository.id  %}">{{ text.repository.name }}</a>.
+                        {% if text.part_of %}Part of <a href="{% url "repository_text" text.top_level_text.repository.id text.top_level_text.repository_source_id %}">{{ text.top_level_text.title }}</a>.{% endif %}
+                    </div>
+                    <p class="text-muted">
                         {{ text.uri }}
                     </p>
-                    <p class="h5 text-muted">
-                        This text was added by <a href="{% url 'user_details' text.addedBy.id %}">{{text.addedBy.username}}</a>
-                        on {{ text.added }} {% if text.annotation_count > 0 %}<strong>{{text.annotation_count}}</strong> appellations and
-                        <strong>{{text.relation_count}}</strong> relations have been encoded on the basis of this text.{% endif %}
-                    </p>
+                    <div class="clearfix">
+                        {% if previous %}
+                        <a href="{% url "repository_text_content" repository_id previous previous_content  %}{% if text.part_of %}?part_of={{ text.top_level_text.repository_source_id }}{% endif %}">Previous page</a>
+                        {% endif %}
+                        {% if next %}
+                        <span class="pull-right">
+                            <a href="{% url "repository_text_content" repository_id next next_content  %}{% if text.part_of %}?part_of={{ text.top_level_text.repository_source_id }}{% endif %}">Next page</a>
+                        </span>
+                        {% endif %}
+                    </div>
 
                     <div class="panel panel-default">
                         <div class="panel-body">
-                            {{ text.tokenizedContent|safe }}
+                            {{ content|safe }}
                         </div>
                     </div>
                 </div>

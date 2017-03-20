@@ -74,7 +74,6 @@ var regionFromCoords = function (data, coords) {
     var item = { 'rect': rect, 'attributes': attr };
     var $regionDiv = addRegionDiv(data, item);
     var newZoomArea = centerZoomArea(data, rect);
-    console.debug('regionFromCoords', coords, rect, newZoomArea);
     redisplay(data);
 };
 
@@ -313,7 +312,6 @@ var createRegionsFromURL = function (data) {
 var createRegionsFromHTML = function (data) {
     // regions are defined in "area" tags
     var $areas = data.$elem.find(data.settings.areaSelector);
-    console.debug("createRegionsFromHTML - elems found: ", $areas.length);
     $areas.each(function (index, area) {
         var $area = $(area);
         // the "title" attribute contains the text for the tooltip

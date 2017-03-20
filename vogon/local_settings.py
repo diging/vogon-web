@@ -11,8 +11,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import os
-import sys
+import os, sys, requests
 from urlparse import urlparse
 from datetime import timedelta
 import djcelery
@@ -49,6 +48,7 @@ INSTALLED_APPS = (
     'djcelery',
     'repository',
     'social.apps.django_app.default',
+    'giles',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -257,3 +257,13 @@ VERSION = '0.4'
 
 CELERYD_CONCURRENCY = 8
 CELERYD_PREFETCH_MULTIPLIER = 8
+
+
+# Giles and HTTP.
+GILES = os.environ.get('GILES', 'https://diging-dev.asu.edu/giles-review')
+IMAGE_AFFIXES = ['png', 'jpg', 'jpeg', 'tiff', 'tif']
+GET = requests.get
+POST = requests.post
+GILES_APP_TOKEN = os.environ.get('GILES_APP_TOKEN', 'nope')
+GILES_DEFAULT_PROVIDER = os.environ.get('GILES_DEFAULT_PROVIDER', 'github')
+MAX_GILES_UPLOADS = 20

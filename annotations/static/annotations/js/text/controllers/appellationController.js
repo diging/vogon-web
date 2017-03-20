@@ -5,9 +5,7 @@ angular.module('annotationApp')
 
     $scope.data = {};    // Child controllers should update this object.
 
-    appellationService.getAppellations(function(data) {
-        $scope.appellations = data;
-    });
+
 
     /**
       *  Generate a string representation of the selected passage (for
@@ -41,6 +39,7 @@ angular.module('annotationApp')
       *   words and concept.
       */
     $scope.createAppellation = function() {
+
         if (MODE == 'text') {
             // TODO: use `position` instead of `tokenIds`.
             var identifier;
@@ -63,7 +62,7 @@ angular.module('annotationApp')
             var data = {
                 "occursIn": TEXTID,
                 "createdBy": USERID,
-                "interpretation": $scope.data.selectedConcept.id,
+                "interpretation": $scope.data.selectedConcept.uri,
                 "position": {
                     "position_type": "BB",
                     "position_value": $scope.selectedRegions.coords,
@@ -73,7 +72,7 @@ angular.module('annotationApp')
         }
 
         appellationService.createAppellation(data).then(function(appellation) {
-            console.log('created appellation and got response', appellation);
+
             if (data.position) {
                 appellation.coords = data.position.position_value;
             }
@@ -89,11 +88,15 @@ angular.module('annotationApp')
     }
 
     $scope.reset = function() {
+
         $scope.appellations = [];
         $scope.data.selectedConcept = null;
         $scope.hideAppellationCreate = true;
         $scope.hideCreateConcept = true;
         $scope.hideCreateConceptDetails = true;
+
+        selectionService.releaseWords();
+        selectionService.releaseRegions();
 
         if (MODE == 'text') {
             // Listen for the user to select a word.
@@ -101,15 +104,18 @@ angular.module('annotationApp')
                 $scope.hideAppellationCreate = false;
                 $scope.selectedWords = data;
                 $scope.selectedText = getStringRep(data, ' ');
-                $scope.$emit('appellationTab');
+                // $scope.$emit('appellationTab');
+                $('#appellationTabAnchor').click();
                 $scope.$apply();
             });
         }
+        $scope.imageLocation = null;
 
         if (MODE == 'image') {
             // Listen for user to finish selecting a region in the main image
             //  panel.
             selectionService.expectRegion(function(data) {
+                
                 $scope.hideAppellationCreate = false;
                 $scope.selectedRegions = data;
                 $scope.selectedImage = null;
@@ -120,12 +126,26 @@ angular.module('annotationApp')
                     ww = cparts[2],
                     wh = cparts[3];
 
-                $('#digilib-selection-container').empty();
-                $('#digilib-selection-container').append('<div id="digilib-selection-preview" style="position: relative;"><img src="" /></div>');
+                $('.digilib-selection-container').empty();
+                $('.digilib-selection-container').append('<div class="digilib-selection-preview" style="position: relative;"><img src="" /></div>');
                 var previewWidth = $('#tabAppellations').width();
-                var imageLocation = 'http://diging.asu.edu:8080/digilib/servlet/Scaler?dw='+previewWidth+'&fn=testImage&wx='+wx+'&wy='+wy+'&ww='+ww+'&wh='+wh;
-                $('#digilib-selection-preview img').attr('src', imageLocation);
-                $scope.$emit('appellationTab');
+                var imageLocation = URI(IMAGE_LOCATION)
+                                        .removeSearch('dw')
+                                        .addSearch('wx', wx)
+                                        .addSearch('wy', wy)
+                                        .addSearch('ww', ww)
+                                        .addSearch('wh', wh);
+                if (ww > wh && previewWidth * wh/ww < 150) {
+                    imageLocation.addSearch("dw", previewWidth);
+                } else {
+                    imageLocation.addSearch("dh", 150);
+                }
+                $scope.imageLocation = imageLocation.toString();
+                // var imageLocation = 'http://diging.asu.edu:8080/digilib/servlet/Scaler?dw='+previewWidth+'&fn=testImage&wx='+wx+'&wy='+wy+'&ww='+ww+'&wh='+wh;
+                $('.digilib-selection-preview img').attr('src', imageLocation.toString());
+
+                $('#appellationTabAnchor').click();
+
                 $scope.$apply();
             });
         }
@@ -135,14 +155,12 @@ angular.module('annotationApp')
             $scope.appellations = appellations;
         });
 
-        selectionService.releaseWords();
 
         // Make sure that all of the children know.
         $scope.$broadcast('reset');
     }
 
     $scope.scrollToAppellation = function(elem) {
-        console.log('scroll to appellation', elem);
         var offset = elem.offset();
         if (offset) {
             $('.appellation-list').animate({ scrollTop: offset.top - 20}, 500);
@@ -159,8 +177,6 @@ angular.module('annotationApp')
       */
     $scope.selectAppellation = function(appellation) {
 
-        console.log('selectAppellation: ' + appellation.id);
-
         // Select the last word.
         var tokenIds = appellation.tokenIds.split(',');
         if (tokenIds.length > 0 && MODE == 'text') {
@@ -169,13 +185,11 @@ angular.module('annotationApp')
             // Then click!
             elem.trigger('click');
         } else if (MODE == 'image') {
-            console.log('selected an image-based appellation');
 
             var elem = $('[appellation="' + appellation.id + '"]');
             $scope.scrollToAppellation($('#appellation-list-item-' + appellation.id));
             // $('.vogonOverlay[appellation=' + appellation.id + ']').trigger('click');
             // elem.trigger('click');
-            console.log('this is the selected appellation', appellation);
 
             selectionService.replaceAppellationSelectionDirect(appellation);
             selectionService.succeedAppellationExpectation();
@@ -186,10 +200,19 @@ angular.module('annotationApp')
 
     $scope.reset();
 
-    $(document).keydown(function(event) {
+    $scope.keydown_handler = function(event) {
         if(event.which == 27) {     // ESC key.
             $scope.reset();
         }
+    }
+    $(document).keydown($scope.keydown_handler);
+
+    $scope.unbind = function() {
+        $(document).unbind("keydown", $scope.keydown_handler);
+    }
+
+    $scope.$on('done', function(event) {
+        $scope.unbind();
     });
 
 }]);

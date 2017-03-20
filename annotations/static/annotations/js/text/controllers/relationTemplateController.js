@@ -155,13 +155,18 @@ angular.module('annotationApp').controller('AppellationModalInstanceController',
     $scope.selectedWords = data.selectedWords;
     $scope.conceptType = data.conceptType;
     $scope.selectedRegions = data.selectedRegions;
+    $scope.imageLocation = data.imageLocation;
+
 
     $scope.ok = function () {
         $uibModalInstance.close();
+        $scope.$broadcast('done');    // Tell children to unbind event handlers.
+
     };
 
     $scope.cancel = function () {
         $uibModalInstance.dismiss('cancel');
+        $scope.$broadcast('done');    // Tell children to unbind event handlers.
     };
 
     // When the appellationController inside the modal finishes creating an
@@ -300,7 +305,6 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
         if ($scope.field.type == 'TP') {
             // User can select an existing appellation.
             selectionService.expectAppellation(function(appellation) {
-                console.log('expectEvidence received an appellation', appellation);
                 // TODO: this is too naive; we need to consider the CRM entity
                 //  hierarchy to adequately evaluate whether or not the
                 //  interpretation of the appellation is the correct type.
@@ -389,7 +393,6 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
                     };
                     $scope.label = stringRep;
                 } else if (MODE == 'image') {
-                    console.log('about to create an appellations!!!', data);
                     $scope.field.data = {
                         "occursIn": TEXTID,
                         "createdBy": USERID,

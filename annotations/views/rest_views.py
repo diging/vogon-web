@@ -3,6 +3,7 @@ Provides all of the class-based views for the REST API.
 """
 
 from django.db.models import Q
+from django.conf import settings
 
 from rest_framework import status
 from rest_framework.settings import api_settings
@@ -26,8 +27,8 @@ from concepts.tasks import search_concept
 import uuid
 
 import goat
-goat.GOAT = 'http://127.0.0.1:8000'
-goat.GOAT_APP_TOKEN = 'd22bbda9b5b507dc6cd032d80d6a3d299fda10fe'
+goat.GOAT = settings.GOAT
+goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
 
 
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
@@ -125,26 +126,27 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         position = data.pop('position', None)
-
         interpretation = data.get('interpretation')
-        if interpretation.startswith('http'):
+        print ":::", data
+        # A concept URI may have been passed directly, in which case we need to
+        #  get (or create) the local Concept instance.
+        if type(interpretation) in [str, unicode] and interpretation.startswith('http'):
             try:
                 concept = Concept.objects.get(uri=interpretation)
             except Concept.DoesNotExist:
                 concept_data = goat.Concept.retrieve(identifier=interpretation)
-                type_uri = concept_data.data.get('concept_type')
+                type_id = concept_data.data.get('concept_type')
                 type_instance = None
-                if type_uri:
+                if type_id:
+                    type_data = goat.Concept(id=type_id).read()
                     try:
-                        type_instance = Type.objects.get(uri=type_uri)
+                        type_instance = Type.objects.get(uri=type_data.get('identifier'))
                     except Type.DoesNotExist:
-                        type_data = goat.Concept.retrieve(identifier=type_uri)
                         type_instance = Type.objects.create(
-                            uri = type_uri,
-                            label = type_data.data.get('name'),
-                            description = type_data.data.get('description'),
+                            uri = type_data.get('identifier'),
+                            label = type_data.get('name'),
+                            description = type_data.get('description'),
                         )
-
                 concept = Concept.objects.create(
                     uri = interpretation,
                     label = concept_data.data.get('name'),
@@ -159,10 +161,18 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         # if occursIn:
         #     text = Text.objects.get(pk=occursIn)
         #     data
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as E:
+            print E
+            raise E
 
         # raise AttributeError('asdf')
-        instance = serializer.save()
+        try:
+            instance = serializer.save()
+        except Exception as E:
+            print ":::", E
+            raise E
 
         # Prior to 0.5, the selected tokens were stored directly in Appellation,
         #  as ``tokenIds``. Now that we have several different annotation

@@ -185,9 +185,10 @@ var reloadGraph = function() {
 
         }
     });
+
     $('#graphTabAnchor').on('shown.bs.tab', function (e) {
         resizeGraph();
-        cy.layout({name: 'cose'});
+        if (cy) cy.layout({name: 'cose'});
 
     });
     var resizeGraph = function() {

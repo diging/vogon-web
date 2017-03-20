@@ -297,7 +297,6 @@ class RelationTemplatePartForm(forms.ModelForm):
         # We need a bit of set-up for angular data bindings to work properly
         #  on the form.
         # Angular can't handle hyphens, so we use underscores.
-        print self.prefix
         self.safe_prefix = self.prefix.replace('-', '_')
 
         self.ident = self.prefix.split('-')[-1]
@@ -351,7 +350,6 @@ class RelationTemplatePartFormSet(BaseFormSet):
                 form.add_error(None, 'At least one relation part is disconnected from the rest of the relation.')
 
 
-        # print self.cleaned_data
 
 
 class ProjectForm(forms.ModelForm):

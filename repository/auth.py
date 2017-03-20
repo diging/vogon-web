@@ -11,7 +11,15 @@ def jars_github_auth(user):
     except UserSocialAuth.DoesNotExist:
         return {}
 
-    auth_token = ':'.join([settings.SOCIAL_AUTH_GITHUB_KEY,
-                           settings.SOCIAL_AUTH_GITHUB_SECRET,
-                           token])
+    auth_token = token #':'.join([settings.SOCIAL_AUTH_GITHUB_KEY,
+                        #    settings.SOCIAL_AUTH_GITHUB_SECRET,
+                        #    token])
     return {'Authorization': 'GithubToken %s' % auth_token}
+
+
+def giles_auth(user):
+    """
+    Build an auth header for Giles.
+    """
+    import giles
+    return {'Authorization': 'token %s' % giles.get_user_auth_token(user)}

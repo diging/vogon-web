@@ -5,6 +5,7 @@
 app.controller('ConceptSearchController',
                ['$scope', 'Concept', 'Type', function($scope, Concept, Type) {
     $scope.assertUnique = false;
+    $scope.concepts = [];
 
     $scope.search = function() {
         if ($scope.query.length > 2 & !$scope.creatingConcept) {
@@ -30,9 +31,7 @@ app.controller('ConceptSearchController',
     $scope.unselectConcept = function() {
         $scope.data.selectedConcept = null;
         $scope.query = '';
-        Concept.list({pos: 'noun', typed: $scope.conceptType}).$promise.then(function(data) {
-            $scope.concepts = data.results;
-        });
+        $scope.concepts = [];
         $scope.concept = null;
     }
 

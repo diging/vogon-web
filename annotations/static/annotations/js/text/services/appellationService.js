@@ -12,6 +12,7 @@ angular.module('annotationApp').factory('appellationService',
         appellationHash: {}, // Indexes Appellations by their interpretation.
         appellationsById: {}, // Indexes Appellations by ID.
         regions: {},    // Indexes regionDvis by appellation ID.
+        taggedRegions: {},
 
         /**
           * Add appellation ID and class to appellated words.
@@ -37,6 +38,8 @@ angular.module('annotationApp').factory('appellationService',
         },
 
         tagRegionAsAppellation: function(appellation) {
+            if (appellation.id in this.taggedRegions) return;
+
             var $elem = $('#digilib-image-container');
             var data = $elem.data('digilib');
 
@@ -47,6 +50,7 @@ angular.module('annotationApp').factory('appellationService',
             var item = { 'rect': rect, 'attributes': attr };
             var $regionDiv = addRegionDiv(data, item);
             $(data).trigger('newRegion', [$regionDiv]);
+            this.taggedRegions[appellation.id] = appellation;
         },
 
         indexRegion: function(appellation, region) {
@@ -112,6 +116,10 @@ angular.module('annotationApp').factory('appellationService',
             // Remove from ID index.
             if (appId in this.appellationsById) {
                 delete this.appellationsById[appId];
+            }
+
+            if (appId in this.taggedRegions) {
+                delete this.taggedRegions[appId];
             }
         },
 

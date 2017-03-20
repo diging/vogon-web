@@ -6,23 +6,23 @@
 
 <script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
 <div class="container">
-    <a href="{% url "repository_list" %}" class="text-small btn" style="margin-top: 10px;">&#9664; Back to repositories</a>
+    <a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="text-small btn" style="margin-top: 10px;">&#9664; Back to repositories</a>
     <div class="h3">Repository <strong>{{ repository.name }}</strong></div>
     <p class="">{{ repository.description }}</p>
     <ul class="nav nav-pills text-center">
-        {% if repository.can_search %}
+        {% if "search" in manager.methods %}
         <li>
-            <a href="{% url "repository_search" repository.id %}">Search</a>
+            <a href="{% url "repository_search" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Search</a>
         </li>
         {% endif %}
-        {% if repository.can_list %}
+        {% if "list" in manager.methods %}
         <li>
-            <a href="{% url "repository_browse" repository.id %}">Browse</a>
+            <a href="{% url "repository_browse" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Browse</a>
         </li>
         {% endif %}
-        {% if repository.can_collections %}
+        {% if "collections" in manager.methods %}
         <li>
-            <a href="{% url "repository_collections" repository.id %}">Collections</a>
+            <a href="{% url "repository_collections" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Collections</a>
         </li>
         {% endif %}
     </ul>
