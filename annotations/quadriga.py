@@ -256,6 +256,7 @@ def submit_relationsets(relationsets, text, user,
     auth = HTTPBasicAuth(userid, password)
     headers = {'Accept': 'application/xml'}
     r = requests.post(endpoint, data=payload, auth=auth, headers=headers)
+    
     if r.status_code == requests.codes.ok:
         response_data = parse_response(r.text)
         response_data.update(params)

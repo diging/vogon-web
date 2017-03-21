@@ -233,7 +233,10 @@ def repository_text_content(request, repository_id, text_id, content_id):
     if action == 'addtoproject' and project:
         return HttpResponseRedirect(reverse('view_project', args=(project_id,)))
     elif action == 'annotate':
-        return HttpResponseRedirect(reverse('annotate', args=(text.id,)) + '?project_id=%s' % str(project_id))
+        redirect = reverse('annotate', args=(text.id,))
+        if project_id:
+            redirect += '?project_id=%s' % str(project_id)
+        return HttpResponseRedirect(redirect)
 
 
 

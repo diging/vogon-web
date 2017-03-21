@@ -173,8 +173,12 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
 
 
 @shared_task
-def submit_relationsets_to_quadriga(relationsets, text, user, **kwargs):
-    status, response = quadriga.submit_relationsets(relationsets, text, user, **kwargs)
+def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
+    rsets = RelationSet.objects.filter(pk__in=rset_ids)
+    text = Text.objects.get(pk=text_id)
+    user = VogonUser.objects.get(pk=user_id)
+    status, response = quadriga.submit_relationsets(rsets, text, user, **kwargs)
+
     if status:
         accession = QuadrigaAccession.objects.create(**{
             'createdBy': user,
@@ -183,7 +187,7 @@ def submit_relationsets_to_quadriga(relationsets, text, user, **kwargs):
             'network_id': response.get('networkid')
         })
 
-        for relationset in relationsets:
+        for relationset in rsets:
             relationset.submitted = True
             relationset.submittedOn = accession.created
             relationset.submittedWith = accession
@@ -201,37 +205,42 @@ def submit_relationsets_to_quadriga(relationsets, text, user, **kwargs):
                 appellation.submittedWith = accession
                 appellation.save()
 
-
 @shared_task
 def accession_ready_relationsets():
 
-    qs = RelationSet.objects.filter(submitted=False, pending=False)
-
-    # Do not submit a relationset to Quadriga if the constituent interpretations
-    #  involve concepts that are not resolved.
-    all_rsets = [rs for rs in qs if rs.ready()]
-
     print 'processing %i relationsets' % len(all_rsets)
-    project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
+    # project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
 
-    for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
-        print project_id
-        for text_id, text_group in groupby(project_group, key=lambda rs: rs.occursIn.id):
-            text = Text.objects.get(pk=text_id)
-            for user_id, user_group in groupby(text_group, key=lambda rs: rs.createdBy.id):
-                user = VogonUser.objects.get(pk=user_id)
-                # We lose the iterator after the first pass, so we want a list here.
-                rsets = []
-                for rs in user_group:
-                    rsets.append(rs)
-                    rs.pending = True
-                    rs.save()
-                kwargs = {}
-                if project_id:
-                    kwargs.update({
-                        'project_id': project_id,
-                    })
-                submit_relationsets_to_quadriga.delay(rsets, text, user, **kwargs)
+    # for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
+    kwargs = {}
+
+    for project_id in [None] + TextCollection.objects.values_list('quadriga_id', flat=True).distinct('quadriga_id'):
+        if project_id:
+            kwargs.update({
+                'project_id': project_id,
+            })
+
+        qs = RelationSet.objects.filter(submitted=False, pending=False)
+        if project_id is not None:
+            qs = qs.filter(project_id=project_id)
+
+        # Do not submit a relationset to Quadriga if the constituent interpretations
+        #  involve concepts that are not resolved.
+        qs = filter(lambda o: o.ready(), qs)
+        relationsets = defaultdict(lambda: defaultdict(list))
+
+        for relationset in qs:
+            relationsets[relationset.occursIn.id][relationset.createdBy.id].append(relationset)
+        for text_id, text_rsets in relationsets.iteritems():
+            for user_id, user_rsets in relationsets.iteritems():
+                # Update state.
+                def _state(obj):
+                    obj.pending = True
+                    obj.save()
+                map(_state, user_rsets)
+                submit_relationsets_to_quadriga.delay(map(lambda o: o.id, user_rsets), text_id, user_id, **kwargs)
+
+
 
 
 def handle_file_upload(request, form):
