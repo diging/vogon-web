@@ -117,6 +117,8 @@ urlpatterns = [
     url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/$', views.repository_views.repository_text, name='repository_text'),
     url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/content/(?P<content_id>[0-9]+)/$', views.repository_views.repository_text_content, name='repository_text_content'),
     url(r'^repository/(?P<repository_id>[0-9]+)/$', views.repository_views.repository_details, name='repository_details'),
+    url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/project/(?P<project_id>[0-9]+)$', views.repository_views.repository_text_add_to_project, name='repository_text_add_to_project'),
+
     url(r'^repository/$', views.repository_views.repository_list, name='repository_list'),
 
     url(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),

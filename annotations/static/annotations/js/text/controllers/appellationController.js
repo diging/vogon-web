@@ -105,6 +105,7 @@ angular.module('annotationApp')
         if (MODE == 'text') {
             // Listen for the user to select a word.
             selectionService.expectWords(function(data) {
+                console.log('words!');
                 $scope.hideAppellationCreate = false;
                 $scope.selectedWords = data;
                 $scope.selectedText = getStringRep(data, ' ');
@@ -158,7 +159,6 @@ angular.module('annotationApp')
         appellationService.getAppellations(function(appellations) {
             $scope.appellations = appellations;
         });
-
 
         // Make sure that all of the children know.
         $scope.$broadcast('reset');
@@ -219,4 +219,7 @@ angular.module('annotationApp')
         $scope.unbind();
     });
 
+    $scope.$on('relationCreated', function(event){
+        $scope.reset();
+    });
 }]);

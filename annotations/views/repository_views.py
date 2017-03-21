@@ -142,6 +142,12 @@ def repository_text(request, repository_id, text_id):
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     result = manager.resource(id=int(text_id))
+
+    try:
+        master_text = Text.objects.get(uri=result.get('uri'))
+    except Text.DoesNotExist:
+        master_text = None
+
     try:
         first_part = result.get('parts')[0]
         serial_content = [{
@@ -153,16 +159,17 @@ def repository_text(request, repository_id, text_id):
         first_part = None
         serial_content = None
 
-
     context = RequestContext(request, {
         'user': request.user,
         'repository': repository,
+        'content': result['content'],
         'result': result,
         'title': 'Text: %s' % result.get('title'),
         'serial_content': serial_content,
         'project_id': project_id,
-        'project': project
-
+        'project': project,
+        'master_text': master_text,
+        'in_project': master_text and project.texts.filter(pk=master_text.id).exists()
     })
     return HttpResponse(template.render(context))
 
@@ -238,6 +245,26 @@ def repository_text_content(request, repository_id, text_id, content_id):
             redirect += '?project_id=%s' % str(project_id)
         return HttpResponseRedirect(redirect)
 
+
+@login_required
+def repository_text_add_to_project(request, repository_id, text_id, project_id):
+    repository = get_object_or_404(Repository, pk=repository_id)
+    project = get_object_or_404(TextCollection, pk=project_id)
+
+    manager = RepositoryManager(repository.configuration, user=request.user)
+
+    resource = manager.resource(id=int(text_id))
+    defaults = {
+        'title': resource.get('title'),
+        'created': resource.get('created'),
+        'repository': repository,
+        'repository_source_id': text_id,
+        'addedBy': request.user,
+    }
+    text, _ = Text.objects.get_or_create(uri=resource.get('uri'),
+                                         defaults=defaults)
+    project.texts.add(text)
+    return HttpResponseRedirect(reverse('view_project', args=(project_id,)))
 
 
 def _repository_text_fail(request, repository, result, content):

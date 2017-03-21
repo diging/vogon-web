@@ -1,7 +1,7 @@
 angular.module('annotationApp')
         .controller('RelationTemplateSearchController',
-            ['$scope', 'selectionService', 'RelationTemplate', 'RelationSet', 'Concept',
-            function($scope, selectionService, RelationTemplate, RelationSet, Concept) {
+            ['$scope', '$rootScope', 'selectionService', 'RelationTemplate', 'RelationSet', 'Concept',
+            function($scope, $rootScope, selectionService, RelationTemplate, RelationSet, Concept) {
 
     $scope.search = function() {
         $scope.relation_templates = RelationTemplate.query({search: $scope.query}).$promise.then(function(data){
@@ -133,6 +133,7 @@ angular.module('annotationApp')
                function(data) {
                    $scope.reset();
                    reloadGraph();
+                   $rootScope.$broadcast('relationCreated');
                });
 
         // Update relation list.

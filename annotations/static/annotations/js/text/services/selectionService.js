@@ -314,7 +314,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
     }
 
     service.releaseRegions = function() {
-
         service.resetRegionSelection();
         service.resetRegionCallbacks();
     }
@@ -437,7 +436,6 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.replaceAppellationSelection = function(word) {
         service.resetAppellationSelection();
-
         appellationService.getAppellation(service.getAppellationID(word)).then(service.replaceAppellationSelectionDirect);
 
     }
@@ -503,7 +501,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       *  @param {jQuery.Event} event
       */
     service.handleSelectRegion = function(event) {
-        
+
         service.succeedRegionExpectation();
     }
 
