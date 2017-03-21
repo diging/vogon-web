@@ -127,32 +127,35 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         data = request.data.copy()
         position = data.pop('position', None)
         interpretation = data.get('interpretation')
-        print ":::", data
+
         # A concept URI may have been passed directly, in which case we need to
         #  get (or create) the local Concept instance.
         if type(interpretation) in [str, unicode] and interpretation.startswith('http'):
             try:
                 concept = Concept.objects.get(uri=interpretation)
             except Concept.DoesNotExist:
-                concept_data = goat.Concept.retrieve(identifier=interpretation)
-                type_id = concept_data.data.get('concept_type')
-                type_instance = None
-                if type_id:
-                    type_data = goat.Concept(id=type_id).read()
-                    try:
-                        type_instance = Type.objects.get(uri=type_data.get('identifier'))
-                    except Type.DoesNotExist:
-                        type_instance = Type.objects.create(
-                            uri = type_data.get('identifier'),
-                            label = type_data.get('name'),
-                            description = type_data.get('description'),
-                        )
-                concept = Concept.objects.create(
-                    uri = interpretation,
-                    label = concept_data.data.get('name'),
-                    description = concept_data.data.get('description'),
-                    typed = type_instance
-                )
+                try:
+                    concept_data = goat.Concept.retrieve(identifier=interpretation)
+                    type_data = concept_data.data.get('concept_type')
+                    type_instance = None
+                    if type_data:
+                        try:
+                            type_instance = Type.objects.get(uri=type_data.get('identifier'))
+                        except Type.DoesNotExist:
+                            type_instance = Type.objects.create(
+                                uri = type_data.get('identifier'),
+                                label = type_data.get('name'),
+                                description = type_data.get('description'),
+                            )
+                    concept = Concept.objects.create(
+                        uri = interpretation,
+                        label = concept_data.data.get('name'),
+                        description = concept_data.data.get('description'),
+                        typed = type_instance
+                    )
+                except Exception as E:
+                    print E
+                    raise E
             data['interpretation'] = concept.id
 
         # occursIn = data.pop('occursIn', None)
@@ -388,6 +391,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
+        print "ConceptViewSet:: create::", request.data
         data = request.data
         if data['uri'] == 'generate':
             data['uri'] = 'http://vogonweb.net/{0}'.format(uuid.uuid4())

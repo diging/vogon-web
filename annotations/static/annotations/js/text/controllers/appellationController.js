@@ -39,6 +39,8 @@ angular.module('annotationApp')
       *   words and concept.
       */
     $scope.createAppellation = function() {
+        console.log("appellationController.createAppellation",
+                    $scope.data.selectedConcept);
 
         if (MODE == 'text') {
             // TODO: use `position` instead of `tokenIds`.
@@ -115,7 +117,7 @@ angular.module('annotationApp')
             // Listen for user to finish selecting a region in the main image
             //  panel.
             selectionService.expectRegion(function(data) {
-                
+
                 $scope.hideAppellationCreate = false;
                 $scope.selectedRegions = data;
                 $scope.selectedImage = null;
