@@ -52,7 +52,8 @@
 
         <script>
         var TEXTID = "{{ textid }}",
-            USERID = "{{ userid }}";
+            USERID = "{{ userid }}",
+            PROJECTID = "{{ project.id }}";
 
         var MODE = 'image';
         </script>
@@ -124,7 +125,12 @@
             </div>
             <div class="row">
                 <div class="col-sm-8">
-                    <div class="h3">
+                    {% if project %}
+                    <div class="text-warning">
+                        All annotations will be added to project: <a href="{% url "view_project" project.id %}">{{ project.name }}</a>
+                    </div>
+                    {% endif %}
+                    <div class="h4">
                         {{ text.title }}
                         {% if text.originalResource %}
                         <a href="{{ text.originalResource }}"

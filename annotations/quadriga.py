@@ -11,8 +11,6 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 
-
-
 def _created_element(element, annotation):
     ET.SubElement(element, 'id')
     creator = ET.SubElement(element, 'creator')

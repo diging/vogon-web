@@ -18,7 +18,7 @@ from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm,
                                RelationTemplateForm)
 from annotations.models import (RelationTemplate, RelationTemplatePart,
-                                RelationSet, Relation, Appellation)
+                                RelationSet, Relation, Appellation, TextCollection)
 from concepts.models import Concept, Type
 
 import copy
@@ -297,6 +297,7 @@ def create_from_relationtemplate(request, template_id):
     if request.POST:
         relations = {}
         data = json.loads(request.body)
+        project_id = data.get('project')
 
         relation_data = {}
         for field in data['fields']:
@@ -310,6 +311,12 @@ def create_from_relationtemplate(request, template_id):
             createdBy=request.user,
             occursIn_id=data['occursIn'],
         )
+        if project_id:
+            try:
+                project = TextCollection.objects.get(pk=project_id)
+                relation_set.project = project
+            except TextCollection.DoesNotExist:
+                pass
         relation_set.save()
 
         def _create_appellation(field_data, template_part, field,

@@ -4,7 +4,8 @@
 angular.module('annotationApp').factory('RelationSet', function($resource) {
     return $resource('/rest/relationset/:id/', {
         text: TEXTID,
-        thisuser: true
+        thisuser: true,
+        project: PROJECTID
     }, {
         list: {
             method: 'GET',

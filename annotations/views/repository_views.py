@@ -227,12 +227,13 @@ def repository_text_content(request, repository_id, text_id, content_id):
         'originalResource': getattr(resource.get('url'), 'value', None),
     }
     text, _ = Text.objects.get_or_create(uri=content['uri'], defaults=defaults)
+    if project_id:
+        project.texts.add(text.top_level_text)
 
     if action == 'addtoproject' and project:
-        project.texts.add(text)
         return HttpResponseRedirect(reverse('view_project', args=(project_id,)))
     elif action == 'annotate':
-        return HttpResponseRedirect(reverse('annotate', args=(text.id,)))
+        return HttpResponseRedirect(reverse('annotate', args=(text.id,)) + '?project_id=%s' % str(project_id))
 
 
 

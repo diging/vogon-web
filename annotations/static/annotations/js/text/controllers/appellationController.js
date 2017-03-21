@@ -53,6 +53,7 @@ angular.module('annotationApp')
             var data = {
                 "tokenIds": getTokenIds($scope.selectedWords),
                 "stringRep": getStringRep($scope.selectedWords, ' '),
+                "project": PROJECTID,
                 "startPos": null,
                 "endPos": null,
                 "asPredicate": false,
@@ -64,6 +65,7 @@ angular.module('annotationApp')
             var data = {
                 "occursIn": TEXTID,
                 "createdBy": USERID,
+                "project": PROJECTID,
                 "interpretation": $scope.data.selectedConcept.uri,
                 "position": {
                     "position_type": "BB",

@@ -211,8 +211,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         return Response(serializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
 
-
-
     def get_queryset(self, *args, **kwargs):
 
         queryset = AnnotationFilterMixin.get_queryset(self, *args, **kwargs)
@@ -220,6 +218,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         concept = self.request.query_params.get('concept', None)
         text = self.request.query_params.get('text', None)
         thisuser = self.request.query_params.get('thisuser', False)
+        project_id = self.request.query_params.get('project', None)
 
         if thisuser:
             queryset = queryset.filter(createdBy_id=self.request.user.id)
@@ -227,6 +226,8 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             queryset = queryset.filter(interpretation_id=concept)
         if text:
             queryset = queryset.filter(occursIn_id=text)
+        if project_id:
+            queryset = queryset.filter(project_id=project_id)
         return queryset
 
 
@@ -255,8 +256,11 @@ class RelationSetViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
 
         thisuser = self.request.query_params.get('thisuser', False)
+        project_id = self.request.query_params.get('project', None)
         if thisuser:
             queryset = queryset.filter(createdBy_id=self.request.user.id)
+        if project_id:
+            queryset = queryset.filter(project_id=project_id)
 
         return queryset
 

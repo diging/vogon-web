@@ -5,7 +5,8 @@
 angular.module('annotationApp').factory('Appellation', function($resource) {
   return $resource('/rest/appellation/:id/', {
       text: TEXTID,
-      thisuser: true
+      thisuser: true,
+      project: PROJECTID
   }, {
       list: {
           method: 'GET',

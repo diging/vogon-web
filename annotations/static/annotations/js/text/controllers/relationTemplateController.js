@@ -46,7 +46,7 @@ angular.module('annotationApp')
 
         // Keep selected appellations highlighted.
         selectionService.persistHighlighting = true;
-
+        console.log('startCreatingRelation', $scope.relation_template);
     }
     $scope.$on('startCreatingRelation', $scope.startCreatingRelation);
 
@@ -127,6 +127,7 @@ angular.module('annotationApp')
     $scope.createRelation = function() {
         // Assemble data from all fields into a single payload.
         $scope.relation_template.occursIn = TEXTID;
+        $scope.relation_template.project = PROJECTID;
         $.post('/relationtemplate/' + $scope.relation_template.id + '/create/',
                JSON.stringify($scope.relation_template),
                function(data) {

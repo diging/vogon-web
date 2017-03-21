@@ -2,13 +2,22 @@ import requests
 from django.shortcuts import get_object_or_404, render
 from annotations.tasks import tokenize
 from annotations.utils import basepath
-
+from annotations.models import TextCollection
 
 class Annotator(object):
     template = ''
     content_types = []
 
     def __init__(self, request, text):
+        project_id = request.GET.get('project_id')
+        if project_id is not None:
+            try:
+                self.project = TextCollection.objects.get(pk=project_id)
+            except TextCollection.DoesNotExist:
+                self.project = None
+        else:
+            self.project = None
+
         self.context = {
             'request': request,
             'user': request.user,
@@ -67,6 +76,7 @@ class PlainTextAnnotator(Annotator):
             'previous_content': resource.get('previous_content'),
             # 'source_id': resource.id,
             'repository_id': self.text.repository.id,
+            'project': self.project
         }
 
 
@@ -108,6 +118,7 @@ class DigiLibImageAnnotator(Annotator):
             'previous_content': resource.get('previous_content'),
             'source_id': self.text.repository_source_id,
             'repository_id': self.text.repository.id,
+            'project': self.project
         }
 
 

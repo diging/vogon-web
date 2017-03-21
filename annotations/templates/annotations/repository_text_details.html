@@ -31,7 +31,7 @@
         <div class="list-group-item">
             {{ obj.content_type }}
             <div class="btn-group pull-right">
-                <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id obj.source_id obj.content_id %}?part_of={{ result.id }}">
+                <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id obj.source_id obj.content_id %}?part_of={{ result.id }}{% if project_id %}&project_id={{ project_id }}{% endif %}">
                     <span class="glyphicon glyphicon-tag"></span> Annotate
                 </a>
                 {% if project_id %}
@@ -55,7 +55,7 @@
         <div class="list-group-item">
             <div>{{ content_object.name }}
                 <div class="btn-group pull-right">
-                    <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id result.id content_object.id %}">
+                    <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id result.id content_object.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
                         <span class="glyphicon glyphicon-tag"></span> Annotate
                     </a>
                     {% if project_id %}

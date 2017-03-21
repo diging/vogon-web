@@ -78,7 +78,7 @@ class AppellationSerializer(serializers.ModelSerializer):
         fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
                   'interpretation', 'interpretation_type', 'occursIn',
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label', 'position')
+                  'interpretation_type_label', 'position', 'project')
 
 
 class AppellationPOSTSerializer(serializers.ModelSerializer):
@@ -91,10 +91,7 @@ class AppellationPOSTSerializer(serializers.ModelSerializer):
         fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
                   'interpretation', 'interpretation_type', 'occursIn',
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label', 'position')
-
-
-
+                  'interpretation_type_label', 'position', 'project')
 
 
 class TypeSerializer(serializers.ModelSerializer):
@@ -107,9 +104,11 @@ class TypeSerializer(serializers.ModelSerializer):
 class RelationSetSerializer(serializers.ModelSerializer):
     appellations = AppellationSerializer(many=True)
     concepts = ConceptSerializer(many=True)
+
     class Meta:
         model = RelationSet
-        fields = ('id', 'label', 'created', 'template', 'createdBy', 'occursIn', 'appellations', 'concepts')
+        fields = ('id', 'label', 'created', 'template', 'createdBy', 'occursIn',
+                  'appellations', 'concepts', 'project')
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):

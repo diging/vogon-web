@@ -617,6 +617,14 @@ class Appellation(Annotation, Interpreted):
     since we now implement the full quadruple model in VogonWeb.
     """
 
+    project = models.ForeignKey('TextCollection', related_name='appellations',
+                                null=True, blank=True)
+    """
+    Since a :class:`.Text` can belong to more than one :class:`.TextCollection`
+    it follows not all :class:`.Appellation`\s for a text will belong to the
+    same :class:`.TextCollection`\.
+    """
+
     position = models.ForeignKey('DocumentPosition', blank=True, null=True,
                                  related_name='appellations')
     """
@@ -695,6 +703,14 @@ class RelationSet(models.Model):
     """
     A :class:`.RelationSet` organizes :class:`.Relation`\s into complete
     statements.
+    """
+
+    project = models.ForeignKey('TextCollection', related_name='relationsets',
+                                null=True, blank=True)
+    """
+    Since a :class:`.Text` can belong to more than one :class:`.TextCollection`
+    it follows not all :class:`.RelationSet`\s for a text will belong to the
+    same :class:`.TextCollection`\.
     """
 
     template = models.ForeignKey('RelationTemplate', blank=True, null=True,
