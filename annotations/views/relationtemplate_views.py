@@ -17,8 +17,7 @@ from django.template import RequestContext, loader
 from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm,
                                RelationTemplateForm)
-from annotations.models import (RelationTemplate, RelationTemplatePart,
-                                RelationSet, Relation, Appellation, TextCollection)
+from annotations.models import *
 from concepts.models import Concept, Type
 
 import copy
@@ -71,6 +70,8 @@ def add_relationtemplate(request):
             # We commit the RelationTemplate to the database first, so that we
             #  can use it in the FK relation ``RelationTemplatePart.part_of``.
             relationTemplate = relationtemplate_form.save()
+            relationTemplate.terminal_nodes = relationtemplate_form.cleaned_data.get('terminal_nodes', '')
+            relationTemplate.save()
 
             # We index RTPs so that we can fill FK references among them.
             relationTemplateParts = {}
@@ -424,6 +425,48 @@ def create_from_relationtemplate(request, template_id):
 
         for part_id, template_part in template_parts.iteritems():
             process_recurse(part_id, template_part)
+
+        # Generate a human-readable phrase that expresses the relation.
+
+        part_map = {rtp.internal_id: k for k, rtp in template_parts.iteritems()}
+
+        from string import Formatter
+        expression_keys = [k[1] for k in Formatter().parse(template.expression)]
+        expression_data = {}
+        _pos_map = {'s': 'source', 'p': 'predicate', 'o': 'object'}
+        for part_id, part_pos in map(tuple, expression_keys):
+            relation_id = relation_data_processed[part_map[int(part_id)]][0]
+            relation = Relation.objects.get(pk=relation_id)
+            pos = _pos_map.get(part_pos)
+            _val = None
+            if pos == 'predicate':    # Always an Appellation.
+                _val = relation.predicate.interpretation.label
+            else:
+                _target = getattr(relation, '%s_content_object' % pos)
+                if isinstance(_target, Appellation):
+                    _val = _target.interpretation.label
+
+            expression_data['%s%s' % (part_id, part_pos)] = _val
+        relation_set.representation = template.expression.format(**expression_data)
+        relation_set.save()
+
+        # Set the terminal nodes (concepts) on the RelationSet.
+        if template.terminal_nodes:
+
+            for part_id, part_pos in map(tuple, template.terminal_nodes.split(',')):
+                relation_id = relation_data_processed[part_map[int(part_id)]][0]
+                relation = Relation.objects.get(pk=relation_id)
+
+                pos = _pos_map.get(part_pos)
+                if pos == 'predicate':    # Always an Appellation.
+                    relation_set.terminal_nodes.add(relation.predicate.interpretation)
+                else:
+                    _target = getattr(relation, '%s_content_object' % pos)
+                    if isinstance(_target, Appellation):
+                        relation_set.terminal_nodes.add(_target.interpretation)
+
+
+
 
         # The first element should be the root of the graph. This is where we
         #  need to "attach" the temporal relations.

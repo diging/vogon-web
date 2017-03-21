@@ -11,6 +11,7 @@
         <div class="input-group">
             <!-- This is the search input. We also use the input for the Concept label if the
                  user elects to create a new one. -->
+
             <input
                 type="text"
                 name="search"
@@ -20,6 +21,10 @@
                 ng-disabled="data.selectedConcept"
                 placeholder="To what does this passage refer?">
             </input>
+            <select class="form-control"
+                ng-model="pos"
+                ng-options="item as item.label for item in pos_options track by item.id">
+            </select>
             <!-- Until a Concept is selected, show a green search icon. -->
             <span class="input-group-addon btn btn-sm btn-success" ng-show="!data.selectedConcept" ng-click="search()">
                 <span class="glyphicon glyphicon-search"></span>
@@ -33,10 +38,16 @@
         </div>
         <span class="text text-info">{{ message }}</span>
         <ul class="list-group concept-search-results" ng-hide="creatingConcept">
-            <a class="list-group-item"
+            <a class="list-group-item concept-item"
                 ng-repeat="concept in concepts"
                 ng-click="select(concept)">
-                <span class="h5">{{ concept.label }} <label class="label label-primary">{{ concept.typed_label }}</label></span>
+                <strong>{{ concept.label }}</strong>
+                <div class="pull-right">
+                    <label class="label label-primary" ng-show="concept.concept_type.name != ''">{{ concept.concept_type.name }}</label>
+                    <label class="label label-primary" ng-show="concept.concept_type.name == ''">{{ concept.concept_type.identifier | truncate }}</label>
+                </div>
+                <div class="text-warning">{{ concept.authority.name }}: {{ concept.uri | truncate }}</div>
+
                 <p><span class="text text-muted">{{ concept.description }}</span></p>
             </a>
         </ul>

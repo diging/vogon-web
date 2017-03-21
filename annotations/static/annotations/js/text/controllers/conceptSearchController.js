@@ -3,13 +3,24 @@
   *  in the appellation creation process.
   */
 app.controller('ConceptSearchController',
-               ['$scope', 'Concept', 'Type', function($scope, Concept, Type) {
+               ['$scope', 'Concept', 'Type', 'truncateFilter', function($scope, Concept, Type, truncateFilter) {
     $scope.assertUnique = false;
     $scope.concepts = [];
+    $scope.pos = {
+      id: 'noun',
+      label: 'Noun'
+    };
+    $scope.pos_options = [{
+      id: 'noun',
+      label: 'Noun'
+    }, {
+      id: 'verb',
+      label: 'Verb'
+    }];
 
     $scope.search = function() {
         if ($scope.query.length > 2 & !$scope.creatingConcept) {
-            var params = {search: $scope.query, pos: 'noun', typed: $scope.conceptType, remote: true}
+            var params = {search: $scope.query, pos: $scope.pos.id, typed: $scope.conceptType, remote: true}
             $scope.concepts = [];
             $scope.message = 'Searching...';
             Concept.query(params).$promise.then(function(data){

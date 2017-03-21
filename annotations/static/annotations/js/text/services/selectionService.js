@@ -525,6 +525,7 @@ angular.module('annotationApp').factory('selectionService', ['appellationService
       */
     service.handleEsc = function(event) {
         service.releaseWords();
+        service.unhighlightAppellations();
         service.removeNonCommittedRegions();
         $($('.popover').attr('parent')).popover('destroy');
     }

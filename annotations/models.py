@@ -753,6 +753,9 @@ class RelationSet(models.Model):
     were accessioned together in a single query.
     """
 
+    representation = models.TextField(null=True, blank=True)
+    terminal_nodes = models.ManyToManyField(Concept)
+
     @property
     def root(self):
         """
@@ -902,6 +905,20 @@ class RelationTemplate(models.Model):
     expression = models.TextField(null=True)
     """Pattern for representing the relation in normal language."""
 
+    _terminal_nodes = models.TextField(blank=True, null=True)
+
+    def _get_terminal_nodes(self):
+        return self._terminal_nodes
+
+    def _set_terminal_nodes(self, value):
+        if value:
+            self._terminal_nodes = ','.join(map(lambda s: s.strip(), value.split(',')))
+        else:
+            self._terminal_nodes = ''
+
+    terminal_nodes = property(_get_terminal_nodes, _set_terminal_nodes)
+
+
     @property
     def fields(self):
         """
@@ -973,6 +990,7 @@ class RelationTemplatePart(models.Model):
         (TOBE, 'Is/was'),
         (HAS, 'Has/had'),
     )
+
 
     part_of = models.ForeignKey('RelationTemplate',
                                 related_name="template_parts")

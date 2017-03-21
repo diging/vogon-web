@@ -7,6 +7,7 @@ from django.forms import widgets, BaseFormSet
 from crispy_forms.helper import FormHelper
 from django.db.models import Count
 from django.db.utils import ProgrammingError
+from django.conf import settings
 
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
@@ -165,17 +166,36 @@ class ConceptField(forms.CharField):
         The ``_concept`` field should be populated with the :class:`.Concept`\s
         id.
         """
-        return obj.id
+        return obj.uri
 
     def to_python(self, value):
         if value in self.empty_values:
             return None
         try:
-            key = 'pk'
-            value = self.queryset.get(**{key: value})
-        except (ValueError, TypeError, self.queryset.model.DoesNotExist):
+            key = 'uri'
+            py_value = self.queryset.get(**{key: value})
+        except self.queryset.model.DoesNotExist:
+            import goat
+            goat.GOAT = settings.GOAT
+            goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
+            concept = goat.Concept.retrieve(identifier=value)
+            print concept.data['name']
+
+            data = dict(
+                uri=value,
+                label=concept.data['name'],
+                description=concept.data['description'],
+            )
+            ctype_data = concept.data['concept_type']#
+            if ctype_data:
+                data.update({'typed': Type.objects.get_or_create(uri=ctype_data['identifier'])[0]})
+            print data
+            py_value = Concept.objects.create(**data)
+
+            return py_value
+        except (ValueError, TypeError):
             raise ValidationError(self.error_messages['invalid_choice'], code='invalid_choice')
-        return value
+        return py_value
 
 
 class TemplateChoiceField(forms.ChoiceField):
@@ -218,7 +238,18 @@ class RelationTemplateForm(forms.ModelForm):
     expression = forms.CharField(widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 2,
-            'placeholder': 'Enter an expression pattern for this relation.'
+            'placeholder': "Enter an expression pattern for this relation."
+                           " Indicate the position of nodes in the template"
+                           " using node identifiers, e.g. {0s} for the subject"
+                           " of this first relation part, {1o} for the object"
+                           " of the second part, or {2p} for the predicate of"
+                           " the third part."
+        }))
+    terminal_nodes = forms.CharField(widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'rows': 2,
+            'placeholder': "Enter comma-separated node identifiers. E.g."
+                           " ``0s,1o``."
         }))
 
     class Meta:
@@ -318,9 +349,9 @@ class RelationTemplatePartForm(forms.ModelForm):
             selected_node_type = self.cleaned_data.get('%s_node_type' % field)
             # If the user has selected the "Concept type" field, then they must
             #  also provide a specific concept type.
-            if selected_node_type == 'TP':
-                if not self.cleaned_data.get('%s_type' % field, None):
-                    self.add_error('%s_type' % field, 'Must select a concept type')
+            # if selected_node_type == 'TP':
+            #     if not self.cleaned_data.get('%s_type' % field, None):
+            #         self.add_error('%s_type' % field, 'Must select a concept type')
 
 
 class RelationTemplatePartFormSet(BaseFormSet):

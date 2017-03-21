@@ -201,6 +201,13 @@ var reloadGraph = function() {
     }
     $(window).resize(resizeGraph);
 }
+
+// $(document).keydown(function(event){
+//     if (event.which ==  27) {
+//         $('word').removeClass('networkHighlight');
+//     }
+// });
+
 $('body').ready(function() {
     reloadGraph();
 });

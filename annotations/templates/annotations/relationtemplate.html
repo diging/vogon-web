@@ -63,6 +63,14 @@
                         {% endif %}
                         {{ templateform.expression }}
                     </p>
+                    <p>
+                        {% if templateform.terminal_nodes.errors %}
+                            {% for error in templateform.terminal_nodes.errors %}
+                            <div class="alert alert-warning">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        {{ templateform.terminal_nodes }}
+                    </p>
                     <table id="form_table" class="table table-condensed table-striped table-bordered table-responsive">
                         <thead>
                             <tr class="text-center info">

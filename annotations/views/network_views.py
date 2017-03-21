@@ -56,10 +56,54 @@ def network_for_text(request, text_id):
         relationsets = relationsets.filter(createdBy_id=user_id)
         appellations = appellations.filter(createdBy_id=user_id)
 
-    nodes, edges = generate_network_data(relationsets, text_id=text_id,
-                                         appellation_queryset=appellations)
+    nodes, edges = generate_network_data_fast(relationsets, text_id=text_id, appellation_queryset=appellations)
 
     return JsonResponse({'elements': nodes.values() + edges.values()})
+
+
+def generate_network_data_fast(relationsets, text_id=None, user_id=None, appellation_queryset=None):
+    """
+    Use the :prop:`.RelationSet.terminal_nodes` to build a graph.
+    """
+    from itertools import groupby, combinations
+
+    nodes = {}
+    edges = Counter()
+    fields = ['id',
+              'terminal_nodes__id',
+              'terminal_nodes__label',
+              'terminal_nodes__uri',
+              'terminal_nodes__typed__id',
+              'terminal_nodes__typed__label',
+              'terminal_nodes__typed__uri']
+
+    for rset_id, data in groupby(relationsets.values(*fields), key=lambda r: r['id']):
+        for source, target in combinations(data, 2):
+            edges[tuple(sorted([source['terminal_nodes__id'], target['terminal_nodes__id']]))] += 1.
+
+            for datum in [source, target]:
+                if datum['terminal_nodes__id'] in nodes:
+                    nodes[datum['terminal_nodes__id']]['data']['weight'] += 1.
+                else:
+                    appellations = appellation_queryset.filter(interpretation_id=datum['terminal_nodes__id']).values_list('id', flat=True)
+                    nodes[datum['terminal_nodes__id']] = {
+                        'data': {
+                            'id': datum['terminal_nodes__id'],
+                            'label': datum['terminal_nodes__label'],
+                            'uri': datum['terminal_nodes__uri'],
+                            'type': datum['terminal_nodes__typed__id'],
+                            'type_label': datum['terminal_nodes__typed__label'],
+                            'type_uri': datum['terminal_nodes__typed__uri'],
+                            'weight': 1.,
+                            'appellations': list(appellations)
+                        }
+                    }
+
+    edges = {k: {'data': {'weight': v, 'source': k[0], 'target': k[1]}} for k, v in edges.iteritems()}
+
+    return nodes, edges
+
+
 
 
 def generate_network_data(relationset_queryset, text_id=None, user_id=None,

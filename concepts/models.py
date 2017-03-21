@@ -63,6 +63,11 @@ class Concept(HeritableObject):
             return self.typed.label
         return None
 
+    def __unicode__(self):
+        if self.label:
+            return self.label
+        return self.uri
+
 
 class Type(Concept):
     pass

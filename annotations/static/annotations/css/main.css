@@ -659,3 +659,9 @@ a.appellation-list-item.selected {
     /* Make wrapped text align with text displaced by floating profile image. */
     margin-left: 70px;
 }
+
+
+.concept-item {
+    font-size: 9pt;
+    padding: 8px;
+}
