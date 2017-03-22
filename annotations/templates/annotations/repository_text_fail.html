@@ -4,7 +4,7 @@
 {% load staticfiles %}
 
 {% block breadcrumbs %}
-<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>&raquo;<a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">{{ repository.name }}</a>&raquo;<a href="{% url "repository_text" repository.id text_id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Resource: {{ result.title }}</a>
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>&raquo;<a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">{{ repository.name }}</a>&raquo;<a href="{% url "repository_text" repository.id result.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Resource: {{ result.title }}</a>
 {% endblock %}
 
 {% block main %}

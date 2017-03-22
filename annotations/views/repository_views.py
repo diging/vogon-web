@@ -265,11 +265,20 @@ def repository_text(request, repository_id, text_id):
 
 @login_required
 def repository_text_content(request, repository_id, text_id, content_id):
+
     repository = get_object_or_404(Repository, pk=repository_id)
 
     manager = RepositoryManager(repository.configuration, user=request.user)
-
+    # content_resources = {o['id']: o for o in resource['content']}
+    # content = content_resources.get(int(content_id))    # Not a dict.
+    content = manager.content(id=int(content_id))
     resource = manager.resource(id=int(text_id))
+    content_type = content.get('content_type', None)
+    from annotations import annotators
+    if not annotators.annotator_exists(content_type):
+        return _repository_text_fail(request, repository, resource, content)
+
+
     resource_text_defaults = {
         'title': resource.get('title'),
         'created': resource.get('created'),
@@ -302,15 +311,9 @@ def repository_text_content(request, repository_id, text_id, content_id):
 
     action = request.GET.get('action', 'annotate')
 
-    # content_resources = {o['id']: o for o in resource['content']}
-    # content = content_resources.get(int(content_id))    # Not a dict.
-    content = manager.content(id=int(content_id))
-    content_type = content.get('content_type', None)
 
     target, headers = content.get('location'), {}
-    # if annotators.annotator_factory()
-    # else:
-    #     return _repository_text_fail(request, repository, resource, content)
+
 
     defaults = {
         'title': resource.get('title'),

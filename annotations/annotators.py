@@ -145,3 +145,10 @@ def annotator_factory(request, text):
         if text.content_type in annotator.content_types:
             return annotator(request, text)
     return
+
+
+def annotator_exists(content_type):
+    for annotator in ANNOTATORS:
+        if content_type in annotator.content_types:
+            return True
+    return False
