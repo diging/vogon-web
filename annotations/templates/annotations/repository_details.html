@@ -2,14 +2,18 @@
 {% load app_filters %}
 {% load addcss %}
 {% load staticfiles %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>&raquo;<a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">{{ repository.name }}</a>
+{% endblock %}
+
 {% block main %}
 
 <script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
-<div class="container">
-    <a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="text-small btn" style="margin-top: 10px;">&#9664; Back to repositories</a>
+<div class="container-fluid">
     <div class="h3">Repository <strong>{{ repository.name }}</strong></div>
     <p class="">{{ repository.description }}</p>
-    <ul class="nav nav-pills text-center">
+    <ul class="nav nav-pills nav-justified">
         {% if "search" in manager.methods %}
         <li>
             <a href="{% url "repository_search" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Search</a>

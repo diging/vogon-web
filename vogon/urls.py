@@ -74,8 +74,10 @@ urlpatterns = [
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
     # url(r'^text/$', views.text_views.texts, name='text_search'),
 
-    url(r'^network/$', views.network_views.network, name="network"),
-    url(r'^network/data/$', views.network_views.network_data, name="network-data"),
+    # TODO: network views need to be refactored for performance on v. large
+    #  datasets. Even moderately sized queries are crashing.
+    # url(r'^network/$', views.network_views.network, name="network"),
+    # url(r'^network/data/$', views.network_views.network_data, name="network-data"),
     url(r'^network/text/(?P<text_id>[0-9]+)/$', views.network_views.network_for_text, name="network_for_text"),
 
     url(r'^relationtemplate/add/$', views.relationtemplate_views.add_relationtemplate, name="add_relationtemplate"),
@@ -103,7 +105,7 @@ urlpatterns = [
     url(r'^concept/types$', conceptViews.list_concept_types),
     url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type"),
 
-    url(r'^concept_autocomplete/', views.search_views.concept_autocomplete, name='concept_autocomplete'),
+    # url(r'^concept_autocomplete/', views.search_views.concept_autocomplete, name='concept_autocomplete'),
 
     url(r'^quadruples/appellation/(?P<appellation_id>[0-9]+).xml$', views.quadruple_views.appellation_xml, name='appellation_xml'),
     url(r'^quadruples/relation/(?P<relation_id>[0-9]+).xml$', views.quadruple_views.relation_xml, name='relation_xml'),

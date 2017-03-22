@@ -5,7 +5,7 @@ Provides views related to external repositories.
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.template import RequestContext, loader
 
 from annotations.forms import RepositorySearchForm
@@ -16,6 +16,48 @@ from repository.managers import *
 from annotations.models import Text, TextCollection
 
 import requests
+from urlparse import urlparse, parse_qs
+from urllib import urlencode
+
+
+def _get_params(request):
+    # The request may include parameters that should be passed along to the
+    #  repository -- at this point, this is just for pagination.
+    # TODO: restable should be taking care of this.
+    params = request.GET.get('params', {})
+    if params:
+        params = dict(map(lambda p: p.split(':'), params.split('|')))
+    return params
+
+
+def _get_pagination(response, base_url, base_params):
+    # TODO: restable should handle pagination, but it seems to be broken right
+    #  now. Once that's fixed, we should back off and let restable do the work.
+    if not response:
+        return None, None
+    _next_raw = response.get('next', None)
+    if _next_raw:
+        _params = {k: v[0] if isinstance(v, list) and len(v) > 0 else v
+                   for k, v in parse_qs(urlparse(_next_raw).query).iteritems()}
+        _next = '|'.join(map(lambda o: ':'.join(o), _params.items()))
+        _nparams = {'params': _next}
+        _nparams.update(base_params)
+        next_page = base_url + '?' + urlencode(_nparams)
+
+    else:
+        next_page = None
+    _prev_raw = response.get('previous', None)
+    if _prev_raw:
+        _params = {k: v[0] if isinstance(v, list) and len(v) > 0 else v
+                   for k, v in parse_qs(urlparse(_prev_raw).query).iteritems()}
+        _prev = '|'.join(map(lambda o: ':'.join(o), _params.items()))
+        _nparams = {'params': _prev}
+        _nparams.update(base_params)
+        previous_page = base_url + '?' + urlencode(_nparams)
+    else:
+        previous_page = None
+    return previous_page, next_page
+
 
 
 @login_required
@@ -31,6 +73,7 @@ def repository_collections(request, repository_id):
         'collections': manager.collections(),
         'title': 'Browse collections in %s' % repository.name,
         'project_id': project_id,
+        'manager': manager,
     })
 
     return HttpResponse(template.render(context))
@@ -38,55 +81,92 @@ def repository_collections(request, repository_id):
 
 @login_required
 def repository_collection(request, repository_id, collection_id):
-    template = loader.get_template('annotations/repository_collection.html')
+    params = _get_params(request)
+
+
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
-    collection = manager.collection(id=collection_id)
+    collection = manager.collection(id=collection_id, **params)
     project_id = request.GET.get('project_id')
+    base_url = reverse('repository_collection', args=(repository_id, collection_id))
+    base_params = {}
+    if project_id:
+        base_params.update({'project_id': project_id})
 
-    context = RequestContext(request, {
+    context = {
         'user': request.user,
         'repository': repository,
         'collection': collection,
+        'collection_id': collection_id,
         'title': 'Browse collections in %s' % repository.name,
         'project_id': project_id,
-    })
+    }
+    previous_page, next_page = _get_pagination(collection, base_url, base_params)
+    if next_page:
+        context.update({'next_page': next_page})
+    if previous_page:
+        context.update({'previous_page': previous_page})
 
-    return HttpResponse(template.render(context))
+    return render(request, 'annotations/repository_collection.html', context)
 
 
 @login_required
 def repository_browse(request, repository_id):
-    template = loader.get_template('annotations/repository_browse.html')
+    params = _get_params(request)
+
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     project_id = request.GET.get('project_id')
-    context = RequestContext(request, {
+    resources = manager.list(**params)
+
+    base_url = reverse('repository_browse', args=(repository_id,))
+    base_params = {}
+    if project_id:
+        base_params.update({'project_id': project_id})
+
+
+    context = {
         'user': request.user,
         'repository': repository,
         'manager': manager,
         'title': 'Browse repository %s' % repository.name,
         'project_id': project_id,
-    })
+        'manager': manager,
+        'resources': resources['resources'],
+    }
+    previous_page, next_page = _get_pagination(resources, base_url, base_params)
+    if next_page:
+        context.update({'next_page': next_page})
+    if previous_page:
+        context.update({'previous_page': previous_page})
 
-    return HttpResponse(template.render(context))
+    return render(request, 'annotations/repository_browse.html', context)
+
 
 
 @login_required
 def repository_search(request, repository_id):
-    template = loader.get_template('annotations/repository_search.html')
+    params = _get_params(request)
+
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     query = request.GET.get('query', None)
     project_id = request.GET.get('project_id')
     if query:
-        results = manager.search(query=query)
+        results = manager.search(query=query, **params)
         form = RepositorySearchForm({'query': query})
     else:
         results = None
         form = RepositorySearchForm()
 
-    context = RequestContext(request, {
+    base_url = reverse('repository_search', args=(repository_id))
+    base_params = {}
+    if project_id:
+        base_params.update({'project_id': project_id})
+    if query:
+        base_params.update({'query': query})
+
+    context = {
         'user': request.user,
         'repository': repository,
         'title': 'Browse repository %s' % repository.name,
@@ -94,9 +174,15 @@ def repository_search(request, repository_id):
         'results': results,
         'query': query,
         'project_id': project_id,
-    })
+        'manager': manager,
+    }
+    previous_page, next_page = _get_pagination(results, base_url, base_params)
+    if next_page:
+        context.update({'next_page': next_page})
+    if previous_page:
+        context.update({'previous_page': previous_page})
 
-    return HttpResponse(template.render(context))
+    return render(request, 'annotations/repository_search.html', context)
 
 
 @login_required
@@ -133,7 +219,6 @@ def repository_list(request):
 
 @login_required
 def repository_text(request, repository_id, text_id):
-    template = loader.get_template('annotations/repository_text_details.html')
     project_id = request.GET.get('project_id')
     if project_id:
         project = TextCollection.objects.get(pk=project_id)
@@ -159,19 +244,23 @@ def repository_text(request, repository_id, text_id):
         first_part = None
         serial_content = None
 
-    context = RequestContext(request, {
+    context = {
         'user': request.user,
         'repository': repository,
         'content': result['content'],
         'result': result,
+        'text_id': text_id,
         'title': 'Text: %s' % result.get('title'),
         'serial_content': serial_content,
         'project_id': project_id,
         'project': project,
         'master_text': master_text,
-        'in_project': master_text and project.texts.filter(pk=master_text.id).exists()
-    })
-    return HttpResponse(template.render(context))
+    }
+    if project:
+        context.update({
+            'in_project': master_text and project.texts.filter(pk=master_text.id).exists()
+        })
+    return render(request, 'annotations/repository_text_details.html', context)
 
 
 @login_required

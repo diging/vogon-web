@@ -54,6 +54,11 @@
 
         </script>
         {% endif %}
+        <script>
+        $(document).ready(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+        </script>
 	</head>
 	{% endblock head %}
 
@@ -62,7 +67,10 @@
 		{% block header %}
 		{% include "annotations/header.html" %}
 		{% endblock header %}
-
+        <div class="breadcrumb-block">
+        {% block breadcrumbs %}
+        {% endblock %}
+        </div>
         <div class="main">
 		{% block main %}
 

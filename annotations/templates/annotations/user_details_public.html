@@ -1,7 +1,12 @@
 {% extends "annotations/base.html" %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "users" %}" class="btn btn-xs">Contributors</a>&raquo;<a href="{% url "user_details" detail_user.id %}" class="btn btn-xs">{{ detail_user.username}}</a>
+{% endblock %}
+
 {% load staticfiles %}
 {% block main %}
-<div id="main" class="container">
+<div id="main" class="container-fluid">
     <div class="row">
         <div class="col-sm-2 col-xs-4">
         	<img src="{% if detail_user.imagefile %}{{detail_user.imagefile}}{% else %}{{default_user_image}}{% endif %}"
@@ -13,7 +18,7 @@
         	<div class="h2">
                 {{ detail_user.username }}{% if detail_user.full_name %} <small>| {{ detail_user.full_name}}</small>{% endif %}
                 {% if detail_user.id == user.id %}
-                <a class="pull-right btn btm-md"
+                <a class="pull-right btn btn-md btn-success"
                     href="?mode=edit">
                     <span class="glyphicon glyphicon-pencil"></span>
                     Edit

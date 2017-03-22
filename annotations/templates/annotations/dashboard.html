@@ -1,114 +1,71 @@
 {% extends "annotations/base.html" %}
 {% load staticfiles %}
 
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "dashboard" %}" class="btn btn-xs">Dashboard</a>
+{% endblock %}
+
 {% block main %}
 
-<div class="container">
-    <h1 class="page-header">Welcome back, {{ user.username }}</small></h1>
-
-        <ul class="nav nav-tabs nav-justified">
-            <li class="active clearfix">
-                <a id="textTabAnchor"
-                    class="action-tab-anchor h4"
-                    data-target="#texts"
-                    data-toggle="tab">My Texts</a>
-            </li>
-            <li>
-                <a id="projectTabAnchor"
-                    class="action-tab-anchor h4"
-                    data-target="#projects"
-                    data-toggle="tab">My Projects</a>
-            </li>
-
-        </ul>
-
-        <div class="tab-content">
-            <div class="tab-pane fade in active" id="texts">
+<div class="container-fluid">
+    <div class="h2">Welcome back, {{ user.username }}</div>
+        <div class="row">
+            <div class="col-md-4">
                 <div class="panel">
-                    <div class="container-fluid" style="padding-top: 10px;">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="panel">
-                                    <div class="panel-heading clearfix">
-                                        <span class="h4">Recently Annotated</span>
-                                        <span class="pull-right btn-group">
-                                            <a href="" class="btn btm-xs">View all</a>
-                                        </span>
-                                    </div>
-                                    <div class="list-group">
-                                        {% for text in recent_texts %}
-                                        <a class="list-group-item" href="{% url "text" text.0 %}">{{ text.1 }}</a>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="panel">
-                                    <div class="panel-heading clearfix">
-                                        <span class="h4">Recently Added</span>
-                                        <span class="pull-right btn-group">
-                                            <a href="" class="btn btm-xs">View all</a>
-                                            <a href="{% url "file_upload" %}" class="btn btm-xs">Add</a>
-                                        </span>
-                                    </div>
-                                    <div class="list-group">
-                                        {% for text in added_texts %}
-                                        <a class="list-group-item" href="{% url "text" text.0 %}">{{ text.1 }}</a>
-                                        {% endfor %}
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
+                    <div class="panel-heading clearfix">
+                        <span class="h4">Recently Annotated</span>
+                        <span class="pull-right btn-group">
+                            <a href="" class="btn btn-xs">View all</a>
+                        </span>
+                    </div>
+                    <div class="list-group">
+                        {% for text in recent_texts %}
+                        <a class="list-group-item" href="">{{ text.top_level_text.title }}</a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade in" id="projects">
+            <div class="col-md-4">
                 <div class="panel">
-                    <div class="container-fluid" style="padding-top: 10px;">
-                        <div class="row">
-                            <div class="col-sm-{% if projects_contributed|length > 0 %}6{% else %}12{% endif %}">
-                                <div class="panel">
-                                    <div class="panel-heading clearfix">
-                                        <span class="h4">
-                                            Projects that I own
-                                        </span>
-                                        <div class="pull-right btn-group">
-                                            <a href="{% url "user_projects" %}" class="btn btm-xs">View all</a>
-                                            <a href="{% url "create_project" %}" class="btn btm-xs">Create</a>
-                                        </div>
+                    <div class="panel-heading clearfix">
+                        <span class="h4">Recently Added</span>
+                        <span class="pull-right btn-group">
+                            <a href="" class="btn btn-xs">View all</a>
+                        </span>
+                    </div>
+                    <div class="list-group">
+                        {% for text in added_texts %}
+                        <a class="list-group-item" href="">{{ text.title }}</a>
+                        {% endfor %}
+                    </div>
 
-                                    </div>
-                                    <div class="list-group">
-                                        {% for project in projects_owned %}
-                                        <a class="list-group-item" href="{% url "view_project" project.0 %}">{{ project.1 }}</a>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% if projects_contributed|length > 0 %}
-                            <div class="col-sm-6">
-                                <div class="panel">
-                                    <div class="panel-heading clearfix">
-                                        <span class="h4">Projects to which I contribute</span>
-                                        <span class="pull-right btn-group">
-                                            <a href="" class="btn btm-xs">View all</a>
-                                        </span>
-                                    </div>
-                                    <div class="list-group">
-                                        {% for project in projects_contributed %}
-                                        <a class="list-group-item" href="">{{ project.1 }}</a>
-                                        {% endfor %}
-                                    </div>
-
-                                </div>
-                            </div>
-                            {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel">
+                    <div class="panel-heading clearfix">
+                        <span class="h4">
+                            My Projects
+                        </span>
+                        <div class="pull-right btn-group">
+                            <a href="{% url "user_projects" %}" class="btn btn-xs">View all</a>
+                            <a href="{% url "create_project" %}" class="btn btn-xs">Create</a>
                         </div>
+
+                    </div>
+                    <div class="list-group">
+                        {% for project in projects_owned %}
+                        <a class="list-group-item" href="{% url "view_project" project.id %}">
+                            <strong>{{ project.name }}</strong>
+                            <p class="text-muted">{{ project.description }}</p>
+                        </a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
+
+
 
     </div>
 </div>

@@ -166,17 +166,34 @@ def dashboard(request):
     ----------
     :class:`django.http.response.HttpResponse`
     """
+    from itertools import groupby
 
     template = loader.get_template('annotations/dashboard.html')
 
-    recent_texts = user_recent_texts(request.user)
-    added_texts = Text.objects.filter(addedBy_id=request.user.id)\
+    # Retrieve a unique list of texts that were recently annotated by the user.
+    #  Since many annotations will be on "subtexts" (i.e. Texts that are
+    #  part_of another Text), we need to first identify the unique subtexts,
+    #  and then assemble a list of unique "top level" texts.
+    _recently_annotated = request.user.appellation_set.order_by('occursIn_id', '-created')\
+                                           .values_list('occursIn_id')\
+                                           .distinct('occursIn_id')[:20]
+    _annotated_texts = Text.objects.filter(pk__in=_recently_annotated)
+    _key = lambda t: t.id
+    _recent_grouper = groupby(sorted(map(lambda t: t.top_level_text,
+                                         _annotated_texts),
+                                     key=_key),
+                              key=_key)
+    recent_texts = []
+    for t_id, group in _recent_grouper:
+        recent_texts.append(group.next())    # Take the first item only.
+
+    added_texts = Text.objects.filter(addedBy_id=request.user.id, part_of__isnull=True)\
                                 .order_by('-added')\
-                                .values_list('id', 'title', 'added')
+                                .values('id', 'title', 'added')
 
     flds = ['id', 'name', 'description']
-    projects_owned = request.user.collections.all().values_list(*flds)
-    projects_contributed = request.user.contributes_to.all().values_list(*flds)
+    projects_owned = request.user.collections.all().values(*flds)
+    projects_contributed = request.user.contributes_to.all().values(*flds)
 
     appellation_qs = Appellation.objects.filter(createdBy__pk=request.user.id)\
                                         .filter(asPredicate=False)\
