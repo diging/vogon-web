@@ -11,8 +11,7 @@ from django.db.models import Q
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
-from django.template import RequestContext, loader
-
+from string import Formatter
 
 from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm,
@@ -222,13 +221,13 @@ def list_relationtemplate(request):
     if response_format == 'json':
         return JsonResponse(data)
 
-    template = loader.get_template('annotations/relationtemplate_list.html')
-    context = RequestContext(request, {
+    template = "annotations/relationtemplate_list.html"
+    context = {
         'user': request.user,
         'data': data,
-    })
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
@@ -259,13 +258,13 @@ def get_relationtemplate(request, template_id):
     if response_format == 'json':
         return JsonResponse(data)
 
-    template = loader.get_template('annotations/relationtemplate_show.html')
-    context = RequestContext(request, {
+    template = "annotations/relationtemplate_show.html"
+    context = {
         'user': request.user,
         'data': data,
-    })
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
@@ -289,7 +288,6 @@ def create_from_relationtemplate(request, template_id):
 
     # TODO: this could also use quite a bit of attention in terms of
     #  modularization.
-
     template = get_object_or_404(RelationTemplate, pk=template_id)
 
     # Index RelationTemplateParts by ID.
@@ -430,7 +428,6 @@ def create_from_relationtemplate(request, template_id):
 
         part_map = {rtp.internal_id: k for k, rtp in template_parts.iteritems()}
 
-        from string import Formatter
         expression_keys = [k[1] for k in Formatter().parse(template.expression)]
         expression_data = {}
         _pos_map = {'s': 'source', 'p': 'predicate', 'o': 'object'}
@@ -524,5 +521,6 @@ def create_from_relationtemplate(request, template_id):
         response_data = {'relationset': relation_set.id}
     else:   # Not sure if we want to do anything for GET requests at this point.
         response_data = {}
+
 
     return JsonResponse(response_data)

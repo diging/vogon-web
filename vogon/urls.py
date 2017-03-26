@@ -61,8 +61,7 @@ urlpatterns = [
     url(r'^accounts/settings/$', views.user_views.user_settings, name='settings'),
     # url(r'^accounts/register/$', views.user_views.register, name='register'),
     url('', include('social.apps.django_app.urls', namespace='social')),
-    url(r'^accounts/logout/$', 'django.contrib.auth.views.logout',
-                          {'next_page': '/'}),
+    # url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name="logout"),
     url(r'^accounts/', include('django.contrib.auth.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
@@ -99,11 +98,18 @@ urlpatterns = [
 
     url(r'^sign_s3$', views.aws_views.sign_s3, name="sign_s3"),
 
-    url(r'^concept/(?P<conceptid>[0-9]+)/$', views.data_views.concept_details, name='concept_details'),
+    # url(r'^concept/(?P<conceptid>[0-9]+)/$', views.data_views.concept_details, name='concept_details'),
     url(r'^relations/(?P<source_concept_id>[0-9]+)/(?P<target_concept_id>[0-9]+)/$', views.data_views.relation_details, name="relation_details"),
+    url(r'^relations/$', views.annotation_views.relations, name="relations"),
+    url(r'^relations/graph/$', views.annotation_views.relations_graph, name="relations_graph"),
 
     url(r'^concept/types$', conceptViews.list_concept_types),
     url(r'^concept/type/(?P<type_id>[0-9]+)/$', conceptViews.type, name="type"),
+    url(r'^concept/$', conceptViews.concepts, name="concepts"),
+    url(r'^concept/(?P<concept_id>[0-9]+)/$', conceptViews.concept, name='concept'),
+    url(r'^concept/(?P<concept_id>[0-9]+)/resolve/$', conceptViews.resolve_concept, name="resolve_concept"),
+    url(r'^concept/(?P<concept_id>[0-9]+)/approve/$', conceptViews.approve_concept, name="approve_concept"),
+    url(r'^concept/(?P<source_concept_id>[0-9]+)/merge/(?P<target_concept_id>[0-9]+)/$', conceptViews.merge_concepts, name='merge_concepts'),
 
     # url(r'^concept_autocomplete/', views.search_views.concept_autocomplete, name='concept_autocomplete'),
 

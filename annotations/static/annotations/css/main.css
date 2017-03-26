@@ -468,7 +468,7 @@ a.appellation-list-item.selected {
     background-attachment: fixed;
     background-position: center top;
 
-    height: 680px;
+    height: 450px;
 }
 
 .navbar-nav>li>a {
@@ -709,4 +709,9 @@ a.appellation-list-item.selected {
 }
 .navbar-header .pull-right {
     float: right !important;
+}
+
+
+.relation-list-group {
+    font-size: 0.9em;
 }

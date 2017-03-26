@@ -9,8 +9,7 @@ from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.template import RequestContext, loader
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_protect
 
 # TODO: should we be using VogonGroup?
@@ -19,8 +18,7 @@ from django.contrib.auth.models import Group
 from annotations.models import (VogonUser, Text, Appellation, RelationSet,
                                 TextCollection, Relation)
 from annotations.forms import RegistrationForm, UserChangeForm
-from annotations.display_helpers import (user_recent_texts,
-                                         get_recent_annotations)
+from annotations.display_helpers import user_recent_texts
 
 import datetime
 from isoweek import Week
@@ -96,8 +94,8 @@ def user_settings(request):
         if request.user.imagefile == "" or request.user.imagefile is None:
             request.user.imagefile=settings.DEFAULT_USER_IMAGE
 
-    template = loader.get_template('annotations/settings.html')
-    context = RequestContext(request, {
+    template = "annotations/settings.html"
+    context = {
         'user': request.user,
         'full_name' : request.user.full_name,
         'email' : request.user.email,
@@ -107,21 +105,21 @@ def user_settings(request):
         'preview' : request.user.imagefile,
         'form': form,
         'subpath': settings.SUBPATH,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
 
 
 @login_required
 def user_annotated_texts(request):
     recent_texts = user_recent_texts(request.user)
 
-    context = RequestContext(request, {
+    context = {
         'title': 'My Texts',
         'user': request.user,
         'recent_texts': recent_texts,
         'added_texts': added_texts,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
 
 
 @login_required
@@ -144,13 +142,13 @@ def user_projects(request):
                      num_relations=Count('texts__relationsets'))
     qs = qs.values(*fields)
 
-    template = loader.get_template('annotations/project_user.html')
-    context = RequestContext(request, {
+    template = "annotations/project_user.html"
+    context = {
         'user': request.user,
         'title': 'Projects',
         'projects': qs,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
 
 
 @login_required
@@ -168,7 +166,7 @@ def dashboard(request):
     """
     from itertools import groupby
 
-    template = loader.get_template('annotations/dashboard.html')
+    template = "annotations/dashboard.html"
 
     # Retrieve a unique list of texts that were recently annotated by the user.
     #  Since many annotations will be on "subtexts" (i.e. Texts that are
@@ -201,7 +199,7 @@ def dashboard(request):
     relationset_qs = RelationSet.objects.filter(createdBy__pk=request.user.id)\
                                         .distinct().count()
 
-    context = RequestContext(request, {
+    context = {
         'title': 'Dashboard',
         'user': request.user,
         'recent_texts': recent_texts[:5],
@@ -210,8 +208,9 @@ def dashboard(request):
         'projects_contributed': projects_contributed[:5],
         'appellationCount': appellation_qs,
         'relation_count': relationset_qs,
-    })
-    return HttpResponse(template.render(context))
+        'relations': RelationSet.objects.filter(createdBy=request.user).order_by('-created')[:10]
+    }
+    return render(request, template, context)
 
 
 def user_details(request, userid, *args, **kwargs):
@@ -284,8 +283,8 @@ def user_details(request, userid, *args, **kwargs):
 
         projects = user.collections.all()
 
-        template = loader.get_template('annotations/user_details_public.html')
-        context = RequestContext(request, {
+        template = "annotations/user_details_public.html"
+        context = {
             'detail_user': user,
             'textCount': textCount,
             'relation_count': relation_count,
@@ -293,10 +292,11 @@ def user_details(request, userid, *args, **kwargs):
             'text_count': textAnnotated,
             'default_user_image' : settings.DEFAULT_USER_IMAGE,
             'annotation_per_week' : annotation_per_week,
-            'recent_activity': get_recent_annotations(user=user),
+            'recent_activity':[],# get_recent_annotations(user=user),
             'projects': projects,
-        })
-    return HttpResponse(template.render(context))
+            'relations': RelationSet.objects.filter(createdBy=user).order_by('-created')[:10]
+        }
+    return render(request, template, context)
 
 
 def list_user(request):
@@ -312,7 +312,7 @@ def list_user(request):
     :class:`django.http.response.HttpResponse`
     """
 
-    template = loader.get_template('annotations/contributors.html')
+    template = "annotations/contributors.html"
 
     search_term = request.GET.get('search_term')
     sort = request.GET.get('sort', 'username')
@@ -341,4 +341,4 @@ def list_user(request):
         'user': request.user,
         'title': 'Contributors'
     }
-    return HttpResponse(template.render(context))
+    return render(request, template, context)

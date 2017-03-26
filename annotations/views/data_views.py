@@ -5,8 +5,6 @@ These views provide perspectives on user-created data.
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
-from django.template import RequestContext, loader
-
 from annotations.models import Appellation, RelationSet, Text
 from annotations.display_helpers import get_snippet_relation, get_snippet
 from concepts.models import Concept, Type
@@ -48,7 +46,7 @@ def relation_details(request, source_concept_id, target_concept_id):
          (Q(constituents__object_object_id__in=target_appellation_ids) & Q(constituents__object_content_type=appellation_type)))
     combined_queryset = RelationSet.objects.filter(id__in=source_queryset.filter(q).values_list('id', flat=True))
 
-    template = loader.get_template('annotations/relations.html')
+    template = "annotations/relations.html"
 
     relationsets = []
     for text_id, text_relationsets in groupby(combined_queryset, lambda a: a.occursIn.id):
@@ -63,13 +61,13 @@ def relation_details(request, source_concept_id, target_concept_id):
             } for relationset in text_relationsets]
         })
 
-    context = RequestContext(request, {
+    context = {
         'user': request.user,
         'source_concept': source_concept,
         'target_concept': target_concept,
         'relations': relationsets,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
 
 
 def concept_details(request, conceptid):
@@ -120,6 +118,6 @@ def concept_details(request, conceptid):
         return JsonResponse(response)
     else:
         response['concept'] = concept
-        template = loader.get_template('annotations/concept_details.html')
-        context = RequestContext(request, response)
-        return HttpResponse(template.render(context))
+        template = "{1}"
+        context = response
+        return render(request, template, context)

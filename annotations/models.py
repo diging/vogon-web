@@ -232,7 +232,7 @@ class VogonGroup(models.Model):
 
 
 class TupleField(models.TextField):
-    __metaclass__ = models.SubfieldBase
+    # __metaclass__ = models.SubfieldBase
     description = "Stores a Python tuple of instances of built-in types"
 
     def __init__(self, *args, **kwargs):
@@ -396,6 +396,9 @@ class Text(models.Model):
     available.
     """
 
+    def get_absolute_url(self):
+        return reverse('repository_text', args=(self.repository.id, self.top_level_text.repository_source_id))
+
     @property
     def annotation_count(self):
         """
@@ -419,6 +422,17 @@ class Text(models.Model):
                 return _re(text.part_of)
             return text
         return _re(self)
+
+    @property
+    def children(self):
+        children = []
+
+        def _re(text):
+            children.append(text.id)
+            if text.parts.count() > 0:
+                map(_re, text.parts.all())
+        _re(self)
+        return children
 
 
     def __unicode__(self):
@@ -586,7 +600,7 @@ class DateAppellation(Annotation):
         """
         return u'-'.join([unicode(getattr(self, part))
                           for part in ['year', 'month', 'day']
-                          if hasattr(self, part)])
+                          if getattr(self, part)])
 
     @property
     def precision(self):
@@ -755,6 +769,25 @@ class RelationSet(models.Model):
 
     representation = models.TextField(null=True, blank=True)
     terminal_nodes = models.ManyToManyField(Concept)
+
+    @property
+    def date_appellations(self):
+        dtype = ContentType.objects.get_for_model(DateAppellation)
+
+        appellations = []
+        for relation in self.constituents.all():
+            for part in ['source', 'object']:
+                target_type = getattr(relation, '%s_content_type' % part)
+                if target_type.id == dtype.id:
+                    appellations.append((
+                        DateAppellation.objects.get(pk=getattr(relation, '%s_object_id' % part)),
+                        relation.predicate.interpretation
+                    ))
+
+        if appellations:
+            return appellations
+        return
+
 
     @property
     def root(self):
@@ -980,12 +1013,12 @@ class RelationTemplatePart(models.Model):
     HAS = 'HA'
     RELATION = 'RE'
     NODE_CHOICES = (
-        (TYPE, 'Concept type'),
+        (TYPE, 'Open concept'),
         (CONCEPT, 'Specific concept'),
         (RELATION, 'Relation'),
     )
     PRED_CHOICES = (
-        (TYPE, 'Concept type'),
+        (TYPE, 'Open concept'),
         (CONCEPT, 'Specific concept'),
         (TOBE, 'Is/was'),
         (HAS, 'Has/had'),

@@ -10,7 +10,6 @@ from django.contrib.contenttypes.models import ContentType
 
 import requests
 from bs4 import BeautifulSoup
-from guardian.shortcuts import assign_perm
 import uuid
 import re
 from itertools import groupby
@@ -165,10 +164,8 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
             addedBy=user,
             uri=uri)
     text.save()
-    assign_perm('annotations.view_text', user, text)
     if is_public:
         group = Group.objects.get_or_create(name='Public')[0]
-        assign_perm('annotations.view_text', group, text)
     return text
 
 

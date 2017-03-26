@@ -1,0 +1,79 @@
+{% load addcss %}
+
+<form class="form" action="" method="get">
+    {% with filter.form.createdBy as field %}
+    <div class="form-group">
+    {% if field.errors %}
+    {% for error in field.errors %}
+    <div class="alert alert-warning">{{ error }}</div>
+    {% endfor %}
+    {% endif %}
+        <div class="input-group">
+            <span class="input-group-addon">Annotator</span>
+            {{ field|addcss:"form-control" }}
+        </div>
+    </div>
+    {% endwith %}
+    {% with filter.form.occursIn as field %}
+    <div class="form-group">
+    {% if field.errors %}
+    {% for error in field.errors %}
+    <div class="alert alert-warning">{{ error }}</div>
+    {% endfor %}
+    {% endif %}
+        <div class="input-group">
+            <span class="input-group-addon">Text (URI)</span>
+            {{ field|addcss:"form-control" }}
+        </div>
+    </div>
+    {% endwith %}
+    <div class="row">
+        <div class="col-sm-6">
+            {% with filter.form.createdAfter as field %}
+            <div class="form-group">
+
+                <div class="input-group">
+                    <span class="input-group-addon">Created after</span>
+                    {{ field|addcss:"form-control" }}
+                </div>
+            </div>
+            {% if field.errors %}
+            {% for error in field.errors %}
+            <div class="alert alert-warning">{{ error }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class="col-sm-6">
+            {% with filter.form.createdBefore as field %}
+            <div class="form-group">
+                <div class="input-group">
+                    <span class="input-group-addon">Created before</span>
+                    {{ field|addcss:"form-control" }}
+                </div>
+            </div>
+            {% if field.errors %}
+            {% for error in field.errors %}
+            <div class="alert alert-warning">{{ error }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+    {% with filter.form.terminal_nodes as field %}
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">Concept (URI)</span>
+            {{ field|addcss:"form-control" }}
+        </div>
+    </div>
+    {% if field.errors %}
+    {% for error in field.errors %}
+    <div class="alert alert-warning">{{ error }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <div class="clearfix">
+        <input type="submit" class="btn btn-sm btn-default pull-right" value="Apply" />
+    </div>
+</form>

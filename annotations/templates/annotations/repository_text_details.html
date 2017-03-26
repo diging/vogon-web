@@ -11,7 +11,7 @@
 
 <div class="container-fluid">
     <div class="h3">{{ result.title }} <span class="small">in repository <strong>{{repository.name}}</strong></span></div>
-
+    <p class="text-warning">{{ result.uri }}</p>
     {% if project_id %}
     {% if in_project %}
     <div class="btn btn-xs btn-success">
@@ -80,5 +80,12 @@
     <p>This resource has no associated content.</p>
     {% endif %}
 
+
+    {% if relations %}
+    <div class="h3">Recent Annotations
+        <a class="btn btn-sm" href="{% url "relations" %}?occursIn={{ master_text.uri }}">See all</a>
+    </div>
+    {% include "annotations/relations_list_fragment.html" %}
+    {% endif %}
 </div>
 {% endblock %}

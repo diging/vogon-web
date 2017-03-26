@@ -142,16 +142,19 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
                         try:
                             type_instance = Type.objects.get(uri=type_data.get('identifier'))
                         except Type.DoesNotExist:
+                            print type_data
                             type_instance = Type.objects.create(
                                 uri = type_data.get('identifier'),
                                 label = type_data.get('name'),
                                 description = type_data.get('description'),
+                                authority = concept_data.data.get('authority', {}).get('name'),
                             )
                     concept = Concept.objects.create(
                         uri = interpretation,
                         label = concept_data.data.get('name'),
                         description = concept_data.data.get('description'),
-                        typed = type_instance
+                        typed = type_instance,
+                        authority = concept_data.data.get('authority', {}).get('name'),
                     )
                 except Exception as E:
                     print E

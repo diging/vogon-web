@@ -6,14 +6,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.template import RequestContext, loader
+from django.db.models import Q
 
 from annotations.forms import RepositorySearchForm
 from annotations.tasks import tokenize
 from repository.models import Repository
 from repository.auth import *
 from repository.managers import *
-from annotations.models import Text, TextCollection
+from annotations.models import Text, TextCollection, RelationSet
 
 import requests
 from urlparse import urlparse, parse_qs
@@ -62,21 +62,21 @@ def _get_pagination(response, base_url, base_params):
 
 @login_required
 def repository_collections(request, repository_id):
-    template = loader.get_template('annotations/repository_collections.html')
+    template = "annotations/repository_collections.html"
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     project_id = request.GET.get('project_id')
 
-    context = RequestContext(request, {
+    context = {
         'user': request.user,
         'repository': repository,
         'collections': manager.collections(),
         'title': 'Browse collections in %s' % repository.name,
         'project_id': project_id,
         'manager': manager,
-    })
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
@@ -187,34 +187,34 @@ def repository_search(request, repository_id):
 
 @login_required
 def repository_details(request, repository_id):
-    template = loader.get_template('annotations/repository_details.html')
+    template = "annotations/repository_details.html"
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     project_id = request.GET.get('project_id')
-    context = RequestContext(request, {
+    context = {
         'user': request.user,
         'repository': repository,
         'manager': manager,
         'title': 'Repository details: %s' % repository.name,
         'project_id': project_id,
-    })
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
 def repository_list(request):
-    template = loader.get_template('annotations/repository_list.html')
+    template = "annotations/repository_list.html"
     project_id = request.GET.get('project_id')
-    context = RequestContext(request, {
+    context = {
         'user': request.user,
         'repositories': Repository.objects.all(),
         'title': 'Repositories',
         'project_id': project_id,
 
-    })
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
@@ -256,6 +256,12 @@ def repository_text(request, repository_id, text_id):
         'project': project,
         'master_text': master_text,
     }
+    if master_text:
+        relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
+        context.update({
+            'relations': relations,
+        })
+
     if project:
         context.update({
             'in_project': master_text and project.texts.filter(pk=master_text.id).exists()
@@ -360,9 +366,9 @@ def repository_text_add_to_project(request, repository_id, text_id, project_id):
 
 
 def _repository_text_fail(request, repository, result, content):
-    template = loader.get_template('annotations/repository_text_fail.html')
+    template = "annotations/repository_text_fail.html"
     project_id = request.GET.get('project_id')
-    context = RequestContext(request, {
+    context = {
         'user': request.user,
         'repository': repository,
         'result': result,
@@ -370,5 +376,5 @@ def _repository_text_fail(request, repository, result, content):
         'title': 'Whoops!',
         'content_type': content.get('content_type', None),
         'project_id': project_id,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)

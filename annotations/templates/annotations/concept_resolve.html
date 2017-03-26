@@ -1,0 +1,21 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% load app_filters %}
+{% load addcss %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "concepts" %}" class="btn btn-xs">Concepts</a>&raquo;<a href="" class="btn btn-xs">Resolve</a>
+{% endblock %}
+
+
+{% block main %}
+<div class="container-fluid">
+    <div class="h3">Whoops!</div>
+    <p class="text-danger">
+        There was a problem resolving <strong>{{ concept.label }}</strong> [{{ concept.uri }}].
+    </p>
+    <a class="btn btn-md btn-danger" href="{{ next_page }}">Take me back!</a>
+</div>
+
+
+{% endblock %}

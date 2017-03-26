@@ -1,3 +1,6 @@
+# TODO: we really should refactor this to rely on Goat.
+
+
 from .models import Concept, Type
 
 from conceptpower import Conceptpower
@@ -12,8 +15,9 @@ logger.setLevel('DEBUG')
 class AuthorityManager(object):
     pass
 
+
 class ConceptpowerAuthority(AuthorityManager, Conceptpower):
-    __name__ = 'ConceptpowerAuthority'
+    __name__ = 'Conceptpower'
 
     endpoint = settings.CONCEPTPOWER_ENDPOINT
     namespace = settings.CONCEPTPOWER_NAMESPACE
@@ -103,49 +107,41 @@ def resolve(sender, instance):
     instance : :class:`.Type` or :class:`.Concept`
     """
 
-    logger.debug(
-        'Received post_save signal for Concept {0}.'.format(instance.id))
+    if instance is None:
+        return
 
-    if instance is not None:
-        # Configure based on sender model class.
-        try:
-            instance_cast = instance.cast()
-        except:
-            return
-            
-        if type(instance_cast) is Concept:
-            get_method = 'get'
-            label_field = 'lemma'
-        elif type(instance_cast) is Type:
-            get_method = 'get_type'
-            label_field = 'type'
+    try:    # Configure based on sender model class.
+        instance_cast = instance.cast()
+    except Exception as E:
+        return
 
-        # Skip any instance that has already been resolved, or that lacks a URI.
-        if not instance.resolved and instance.uri is not None:
-            logger.debug('Instance {0} not yet resolved.'.format(instance.id))
+    if type(instance_cast) is Concept:
+        get_method = 'get'
+        label_field = 'lemma'
+    elif type(instance_cast) is Type:
+        get_method = 'get_type'
+        label_field = 'type'
 
-            # Get AuthorityManager classes by namespace.
-            managers = get_by_namespace(get_namespace(instance.uri))
+    # Skip any instance that has already been resolved, or that lacks a URI.
+    if not (instance.resolved or instance.concept_state == Concept.RESOLVED) and instance.uri is not None:
+        logger.debug('Instance {0} not yet resolved.'.format(instance.id))
+
+        manager_class = ConceptpowerAuthority
+        if manager_class.namespace == get_namespace(instance.uri):
+            manager = manager_class()
+            method = getattr(manager, get_method)
+            concept_data = method(instance.uri)
+            concept_data['label'] = concept_data.get(label_field, 'No label')
+            instance.authority = manager.__name__
+
             logger.debug(
-                'Found {0} managers for {1}'.format(len(managers),instance.uri))
+                'Trying AuthorityManager {0}.'.format(manager.__name__))
 
-            # Try each AuthorityManager...
-            for manager_class in managers:
-
-                if instance.resolved: break # ...until success.
-
-                manager = manager_class()
-                method = getattr(manager, get_method)
-                concept_data = method(instance.uri)
-                concept_data['label'] = concept_data.get(label_field, 'No label')
-                instance.authority = manager.__name__
-
-                logger.debug(
-                    'Trying AuthorityManager {0}.'.format(manager.__name__))
-
-                instance.resolved = True
-                instance.concept_state = Concept.RESOLVED
-                update_instance(sender, instance, concept_data, manager.__name__)
+            instance.resolved = True
+            instance.concept_state = Concept.RESOLVED
+            update_instance(sender, instance, concept_data, manager.__name__)
+            instance.refresh_from_db()
+            return instance
 
 
 def get_namespace(uri):

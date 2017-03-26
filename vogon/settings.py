@@ -45,8 +45,6 @@ INSTALLED_APPS = (
     'annotations',
     'rest_framework',
     'corsheaders',
-    'crispy_forms',
-    'guardian',
     'djcelery',
     'repository',
     'social.apps.django_app.default',
@@ -107,7 +105,6 @@ DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # default
-    'guardian.backends.ObjectPermissionBackend',
     'social.backends.github.GithubOAuth2',
 )
 ANONYMOUS_USER_ID = -1

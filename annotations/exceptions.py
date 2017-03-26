@@ -1,5 +1,4 @@
 from django.http import HttpResponse
-from django.template import RequestContext, loader
 
 
 def custom_403_handler(request):
@@ -16,10 +15,10 @@ def custom_403_handler(request):
     :class:`django.http.response.HttpResponse`
         Status 403.
     """
-    template = loader.get_template('annotations/forbidden_error_page.html')
-    context_data = {
+    template = loader.get_template()
+    context = {
         'userid': request.user.id,
         'error_message': "Whoops, you're not supposed to be here!"
     }
-    context = RequestContext(request, context_data)
-    return HttpResponse(template.render(context), status=403)
+
+    return render(request, 'annotations/forbidden_error_page.html', context, status=403)

@@ -8,7 +8,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.template import RequestContext, loader
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.db.models import Q
 
@@ -19,7 +18,6 @@ from annotations.utils import basepath
 from annotations.tasks import handle_file_upload
 from annotations.display_helpers import get_appellation_summaries
 
-from guardian.shortcuts import get_perms
 
 from itertools import groupby, combinations
 
@@ -131,7 +129,6 @@ def text(request, textid):
     # If a text is restricted, then the user needs explicit permission to
     #  access it.
     access_conditions = [
-        'view_text' in get_perms(request.user, text),
         request.user in text.annotators.all(),
         getattr(request.user, 'is_admin', False),
         text.public,
@@ -142,13 +139,13 @@ def text(request, textid):
     mode = request.GET.get('mode', 'view')
 
     if all([request.user.is_authenticated(), any(access_conditions), mode == 'annotate']):
-        template = loader.get_template('annotations/text.html')
+        template = "annotations/text.html"
         context_data.update({
             'userid': request.user.id,
             'title': text.title,
         })
-        context = RequestContext(request, context_data)
-        return HttpResponse(template.render(context))
+        context = context_data
+        return render(request, template, context)
     elif all([request.user.is_authenticated(), any(access_conditions), mode == 'user_annotations']):
         appellations = Appellation.objects.filter(occursIn_id=textid,
                                                   asPredicate=False,
@@ -164,7 +161,7 @@ def text(request, textid):
     elif mode == 'annotate':
         return HttpResponseRedirect(reverse('login'))
 
-    template = loader.get_template('annotations/text_view.html')
+    template = "annotations/text_view.html"
 
     appellations = Appellation.objects.filter(occursIn_id=textid,
                                               asPredicate=False)
@@ -180,8 +177,8 @@ def text(request, textid):
         'relations': relationsets,
         'title': text.title,
     })
-    context = RequestContext(request, context_data)
-    return HttpResponse(template.render(context))
+    context = context_data
+    return render(request, template, context)
 
 
 @login_required
@@ -214,13 +211,13 @@ def upload_file(request):
         if project_id:
             form.fields['project'].initial = project_id
 
-    template = loader.get_template('annotations/upload_file.html')
-    context = RequestContext(request, {
+    template = "annotations/upload_file.html"
+    context = {
         'user': request.user,
         'form': form,
         'subpath': settings.SUBPATH,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
 
 
 def texts(request):

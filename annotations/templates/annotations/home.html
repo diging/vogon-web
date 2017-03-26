@@ -21,11 +21,14 @@
     {% block main %}
     <script src="{% static "annotations/js/spin.min.js" %}"></script>
     <script src="{% static "annotations/js/jquery.spin.js" %}"></script>
-
-
-    <script>
-
-    </script>
+    {% if relations %}
+    <div class="container">
+        <div class="h3">Recent Annotations
+            <a class="btn btn-sm" href="{% url "relations" %}">See all</a>
+        </div>
+        {% include "annotations/relations_list_fragment.html" %}
+    </div>
+    {% endif %}
 
     <div id="build" class="container-fluid section" style="margin-top: 15px;">
     	<div class="text-center panel-heading">

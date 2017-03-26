@@ -17,6 +17,8 @@ class RemoteCollectionSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
 
 
+
+
 class RemoteResourceSerializer(serializers.Serializer):
     source = serializers.IntegerField()
     id_or_uri = serializers.CharField(max_length=255)
@@ -26,17 +28,19 @@ class RemoteResourceSerializer(serializers.Serializer):
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Repository
+        fields = '__all__'
 
 
 class RelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Relation
+        fields = '__all__'
 
 
 class DocumentPositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentPosition
-        # fields = '__all__'
+        fields = '__all__'
 
 
 class TextSerializer(serializers.ModelSerializer):
@@ -114,9 +118,11 @@ class RelationSetSerializer(serializers.ModelSerializer):
 class TemporalBoundsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TemporalBounds
+        fields = '__all__'
 
 
 
 class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextCollection
+        fields = '__all__'

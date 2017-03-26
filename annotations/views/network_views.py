@@ -5,9 +5,8 @@ Provides network visualization views.
 from django.conf import settings
 from django.core.cache import caches
 from django.http import HttpResponse, JsonResponse
-from django.template import RequestContext, loader
 
-from annotations.forms import RelationSetFilterForm
+
 from annotations.utils import basepath
 from annotations.display_helpers import filter_relationset
 from annotations.models import RelationSet, Relation, Appellation, Text
@@ -31,14 +30,14 @@ def network(request):
     ----------
     :class:`django.http.response.HttpResponse`
     """
-    template = loader.get_template('annotations/network.html')
-    form = RelationSetFilterForm(request.GET)
+    template = "annotations/network.html"
+    form = None
     context = {
         'baselocation': basepath(request),
         'user': request.user,
         'form': form,
     }
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 def network_for_text(request, text_id):
@@ -66,7 +65,9 @@ def generate_network_data_fast(relationsets, text_id=None, user_id=None, appella
     Use the :prop:`.RelationSet.terminal_nodes` to build a graph.
     """
     from itertools import groupby, combinations
-
+    if appellation_queryset is None:
+        appellation_queryset = Appellation.objects.all()
+        
     nodes = {}
     edges = Counter()
     fields = ['id',

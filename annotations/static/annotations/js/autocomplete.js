@@ -41,8 +41,13 @@ var bindAutocomplete = function(selector, pos) {
                         this.value = ui.item.value;
                         $(this).attr('concept_id', ui.item.uri);
                         var target = $(this).attr('target');
+                        var description_target = $(this).attr('description');
                         if (target) {
                             $('#' + target).val(ui.item.uri);
+                        }
+                        if (description_target) {
+                            $('#' + description_target).text(ui.item.description);
+                            $('#' + description_target).css("visibility", "visible");
                         }
                         return false;
                     }

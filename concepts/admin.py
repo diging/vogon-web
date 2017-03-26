@@ -4,7 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response, render
 from django.template.context_processors import csrf
-from django.template import RequestContext
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Q
 from .models import *

@@ -66,8 +66,14 @@
         </div>
 
 
-
-    </div>
+        {% if relations %}
+        <div class="h3">My Recent Annotations
+            <a class="btn btn-sm" href="{% url "relations" %}?createdBy={{ user.id }}">See all</a>
+        </div>
+        {% include "annotations/relations_list_fragment.html" %}
+        {% endif %}
 </div>
+
+
 
 {% endblock %}

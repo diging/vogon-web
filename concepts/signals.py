@@ -11,17 +11,19 @@ logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
 
 
-# ### Handle Concept and Type signals. ###
-# @receiver(post_save, sender=Concept)
-# def concept_post_save_receiver(sender, **kwargs):
-#     """
-#     When a :class:`.Concept` is saved, attempt to resolve it using one of the
-#     registered :class:`.AuthorityManager` classes if the :class:`.Concept` is
-#     not already :prop:`.resolved`\.
-#     """
-#     instance = kwargs.get('instance', None)
-#     if instance:
-#         resolve_concept.delay(sender, instance)
+### Handle Concept and Type signals. ###
+@receiver(post_save, sender=Concept)
+def concept_post_save_receiver(sender, **kwargs):
+    """
+    When a :class:`.Concept` is saved, attempt to resolve it using one of the
+    registered :class:`.AuthorityManager` classes if the :class:`.Concept` is
+    not already :prop:`.resolved`\.
+    """
+    instance = kwargs.get('instance', None)
+    if instance:
+        logger.debug(
+            'Received post_save signal for Concept {0}.'.format(instance.id))
+        resolve_concept.delay(sender, instance)
 #
 #
 # @receiver(post_save, sender=Concept)

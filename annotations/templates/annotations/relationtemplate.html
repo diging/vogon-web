@@ -24,9 +24,19 @@
     display: none;
 }
 </style>
-<div class="container" id="main">
+<div class="container-fluid" id="main">
     <div class="row col-sm-12">
         <h2 class="h2">Create a New Relation Template</h2>
+        <p class="text-warning">
+            The data structures that Vogon produces (known as Quadruples) can
+            be extremely complex, containing many levels of nested
+            relationships. Relation templates make it possible to create complex
+            nested statements with minimal effort during the annotation process.
+        </p>
+        <p class="text-warning">
+            Use the form below to build a template. See the helpful details
+            below the form for more information.
+        </p>
         <div><!-- ng-app='formApp' -->
             <div><!-- ng-controller="TemplateFormController"> -->
                 <form method="post" action="">
@@ -133,6 +143,7 @@
 
 
                                     {{ form.source_concept }}
+                                    {{ form.source_concept_description }}
                                     {{ form.source_relationtemplate }}
 
                                     <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-source_label_container">
@@ -200,6 +211,7 @@
 
 
                                     {{ form.predicate_concept }}
+                                    {{ form.predicate_concept_description }}
 
                                     <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-predicate_label_container">
                                         <label>Label</label>
@@ -266,6 +278,7 @@
 
 
                                     {{ form.object_concept }}
+                                    {{ form.object_concept_description }}
                                     {{ form.object_relationtemplate }}
 
                                     <li class="list-group-item type-dependent-container" id="{{ form.prefix }}-object_label_container">
@@ -311,6 +324,42 @@
                 </form>
             </div>
         </div>
+        <p>
+            <div class="h4">Node types</div>
+            <dl>
+                <dt>Open concept</dt>
+                <dd>
+                    Not the floor plan. This is the most common node type for
+                    appellations. The user can select an appellation with any
+                    interpretation (concept). You can optionally select a
+                    specific concept type; use this as a suggestion for the user
+                    as to the kind of concepts that should be used in that part
+                    of the relation.
+                </dd>
+            </dl>
+            <dl>
+                <dt>Specific concept</dt>
+                <dd>
+                    In many nested relations it is desireable to specify ahead
+                    of time what the a node's interpretation should be. For
+                    example, if I am creating a template for a relation that
+                    expresses the idea of employment, I might include a node
+                    that is explicitly linked to the concept of "employee".
+                    <em>When you select this option, start typing in the empty
+                        input that appears; this will trigger a concept search,
+                        and options should be displayed within a few moments.</em>
+                </dd>
+            </dl>
+            <dl>
+                <dt>Relation</dt>
+                <dd>
+                    Use this node type to indicate that the node in this
+                    relation part should be another relation. Enter the relation
+                    ID of the target relation.
+                </dd>
+            </dl>
+        </p>
+
     </div>
 </div>
 
@@ -390,6 +439,9 @@ var cloneMore = function(selector, type) {
         }
         if ($(this).attr('target')) {
             attrs['target'] = $(this).attr('target').replace('-' + (total-1) + '-','-' + total + '-');
+        }
+        if ($(this).attr('description')) {
+            attrs['description'] = $(this).attr('description').replace('-' + (total-1) + '-','-' + total + '-');
         }
 
         if ($(this).attr('type') == 'checkbox') {   // For prompt-text fields.

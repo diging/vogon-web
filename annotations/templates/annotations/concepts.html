@@ -1,0 +1,156 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% load app_filters %}
+{% load addcss %}
+{% load concept_tags %}
+
+
+{% block main %}
+
+<div class="container-fluid">
+    <form class="form" action="" method="get">
+        {% with filter.form.authority as field %}
+        <div class="form-group">
+        {% if field.errors %}
+        {% for error in field.errors %}
+        <div class="alert alert-warning">{{ error }}</div>
+        {% endfor %}
+        {% endif %}
+            <div class="input-group">
+                <span class="input-group-addon">Authority</span>
+                {{ field|addcss:"form-control" }}
+            </div>
+        </div>
+        {% endwith %}
+        {% with filter.form.pos as field %}
+        <div class="form-group">
+        {% if field.errors %}
+        {% for error in field.errors %}
+        <div class="alert alert-warning">{{ error }}</div>
+        {% endfor %}
+        {% endif %}
+            <div class="input-group">
+                <span class="input-group-addon">POS</span>
+                {{ field|addcss:"form-control" }}
+            </div>
+        </div>
+        {% endwith %}
+        {% with filter.form.concept_state as field %}
+        <div class="form-group">
+        {% if field.errors %}
+        {% for error in field.errors %}
+        <div class="alert alert-warning">{{ error }}</div>
+        {% endfor %}
+        {% endif %}
+            <div class="input-group">
+                <span class="input-group-addon">State</span>
+                {{ field|addcss:"form-control" }}
+            </div>
+        </div>
+        {% endwith %}
+        {% with filter.form.typed as field %}
+        <div class="form-group">
+        {% if field.errors %}
+        {% for error in field.errors %}
+        <div class="alert alert-warning">{{ error }}</div>
+        {% endfor %}
+        {% endif %}
+            <div class="input-group">
+                <span class="input-group-addon">Type</span>
+                {{ field|addcss:"form-control" }}
+            </div>
+        </div>
+        {% endwith %}
+        <div class="clearfix">
+            <input type="submit" class="btn btn-sm btn-default pull-right" value="Apply" />
+        </div>
+    </form>
+    <div class="row">
+        <div class="col-xs-4  clearfix text-center">
+            {% if concepts.has_previous  %}
+            <div class="pull-left">
+                <a href="?page={{ concepts.previous_page_number }}" class="btn btn-xs">&laquo; Previous</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-xs-4  clearfix text-center">
+
+            <span>
+                Page {{ concepts.number }} of {{ concepts.paginator.num_pages }}.
+            </span>
+        </div>
+        <div class="col-xs-4  clearfix text-center">
+            {% if concepts.has_next %}
+            <div class="pull-right">
+                <a href="?page={{ concepts.next_page_number }}">Next &raquo;</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="list-group relation-list-group">
+    {% for concept in concepts %}
+        {% with concept|get_namespace as namespace %}
+        {% with concept.concept_state as concept_state %}
+        <div class="list-group-item">
+            <div class="pull-right btn-group">
+                <a class="btn btn-xs btn-default glyphicon {% if concept_state  == concept.PENDING %}glyphicon-hourglass{% elif concept_state  == concept.REJECTED %}glyphicon-thumbs-down{% elif concept_state  == concept.MERGED %}glyphicon-arrow-right{% elif concept_state  == concept.APPROVED %}glyphicon-thumbs-up{% else %}glyphicon-ok-circle{% endif %}"
+                    data-toggle="tooltip"
+                    data-placement="left"
+                    data-container="body"
+                    style="color: {% if concept_state  == concept.PENDING %}gray{% elif concept_state  == concept.REJECTED %}red{% elif concept_state  == concept.APPROVED %}orange{% else %}green{% endif %};"
+                    title="{{concept.get_concept_state_display}}"
+                    {% if concept_state  == concept.MERGED %}href="{{ concept.merged_with.get_absolute_url }}"{% endif %}
+                    ></a>
+            </div>
+            <div>
+                <a href="{{ concept.get_absolute_url }}"><span class=" glyphicon glyphicon-stats"></span></a>
+                <strong>{{ concept.label }}</strong>
+            </div>
+            <div class="text-warning">
+                <span class="glyphicon glyphicon-globe"></span>
+                {{concept.authority}}: {{ concept.uri }}
+            </div>
+            <p>
+                {{ concept.description }}
+            </p>
+            {% if user.is_admin %}
+            <div class="clearfix">
+                <span class="btn-group pull-right">
+                    {% if concept_state  == concept.PENDING and concept|is_conceptpower_namespaced is not True %}<a href="{% url "approve_concept" concept.id %}?next={{ path }}" class="btn btn-xs btn-success">Approve</a>{% endif %}
+                    {% if concept_state  == concept.PENDING and concept|is_conceptpower_namespaced %}<a href="{% url "resolve_concept" concept.id %}?next={{ path }}" class="btn btn-xs btn-primary">Resolve</a>{% endif %}
+                    {% if concept_state  == concept.PENDING and concept|is_conceptpower_namespaced is not True %}<a href="?next={{ path }}" class="btn btn-xs btn-danger">Reject</a>{% endif %}
+                </span>
+                <span class="text-muted label label-default">{{ concept.typed.label }}</span> <span class="label label-primary">{{ concept.appellation_set.count }}</span>
+
+            </div>
+            {% endif %}
+        </div>
+        {% endwith %}
+        {% endwith %}
+    {% endfor %}
+    </div>
+    <div class="row">
+        <div class="col-xs-4  clearfix text-center">
+            {% if concepts.has_previous  %}
+            <div class="pull-left">
+                <a href="?page={{ concepts.previous_page_number }}" class="btn btn-xs">&laquo; Previous</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-xs-4  clearfix text-center">
+
+            <span>
+                Page {{ concepts.number }} of {{ concepts.paginator.num_pages }}.
+            </span>
+        </div>
+        <div class="col-xs-4  clearfix text-center">
+            {% if concepts.has_next %}
+            <div class="pull-right">
+                <a href="?page={{ concepts.next_page_number }}">Next &raquo;</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

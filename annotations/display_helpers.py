@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q, Count
-from django.db.models.expressions import DateTime
+# from django.db.models.expressions import DateTime
 from django.utils.safestring import SafeText
 
 from annotations.models import Appellation, RelationSet, Relation
@@ -337,50 +337,50 @@ def user_recent_texts(user):
     return list(set([(t[0], t[1]) for t in results_sorted]))
 
 
-def get_recent_annotations(last=20, user=None):
-    """
-    Generate aggregate activity feed for all annotations.
-
-    TODO: move this into a util module.
-
-    Parameters
-    ----------
-    last : int
-        Number of items to return (default: 20).
-    user : :class:`.VogonUser`
-
-    Returns
-    -------
-    dict
-    """
-    recent_appellations = Appellation.objects.all()
-    recent_relations = Relation.objects.all()
-
-    if user:
-        recent_appellations = recent_appellations.filter(createdBy_id=user.id)
-        recent_relations = recent_relations.filter(createdBy_id=user.id)
-
-    recent_appellations = recent_appellations.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
-        .values("hour", "createdBy__username", "createdBy__id")\
-        .annotate(appelation_count=Count('id'))\
-        .order_by("-hour")
-    recent_relations = recent_relations.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
-        .values("hour", "createdBy__username", "createdBy__id")\
-        .annotate(relation_count=Count('id'))\
-        .order_by("-hour")
-
-    combined_data = OrderedDict()
-    for event in recent_appellations:
-        key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
-        if key not in combined_data:
-            combined_data[key] = {'appelation_count': event['appelation_count'], 'relation_count': 0}
-        combined_data[key]['appelation_count'] += event['appelation_count']
-    for event in recent_relations:
-        key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
-        if key not in combined_data:
-            combined_data[key] = {'appelation_count': 0, 'relation_count': event['relation_count']}
-        combined_data[key]['relation_count'] += event['relation_count']
-    return dict(sorted(combined_data.items(), key=lambda k: k[0][0])[::-1][:last])
+# def get_recent_annotations(last=20, user=None):
+#     """
+#     Generate aggregate activity feed for all annotations.
+#
+#     TODO: move this into a util module.
+#
+#     Parameters
+#     ----------
+#     last : int
+#         Number of items to return (default: 20).
+#     user : :class:`.VogonUser`
+#
+#     Returns
+#     -------
+#     dict
+#     """
+#     recent_appellations = Appellation.objects.all()
+#     recent_relations = Relation.objects.all()
+#
+#     if user:
+#         recent_appellations = recent_appellations.filter(createdBy_id=user.id)
+#         recent_relations = recent_relations.filter(createdBy_id=user.id)
+#
+#     recent_appellations = recent_appellations.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
+#         .values("hour", "createdBy__username", "createdBy__id")\
+#         .annotate(appelation_count=Count('id'))\
+#         .order_by("-hour")
+#     recent_relations = recent_relations.annotate(hour=DateTime("created", "hour", pytz.timezone("UTC")))\
+#         .values("hour", "createdBy__username", "createdBy__id")\
+#         .annotate(relation_count=Count('id'))\
+#         .order_by("-hour")
+#
+#     combined_data = OrderedDict()
+#     for event in recent_appellations:
+#         key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
+#         if key not in combined_data:
+#             combined_data[key] = {'appelation_count': event['appelation_count'], 'relation_count': 0}
+#         combined_data[key]['appelation_count'] += event['appelation_count']
+#     for event in recent_relations:
+#         key = (event['hour'], event['createdBy__username'], event['createdBy__id'])
+#         if key not in combined_data:
+#             combined_data[key] = {'appelation_count': 0, 'relation_count': event['relation_count']}
+#         combined_data[key]['relation_count'] += event['relation_count']
+#     return dict(sorted(combined_data.items(), key=lambda k: k[0][0])[::-1][:last])
 
 
 def get_recent_annotations_for_graph(annotation_by_user, start_date):
