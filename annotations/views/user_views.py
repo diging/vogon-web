@@ -33,15 +33,16 @@ class VogonUserAuthenticationForm(AuthenticationForm):
 
 @csrf_protect
 def login_view(request):
+    # We're just using the AuthenticationForm to build the HTML input elements.
+    form = AuthenticationForm()
     if request.method == 'POST':
-        print request.POST
-        form = AuthenticationForm(request.POST)
-        if form.is_valid():
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
             login(request, user)
             next_page = request.GET.get('next', reverse('dashboard'))
             return HttpResponseRedirect(next_page)
-    elif request.method == 'GET':
-        form = AuthenticationForm()
     context = {'form': form}
     return render(request, 'registration/login.html', context)
 

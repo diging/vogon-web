@@ -18,7 +18,7 @@
 	<div class="row col-sm-8 col-sm-offset-2">
 		<div id="login" class="panel panel-default narrow center">
 			<div class="panel-heading">Log In</div>
-			<form action="{{ app_path }}" method="post" id="login-form" class="form-horizontal" style="margin-bottom: 0px;">{% csrf_token %}
+			<form action="{{ app_path }}" method="POST" id="login-form" class="form-horizontal" style="margin-bottom: 0px;">{% csrf_token %}
 
 				<div class="panel-body">
 					{% if form.errors and not form.non_field_errors %}
