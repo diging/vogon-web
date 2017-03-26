@@ -26,9 +26,8 @@ from isoweek import Week
 
 
 class VogonUserAuthenticationForm(AuthenticationForm):
-    class Meta(AuthenticationForm.Meta):
+    class Meta:
         model = VogonUser
-        fields = AuthenticationForm.Meta.fields
 
 
 
