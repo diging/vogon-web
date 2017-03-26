@@ -37,7 +37,7 @@ def login_view(request):
     elif request.method == 'GET':
         form = AuthenticationForm()
     context = {'form': form}
-    return render(request, 'registration/user_login.html', context)
+    return render(request, 'registration/login.html', context)
 
 
 
