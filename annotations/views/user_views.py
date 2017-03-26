@@ -3,7 +3,7 @@ Provides user-oriented views, including dashboard, registration, etc.
 """
 
 from django.conf import settings
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -29,6 +29,12 @@ class VogonUserAuthenticationForm(AuthenticationForm):
     class Meta:
         model = VogonUser
 
+
+@login_required
+def logout_view(request):
+    logout(request, user)
+    next_page = request.GET.get('next', reverse('home'))
+    return HttpResponseRedirect(next_page)
 
 
 @csrf_protect
