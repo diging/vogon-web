@@ -19,7 +19,7 @@
 		<div id="login" class="panel panel-default narrow center">
 			<div class="panel-heading">Log In</div>
 			<form action="{{ app_path }}" method="POST" id="login-form" class="form-horizontal" style="margin-bottom: 0px;">{% csrf_token %}
-
+                {% csrf_token %}
 				<div class="panel-body">
 					{% if form.errors and not form.non_field_errors %}
 					<p class="errornote">
