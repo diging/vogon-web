@@ -32,7 +32,7 @@ class VogonUserAuthenticationForm(AuthenticationForm):
 
 @login_required
 def logout_view(request):
-    logout(request, user)
+    logout(request)
     next_page = request.GET.get('next', reverse('home'))
     return HttpResponseRedirect(next_page)
 

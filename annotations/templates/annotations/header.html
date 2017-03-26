@@ -58,9 +58,9 @@
     						<span class="caret"></span>
     					</button>
     					<ul class="dropdown-menu" aria-labelledby="usermenu">
-    						<li><a href="/accounts/profile/">Dashboard</a></li>
-    						<li><a href="/accounts/settings/">Settings</a></li>
-    						<li><a href="/accounts/logout/">Log Out</a></li>
+    						<li><a href="{% url "dashboard" %}">Dashboard</a></li>
+    						<li><a href="{% url "settings" %}">Settings</a></li>
+    						<li><a href="{% url "logout" %}">Log Out</a></li>
     						{% if user.is_staff %}
     							<li><a href="/admin/">Admin Site</a></li>
     						{% endif %}
