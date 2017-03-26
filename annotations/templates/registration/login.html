@@ -36,6 +36,9 @@
 					{% endif %}
 
 					<div id="content-main">
+                            {% for error in form.username.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
 							<div class="form-group">
 							{{ form.username.errors }}
 								<label for="username" class="required control-label col-sm-4">{{ form.username.label }}:</label>
@@ -43,6 +46,10 @@
 									{{ form.username | addcss:"form-control" }}
 								</div>
 							</div>
+
+                            {% for error in form.username.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
 							<div class="form-group">
 							{{ form.password.errors }}
 								<label for="password" class="required control-label col-sm-4">{% trans 'Password:' %}</label>

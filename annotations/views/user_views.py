@@ -34,6 +34,7 @@ class VogonUserAuthenticationForm(AuthenticationForm):
 @csrf_protect
 def login_view(request):
     if request.method == 'POST':
+        print request.POST
         form = AuthenticationForm(request.POST)
         if form.is_valid():
             login(request, user)
