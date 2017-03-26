@@ -14,7 +14,6 @@ import uuid
 import re
 from itertools import groupby
 
-import slate
 from . import managers
 from annotations.models import *
 from annotations import quadriga
