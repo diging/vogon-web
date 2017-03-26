@@ -9,7 +9,6 @@ from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
 
 import requests
-from bs4 import BeautifulSoup
 import uuid
 import re
 from itertools import groupby
@@ -83,7 +82,7 @@ def scrape(url):
     response = requests.get(uri, allow_redirects=True)
 
     # TODO : consider plugging in something like DiffBot.
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = ""   #BeautifulSoup(response.text, "html.parser")
 
     textData = {
         'title': soup.title.string,

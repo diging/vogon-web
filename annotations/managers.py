@@ -1,7 +1,6 @@
 from django.conf import settings
 
 import requests
-from bs4 import BeautifulSoup
 import json
 
 
