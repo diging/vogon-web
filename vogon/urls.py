@@ -56,13 +56,14 @@ urlpatterns = [
     url(r'^activity/$', views.main_views.recent_activity),
 
     url(r'^users/(?P<userid>[0-9]+)/$', views.user_views.user_details, name="user_details"),
+    url(r'^accounts/login/', views.user_views.login_view, name='login'),
     url(r'^accounts/profile/', views.user_views.dashboard, name='dashboard'),
     url(r'^accounts/projects/', views.user_views.user_projects, name='user_projects'),
     url(r'^accounts/settings/$', views.user_views.user_settings, name='settings'),
     # url(r'^accounts/register/$', views.user_views.register, name='register'),
     url('', include('social.apps.django_app.urls', namespace='social')),
     # url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name="logout"),
-    url(r'^accounts/', include('django.contrib.auth.urls')),
+    # url(r'^accounts/', include('django.contrib.auth.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
 

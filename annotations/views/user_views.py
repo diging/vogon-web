@@ -11,6 +11,7 @@ from django.db.models import Q, Count
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.forms import AuthenticationForm
 
 # TODO: should we be using VogonGroup?
 from django.contrib.auth.models import Group
@@ -22,6 +23,24 @@ from annotations.display_helpers import user_recent_texts
 
 import datetime
 from isoweek import Week
+
+
+
+@csrf_protect
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request.POST)
+        if form.is_valid():
+            login(request, user)
+            next_page = request.GET.get('next', reverse('dashboard'))
+            return HttpResponseRedirect(next_page)
+    elif request.method == 'GET':
+        form = AuthenticationForm()
+    context = {'form': form}
+    return render(request, 'registration/user_login.html', context)
+
+
+
 
 
 @csrf_protect
