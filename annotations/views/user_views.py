@@ -25,6 +25,12 @@ import datetime
 from isoweek import Week
 
 
+class VogonUserAuthenticationForm(AuthenticationForm):
+    class Meta(AuthenticationForm.Meta):
+        model = VogonUser
+        fields = AuthenticationForm.Meta.fields
+
+
 
 @csrf_protect
 def login_view(request):
