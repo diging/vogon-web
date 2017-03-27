@@ -41,10 +41,25 @@ $(function() {
 	sticky_relocate();
 });
 
+$(window).resize(function(){
+    var jumbo = $('.jumbotron');
+    if (jumbo.css('padding-left') == '60px') {
+        $('.nav-hide').css('visibility', 'visible');
+    } else {
+        if ($('.navbar-nav').height() > 0) {
+            $('.nav-hide').css('visibility', 'hidden');
+        }
+    }
+
+
+});
+
 $('body').on('show.bs.collapse', function(e) {
+    console.log(e);
 	$('.nav-hide').css('visibility', 'hidden');
 });
 $('body').on('hide.bs.collapse', function(e) {
+    console.log(e);
 	$('.nav-hide').css('visibility', 'visible');
 });
 </script>
@@ -53,12 +68,9 @@ $('body').on('hide.bs.collapse', function(e) {
         <div class="col-xs-12">
             <div class="jumbotron jumbotron-transparent">
                 <!-- <div class="container"> -->
-                    <div class="h1" style="padding: 15px;">
-                        Vogon: Web
-                        <div class="small text-right"
-                            style="margin-top: 10px; margin-bottom: 10px; ">knowledge is more than the printed word</div>
+                    <div class="h2" style="padding-left: 15px; padding-right: 15px;">
+                        Vogon(Web): <small>knowledge is more than the printed word</small>
                     </div>
-
                     <p>
                         The bedrock of our collective knowledge is the intepretation of texts. The epistemic web moves
                         knowledge-making <strong>out of the cloisters and into the light of day</strong>
@@ -101,7 +113,7 @@ $('body').on('hide.bs.collapse', function(e) {
                 <!-- </div> -->
 
             </div>
-            
+
 
         </div>
 

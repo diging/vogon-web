@@ -467,16 +467,12 @@ a.appellation-list-item.selected {
     background-attachment: fixed;
     background-position: center top;
 
-    height: 450px;
+    height: 525px;
 }
 
 .navbar-nav>li>a {
     color: black;
 }
-
-
-
-
 
 
 .jumbotron-transparent {
@@ -488,15 +484,15 @@ a.appellation-list-item.selected {
 
 
 .jumbotron-transparent p {
-    font-size: 10pt;
+    font-size: 1.2em;
     padding-left: 15px;
     padding-right: 15px;
 }
 
 
-.navbar-home {
+/*.navbar-home {
     position: relative;
-}
+}*/
 
 .navbar-home .brand-footer-right {
     position: absolute;
@@ -683,33 +679,6 @@ a.appellation-list-item.selected {
     padding: 5px;
     font-family: sans-serif;
 }
-
-.navbar-collapse.collapse {
-  display: block!important;
-}
-
-.navbar-nav>li, .navbar-nav {
-  float: left !important;
-  margin: 0px !important;
-}
-
-
-
-.navbar-nav.navbar-right:last-child {
-  margin-right: -15px !important;
-}
-
-.navbar-right {
-  float: right!important;
-}
-
-.navbar-header {
-    float: none !important;
-}
-.navbar-header .pull-right {
-    float: right !important;
-}
-
 
 .relation-list-group {
     font-size: 0.9em;
