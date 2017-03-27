@@ -234,12 +234,16 @@ def repository_text(request, repository_id, text_id):
         master_text = None
 
     try:
-        first_part = result.get('parts')[0]
-        serial_content = [{
-            'source_id': first_part.get('id'),
-            'content_id': content_part['id'],
-            'content_type': content_part['content_type']
-        } for content_part in first_part['content']]
+        _parts = result.get('parts')
+        if _parts:
+            first_part = _parts[0]
+            serial_content = [{
+                'source_id': first_part.get('id'),
+                'content_id': content_part['id'],
+                'content_type': content_part['content_type']
+            } for content_part in first_part['content']]
+        else:
+            serial_content = []
     except IndexError:
         first_part = None
         serial_content = None

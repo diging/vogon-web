@@ -1,5 +1,5 @@
 angular.module('annotationApp').factory('RelationTemplate', function($resource) {
-    return $resource('/relationtemplate/:id/', {
+    return $resource(BASE_URL + '/relationtemplate/:id/', {
         format: 'json',
     }, {
         list: {

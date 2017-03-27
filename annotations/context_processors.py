@@ -7,3 +7,7 @@ def google(request):
 
 def version(request):
     return {'VERSION': getattr(settings, 'VERSION', None)}
+
+
+def base_url(request):
+    return {'base_url': settings.BASE_URL}
