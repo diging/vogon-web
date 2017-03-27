@@ -20,13 +20,13 @@ def resolve_concept(sender, instance):
 
 @shared_task
 def add_concept(sender, instance):
-    try:
-        response_data = add(instance)
-        instance.uri = response_data['uri']
-        instance.concept_state = Concept.RESOLVED
-        instance.save()
-    except requests.exceptions.ConnectionError:
-        pass
+    # try:
+    response_data = add(instance)
+    instance.uri = response_data['uri']
+    instance.concept_state = Concept.RESOLVED
+    instance.save()
+    # except requests.exceptions.ConnectionError:
+    #     pass
 
 
 @shared_task

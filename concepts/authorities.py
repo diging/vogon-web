@@ -12,6 +12,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
 
+
 class AuthorityManager(object):
     pass
 
@@ -200,12 +201,17 @@ def add(instance):
 
     concept_list = 'VogonWeb Concepts'
     conceptpower = ConceptpowerAuthority()
+
+    if not instance.typed:
+        raise RuntimeError('Cannot add a concept without a type')
+
+    pos = instance.pos
+    if not pos:
+        pos = 'noun'
     response = conceptpower.create(settings.CONCEPTPOWER_USERID,
                                    settings.CONCEPTPOWER_PASSWORD,
-                                   instance.label,
-                                   instance.pos,
-                                   concept_list,
-                                   instance.description,
+                                   instance.label, pos.lower(),
+                                   concept_list, instance.description,
                                    instance.typed.uri)
     # This is kind of hacky, but the current version of Conceptpower does not
     #  return the full URI of the new Concept -- just its ID. We can remove this

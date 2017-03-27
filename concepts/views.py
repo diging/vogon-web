@@ -13,6 +13,40 @@ import string
 from unidecode import unidecode
 
 
+def _find_similar(concept):
+    def _to_concept(datum):
+        try:
+            return Concept.objects.get(uri=datum.get('id'))
+        except Concept.DoesNotExist:
+            typed_uri = datum.get('type_id')
+            if typed_uri:
+                typed = Type.objects.get_or_create(uri=typed_uri)[0]
+            else:
+                typed = None
+            return Concept.objects.create(
+                label = datum.get('lemma'),
+                pos = datum.get('pos'),
+                typed = typed,
+                authority = 'Conceptpower',
+                uri = datum.get('id'),
+                description = datum.get('description'),
+                concept_state = Concept.RESOLVED,
+            )
+    # Look for similar concepts that already exist, to avoid stupid mistakes.
+    manager = ConceptpowerAuthority()
+    q = re.sub("[0-9]", "", unidecode(concept.label).translate(None, string.punctuation).lower())
+    candidates = []
+    if q:    # TODO: conceptpower-api should have some custom exceptions to catch.
+        candidates += map(_to_concept, manager.search(q))
+    matches = []
+    if concept.uri:
+        _data = manager.search(equal_to=concept.uri)
+
+        if _data:
+            matches += map(_to_concept, _data)
+    return candidates, matches
+
+
 def list_concept_types(request):
     """
     List all of the concept types
@@ -67,39 +101,7 @@ def approve_concept(request, concept_id):
         concept.save()
         return HttpResponseRedirect(next_page)
 
-    # Look for similar concepts that already exist, to avoid stupid mistakes.
-    manager = ConceptpowerAuthority()
-    q = re.sub("[0-9]", "", unidecode(concept.label).translate(None, string.punctuation).lower())
-    candidates = []
-    if q:    # TODO: conceptpower-api should have some custom exceptions to catch.
-        try:
-            candidates += manager.search(q)
-        except:
-            pass
-    matches = []
-    if concept.uri:
-        # try:
-        _data = manager.search(equal_to=concept.uri)
-
-        if _data:
-
-            def _to_concept(datum):
-                print datum
-                try:
-                    return Concept.objects.get(uri=datum.get('id'))
-                except Concept.DoesNotExist:
-                    print 'DNE'
-                    return Concept.objects.create(
-                        label = datum.get('lemma'),
-                        pos = datum.get('pos'),
-                        typed = Type.objects.get_or_create(uri=datum.get('type_id'))[0],
-                        authority = 'Conceptpower',
-                        uri = datum.get('id'),
-                        description = datum.get('description')
-                    )
-            matches += map(_to_concept, _data)
-        # except:
-        #     pass
+    candidates, matches = _find_similar(concept)
 
     context.update({
         'candidates': candidates,
@@ -162,7 +164,7 @@ def concepts(request):
     """
     List all concepts.
     """
-    qs = Concept.objects.filter(appellation__isnull=False).distinct('id').order_by('-id')
+    qs = Concept.objects.all()#.filter(appellation__isnull=False).distinct('id').order_by('-id')
 
     filtered = ConceptFilter(request.GET, queryset=qs)
     qs = filtered.qs
@@ -199,3 +201,55 @@ def concept(request, concept_id):
         'relations': RelationSet.objects.filter(terminal_nodes=concept).order_by('-created')[:10]
     }
     return render(request, "annotations/concept_details.html", context)
+
+
+@staff_member_required
+def add_concept(request, concept_id):
+    from concepts.authorities import add
+    concept = get_object_or_404(Concept, pk=concept_id)
+    next_page = request.GET.get('next', reverse('concepts'))
+    context = {
+        'concept': concept,
+        'next_page': next_page,
+    }
+    if concept.concept_state != Concept.APPROVED:
+        return HttpResponseRedirect(next_page)
+
+    if request.GET.get('confirmed', False):
+        response_data = add(concept)
+        concept.uri = response_data['uri']
+        concept.authority = 'Conceptpower'
+        concept.concept_state = Concept.RESOLVED
+        concept.save()
+        return HttpResponseRedirect(next_page)
+
+    candidates, matches = _find_similar(concept)
+
+    context.update({
+        'candidates': candidates,
+        'matches': matches,
+    })
+
+    return render(request, "annotations/concept_add.html", context)
+
+
+@staff_member_required
+def edit_concept(request, concept_id):
+    from concepts.forms import ConceptForm
+
+    concept = get_object_or_404(Concept, pk=concept_id)
+    next_page = request.GET.get('next', reverse('concept', args=(concept_id,)))
+
+    if request.method == 'POST':
+        form = ConceptForm(request.POST, instance=concept)
+        if form.is_valid():
+            form.save()
+        return HttpResponseRedirect(next_page)
+    if request.method == 'GET':
+        form = ConceptForm(instance=concept)
+    context = {
+        'form': form,
+        'concept': concept,
+        'next_page': next_page,
+    }
+    return render(request, "annotations/concept_edit.html", context)

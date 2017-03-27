@@ -65,6 +65,7 @@ def retrieve(repository, resource):
     return repository.getContent(resource)
 
 
+# TODO: this should be retired.
 def scrape(url):
     """
     Retrieve text content from a website.
@@ -92,6 +93,7 @@ def scrape(url):
     return textData
 
 
+# TODO: this should be retired.
 def extract_text_file(uploaded_file):
     """
     Extract the text file, and return its content
@@ -113,6 +115,7 @@ def extract_text_file(uploaded_file):
     return filecontent
 
 
+# TODO: this should be retired.
 def extract_pdf_file(uploaded_file):
     """
     Extract a PDF file and return its content
@@ -135,6 +138,7 @@ def extract_pdf_file(uploaded_file):
     return filecontent
 
 
+# TODO: this should be retired.
 # TODO: refactor!! This signature stinks.
 def save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri=None):
     """
@@ -200,9 +204,9 @@ def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
                 appellation.submittedWith = accession
                 appellation.save()
 
+
 @shared_task
 def accession_ready_relationsets():
-
     print 'processing %i relationsets' % len(all_rsets)
     # project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
 
@@ -236,8 +240,7 @@ def accession_ready_relationsets():
                 submit_relationsets_to_quadriga.delay(map(lambda o: o.id, user_rsets), text_id, user_id, **kwargs)
 
 
-
-
+# TODO: this should be retired.
 def handle_file_upload(request, form):
     """
     Handle the uploaded file and route it to corresponding handlers
