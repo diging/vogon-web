@@ -128,7 +128,7 @@ angular.module('annotationApp')
         // Assemble data from all fields into a single payload.
         $scope.relation_template.occursIn = TEXTID;
         $scope.relation_template.project = PROJECTID;
-        $.post('/relationtemplate/' + $scope.relation_template.id + '/create/',
+        $.post(BASE_URL + '/relationtemplate/' + $scope.relation_template.id + '/create/',
                JSON.stringify($scope.relation_template),
                function(data) {
                    $scope.reset();
