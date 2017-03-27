@@ -164,7 +164,7 @@ def concepts(request):
     """
     List all concepts.
     """
-    qs = Concept.objects.all()#.filter(appellation__isnull=False).distinct('id').order_by('-id')
+    qs = Concept.objects.filter(appellation__isnull=False).distinct('id').order_by('-id')
 
     filtered = ConceptFilter(request.GET, queryset=qs)
     qs = filtered.qs
