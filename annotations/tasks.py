@@ -191,13 +191,11 @@ def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
             relationset.submittedOn = accession.created
             relationset.submittedWith = accession
             relationset.save()
-
             for relation in relationset.constituents.all():
                 relation.submitted = True
                 relation.submittedOn = accession.created
                 relation.submittedWith = accession
                 relation.save()
-
             for appellation in relationset.appellations():
                 appellation.submitted = True
                 appellation.submittedOn = accession.created

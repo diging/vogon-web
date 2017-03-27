@@ -100,8 +100,11 @@ def approve_concept(request, concept_id):
         concept.concept_state = Concept.APPROVED
         concept.save()
         return HttpResponseRedirect(next_page)
-
-    candidates, matches = _find_similar(concept)
+    try:
+        candidates, matches = _find_similar(concept)
+    except Exception as E:
+        return HttpResponse("Conceptpower is causing all kinds of problems"
+                            " right now.", status=500)
 
     context.update({
         'candidates': candidates,
@@ -131,10 +134,8 @@ def resolve_concept(request, concept_id):
     try:
         result = resolve(Concept, concept)
     except Exception as E:
-        context.update({
-            'exception': str(E)
-        })
-        return render(request, 'annotations/concept_resolve.html', context)
+        return HttpResponse("Conceptpower is causing all kinds of problems"
+                            " right now.", status=500)
     if not result:
         return render(request, 'annotations/concept_resolve.html', context)
 
@@ -216,7 +217,11 @@ def add_concept(request, concept_id):
         return HttpResponseRedirect(next_page)
 
     if request.GET.get('confirmed', False):
-        response_data = add(concept)
+        try:
+            response_data = add(concept)
+        except Exception as E:
+            return HttpResponse("Conceptpower is causing all kinds of problems"
+                                " right now.", status=500)
         concept.uri = response_data['uri']
         concept.authority = 'Conceptpower'
         concept.concept_state = Concept.RESOLVED
