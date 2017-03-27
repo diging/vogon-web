@@ -18,7 +18,7 @@ var bindAutocomplete = function(selector, pos) {
                 })
                 .autocomplete({
                     source: function( request, response ) {
-                        $.getJSON("/rest/concept/search", {
+                        $.getJSON(BASE_URL + "/rest/concept/search", {
                             search: extractLast( request.term ),
                             pos: pos,
                             remote: true,

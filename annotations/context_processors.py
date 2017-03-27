@@ -10,4 +10,7 @@ def version(request):
 
 
 def base_url(request):
-    return {'base_url': settings.BASE_URL}
+    base_url = settings.BASE_URL
+    if base_url.endswith('/'):
+        base_url = base_url[:-1]
+    return {'base_url': base_url}
