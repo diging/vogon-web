@@ -52,7 +52,7 @@ from concepts.models import Concept
 from django.conf import settings
 import ast
 
-from annotations.managers import repositoryManagers
+
 from annotations.utils import help_text
 
 from django.contrib.auth.models import (
@@ -61,7 +61,6 @@ from django.contrib.auth.models import (
 from django.utils.translation import ugettext_lazy as _
 
 from concepts.models import Concept, Type
-from annotations.managers import repositoryManagers
 
 import ast
 import networkx as nx
@@ -438,7 +437,8 @@ class Text(models.Model):
     def __unicode__(self):
         return self.title
 
-
+# TODO: remove this model, as it is no longer used (in favor of the repository
+#  module).
 class Repository(models.Model):
     """
     Represents an online repository from which :class:`.Text`\s can be
@@ -455,7 +455,7 @@ class Repository(models.Model):
     name = models.CharField(max_length=255)
     """The human-readable name that will be presented to end users."""
 
-    manager = models.CharField(max_length=255, choices=repositoryManagers)
+    manager = models.CharField(max_length=255, choices=[])
     """The name of the manager class for this repository."""
 
     endpoint = models.CharField(max_length=255)
