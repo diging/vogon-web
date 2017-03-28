@@ -1,7 +1,7 @@
 from django.db.models import Count
 
 import datetime
-from haystack import indexes
+# from haystack import indexes
 from annotations.models import Text
 from concepts.models import Concept
 

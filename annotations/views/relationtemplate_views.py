@@ -10,15 +10,13 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404
-from django.template import RequestContext, loader
-
+from django.shortcuts import get_object_or_404, render
+from string import Formatter
 
 from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm,
                                RelationTemplateForm)
-from annotations.models import (RelationTemplate, RelationTemplatePart,
-                                RelationSet, Relation, Appellation)
+from annotations.models import *
 from concepts.models import Concept, Type
 
 import copy
@@ -71,6 +69,8 @@ def add_relationtemplate(request):
             # We commit the RelationTemplate to the database first, so that we
             #  can use it in the FK relation ``RelationTemplatePart.part_of``.
             relationTemplate = relationtemplate_form.save()
+            relationTemplate.terminal_nodes = relationtemplate_form.cleaned_data.get('terminal_nodes', '')
+            relationTemplate.save()
 
             # We index RTPs so that we can fill FK references among them.
             relationTemplateParts = {}
@@ -221,13 +221,13 @@ def list_relationtemplate(request):
     if response_format == 'json':
         return JsonResponse(data)
 
-    template = loader.get_template('annotations/relationtemplate_list.html')
-    context = RequestContext(request, {
+    template = "annotations/relationtemplate_list.html"
+    context = {
         'user': request.user,
         'data': data,
-    })
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
@@ -258,13 +258,13 @@ def get_relationtemplate(request, template_id):
     if response_format == 'json':
         return JsonResponse(data)
 
-    template = loader.get_template('annotations/relationtemplate_show.html')
-    context = RequestContext(request, {
+    template = "annotations/relationtemplate_show.html"
+    context = {
         'user': request.user,
         'data': data,
-    })
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
@@ -288,7 +288,6 @@ def create_from_relationtemplate(request, template_id):
 
     # TODO: this could also use quite a bit of attention in terms of
     #  modularization.
-
     template = get_object_or_404(RelationTemplate, pk=template_id)
 
     # Index RelationTemplateParts by ID.
@@ -297,6 +296,7 @@ def create_from_relationtemplate(request, template_id):
     if request.POST:
         relations = {}
         data = json.loads(request.body)
+        project_id = data.get('project')
 
         relation_data = {}
         for field in data['fields']:
@@ -310,9 +310,20 @@ def create_from_relationtemplate(request, template_id):
             createdBy=request.user,
             occursIn_id=data['occursIn'],
         )
+        if project_id:
+            try:
+                project = TextCollection.objects.get(pk=project_id)
+                relation_set.project = project
+            except TextCollection.DoesNotExist:
+                pass
         relation_set.save()
 
-        def create_appellation(field_data, template_part, field, evidence_required=True):
+        def _create_appellation(field_data, template_part, field,
+                               evidence_required=True):
+            """
+            Some fields may have data for appellations that have not yet been
+            created. So we do that here.
+            """
             node_type = getattr(template_part, '%s_node_type' % field)
 
             appellation_data = {
@@ -320,11 +331,21 @@ def create_from_relationtemplate(request, template_id):
                 'createdBy_id': request.user.id,
             }
             if evidence_required and field_data:
+                # We may be dealing with an image appellation, in which case
+                #  we should expect to find position data in the request.
+                position_data = field_data.pop('position', None)
+                if position_data:
+                    position = DocumentPosition.objects.create(**position_data)
+                    appellation_data.update({
+                        'position': position,
+                    })
+
+                # These should be blank instead of null.
                 appellation_data.update({
-                    'tokenIds': field_data['data']['tokenIds'],
-                    'stringRep': field_data['data']['stringRep'],
+                    'tokenIds': field_data['data'].get('tokenIds', ''),
+                    'stringRep': field_data['data'].get('stringRep', ''),
                 })
-            else:
+            else:    # TODO: is this necessary?
                 appellation_data.update({'asPredicate': True})
 
             if node_type == RelationTemplatePart.CONCEPT:
@@ -386,7 +407,7 @@ def create_from_relationtemplate(request, template_id):
                     relation_dependency_graph.add_edge(part_id, part_data['%s_object_id' % field])
                 else:   # We will need to create an Appellation.
                     field_data = relation_data[part_id].get(field, None)
-                    part_data['%s_object_id' % field] = create_appellation(field_data, template_part, field, evidence_required).id
+                    part_data['%s_object_id' % field] = _create_appellation(field_data, template_part, field, evidence_required).id
                     part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
 
             part_data['predicate_id'] = part_data['predicate_object_id']
@@ -402,6 +423,47 @@ def create_from_relationtemplate(request, template_id):
 
         for part_id, template_part in template_parts.iteritems():
             process_recurse(part_id, template_part)
+
+        # Generate a human-readable phrase that expresses the relation.
+
+        part_map = {rtp.internal_id: k for k, rtp in template_parts.iteritems()}
+
+        expression_keys = [k[1] for k in Formatter().parse(template.expression)]
+        expression_data = {}
+        _pos_map = {'s': 'source', 'p': 'predicate', 'o': 'object'}
+        for part_id, part_pos in map(tuple, expression_keys):
+            relation_id = relation_data_processed[part_map[int(part_id)]][0]
+            relation = Relation.objects.get(pk=relation_id)
+            pos = _pos_map.get(part_pos)
+            _val = None
+            if pos == 'predicate':    # Always an Appellation.
+                _val = relation.predicate.interpretation.label
+            else:
+                _target = getattr(relation, '%s_content_object' % pos)
+                if isinstance(_target, Appellation):
+                    _val = _target.interpretation.label
+
+            expression_data['%s%s' % (part_id, part_pos)] = _val
+        relation_set.representation = template.expression.format(**expression_data)
+        relation_set.save()
+
+        # Set the terminal nodes (concepts) on the RelationSet.
+        if template.terminal_nodes:
+
+            for part_id, part_pos in map(tuple, template.terminal_nodes.split(',')):
+                relation_id = relation_data_processed[part_map[int(part_id)]][0]
+                relation = Relation.objects.get(pk=relation_id)
+
+                pos = _pos_map.get(part_pos)
+                if pos == 'predicate':    # Always an Appellation.
+                    relation_set.terminal_nodes.add(relation.predicate.interpretation)
+                else:
+                    _target = getattr(relation, '%s_content_object' % pos)
+                    if isinstance(_target, Appellation):
+                        relation_set.terminal_nodes.add(_target.interpretation)
+
+
+
 
         # The first element should be the root of the graph. This is where we
         #  need to "attach" the temporal relations.
@@ -459,5 +521,6 @@ def create_from_relationtemplate(request, template_id):
         response_data = {'relationset': relation_set.id}
     else:   # Not sure if we want to do anything for GET requests at this point.
         response_data = {}
+
 
     return JsonResponse(response_data)

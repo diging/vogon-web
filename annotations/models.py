@@ -52,7 +52,7 @@ from concepts.models import Concept
 from django.conf import settings
 import ast
 
-from annotations.managers import repositoryManagers
+
 from annotations.utils import help_text
 
 from django.contrib.auth.models import (
@@ -61,7 +61,6 @@ from django.contrib.auth.models import (
 from django.utils.translation import ugettext_lazy as _
 
 from concepts.models import Concept, Type
-from annotations.managers import repositoryManagers
 
 import ast
 import networkx as nx
@@ -232,7 +231,7 @@ class VogonGroup(models.Model):
 
 
 class TupleField(models.TextField):
-    __metaclass__ = models.SubfieldBase
+    # __metaclass__ = models.SubfieldBase
     description = "Stores a Python tuple of instances of built-in types"
 
     def __init__(self, *args, **kwargs):
@@ -303,6 +302,15 @@ class TextCollection(models.Model):
         return self.name
 
 
+# class Resource(models.Model):
+#     uri = models.CharField(max_length=255, unique=True)
+#     source = models.ForeignKey("Repository", blank=True, null=True,
+#                                related_name="resources")
+#     source_id = models.IntegerField(default=-1, blank=True, null=True)
+#     original_uri = models.CharField(max_length=255, unique=True)
+#
+
+
 class Text(models.Model):
     """
     Represents a document that is available for annotation.
@@ -310,17 +318,29 @@ class Text(models.Model):
     .. todo:: Add a field to store arbitrary metadata about the document.
     """
 
-    uri = models.CharField(max_length=255, unique=True, help_text=help_text(
-    """
-    Uniform Resource Identifier. This should be sufficient to retrieve text
-    from a repository.
-    """))
+    part_of = models.ForeignKey('Text', related_name='parts', null=True, blank=True)
+
+    uri = models.CharField(max_length=255, unique=True,
+                           help_text="Uniform Resource Identifier. This should"
+                           " be sufficient to retrieve text from a repository.")
     """
     This identifier is used when submitting :class:`.RelationSet`\s to
     Quadriga.
 
-    .. todo:: Make this field non-changeable once it is set.
+    .. todo:: Make this field immutable once set.
     """
+
+    PLAIN_TEXT = 'PT'
+    IMAGE = 'IM'
+    HYPERTEXT = 'HP'
+    TYPE_CHOICES = (
+        (PLAIN_TEXT, 'Plain text'),
+        (IMAGE, 'Image'),
+        (HYPERTEXT, 'Hypertext'),
+    )
+    document_type = models.CharField(max_length=2, choices=TYPE_CHOICES,
+                                     null=True, blank=True)
+    document_location = models.CharField(max_length=1000, null=True, blank=True)
 
     tokenizedContent = models.TextField()
     """
@@ -350,6 +370,12 @@ class Text(models.Model):
     .. todo:: This should target :class:`repository.Repository` rather than
               :class:`annotations.Repository`\.
     """
+    # source_id = models.IntegerField(default=-1, blank=True, null=True)
+
+    repository = models.ForeignKey("repository.Repository", blank=True, null=True, related_name='texts')
+    repository_source_id = models.IntegerField(default=-1, blank=True, null=True)
+    content_type = models.CharField(max_length=255)
+    """MIME type"""
 
     originalResource = models.URLField(blank=True, null=True)
     """
@@ -369,6 +395,9 @@ class Text(models.Model):
     available.
     """
 
+    def get_absolute_url(self):
+        return reverse('repository_text', args=(self.repository.id, self.top_level_text.repository_source_id))
+
     @property
     def annotation_count(self):
         """
@@ -385,15 +414,31 @@ class Text(models.Model):
         """
         return self.relation_set.count()
 
+    @property
+    def top_level_text(self):
+        def _re(text):
+            if text.part_of:
+                return _re(text.part_of)
+            return text
+        return _re(self)
+
+    @property
+    def children(self):
+        children = []
+
+        def _re(text):
+            children.append(text.id)
+            if text.parts.count() > 0:
+                map(_re, text.parts.all())
+        _re(self)
+        return children
+
+
     def __unicode__(self):
         return self.title
 
-    class Meta:
-        permissions = (
-            ('view_text', 'View text'),
-        )
-
-
+# TODO: remove this model, as it is no longer used (in favor of the repository
+#  module).
 class Repository(models.Model):
     """
     Represents an online repository from which :class:`.Text`\s can be
@@ -410,7 +455,7 @@ class Repository(models.Model):
     name = models.CharField(max_length=255)
     """The human-readable name that will be presented to end users."""
 
-    manager = models.CharField(max_length=255, choices=repositoryManagers)
+    manager = models.CharField(max_length=255, choices=[])
     """The name of the manager class for this repository."""
 
     endpoint = models.CharField(max_length=255)
@@ -431,6 +476,9 @@ class Repository(models.Model):
         return unicode(self.name)
 
 
+
+# TODO: remove this model, as it is no longer used (in favor of the repository
+#  module).
 class Authorization(models.Model):
     """
     Represents an authorization token for an external service.
@@ -553,9 +601,9 @@ class DateAppellation(Annotation):
         """
         Returns an ISO-8601 compliant unicode representation of the date.
         """
-        return u'-'.join([unicode(getattr(self, 'part'))
+        return u'-'.join([unicode(getattr(self, part))
                           for part in ['year', 'month', 'day']
-                          if getattr(self, 'part')])
+                          if getattr(self, part)])
 
     @property
     def precision(self):
@@ -586,9 +634,28 @@ class Appellation(Annotation, Interpreted):
     since we now implement the full quadruple model in VogonWeb.
     """
 
+    project = models.ForeignKey('TextCollection', related_name='appellations',
+                                null=True, blank=True)
+    """
+    Since a :class:`.Text` can belong to more than one :class:`.TextCollection`
+    it follows not all :class:`.Appellation`\s for a text will belong to the
+    same :class:`.TextCollection`\.
+    """
+
+    position = models.ForeignKey('DocumentPosition', blank=True, null=True,
+                                 related_name='appellations')
+    """
+    Represents the specific location (phrase or passage) for which the user
+    has registered an interpretation.
+    """
+
     tokenIds = models.TextField()
     """
     IDs of words (in the tokenizedContent) selected for this Appellation.
+
+    .. deprecated:: 0.5
+       Text positions will be represented using :class:`.DocumentPosition`\.
+       See :attr:`.position`\.
     """
 
     stringRep = models.TextField()
@@ -602,6 +669,7 @@ class Appellation(Annotation, Interpreted):
 
     .. deprecated:: 0.5
        Text positions will be represented using :class:`.DocumentPosition`\.
+       See :attr:`.position`\.
     """
 
 
@@ -611,6 +679,7 @@ class Appellation(Annotation, Interpreted):
 
     .. deprecated:: 0.5
        Text positions will be represented using :class:`.DocumentPosition`\.
+       See :attr:`.position`\.
     """
 
     # Reverse generic relations to Relation.
@@ -653,6 +722,14 @@ class RelationSet(models.Model):
     statements.
     """
 
+    project = models.ForeignKey('TextCollection', related_name='relationsets',
+                                null=True, blank=True)
+    """
+    Since a :class:`.Text` can belong to more than one :class:`.TextCollection`
+    it follows not all :class:`.RelationSet`\s for a text will belong to the
+    same :class:`.TextCollection`\.
+    """
+
     template = models.ForeignKey('RelationTemplate', blank=True, null=True,
                                  related_name='instantiations')
     """
@@ -687,11 +764,33 @@ class RelationSet(models.Model):
     to Quadriga.
     """
 
-    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True)
+    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True, null=True)
     """
     The :class:`.QuadrigaAccession` tracks the entire set of RelationSets that
     were accessioned together in a single query.
     """
+
+    representation = models.TextField(null=True, blank=True)
+    terminal_nodes = models.ManyToManyField(Concept)
+
+    @property
+    def date_appellations(self):
+        dtype = ContentType.objects.get_for_model(DateAppellation)
+
+        appellations = []
+        for relation in self.constituents.all():
+            for part in ['source', 'object']:
+                target_type = getattr(relation, '%s_content_type' % part)
+                if target_type.id == dtype.id:
+                    appellations.append((
+                        DateAppellation.objects.get(pk=getattr(relation, '%s_object_id' % part)),
+                        relation.predicate.interpretation
+                    ))
+
+        if appellations:
+            return appellations
+        return
+
 
     @property
     def root(self):
@@ -842,6 +941,20 @@ class RelationTemplate(models.Model):
     expression = models.TextField(null=True)
     """Pattern for representing the relation in normal language."""
 
+    _terminal_nodes = models.TextField(blank=True, null=True)
+
+    def _get_terminal_nodes(self):
+        return self._terminal_nodes
+
+    def _set_terminal_nodes(self, value):
+        if value:
+            self._terminal_nodes = ','.join(map(lambda s: s.strip(), value.split(',')))
+        else:
+            self._terminal_nodes = ''
+
+    terminal_nodes = property(_get_terminal_nodes, _set_terminal_nodes)
+
+
     @property
     def fields(self):
         """
@@ -903,16 +1016,17 @@ class RelationTemplatePart(models.Model):
     HAS = 'HA'
     RELATION = 'RE'
     NODE_CHOICES = (
-        (TYPE, 'Concept type'),
+        (TYPE, 'Open concept'),
         (CONCEPT, 'Specific concept'),
         (RELATION, 'Relation'),
     )
     PRED_CHOICES = (
-        (TYPE, 'Concept type'),
+        (TYPE, 'Open concept'),
         (CONCEPT, 'Specific concept'),
         (TOBE, 'Is/was'),
         (HAS, 'Has/had'),
     )
+
 
     part_of = models.ForeignKey('RelationTemplate',
                                 related_name="template_parts")
@@ -976,3 +1090,48 @@ class TemporalBounds(models.Model):
     start = TupleField(blank=True, null=True)
     occur = TupleField(blank=True, null=True)
     end = TupleField(blank=True, null=True)
+
+
+class DocumentPosition(models.Model):
+    """
+    Represents a specific passage or area in a :class:`.Text`\.
+
+    The passage can be indicated by token IDs, a bounding box, character
+    offsets (start/end), or XPaths.
+    """
+
+    occursIn = models.ForeignKey('Text', related_name='positions')
+
+    TOKEN_ID = 'TI'
+    BOUNDING_BOX = 'BB'
+    XPATH = 'XP'
+    CHARACTER_OFFSET = 'CO'
+    WHOLE_DOCUMENT = 'WD'
+    TYPE_CHOICES = (
+        (TOKEN_ID, 'Token IDs'),
+        (BOUNDING_BOX, 'Bounding box'),
+        (XPATH, 'XPath'),
+        (CHARACTER_OFFSET, 'Character offsets'),
+        (WHOLE_DOCUMENT, 'Whole document')
+    )
+    position_type = models.CharField(max_length=2, choices=TYPE_CHOICES)
+    """
+    Used to control snippet rendering, and included in Quadriga accessions.
+
+    Currently supported types:
+
+    * ``TI`` - Token IDs: word identifiers in a tokenized plain-text document.
+    * ``BB`` - Bounding box: X,Y offset and width, height.
+    * ``XP`` - XPath
+    * ``CO`` - Character offset. The original Vogon desktop application used
+      this. Currently not used in VogonWeb.
+    * ``WD`` - Whole document.
+    """
+
+    position_value = models.TextField()
+    """
+    Plain-text representation of the position.
+
+    If :attr:`.position_type` is :attr:`.WHOLE_DOCUMENT`\, then this can be
+    blank.
+    """

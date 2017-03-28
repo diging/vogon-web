@@ -1,0 +1,86 @@
+div.dl-digilib div.dl-region.appellation {
+	position: absolute;
+	border: none;
+    color: white;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 11px;
+	background-color: orange;
+    opacity: 0.1;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+	filter: alpha(opacity=30);
+}
+
+div.dl-digilib div.dl-region.notcommitted {
+    background-color: green;
+}
+
+div.dl-digilib div.dl-region.selected {
+    background-color: blue;
+}
+
+div.dl-digilib div.dl-region a:link,
+div.dl-digilib div.dl-region a:visited {
+    color: white;
+}
+
+div.dl-digilib div.dl-region:hover {
+    opacity: 0.2;
+	border: 2px solid orange;
+}
+
+div.dl-digilib div.dl-regionArea {
+	background-color: red;
+	border: none;
+    opacity: 0.3;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+	filter: alpha(opacity=30);
+}
+
+div.dl-digilib div.dl-vogonRegionAreaDraw {
+	background-color: none;
+	border: 3px solid orange;
+    opacity: 1.0;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+	filter: alpha(opacity=30);
+}
+
+div.dl-digilib div.dl-regionHTML {
+	background-color: blue;
+}
+
+div.dl-digilib div.dl-regionHTML:hover {
+	background-color: transparent;
+	border: 2px solid blue;
+}
+
+div.dl-digilib div.dl-region a.dl-regionnumber {
+    color: white;
+    text-decoration: none;
+	font-weight: bold;
+	font-size: 11px;
+	text-align: center;
+    padding: 0px 2px;
+    margin-right: 4px;
+    border: 1px solid white;
+    display: inline-block;
+}
+
+div.dl-digilib map.dl-regioncontent {
+    display: none;
+}
+
+div.dl-digilib div.dl-highlightregion {
+	background-color: transparent;
+	border: 5px solid aqua;
+	opacity: 0.8;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+	filter: alpha(opacity=80);
+}
+
+div.dl-digilib div.dl-findregion {
+	background-color: transparent;
+	border: 5px solid aqua;
+	opacity: 0.8;
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+	filter: alpha(opacity=80);
+}

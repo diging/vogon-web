@@ -2,27 +2,53 @@
 {% load app_filters %}
 {% load addcss %}
 {% load staticfiles %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>&raquo;<a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">{{ repository.name }}</a>&raquo;<a href="{% url "repository_collections" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Collections</a>&raquo;<a href="{% url "repository_collection" repository.id collection.id %}" class="btn btn-xs">{{ collection.name }}</a>
+{% endblock %}
+
 {% block main %}
 
 <script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
-<div class="container">
-    <a href="{% url "repository_collections" repository.id %}" class="text-small btn" style="margin-top: 10px;">&#9664; Back to collections</a>
-    <div class="h3">Browse collection {{ collection.name }} in repository <strong>{{ repository.name }}</strong></div>
+<div class="container-fluid">
+    <div class="h3">Browsing collection {{ collection.name }} in repository <strong>{{ repository.name }}</strong></div>
+    <div class="row">
+        <div class="col-xs-12 clearfix">
+        {% if previous_page %}
+        <a href="{{ previous_page }}" class="btn btn-xs">&laquo; Previous</a>
+        {% endif %}
 
+        {% if next_page %}
+        <div class="pull-right btn-group">
+            <a href="{{ next_page }}" class="btn btn-xs">Next &raquo;</a>
+        </div>
+        {% endif %}
+        </div>
+    </div>
     <div class="list-group">
-        {% for result in collection  %}
-        <a class="list-group-item"
-            href="{% url "repository_text" repository.id result.id.value %}">
-            <div class="h5">{{ result.title.render_value }}</div>
-            <dl class="dl-horizontal">
-            {% for name, fieldvalue in result.iteritems %}
-            {% if name != 'title' %}
-            {{ fieldvalue.render }}
-            {% endif %}
-            {% endfor %}
-            </dl>
+        {% for result in collection.resources  %}
+        <a class="list-group-item clearfix"
+            href="{% url "repository_text" repository.id result.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
+            <strong>{{ result.title }}</strong>
+            <p class="text-muted">{{ result.uri }}</p>
+            <span class="text-warning pull-right">
+            {% for ctype in result.content_types %}<span style="margin-right: 15px;">{{ ctype}}</span>{% endfor %}
+            </span>
         </a>
         {% endfor %}
+    </div>
+    <div class="row">
+        <div class="col-xs-12 clearfix">
+        {% if previous_page %}
+        <a href="{{ previous_page }}" class="btn btn-xs">&laquo; Previous</a>
+        {% endif %}
+
+        {% if next_page %}
+        <div class="pull-right btn-group">
+            <a href="{{ next_page }}" class="btn btn-xs">Next &raquo;</a>
+        </div>
+        {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

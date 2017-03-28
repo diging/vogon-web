@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 
 optional = { 'blank': True, 'null': True }
 
@@ -42,15 +43,18 @@ class Concept(HeritableObject):
     description = models.TextField(**optional)
     authority = models.CharField(max_length=255)
     pos = models.CharField(max_length=255, **optional)
+
     PENDING = 'Pending'
     REJECTED = 'Rejected'
     APPROVED = 'Approved'
     RESOLVED = 'Resolved'
+    MERGED = 'Merged'
     concept_state_choices=  (
         (PENDING, 'Pending'),
         (REJECTED, 'Rejected'),
         (APPROVED, 'Approved'),
         (RESOLVED, 'Resolved'),
+        (MERGED, 'Merged'),
     )
     concept_state=models.CharField(max_length=10, choices=concept_state_choices,
                                    default='Pending')
@@ -62,6 +66,44 @@ class Concept(HeritableObject):
         if self.typed:
             return self.typed.label
         return None
+
+    def __unicode__(self):
+        if self.label:
+            return self.label
+        return self.uri
+
+    @property
+    def children(self):
+        def traverse_mergers(concept):
+            """
+            Recursively collect all IDs for concepts that have been merged into
+            ``concept``.
+            """
+
+            id_list = [concept.id]
+            if concept.merged_concepts.count() > 0:
+                for child in concept.merged_concepts.all():
+                    id_list += traverse_mergers(child)
+            return id_list
+        return traverse_mergers(self)
+
+    def get_absolute_url(self):
+        return reverse('concept', args=(self.id,))
+
+    @property
+    def master(self):
+        """
+        Get the highest-level merge target.
+        """
+        _visited = set()
+        def _get(concept):
+            if concept.id in _visited:
+                raise RuntimeError("Circular merge chain::: %s" % ', '.join(map(str, list(visited))))
+            _visited.add(concept.id)
+            if concept.merged_with:
+                return _get(concept.merged_with)
+            return concept
+        return _get(self)
 
 
 class Type(Concept):

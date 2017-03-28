@@ -1,0 +1,85 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% load app_filters %}
+{% load addcss %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "concepts" %}" class="btn btn-xs">Concepts</a>&raquo;<a href="{% url "concept" concept.id %}" class="btn btn-xs">{{ concept.label }}</a>&raquo;<a href="" class="btn btn-xs">Approve</a>
+{% endblock %}
+
+
+{% block main %}
+<div class="container-fluid">
+    <div class="h3">Are you sure?</div>
+    <p class="text-warning">
+        This will ultimately create a permanent record in the Conceptpower name authority.
+        Creating a new record that duplicates an existing record can lead to all kinds of
+        nasty things in the future.
+        <dl class="dl-horizontal">
+            <dt>Label</dt>
+            <dd>{{ concept.label }}</dd>
+            <dt>URI</dt>
+            <dd>{{ concept.uri }}</dd>
+            <dt>Type</dt>
+            <dd>{{ concept.typed }}</dd>
+            <dt>Description</dt>
+            <dd>{{ concept.description }}</dd>
+        </dl>
+    </p>
+    {% if matches %}
+    <div class="alert alert-danger">
+        <div class="h4">This concept matches an existing entry!</div>
+        <p>
+            Another user (maybe you) has previously indicated that a concept
+            with the same URI is equivalent to the Conceptpower record(s) below.
+            Unless you have some reason to disagree with that equivalence, it is
+            highly recommended that you merge the concept above with (one of)
+            the Conceptpower record(s) below.
+        </p>
+    </div>
+
+    <ul class="list-group">
+        {% for candidate in matches %}
+        <li class="list-group-item clearfix">
+            <div class="pull-right btn-group">
+                <a class="btn btn-success" href="{% url "merge_concepts" concept.id %}?target={{ candidate.uri }}&next={{ next_page }}">Merge</a>
+            </div>
+            <div><strong>{{ candidate.label }}</strong> </div>
+            <div class="text-warning">
+                <span class="glyphicon glyphicon-globe"></span>
+                {{ candidate.uri }}
+            </div>
+            <p>
+                {{ candidate.description }}
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% if candidates %}
+    <div class="h4">This concept looks a lot like...</div>
+    <ul class="list-group">
+        {% for candidate in candidates %}
+        <li class="list-group-item clearfix">
+            <div class="pull-right btn-group">
+                <a class="btn btn-success" href="{% url "merge_concepts" concept.id %}?target={{ candidate.uri }}&next={{ next_page }}">Merge</a>
+            </div>
+            <div><strong>{{ candidate.label }}</strong> </div>
+            <div class="text-warning">
+                <span class="glyphicon glyphicon-globe"></span>
+                {{ candidate.uri }}
+            </div>
+            <p>
+                {{ candidate.description }}
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <a class="btn btn-md btn-danger" href="{{ next_page }}">Take me back!</a>
+    <a class="btn btn-md btn-{% if matches or candidates %}warning{% else %}success{% endif %}" href="?confirmed=true&next={{ next_page }}">{% if matches or candidates %}I accept the risks: approve anyway!{% else %}Approve{% endif %}</a>
+</div>
+
+
+{% endblock %}

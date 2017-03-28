@@ -1,0 +1,311 @@
+{% load staticfiles %}
+{% load app_filters %}
+
+<html>
+    <head>
+        <script>
+        var BASE_URL = '{{ base_url }}';
+        </script>
+        
+        <!-- Google Analytics -->
+        <script>
+        var IMAGE_LOCATION = "{{ location|safe }}";
+        </script>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-78617790-1', 'auto');
+          ga('send', 'pageview');
+
+        </script>
+        <script>
+        var cropFloat = function (x) {
+            return parseInt(10000 * x, 10) / 10000;
+        };
+        var cropFloatStr = function(x) {
+            return cropFloat(x).toString();
+        };
+        var packCoords = function (rect, sep) {
+            if (sep == null) sep = ','; // comma as default separator
+            return [
+                cropFloatStr(rect.x),
+                cropFloatStr(rect.y),
+                cropFloatStr(rect.width),
+                cropFloatStr(rect.height)
+            ].join(sep);
+        };
+
+        function stripTrailingSlash(str) {
+            if(str.substr(-1) === '/') {
+                return str.substr(0, str.length - 1);
+            }
+            return str;
+        }
+        var BASELOCATION = stripTrailingSlash("{{baselocation}}");
+
+        </script>
+
+
+        {% include "annotations/scripts.html" %}
+        <script type="text/javascript" src="{% static "annotations/js/image/digivogon.js" %}"></script>
+
+        {% include "annotations/stylesheets.html" %}
+
+        <script>
+        var TEXTID = "{{ textid }}",
+            USERID = "{{ userid }}",
+            PROJECTID = "{{ project.id }}";
+
+        var MODE = 'image';
+        </script>
+        <script>
+        // If the window scrolls below the top of the main content, the right-
+        //  hand column should scroll with it.
+        function sticky_relocate() {
+            var window_top = $(window).scrollTop(),
+                window_width = $(window).width(),
+                window_height = $(window).height(),
+                div_top = $('#main-container').offset().top;
+
+
+            // If the window is narrow, the action panel is overlayed on the
+            //  text at the bottom of the window.
+            if (window_width < 768) {   // Bootstrap sm/xs breakpoint is 768px.
+                $('#sticky').removeClass('fixed');
+                $('#sticky').addClass('fixed-bottom');
+                $('#sticky').addClass('col-xs-12');
+
+                // The action panel should scale vertically with window height.
+                $('.action-body').css('max-height', screen.height / 5);
+
+            // If the window is wide enough, the action panel stays on the far
+            //  right, and sticks to the top of the window as the user scrolls.
+            } else {
+                $('.action-body').css('max-height', screen.height - 400);
+                $('#sticky').removeClass('fixed-bottom');
+                $('#sticky').removeClass('col-xs-12');
+                if (window_top > div_top) {
+                    $('#sticky').addClass('fixed');
+                    // Setting position: fixed removes the element from the
+                    //  flow, so this applies the appropriate left-offset.
+                    $('#sticky').addClass('col-sm-offset-8');
+                } else {
+                    // The user hasn't scrolled below the navbar, so we keep
+                    //  the action panel in the grid.
+                    $('#sticky').removeClass('fixed');
+                    $('#sticky').removeClass('col-sm-offset-8');
+                }
+            }
+        }
+
+        $(function() {
+            $(window).scroll(sticky_relocate);
+            $(window).resize(sticky_relocate);
+            sticky_relocate();
+        });
+        </script>
+        {% include "annotations/angular.html" %}
+        {% include "annotations/textApp.html" %}
+        <title>{{ title }}</title>
+
+        {% csrf_token %}
+
+        <!-- Mobile support. We want to be slightly zoomed out, or else the interface is simply too mashed. -->
+        <meta name="viewport" content="width=device-width, initial-scale=0.75">
+    </head>
+    <body  ng-app="annotationApp">
+        {% include "annotations/header.html" %}
+
+        <!-- csrf_ajax.js gets the CSRF token for this page, and pre-configures AJAX requests. -->
+        <script src="{% static "annotations/js/csrf_ajax.js" %}"></script>
+
+        <div class="container-fluid" id="main-container">
+            <div class="row" style="padding: 5px;">
+                <ul class="nav nav-pills">
+                </ul>
+            </div>
+            <div class="row">
+                <div class="col-sm-8">
+                    {% if project %}
+                    <div class="text-warning">
+                        All annotations will be added to project: <a href="{% url "view_project" project.id %}">{{ project.name }}</a>
+                    </div>
+                    {% endif %}
+                    <div class="h4">
+                        {{ text.title }}
+                        {% if text.originalResource %}
+                        <a href="{{ text.originalResource }}"
+                            type="button"
+                            class="btn"
+                            title="Please click to access the original resource">
+                            <span class="glyphicon glyphicon-new-window "></span>
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div class="text-warning">
+                        Added on {{ text.added }} from <a href="{% url "repository_details" text.repository.id  %}">{{ text.repository.name }}</a>.
+                        {% if text.part_of %}Part of <a href="{% url "repository_text" text.top_level_text.repository.id text.top_level_text.repository_source_id %}">{{ text.top_level_text.title }}</a>.{% endif %}
+                    </div>
+                    <p class="text-warning">
+                        {{ text.uri }}
+                    </p>
+                    <div class="clearfix">
+                        {% if previous %}
+                        <a href="{% url "repository_text_content" repository_id previous previous_content  %}{% if text.part_of %}?part_of={{ text.top_level_text.repository_source_id }}{% endif %}">Previous page</a>
+                        {% endif %}
+                        {% if next %}
+                        <span class="pull-right">
+                            <a href="{% url "repository_text_content" repository_id next next_content  %}{% if text.part_of %}?part_of={{ text.top_level_text.repository_source_id }}{% endif %}">Next page</a>
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading clearfix">
+                            <div class="btn-group pull-right">
+                                <a id="image-zoom-in" class="btn btn-lg glyphicon glyphicon-zoom-in"></a>
+                                <a id="image-zoom-out" class="btn btn-lg glyphicon glyphicon-zoom-out"></a>
+                                <a id="image-select-region" class="btn btn-lg glyphicon glyphicon-screenshot"></a>
+                            </div>
+                            <script>
+                            $('a#image-zoom-in').click(function() {
+                                var $elem = $('#digilib-image-container');
+                                $elem.digilib.apply($elem, ['zoomBy', 1.4]);
+                            });
+                            $('a#image-zoom-out').click(function() {
+                                var $elem = $('#digilib-image-container');
+                                $elem.digilib.apply($elem, ['zoomBy', 0.7]);
+                            });
+                            </script>
+                        </div>
+                        <div class="panel-body image-container-panel-body">
+                            <div id="digilib-image-container">
+                                <img id="digilib-image" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sticky" class="col-sm-4">
+                    <div class="action-panel-container">
+                        <div class="panel with-nav-tabs panel-default"
+                                ng-controller="ActionPanelController">
+                            <div class="panel-heading">
+                                <ul class="nav nav-tabs">
+                                    <li class="active clearfix">
+                                        <a id="appellationTabAnchor"
+                                            class="action-tab-anchor text-small"
+                                            data-target="#tabAppellations"
+                                            data-toggle="tab">Tags</a>
+                                    </li>
+                                    <li>
+                                        <a id="relationTabAnchor"
+                                            class="action-tab-anchor text-small"
+                                            data-target="#tabRelations"
+                                            data-toggle="tab">Relations</a>
+                                    </li>
+                                    <li>
+                                        <a id="graphTabAnchor"
+                                            class="action-tab-anchor text-small"
+                                            data-target="#tabGraph"
+                                            data-toggle="tab">Graph</a>
+                                    </li>
+                                    <!-- <li class=""> -->
+                                        <div class="btn btn-group-sm pull-right">
+                                            <a class="btn btn-success"
+                                                    ng-click="startCreatingRelation()"
+                                                    id="createRelationButton"
+                                                    data-toggle="tooltip"
+                                                    title="Create a new relation"
+                                                    data-placement="left">
+                                                <span class="glyphicon glyphicon-plus"></span>
+                                            </a>
+                                            <script>
+                                            $(function() {
+                                                $('#createRelationButton').tooltip();
+                                            });
+                                            </script>
+                                        </div>
+                                    <!-- </li> -->
+                                </ul>
+                            </div>
+                            <div class="panel-body" ng-cloak>
+                                <div class="tab-content action-body">
+                                    {% include "annotations/text/appellationTab.html" %}
+                                    {% include "annotations/text/relationTab.html" %}
+                                    {% include "annotations/text/graphTab.html" %}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning">Press the <kbd>esc</kbd> key to reset the interface.</div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.js" %}"></script>
+        <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.geometry.js" %}"></script>
+        <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.buttons.js" %}"></script>
+
+        <!-- <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.marks.js" %}"></script>
+        <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.regions.js" %}"></script> -->
+
+
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/jquery.digilib.css" %}" />
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/jquery.range.css" %}" />
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/jquery.digilib.measure.css" %}" />
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/annotator.min.css" %}" />
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/jquery.digilib.vogon.css" %}" />
+        <script type="text/javascript">
+        $(document).ready(function(){
+            var container_parent = $('.image-container-panel-body');
+            var width = container_parent.width();
+            // Uses URI.js to rewrite Giles URLs, so that we can preserve
+            //  tokens and other parameters.
+            var target = URI(IMAGE_LOCATION)
+                            .removeSearch('dw')
+                            .addSearch('dw', width)
+                            .toString();
+            $('#digilib-image').attr('src', target);
+            $('#digilib-image-container').digilib({
+                interactionMode: 'embedded',
+                isRegionVisible: true,
+                digilibBaseUrl: '/static/annotations/js/digilib',
+            });
+
+            var data = $($('#digilib-image-container').data('digilib'));
+            data.on('update', handleUpdate);
+
+        });
+        var resizeTimer;
+
+        $(window).on('resize', function(e) {
+            // We only want to update the image once, so this resize nonsense
+            //  ensures that the update happens at the end of the resize.
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                var container_parent = $('.image-container-panel-body');
+                var width = container_parent.width();
+                var image_container = $('#digilib-image-container').width(width);
+                var target = URI(IMAGE_LOCATION).removeSearch('dw').addSearch('dw', width).toString();
+                $('#digilib-image-container img').attr('src', target);
+                var data = $('#digilib-image-container').data('digilib');
+                data.settings.dw = String(width);
+                $('#digilib-image-container').data('digilib', data);
+                $($('#digilib-image-container').data('digilib')).trigger('update');
+
+            }, 250);
+        });
+        </script>
+        <style>
+        .image-container {
+            margin-top: 25px;
+            position: relative !important;
+        }
+        </style>
+    </body>
+
+</html>

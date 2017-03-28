@@ -1,7 +1,7 @@
 angular.module('annotationApp')
         .controller('RelationTemplateSearchController',
-            ['$scope', 'selectionService', 'RelationTemplate', 'RelationSet', 'Concept',
-            function($scope, selectionService, RelationTemplate, RelationSet, Concept) {
+            ['$scope', '$rootScope', 'selectionService', 'RelationTemplate', 'RelationSet', 'Concept',
+            function($scope, $rootScope, selectionService, RelationTemplate, RelationSet, Concept) {
 
     $scope.search = function() {
         $scope.relation_templates = RelationTemplate.query({search: $scope.query}).$promise.then(function(data){
@@ -46,7 +46,7 @@ angular.module('annotationApp')
 
         // Keep selected appellations highlighted.
         selectionService.persistHighlighting = true;
-
+        console.log('startCreatingRelation', $scope.relation_template);
     }
     $scope.$on('startCreatingRelation', $scope.startCreatingRelation);
 
@@ -69,6 +69,7 @@ angular.module('annotationApp')
 
         selectionService.persistHighlighting = false;
         selectionService.unhighlightAppellations();
+        selectionService.removeNonCommittedRegions();
     }
 
     $scope.isReadOnly = function(field) {
@@ -126,11 +127,13 @@ angular.module('annotationApp')
     $scope.createRelation = function() {
         // Assemble data from all fields into a single payload.
         $scope.relation_template.occursIn = TEXTID;
-        $.post('/relationtemplate/' + $scope.relation_template.id + '/create/',
+        $scope.relation_template.project = PROJECTID;
+        $.post(BASE_URL + '/relationtemplate/' + $scope.relation_template.id + '/create/',
                JSON.stringify($scope.relation_template),
                function(data) {
                    $scope.reset();
                    reloadGraph();
+                   $rootScope.$broadcast('relationCreated');
                });
 
         // Update relation list.
@@ -153,13 +156,19 @@ angular.module('annotationApp').controller('AppellationModalInstanceController',
     $scope.selectedText = data.selectedText;
     $scope.selectedWords = data.selectedWords;
     $scope.conceptType = data.conceptType;
+    $scope.selectedRegions = data.selectedRegions;
+    $scope.imageLocation = data.imageLocation;
+
 
     $scope.ok = function () {
         $uibModalInstance.close();
+        $scope.$broadcast('done');    // Tell children to unbind event handlers.
+
     };
 
     $scope.cancel = function () {
         $uibModalInstance.dismiss('cancel');
+        $scope.$broadcast('done');    // Tell children to unbind event handlers.
     };
 
     // When the appellationController inside the modal finishes creating an
@@ -279,11 +288,14 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
       */
     $scope.expectEvidence = function() {
         $scope.highlightField();
-
+        // selectionService.resetAppellationCallbacks();
+        // selectionService.resetRegionCallbacks();
+        // selectionService.resetWordCallbacks();
         selectionService.defer();   // We want precedence. Reenabled on success.
         // The appellation expectation should be fulfilled as soon as the user
         //  clicks on an appellation.
         selectionService.skipAppellationPopover = true;
+        selectionService.autorelease = true;
 
         // TODO: this configuration works for fields that expect a full
         //  appellation (i.e. concept type field), but for fields that only
@@ -301,10 +313,14 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
                 //  Until then, allow all -- this is not inconsistent with the
                 //  Quad model anyway.
                 if (true) {
-                // if (appellation.interpretation_type == $scope.field.concept_id) {
+                // if (appellation.interpretation_type == $scope.field.concept_id)
                     // The Appellation interpretation has the correct Type.
                     $scope.field.appellation = appellation;
-                    $scope.label = appellation.stringRep;
+                    if (MODE == 'text') {
+                        $scope.label = appellation.stringRep;
+                    } else if (MODE == 'image') {
+                        $scope.label = appellation.interpretation_label;
+                    }
                     $scope.field.filled = true;
 
                     selectionService.highlightAppellation(appellation);
@@ -313,8 +329,8 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
                     Type.get({id: appellation.interpretation_type}).$promise.then(function(selectedType) {
                         Type.get({id: $scope.field.concept_id}).$promise.then(function(expectedType) {
                             $scope.showAlert('This field requires an ' + expectedType.label + '; you selected an ' + selectedType.label + '.');
-                        })
-                    })
+                        });
+                    });
 
                 }
                 // The user must click on the field again to make another
@@ -322,39 +338,77 @@ angular.module('annotationApp').controller('RelationTemplateFieldController',
                 selectionService.resume();
 
                 $scope.clearFieldHighlights();
-            });
+            }, function() {}, true);
 
             // User can select text to create a new appellation. We use a modal
             //  here rather than the appellation tab, so that the user doesn't
             //  get lost going back and forth.
-            selectionService.expectWords(function(data) {
+            if (MODE == 'text') {
+                expectation = selectionService.expectWords;
+            } else if (MODE == 'image') {
+                expectation = function(callback, failure, autorelease) {
+                    selectionService.resetRegionCallbacks();
+                    selectionService.expectRegion(callback, failure, autorelease);
+                }
+            }
+
+            expectation(function(data) {
                 $scope.hideAppellationCreate = false;
                 var modalData = {
                     selectedWords: data,
                     selectedText: getStringRep(data, ' '),
                     conceptType: $scope.field.concept_id,
+                    selectedRegions: data,
                 }
                 $scope.openAppellationModal(modalData);
-            });
+            }, function() {}, true);
 
         // The specific concept has already been given; the user need only
         //  provide text evidence.
         } else if($scope.field.type == 'CO') {
-            selectionService.expectWords(function(data) {
+            if (MODE == 'text') {
+                expectation = selectionService.expectWords;
+                selectionService.resetWordCallbacks();
+            } else if (MODE == 'image') {
+                selectionService.resetRegionCallbacks();
+                expectation = function(callback) {
+                    selectionService.expectRegion(callback);
+                    // selectionService.startSelectingRegion();
+                }
+            }
+            expectation(function(data) {
                 // The Appellation will be created when the Relation data are
                 //  processed, so we just need to get the tokenIds and
                 //  stringRep, and we're good to go.
-                var stringRep = getStringRep(data, ' ');
-                $scope.label = stringRep;
+
                 $scope.field.filled = true;
                 $scope.$apply();
-
-                $scope.field.data = {
-                    stringRep: stringRep,
-                    tokenIds: getTokenIds(data),
-                    occursIn: TEXTID,
+                if (MODE == 'text') {
+                    var stringRep = getStringRep(data, ' ');
+                    // TODO: use `position` instead of `tokenIds`.
+                    $scope.field.data = {
+                        "tokenIds": getTokenIds(data),
+                        "stringRep": stringRep,
+                        "asPredicate": false,
+                        "occursIn": TEXTID,
+                        "createdBy": USERID, // TODO: this is odd.
+                    };
+                    $scope.label = stringRep;
+                } else if (MODE == 'image') {
+                    $scope.field.data = {
+                        "occursIn": TEXTID,
+                        "createdBy": USERID,
+                        "position": {
+                            "position_type": "BB",
+                            "position_value": data.coords,
+                            "occursIn": TEXTID,
+                        }
+                    };
+                    $scope.label = '(region selected)';
                 }
+
                 $scope.clearFieldHighlights();
+                selectionService.resume();
             }, function() {}, true);    // Release word selection automatically.
         }
     }

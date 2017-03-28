@@ -8,7 +8,7 @@
             id="appellation-list-item-{{appellation.id}}"
             appellation="{{appellation.id}}"
             ng-repeat="appellation in appellations"
-            ng-click="selectAppellation(appellation)">{{ appellation.stringRep }}</a>
+            ng-click="selectAppellation(appellation)">{{ appellation.interpretation.label }}</a>
     </ul>
     {% endverbatim %}
     <div ng-hide="hideAppellationCreate">

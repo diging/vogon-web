@@ -8,27 +8,22 @@ from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
 
-import requests
-from bs4 import BeautifulSoup
-from guardian.shortcuts import assign_perm
-import uuid
-import re
-from itertools import groupby
+import requests, uuid, re
+from itertools import groupby, chain
+from collections import defaultdict
 
-import slate
-from . import managers
 from annotations.models import *
 from annotations import quadriga
 
 from celery import shared_task
 
+from django.conf import settings
+import logging
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(settings.LOGLEVEL)
 
-def get_manager(name):
-    print dir(managers), name
-    try:
-        return getattr(managers, name)
-    except AttributeError:
-        raise ValueError('No such manager.')
+
 
 
 def tokenize(content, delimiter=u' '):
@@ -68,6 +63,7 @@ def retrieve(repository, resource):
     return repository.getContent(resource)
 
 
+# TODO: this should be retired.
 def scrape(url):
     """
     Retrieve text content from a website.
@@ -85,7 +81,7 @@ def scrape(url):
     response = requests.get(uri, allow_redirects=True)
 
     # TODO : consider plugging in something like DiffBot.
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = ""   #BeautifulSoup(response.text, "html.parser")
 
     textData = {
         'title': soup.title.string,
@@ -95,6 +91,7 @@ def scrape(url):
     return textData
 
 
+# TODO: this should be retired.
 def extract_text_file(uploaded_file):
     """
     Extract the text file, and return its content
@@ -116,6 +113,7 @@ def extract_text_file(uploaded_file):
     return filecontent
 
 
+# TODO: this should be retired.
 def extract_pdf_file(uploaded_file):
     """
     Extract a PDF file and return its content
@@ -138,6 +136,7 @@ def extract_pdf_file(uploaded_file):
     return filecontent
 
 
+# TODO: this should be retired.
 # TODO: refactor!! This signature stinks.
 def save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri=None):
     """
@@ -165,75 +164,90 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
             addedBy=user,
             uri=uri)
     text.save()
-    assign_perm('annotations.view_text', user, text)
     if is_public:
         group = Group.objects.get_or_create(name='Public')[0]
-        assign_perm('annotations.view_text', group, text)
     return text
 
 
 @shared_task
-def submit_relationsets_to_quadriga(relationsets, text, user, **kwargs):
-    status, response = quadriga.submit_relationsets(relationsets, text, user, **kwargs)
+def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
+    logger.debug('Submitting %i relations to Quadriga' % len(rset_ids))
+    rsets = RelationSet.objects.filter(pk__in=rset_ids)
+    text = Text.objects.get(pk=text_id)
+    user = VogonUser.objects.get(pk=user_id)
+    status, response = quadriga.submit_relationsets(rsets, text, user, **kwargs)
+
     if status:
+        qsr = RelationSet.objects.filter(pk__in=rset_ids)
+        project_id = response.get('projectId')
+        workspace_id = response.get('workspaceId')
+        network_id = response.get('networkId')
         accession = QuadrigaAccession.objects.create(**{
             'createdBy': user,
-            'project_id': response.get('project_id'),
-            'workspace_id': response.get('workspace_id'),
-            'network_id': response.get('networkid')
+            'project_id': project_id,
+            'workspace_id': workspace_id,
+            'network_id': network_id
         })
+        logger.debug('Submitted %i relations as network %s to project %s workspace %s' % (qsr.count(), network_id, project_id, workspace_id))
 
-        for relationset in relationsets:
+        for relationset in qsr:
             relationset.submitted = True
             relationset.submittedOn = accession.created
             relationset.submittedWith = accession
             relationset.save()
-
             for relation in relationset.constituents.all():
                 relation.submitted = True
                 relation.submittedOn = accession.created
                 relation.submittedWith = accession
                 relation.save()
-
             for appellation in relationset.appellations():
                 appellation.submitted = True
                 appellation.submittedOn = accession.created
                 appellation.submittedWith = accession
                 appellation.save()
-
+    else:
+        logger.debug('Quadriga submission failed with %s' % str(response))
 
 @shared_task
 def accession_ready_relationsets():
+    logger.debug('Looking for relations to accession to Quadriga...')
+    # print 'processing %i relationsets' % len(all_rsets)
+    # project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
 
-    qs = RelationSet.objects.filter(submitted=False, pending=False)
+    # for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
+    kwargs = {}
 
-    # Do not submit a relationset to Quadriga if the constituent interpretations
-    #  involve concepts that are not resolved.
-    all_rsets = [rs for rs in qs if rs.ready()]
+    for project_id in chain([None], TextCollection.objects.values_list('quadriga_id', flat=True).distinct('quadriga_id')):
+        if project_id:
+            kwargs.update({
+                'project_id': project_id,
+            })
 
-    print 'processing %i relationsets' % len(all_rsets)
-    project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
+        qs = RelationSet.objects.filter(submitted=False, pending=False)
+        if project_id:
+            qs = qs.filter(project_id__quadriga_id=project_id)
+        else:    # Don't grab relations that actually do belong to a project.
+            qs = qs.filter(project_id__isnull=True)
 
-    for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
-        print project_id
-        for text_id, text_group in groupby(project_group, key=lambda rs: rs.occursIn.id):
-            text = Text.objects.get(pk=text_id)
-            for user_id, user_group in groupby(text_group, key=lambda rs: rs.createdBy.id):
-                user = VogonUser.objects.get(pk=user_id)
-                # We lose the iterator after the first pass, so we want a list here.
-                rsets = []
-                for rs in user_group:
-                    rsets.append(rs)
-                    rs.pending = True
-                    rs.save()
-                kwargs = {}
-                if project_id:
-                    kwargs.update({
-                        'project_id': project_id,
-                    })
-                submit_relationsets_to_quadriga.delay(rsets, text, user, **kwargs)
+        # Do not submit a relationset to Quadriga if the constituent interpretations
+        #  involve concepts that are not resolved.
+        qs = filter(lambda o: o.ready(), qs)
+        relationsets = defaultdict(lambda: defaultdict(list))
+
+        for relationset in qs:
+            relationsets[relationset.occursIn.id][relationset.createdBy.id].append(relationset)
+        for text_id, text_rsets in relationsets.iteritems():
+            for user_id, user_rsets in text_rsets.iteritems():
+
+                # Update state.
+                def _state(obj):
+                    obj.pending = True
+                    obj.save()
+                map(_state, user_rsets)
+                submit_relationsets_to_quadriga.delay(map(lambda o: o.id, user_rsets), text_id, user_id, **kwargs)
 
 
+# TODO: this should be retired.
 def handle_file_upload(request, form):
     """
     Handle the uploaded file and route it to corresponding handlers

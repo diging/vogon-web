@@ -18,7 +18,7 @@ var bindAutocomplete = function(selector, pos) {
                 })
                 .autocomplete({
                     source: function( request, response ) {
-                        $.getJSON("/rest/concept", {
+                        $.getJSON(BASE_URL + "/rest/concept/search", {
                             search: extractLast( request.term ),
                             pos: pos,
                             remote: true,
@@ -39,10 +39,15 @@ var bindAutocomplete = function(selector, pos) {
                     },
                     select: function( event, ui ) {
                         this.value = ui.item.value;
-                        $(this).attr('concept_id', ui.item.id);
+                        $(this).attr('concept_id', ui.item.uri);
                         var target = $(this).attr('target');
+                        var description_target = $(this).attr('description');
                         if (target) {
-                            $('#' + target).val(ui.item.id);
+                            $('#' + target).val(ui.item.uri);
+                        }
+                        if (description_target) {
+                            $('#' + description_target).text(ui.item.description);
+                            $('#' + description_target).css("visibility", "visible");
                         }
                         return false;
                     }

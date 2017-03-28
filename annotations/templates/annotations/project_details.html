@@ -16,11 +16,11 @@
             {{ project.name }}
             {% if user.id == project.ownedBy.id %}
             <span class="btn-group pull-right">
-                <a class="btn btn-md"
-                    href="{% url "file_upload" %}?project={{ project.id }}">
+                <a class="btn btn-sm btn-success"
+                    href="{% url "repository_list" %}?project_id={{ project.id }}">
                     <span class="gylphicon glyphicon-plus"></span> Add Text
                 </a>
-                <a class="btn btn-md"
+                <a class="btn btn-sm btn-primary"
                     href="{% url "edit_project" project.id %}">
                     <span class="gylphicon glyphicon-pencil"></span> Edit Project
                 </a>
@@ -47,17 +47,17 @@
                 </a>
             </th>
             <th>
-                <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}" id="order_publication">Published</a>
-                <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-created' %}?order_by=created{% else %}?order_by=-created{% endif %}">
-                    <span class="glyphicon glyphicon-sort-by-order{% if order_by != '-created' %}-alt{% endif %}" aria-hidden="true"></span>
+                <a class="h4" style="text-decoration: none; vertical-align: middle;" href="{% if order_by == '-added' %}?order_by=added{% else %}?order_by=-added{% endif %}" id="order_publication">Added</a>
+                <a class="btn btn-sm btn-default" aria-label="Left Align" href="{% if order_by == '-added' %}?order_by=added{% else %}?order_by=-added{% endif %}">
+                    <span class="glyphicon glyphicon-sort-by-order{% if order_by != '-added' %}-alt{% endif %}" aria-hidden="true"></span>
                 </a>
             </th>
         </thead>
         {% for text in texts %}
         <tbody>
             <tr>
-                <td><a href="{% url "text" text.id %}">{{ text.title }}</a></td>
-                <td>{{ text.created }}</td>
+                <td><a href="{% url "repository_text" text.repository_id text.repository_source_id %}?project_id={{ project.id }}">{{ text.title }}</a></td>
+                <td>{{ text.added }}</td>
             </tr>
         </tbody>
         {% endfor %}
@@ -92,6 +92,12 @@
     </p>
     {% endif %}
 
+    {% if relations and relations.count > 0 %}
+    <div class="h3">Recent Annotations
+        <a class="btn btn-sm" href="{% url "relations" %}?project={{ project.id }}">See all</a>
+    </div>
+    {% include "annotations/relations_list_fragment.html" %}
+    {% endif %}
 </div>
 
 {% endblock %}

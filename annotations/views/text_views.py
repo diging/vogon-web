@@ -5,10 +5,11 @@ Provides views onto :class:`.Text`\s.
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.template import RequestContext, loader
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.db.models import Q
 
 from annotations.display_helpers import get_snippet_relation
 from annotations.forms import UploadFileForm
@@ -17,7 +18,6 @@ from annotations.utils import basepath
 from annotations.tasks import handle_file_upload
 from annotations.display_helpers import get_appellation_summaries
 
-from guardian.shortcuts import get_perms
 
 from itertools import groupby, combinations
 
@@ -98,6 +98,7 @@ def _get_relations_data(relationset_qs):
     return relationsets
 
 
+
 @ensure_csrf_cookie
 def text(request, textid):
     """
@@ -113,17 +114,21 @@ def text(request, textid):
     """
 
     text = get_object_or_404(Text, pk=textid)
+    from annotations.annotators import annotator_factory
+
+    annotator = annotator_factory(request, text)
+
     context_data = {
         'text': text,
         'textid': textid,
         'title': 'Annotate Text',
+        'content': annotator.get_content(),
         'baselocation' : basepath(request)
     }
 
     # If a text is restricted, then the user needs explicit permission to
     #  access it.
     access_conditions = [
-        'view_text' in get_perms(request.user, text),
         request.user in text.annotators.all(),
         getattr(request.user, 'is_admin', False),
         text.public,
@@ -134,13 +139,13 @@ def text(request, textid):
     mode = request.GET.get('mode', 'view')
 
     if all([request.user.is_authenticated(), any(access_conditions), mode == 'annotate']):
-        template = loader.get_template('annotations/text.html')
+        template = "annotations/text.html"
         context_data.update({
             'userid': request.user.id,
             'title': text.title,
         })
-        context = RequestContext(request, context_data)
-        return HttpResponse(template.render(context))
+        context = context_data
+        return render(request, template, context)
     elif all([request.user.is_authenticated(), any(access_conditions), mode == 'user_annotations']):
         appellations = Appellation.objects.filter(occursIn_id=textid,
                                                   asPredicate=False,
@@ -156,7 +161,7 @@ def text(request, textid):
     elif mode == 'annotate':
         return HttpResponseRedirect(reverse('login'))
 
-    template = loader.get_template('annotations/text_view.html')
+    template = "annotations/text_view.html"
 
     appellations = Appellation.objects.filter(occursIn_id=textid,
                                               asPredicate=False)
@@ -172,10 +177,11 @@ def text(request, textid):
         'relations': relationsets,
         'title': text.title,
     })
-    context = RequestContext(request, context_data)
-    return HttpResponse(template.render(context))
+    context = context_data
+    return render(request, template, context)
 
 
+#TODO: retire this view.
 @login_required
 def upload_file(request):
     """
@@ -206,10 +212,32 @@ def upload_file(request):
         if project_id:
             form.fields['project'].initial = project_id
 
-    template = loader.get_template('annotations/upload_file.html')
-    context = RequestContext(request, {
+    template = "annotations/upload_file.html"
+    context = {
         'user': request.user,
         'form': form,
         'subpath': settings.SUBPATH,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
+
+
+def texts(request):
+    qs = Text.objects.filter(Q(addedBy=request.user))
+    return render(request, 'annotations/list_texts.html', {'object_list': qs})
+
+
+def text_public(request, text_id):
+    """
+    Detail view for texts to which the user does not have direct access.
+    """
+    from annotations.filters import RelationSetFilter
+    text = get_object_or_404(Text, pk=text_id)
+
+    filtered = RelationSetFilter({'occursIn': text.uri}, queryset=RelationSet.objects.all())
+    relations = filtered.qs
+
+    context = {
+        'text': text,
+        'relations': relations,
+    }
+    return render(request, 'annotations/text_public.html', context)

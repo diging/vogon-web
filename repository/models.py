@@ -7,6 +7,8 @@ from urlparse import urljoin
 from string import Formatter
 from uuid import uuid4
 
+from repository import auth
+
 
 class FieldValue(object):
     def __init__(self, name, value, value_type):
@@ -70,6 +72,9 @@ class ContentContainer(object):
         return len(self.contents)
 
 
+class SeriesContainer(ContentContainer):
+    pass
+
 
 class Result(object):
     def __init__(self, **kwargs):
@@ -115,14 +120,27 @@ class Repository(models.Model):
     description = models.TextField()
     configuration = models.TextField()
 
-    def __init__(self, *args, **kwargs):
-        super(Repository, self).__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     super(Repository, self).__init__(*args, **kwargs)
+    #
+    #     try:
+    #         for method in self.configured_methods:
+    #             print '!', method
+    #             setattr(self, method, self._method_factory(method))
+    #     except ValueError:
+    #         pass
 
-        try:
-            for method in self.configured_methods:
-                setattr(self, method, self._method_factory(method))
-        except ValueError:
-            pass
+    def manager(self, user):
+        from repository.managers import RepositoryManager
+        return RepositoryManager(self.configuration, user=user)
+
+    def can(self, method_name):
+        return method_name in self._get_configuration()['methods'].keys()
+
+    def __getattr__(self, key):
+        if key.startswith('can_'):
+            return self.can(key[4:])
+        return getattr(super(Repository, self), key)
 
     @property
     def endpoint(self):
@@ -251,7 +269,8 @@ class Repository(models.Model):
                     )
 
             return mapped_data
-
+        if not data:
+            return []
         if response_type == 'list':
             data = [map_data(result) for result in data]
         elif response_type == 'instance':
@@ -338,6 +357,7 @@ class Repository(models.Model):
         # If raw is True, then the raw result data will be returned, rather
         # than wrapping the results as Result and ResultSet instances.
         raw = kwargs.pop('raw', False)
+        user = kwargs.pop('user', None)
 
         fields = self._get_request_fields(method)
         config = self._get_configuration()
@@ -350,20 +370,32 @@ class Repository(models.Model):
             payload[key] = value
 
         request_path = self._get_path_for_method(method, **kwargs)
-        print request_path
+        request_args = {
+             'params': payload,
+             'headers': {},
+        }
+        if config['format'] == 'xml':
+            request_args['headers'].update({'Accept': 'application/xml'})
 
+        auth_method_name = config.get('auth')
 
+        if auth_method_name and user:
+            auth_method = getattr(auth, auth_method_name, None)
+            if auth_method:
+                request_args['headers'].update(auth_method(user))
+
+        response = requests.get(request_path, **request_args)
+
+        if response.status_code != requests.codes.OK:
+            raise IOError(response.content)
         if config['format'] == 'json':
-            response = requests.get(request_path, params=payload)
             response_content = response.json()
         elif config['format'] == 'xml':
-            headers = {'Accept': 'application/xml'}
-            response = requests.get(request_path, params=payload, headers=headers)
             response_content = xmltodict.parse(response.text)
 
         result_data = self._get_results(method, response_content)
 
-        if raw:    # Just the facts, ma'am.
+        if raw:    # Just the facts.
             return result_data
 
         return self._get_response_handler(method)(result_data)

@@ -1,15 +1,20 @@
 {% extends "annotations/base.html" %}
 {% load staticfiles %}
 
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "users" %}" class="btn btn-xs">Contributors</a>
+{% endblock %}
+
+
 {% block main %}
 
-<div id="main" class="container">
+<div id="main" class="container-fluid">
 
 
     {% block title %}
     <div class="h2">Contributors</div>
     {% endblock %}
-    <div class="container">
+
         <form class="form" role="search">
             <div class="input-group col-xs-12">
                 <input type="text"
@@ -17,12 +22,15 @@
                     placeholder="Search..."
                     {% if search_term %}value="{{search_term}}"{% endif %}
                     name="search_term" id="search_term"></input>
+                <span class="input-group-btn">
+                    <span class="btn btn-success">Search</span>
+                </span>
             </div>
 
         </form>
-    </div>
 
-    <div class="container">
+
+    
 
           {% if user_list|length > 0 %}
 
@@ -76,7 +84,7 @@
             {% for user in user_list %}
             <a href="{% url "user_details" user.id %}"
                 class="contributor-container clearfix list-group-item">
-                <div class="col-xs-8">
+                <div class="col-xs-6">
                     <img class="pull-left img img-responsive img-rounded"
                         src="{% if user.imagefile %}{{ user.imagefile }}{% else %}https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png{% endif %}"
                         width="60px">
@@ -101,10 +109,10 @@
                     </div>
                 </div>
 
-                <div class="col-xs-4">
-                    <div class="text-info">{{ user.appellation_set.count }} appellations </div>
-                    <div class="text-info">{{ user.relation_set.count }} relations </div>
-                    <div class="text-info">{{ user.addedTexts.count }} texts </div>
+                <div class="col-xs-6">
+                    <span class="text-muted">{{ user.appellation_set.count }} appellations </span>
+                    <span class="text-muted">{{ user.relation_set.count }} relations </span>
+                    <span class="text-muted">{{ user.addedTexts.count }} texts </span>
                 </div>
             </a>
             {% endfor %}
@@ -140,6 +148,6 @@
             {% endif %}
 
 
-    </div>
+
 </div>
 {% endblock main %}

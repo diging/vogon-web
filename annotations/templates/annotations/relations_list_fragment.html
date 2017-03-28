@@ -1,0 +1,32 @@
+<div class="list-group relation-list-group">
+{% for relation in relations %}
+    <div class="list-group-item">
+        <div class="pull-right btn-group">
+            <span class="btn btn-xs glyphicon {% if relation.ready %}glyphicon-ok-sign{% else %}glyphicon-ok-circle{% endif %}"
+                data-toggle="tooltip"
+                data-placement="left"
+                data-container="body"
+                title="{% if relation.ready %}Ready for submission{% else %}Some concepts are not yet resolved{% endif %}"></span>
+            <span class="btn btn-xs glyphicon {% if relation.pending %}glyphicon-ok-sign{% else %}glyphicon-ok-circle{% endif %}"
+                data-toggle="tooltip"
+                data-placement="left"
+                data-container="body"
+                title="{% if relation.pending %}Marked for submission{% else %}Pending review{% endif %}"></span>
+            <span class="btn btn-xs glyphicon {% if relation.submitted %}glyphicon-ok-sign{% else %}glyphicon-ok-circle{% endif %}"
+                data-toggle="tooltip"
+                data-placement="left"
+                data-container="body"
+                title="{% if relation.submitted %}Submitted on {{ relation.submittedOn }}{% else %}Pending submission{% endif %}"></span>
+        </div>
+        <div>{{ relation.representation }} <span class="text-muted">{% for date in relation.date_appellations %}<span class="label label-default" style="margin-right: 5px; margin-left: 5px;">{{ date.1.label.title }}: {{date.0}}</span>{% endfor %}</span></div>
+        <div class="text-muted">
+            <span class="glyphicon glyphicon-user"></span>
+            Asserted by <a href="{% url "user_details" relation.createdBy.id %}">{{ relation.createdBy }}</a> on {{ relation.created}}
+        </div>
+        <div class="text-warning">
+            <span class="glyphicon glyphicon-book"></span>
+            <a href="{% if user.is_authenticated %}{{ relation.occursIn.get_absolute_url }}{% else %}{% url "text_public" relation.occursIn.id %}{% endif %}">{{ relation.occursIn.top_level_text.title }}</a>
+        </div>
+    </div>
+{% endfor %}
+</div>

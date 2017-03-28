@@ -3,9 +3,10 @@
   *  specific phrase or passage refers to a particular concept.
   */
 angular.module('annotationApp').factory('Appellation', function($resource) {
-  return $resource('/rest/appellation/:id/', {
+  return $resource(BASE_URL + '/rest/appellation/:id/', {
       text: TEXTID,
-      thisuser: true
+      thisuser: true,
+      project: PROJECTID
   }, {
       list: {
           method: 'GET',

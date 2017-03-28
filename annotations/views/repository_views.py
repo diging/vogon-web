@@ -5,161 +5,383 @@ Provides views related to external repositories.
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.template import RequestContext, loader
+from django.shortcuts import get_object_or_404, render
+from django.db.models import Q
 
 from annotations.forms import RepositorySearchForm
 from annotations.tasks import tokenize
 from repository.models import Repository
+from repository.auth import *
+from repository.managers import *
+from annotations.models import Text, TextCollection, RelationSet
+
+import requests
+from urlparse import urlparse, parse_qs
+from urllib import urlencode
+
+
+def _get_params(request):
+    # The request may include parameters that should be passed along to the
+    #  repository -- at this point, this is just for pagination.
+    # TODO: restable should be taking care of this.
+    params = request.GET.get('params', {})
+    if params:
+        params = dict(map(lambda p: p.split(':'), params.split('|')))
+    return params
+
+
+def _get_pagination(response, base_url, base_params):
+    # TODO: restable should handle pagination, but it seems to be broken right
+    #  now. Once that's fixed, we should back off and let restable do the work.
+    if not response:
+        return None, None
+    _next_raw = response.get('next', None)
+    if _next_raw:
+        _params = {k: v[0] if isinstance(v, list) and len(v) > 0 else v
+                   for k, v in parse_qs(urlparse(_next_raw).query).iteritems()}
+        _next = '|'.join(map(lambda o: ':'.join(o), _params.items()))
+        _nparams = {'params': _next}
+        _nparams.update(base_params)
+        next_page = base_url + '?' + urlencode(_nparams)
+
+    else:
+        next_page = None
+    _prev_raw = response.get('previous', None)
+    if _prev_raw:
+        _params = {k: v[0] if isinstance(v, list) and len(v) > 0 else v
+                   for k, v in parse_qs(urlparse(_prev_raw).query).iteritems()}
+        _prev = '|'.join(map(lambda o: ':'.join(o), _params.items()))
+        _nparams = {'params': _prev}
+        _nparams.update(base_params)
+        previous_page = base_url + '?' + urlencode(_nparams)
+    else:
+        previous_page = None
+    return previous_page, next_page
+
 
 
 @login_required
 def repository_collections(request, repository_id):
-    template = loader.get_template('annotations/repository_collections.html')
+    template = "annotations/repository_collections.html"
     repository = get_object_or_404(Repository, pk=repository_id)
+    manager = RepositoryManager(repository.configuration, user=request.user)
+    project_id = request.GET.get('project_id')
 
-    context = RequestContext(request, {
+    context = {
         'user': request.user,
         'repository': repository,
+        'collections': manager.collections(),
         'title': 'Browse collections in %s' % repository.name,
-    })
+        'project_id': project_id,
+        'manager': manager,
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
 def repository_collection(request, repository_id, collection_id):
-    template = loader.get_template('annotations/repository_collection.html')
-    repository = get_object_or_404(Repository, pk=repository_id)
-    collection = repository.collection(id=collection_id)
+    params = _get_params(request)
 
-    context = RequestContext(request, {
+
+    repository = get_object_or_404(Repository, pk=repository_id)
+    manager = RepositoryManager(repository.configuration, user=request.user)
+    collection = manager.collection(id=collection_id, **params)
+    project_id = request.GET.get('project_id')
+    base_url = reverse('repository_collection', args=(repository_id, collection_id))
+    base_params = {}
+    if project_id:
+        base_params.update({'project_id': project_id})
+
+    context = {
         'user': request.user,
         'repository': repository,
         'collection': collection,
+        'collection_id': collection_id,
         'title': 'Browse collections in %s' % repository.name,
-    })
+        'project_id': project_id,
+    }
+    previous_page, next_page = _get_pagination(collection, base_url, base_params)
+    if next_page:
+        context.update({'next_page': next_page})
+    if previous_page:
+        context.update({'previous_page': previous_page})
 
-    return HttpResponse(template.render(context))
+    return render(request, 'annotations/repository_collection.html', context)
 
 
 @login_required
 def repository_browse(request, repository_id):
-    template = loader.get_template('annotations/repository_browse.html')
-    repository = get_object_or_404(Repository, pk=repository_id)
+    params = _get_params(request)
 
-    context = RequestContext(request, {
+    repository = get_object_or_404(Repository, pk=repository_id)
+    manager = RepositoryManager(repository.configuration, user=request.user)
+    project_id = request.GET.get('project_id')
+    resources = manager.list(**params)
+
+    base_url = reverse('repository_browse', args=(repository_id,))
+    base_params = {}
+    if project_id:
+        base_params.update({'project_id': project_id})
+
+
+    context = {
         'user': request.user,
         'repository': repository,
+        'manager': manager,
         'title': 'Browse repository %s' % repository.name,
-    })
+        'project_id': project_id,
+        'manager': manager,
+        'resources': resources['resources'],
+    }
+    previous_page, next_page = _get_pagination(resources, base_url, base_params)
+    if next_page:
+        context.update({'next_page': next_page})
+    if previous_page:
+        context.update({'previous_page': previous_page})
 
-    return HttpResponse(template.render(context))
+    return render(request, 'annotations/repository_browse.html', context)
+
 
 
 @login_required
 def repository_search(request, repository_id):
-    template = loader.get_template('annotations/repository_search.html')
+    params = _get_params(request)
+
     repository = get_object_or_404(Repository, pk=repository_id)
+    manager = RepositoryManager(repository.configuration, user=request.user)
     query = request.GET.get('query', None)
+    project_id = request.GET.get('project_id')
     if query:
-        results = repository.search(search=query)
+        results = manager.search(query=query, **params)
         form = RepositorySearchForm({'query': query})
     else:
         results = None
         form = RepositorySearchForm()
 
-    context = RequestContext(request, {
+    base_url = reverse('repository_search', args=(repository_id))
+    base_params = {}
+    if project_id:
+        base_params.update({'project_id': project_id})
+    if query:
+        base_params.update({'query': query})
+
+    context = {
         'user': request.user,
         'repository': repository,
         'title': 'Browse repository %s' % repository.name,
         'form': form,
         'results': results,
         'query': query,
-    })
+        'project_id': project_id,
+        'manager': manager,
+    }
+    previous_page, next_page = _get_pagination(results, base_url, base_params)
+    if next_page:
+        context.update({'next_page': next_page})
+    if previous_page:
+        context.update({'previous_page': previous_page})
 
-    return HttpResponse(template.render(context))
+    return render(request, 'annotations/repository_search.html', context)
 
 
-@login_required
 def repository_details(request, repository_id):
-    template = loader.get_template('annotations/repository_details.html')
+    from django.contrib.auth.models import AnonymousUser
+    template = "annotations/repository_details.html"
+
+    user = None if isinstance(request.user, AnonymousUser) else request.user 
+
     repository = get_object_or_404(Repository, pk=repository_id)
-
-    context = RequestContext(request, {
-        'user': request.user,
+    manager = RepositoryManager(repository.configuration, user=user)
+    project_id = request.GET.get('project_id')
+    context = {
+        'user': user,
         'repository': repository,
+        'manager': manager,
         'title': 'Repository details: %s' % repository.name,
-    })
+        'project_id': project_id,
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
 def repository_list(request):
-    template = loader.get_template('annotations/repository_list.html')
-    repositories = Repository.objects.all()
-
-    context = RequestContext(request, {
+    template = "annotations/repository_list.html"
+    project_id = request.GET.get('project_id')
+    context = {
         'user': request.user,
-        'repositories': repositories,
+        'repositories': Repository.objects.all(),
         'title': 'Repositories',
+        'project_id': project_id,
 
-    })
+    }
 
-    return HttpResponse(template.render(context))
+    return render(request, template, context)
 
 
 @login_required
 def repository_text(request, repository_id, text_id):
-    template = loader.get_template('annotations/repository_text_details.html')
-
+    project_id = request.GET.get('project_id')
+    if project_id:
+        project = TextCollection.objects.get(pk=project_id)
+    else:
+        project = None
     repository = get_object_or_404(Repository, pk=repository_id)
-    result = repository.read(id=int(text_id))
+    manager = RepositoryManager(repository.configuration, user=request.user)
+    result = manager.resource(id=int(text_id))
 
-    context = RequestContext(request, {
+    try:
+        master_text = Text.objects.get(uri=result.get('uri'))
+    except Text.DoesNotExist:
+        master_text = None
+
+    try:
+        _parts = result.get('parts')
+        if _parts:
+            first_part = _parts[0]
+            serial_content = [{
+                'source_id': first_part.get('id'),
+                'content_id': content_part['id'],
+                'content_type': content_part['content_type']
+            } for content_part in first_part['content']]
+        else:
+            serial_content = []
+    except IndexError:
+        first_part = None
+        serial_content = None
+
+    context = {
         'user': request.user,
         'repository': repository,
+        'content': result['content'],
         'result': result,
-        'title': 'Text: %s' % result.data['title'].value,
+        'text_id': text_id,
+        'title': 'Text: %s' % result.get('title'),
+        'serial_content': serial_content,
+        'project_id': project_id,
+        'project': project,
+        'master_text': master_text,
+    }
+    if master_text:
+        relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
+        context.update({
+            'relations': relations,
+        })
 
-    })
-    return HttpResponse(template.render(context))
+    if project:
+        context.update({
+            'in_project': master_text and project.texts.filter(pk=master_text.id).exists()
+        })
+    return render(request, 'annotations/repository_text_details.html', context)
 
 
 @login_required
 def repository_text_content(request, repository_id, text_id, content_id):
+
     repository = get_object_or_404(Repository, pk=repository_id)
-    result = repository.read(id=int(text_id))
-    content = result.content.contents.get(int(content_id))    # Not a dict.
-    content_type = content.data.get('content_type', None)
-    if content_type and content_type.value == 'text/plain':
-        content_response = requests.get(content.data['content_location'].value)
-        tokenizedContent = tokenize(content_response.text)
+
+    manager = RepositoryManager(repository.configuration, user=request.user)
+    # content_resources = {o['id']: o for o in resource['content']}
+    # content = content_resources.get(int(content_id))    # Not a dict.
+    content = manager.content(id=int(content_id))
+    resource = manager.resource(id=int(text_id))
+    content_type = content.get('content_type', None)
+    from annotations import annotators
+    if not annotators.annotator_exists(content_type):
+        return _repository_text_fail(request, repository, resource, content)
+
+
+    resource_text_defaults = {
+        'title': resource.get('title'),
+        'created': resource.get('created'),
+        'repository': repository,
+        'repository_source_id': text_id,
+        'addedBy': request.user,
+    }
+
+    part_of_id = request.GET.get('part_of')
+    if part_of_id:
+        master = manager.resource(id=int(part_of_id))
+        master_resource, _ = Text.objects.get_or_create(uri=master['uri'],
+                                                        defaults={
+            'title': master.get('title'),
+            'created': master.get('created'),
+            'repository': repository,
+            'repository_source_id': part_of_id,
+            'addedBy': request.user,
+        })
+        resource_text_defaults.update({'part_of': master_resource})
+
+    resource_text, _ = Text.objects.get_or_create(uri=resource['uri'],
+                                                  defaults=resource_text_defaults)
+
+    project_id = request.GET.get('project_id')
+    if project_id:
+        project = TextCollection.objects.get(pk=project_id)
     else:
-        return _repository_text_fail(request, repository, result, content)
+        project = None
+
+    action = request.GET.get('action', 'annotate')
+
+
+    target, headers = content.get('location'), {}
+
 
     defaults = {
-        'title': getattr(result.get('title'), 'value', None),
-        'created': getattr(result.get('created'), 'value', None),
-        #'source': repository,
-        'tokenizedContent': tokenizedContent,
+        'title': resource.get('title'),
+        'created': resource.get('created'),
+        'repository': repository,
+        'repository_source_id': content_id,
         'addedBy': request.user,
-        'originalResource': getattr(result.get('url'), 'value', None),
+        'content_type': content_type,
+        'part_of': resource_text,
+        'originalResource': getattr(resource.get('url'), 'value', None),
     }
-    text, _ = Text.objects.get_or_create(uri=result.uri.value, defaults=defaults)
-    return HttpResponseRedirect(reverse('text', args=(text.id,)))
+    text, _ = Text.objects.get_or_create(uri=content['uri'], defaults=defaults)
+    if project_id:
+        project.texts.add(text.top_level_text)
+
+    if action == 'addtoproject' and project:
+        return HttpResponseRedirect(reverse('view_project', args=(project_id,)))
+    elif action == 'annotate':
+        redirect = reverse('annotate', args=(text.id,))
+        if project_id:
+            redirect += '?project_id=%s' % str(project_id)
+        return HttpResponseRedirect(redirect)
+
+
+@login_required
+def repository_text_add_to_project(request, repository_id, text_id, project_id):
+    repository = get_object_or_404(Repository, pk=repository_id)
+    project = get_object_or_404(TextCollection, pk=project_id)
+
+    manager = RepositoryManager(repository.configuration, user=request.user)
+
+    resource = manager.resource(id=int(text_id))
+    defaults = {
+        'title': resource.get('title'),
+        'created': resource.get('created'),
+        'repository': repository,
+        'repository_source_id': text_id,
+        'addedBy': request.user,
+    }
+    text, _ = Text.objects.get_or_create(uri=resource.get('uri'),
+                                         defaults=defaults)
+    project.texts.add(text)
+    return HttpResponseRedirect(reverse('view_project', args=(project_id,)))
 
 
 def _repository_text_fail(request, repository, result, content):
-    template = loader.get_template('annotations/repository_text_fail.html')
-
-    context = RequestContext(request, {
+    template = "annotations/repository_text_fail.html"
+    project_id = request.GET.get('project_id')
+    context = {
         'user': request.user,
         'repository': repository,
         'result': result,
         'content': content,
         'title': 'Whoops!',
-        'content_type': content.data.get('content_type', None),
-    })
-    return HttpResponse(template.render(context))
+        'content_type': content.get('content_type', None),
+        'project_id': project_id,
+    }
+    return render(request, template, context)

@@ -1,0 +1,31 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% url "sign_s3" %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="" class="btn btn-xs">Text: {{ text.title }}</a>
+{% endblock %}
+
+{% block main %}
+
+<div class="container-fluid">
+    <div class="h2">{{ text.title }}</div>
+    <p class="text-muted">{{ text.uri }}</p>
+    <p>
+        {% if text.part_of %}Part of <a href="{% url "text_public" text.part_of.id %}">{{ text.part_of.title }}</a>{% endif %}
+    </p>
+    {% if text.repository %}
+    <p>
+        From <a href="{% url "repository_details" text.repository.id %}">{{ text.repository.name }}
+    </p>
+    {% endif %}
+    <p class="text-warning">Added by <a href="{% url "user_details" text.addedBy.id  %}">{{ text.addedBy.username }}</a> on {{ text.added }}</p>
+
+    <div class="h3">Recent Annotations
+        <a class="btn btn-sm" href="{% url "relations" %}?occursIn={{ text.uri }}">See all</a>
+    </div>
+    {% include "annotations/relations_list_fragment.html" %}
+</div>
+
+
+{% endblock main %}

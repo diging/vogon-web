@@ -3,15 +3,15 @@ Provides user-oriented views, including dashboard, registration, etc.
 """
 
 from django.conf import settings
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.template import RequestContext, loader
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.forms import AuthenticationForm
 
 # TODO: should we be using VogonGroup?
 from django.contrib.auth.models import Group
@@ -19,11 +19,41 @@ from django.contrib.auth.models import Group
 from annotations.models import (VogonUser, Text, Appellation, RelationSet,
                                 TextCollection, Relation)
 from annotations.forms import RegistrationForm, UserChangeForm
-from annotations.display_helpers import (user_recent_texts,
-                                         get_recent_annotations)
+from annotations.display_helpers import user_recent_texts
 
 import datetime
 from isoweek import Week
+
+
+class VogonUserAuthenticationForm(AuthenticationForm):
+    class Meta:
+        model = VogonUser
+
+
+@login_required
+def logout_view(request):
+    logout(request)
+    next_page = request.GET.get('next', reverse('home'))
+    return HttpResponseRedirect(next_page)
+
+
+@csrf_protect
+def login_view(request):
+    # We're just using the AuthenticationForm to build the HTML input elements.
+    form = AuthenticationForm()
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+            next_page = request.GET.get('next', reverse('dashboard'))
+            return HttpResponseRedirect(next_page)
+    context = {'form': form}
+    return render(request, 'registration/login.html', context)
+
+
+
 
 
 @csrf_protect
@@ -96,8 +126,8 @@ def user_settings(request):
         if request.user.imagefile == "" or request.user.imagefile is None:
             request.user.imagefile=settings.DEFAULT_USER_IMAGE
 
-    template = loader.get_template('annotations/settings.html')
-    context = RequestContext(request, {
+    template = "annotations/settings.html"
+    context = {
         'user': request.user,
         'full_name' : request.user.full_name,
         'email' : request.user.email,
@@ -107,21 +137,21 @@ def user_settings(request):
         'preview' : request.user.imagefile,
         'form': form,
         'subpath': settings.SUBPATH,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
 
 
 @login_required
 def user_annotated_texts(request):
     recent_texts = user_recent_texts(request.user)
 
-    context = RequestContext(request, {
+    context = {
         'title': 'My Texts',
         'user': request.user,
         'recent_texts': recent_texts,
         'added_texts': added_texts,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
 
 
 @login_required
@@ -144,13 +174,13 @@ def user_projects(request):
                      num_relations=Count('texts__relationsets'))
     qs = qs.values(*fields)
 
-    template = loader.get_template('annotations/project_user.html')
-    context = RequestContext(request, {
+    template = "annotations/project_user.html"
+    context = {
         'user': request.user,
         'title': 'Projects',
         'projects': qs,
-    })
-    return HttpResponse(template.render(context))
+    }
+    return render(request, template, context)
 
 
 @login_required
@@ -166,17 +196,34 @@ def dashboard(request):
     ----------
     :class:`django.http.response.HttpResponse`
     """
+    from itertools import groupby
 
-    template = loader.get_template('annotations/dashboard.html')
+    template = "annotations/dashboard.html"
 
-    recent_texts = user_recent_texts(request.user)
-    added_texts = Text.objects.filter(addedBy_id=request.user.id)\
-                                .order_by('-added')\
-                                .values_list('id', 'title', 'added')
+    # Retrieve a unique list of texts that were recently annotated by the user.
+    #  Since many annotations will be on "subtexts" (i.e. Texts that are
+    #  part_of another Text), we need to first identify the unique subtexts,
+    #  and then assemble a list of unique "top level" texts.
+    _recently_annotated = request.user.appellation_set.order_by('occursIn_id', '-created')\
+                                           .values_list('occursIn_id')\
+                                           .distinct('occursIn_id')[:20]
+    _annotated_texts = Text.objects.filter(pk__in=_recently_annotated)
+    _key = lambda t: t.id
+    _recent_grouper = groupby(sorted(map(lambda t: t.top_level_text,
+                                         _annotated_texts),
+                                     key=_key),
+                              key=_key)
+    recent_texts = []
+    for t_id, group in _recent_grouper:
+        recent_texts.append(group.next())    # Take the first item only.
+
+    added_texts = Text.objects.filter(addedBy_id=request.user.id, part_of__isnull=True)\
+                                .order_by('-added')
+                                # .values('id', 'title', 'added')
 
     flds = ['id', 'name', 'description']
-    projects_owned = request.user.collections.all().values_list(*flds)
-    projects_contributed = request.user.contributes_to.all().values_list(*flds)
+    projects_owned = request.user.collections.all().values(*flds)
+    projects_contributed = request.user.contributes_to.all().values(*flds)
 
     appellation_qs = Appellation.objects.filter(createdBy__pk=request.user.id)\
                                         .filter(asPredicate=False)\
@@ -184,7 +231,7 @@ def dashboard(request):
     relationset_qs = RelationSet.objects.filter(createdBy__pk=request.user.id)\
                                         .distinct().count()
 
-    context = RequestContext(request, {
+    context = {
         'title': 'Dashboard',
         'user': request.user,
         'recent_texts': recent_texts[:5],
@@ -193,8 +240,9 @@ def dashboard(request):
         'projects_contributed': projects_contributed[:5],
         'appellationCount': appellation_qs,
         'relation_count': relationset_qs,
-    })
-    return HttpResponse(template.render(context))
+        'relations': RelationSet.objects.filter(createdBy=request.user).order_by('-created')[:10]
+    }
+    return render(request, template, context)
 
 
 def user_details(request, userid, *args, **kwargs):
@@ -267,8 +315,8 @@ def user_details(request, userid, *args, **kwargs):
 
         projects = user.collections.all()
 
-        template = loader.get_template('annotations/user_details_public.html')
-        context = RequestContext(request, {
+        template = "annotations/user_details_public.html"
+        context = {
             'detail_user': user,
             'textCount': textCount,
             'relation_count': relation_count,
@@ -276,10 +324,11 @@ def user_details(request, userid, *args, **kwargs):
             'text_count': textAnnotated,
             'default_user_image' : settings.DEFAULT_USER_IMAGE,
             'annotation_per_week' : annotation_per_week,
-            'recent_activity': get_recent_annotations(user=user),
+            'recent_activity':[],# get_recent_annotations(user=user),
             'projects': projects,
-        })
-    return HttpResponse(template.render(context))
+            'relations': RelationSet.objects.filter(createdBy=user).order_by('-created')[:10]
+        }
+    return render(request, template, context)
 
 
 def list_user(request):
@@ -295,7 +344,7 @@ def list_user(request):
     :class:`django.http.response.HttpResponse`
     """
 
-    template = loader.get_template('annotations/contributors.html')
+    template = "annotations/contributors.html"
 
     search_term = request.GET.get('search_term')
     sort = request.GET.get('sort', 'username')
@@ -324,4 +373,4 @@ def list_user(request):
         'user': request.user,
         'title': 'Contributors'
     }
-    return HttpResponse(template.render(context))
+    return render(request, template, context)

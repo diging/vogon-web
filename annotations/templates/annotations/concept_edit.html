@@ -1,0 +1,33 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% load app_filters %}
+{% load addcss %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "concepts" %}" class="btn btn-xs">Concepts</a>&raquo;<a href="{% url "concept" concept.id %}" class="btn btn-xs">{{ concept.label }}</a>&raquo;<a href="{% url "edit_concept" concept.id %}" class="btn btn-xs">Edit</a>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    <div class="h3">{{ concept.label }}</div>
+    {% for error in form.non_field_errors %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endfor %}
+
+    <form class="form" method="POST" action="?next={{ next_page }}">
+        {% csrf_token %}
+        {% for field in form %}
+        {% for error in field.errprs %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endfor %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field|addcss:"form-control" }}
+        </div>
+        {% endfor %}
+
+        <input class="btn btn-md btn-success" type="submit" value="Save" />
+    </form>
+
+</div>
+{% endblock %}

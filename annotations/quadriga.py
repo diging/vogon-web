@@ -1,7 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 
-from annotations.models import Relation, Appellation, DateAppellation
+from annotations.models import Relation, Appellation, DateAppellation, DocumentPosition
 
 import xml.etree.ElementTree as ET
 import datetime
@@ -9,8 +9,6 @@ import re
 import uuid
 import requests
 from requests.auth import HTTPBasicAuth
-
-
 
 
 def _created_element(element, annotation):
@@ -62,19 +60,20 @@ def to_appellationevent(appellation, toString=False):
     appellation_event = _created_element(ET.Element('appellation_event'), appellation)
     term = _created_element(ET.SubElement(appellation_event, 'term'), appellation)
     interpretation = ET.SubElement(term, 'interpretation')
-    interpretation.text = appellation.interpretation.uri
+    interpretation.text = appellation.interpretation.master.uri
 
     printed_representation = _created_element(ET.SubElement(term, 'printed_representation'), appellation)
 
-    for tokenId in appellation.tokenIds.split(','):
-        term_part = _created_element(ET.SubElement(printed_representation, 'term_part'), appellation)
-        pos, exp = _get_token(tokenId, appellation.occursIn.tokenizedContent)
-        if pos:
-            position = ET.SubElement(term_part, 'position')
-            position.text = str(pos)
-        if exp:
-            expression = ET.SubElement(term_part, 'expression')
-            expression.text = exp
+    if appellation.position.position_type == DocumentPosition.TOKEN_ID:
+        for tokenId in appellation.position.position_value.split(','):
+            term_part = _created_element(ET.SubElement(printed_representation, 'term_part'), appellation)
+            pos, exp = _get_token(tokenId, appellation.occursIn.tokenizedContent)
+            if pos:
+                position = ET.SubElement(term_part, 'position')
+                position.text = str(pos)
+            if exp:
+                expression = ET.SubElement(term_part, 'expression')
+                expression.text = exp
 
     if toString:
         return ET.tostring(appellation_event)
@@ -257,6 +256,7 @@ def submit_relationsets(relationsets, text, user,
     auth = HTTPBasicAuth(userid, password)
     headers = {'Accept': 'application/xml'}
     r = requests.post(endpoint, data=payload, auth=auth, headers=headers)
+
     if r.status_code == requests.codes.ok:
         response_data = parse_response(r.text)
         response_data.update(params)

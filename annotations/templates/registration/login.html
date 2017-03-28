@@ -18,8 +18,8 @@
 	<div class="row col-sm-8 col-sm-offset-2">
 		<div id="login" class="panel panel-default narrow center">
 			<div class="panel-heading">Log In</div>
-			<form action="{{ app_path }}" method="post" id="login-form" class="form-horizontal" style="margin-bottom: 0px;">{% csrf_token %}
-
+			<form action="{{ app_path }}" method="POST" id="login-form" class="form-horizontal" style="margin-bottom: 0px;">{% csrf_token %}
+                {% csrf_token %}
 				<div class="panel-body">
 					{% if form.errors and not form.non_field_errors %}
 					<p class="errornote">
@@ -36,6 +36,9 @@
 					{% endif %}
 
 					<div id="content-main">
+                            {% for error in form.username.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
 							<div class="form-group">
 							{{ form.username.errors }}
 								<label for="username" class="required control-label col-sm-4">{{ form.username.label }}:</label>
@@ -43,6 +46,10 @@
 									{{ form.username | addcss:"form-control" }}
 								</div>
 							</div>
+
+                            {% for error in form.username.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
 							<div class="form-group">
 							{{ form.password.errors }}
 								<label for="password" class="required control-label col-sm-4">{% trans 'Password:' %}</label>
