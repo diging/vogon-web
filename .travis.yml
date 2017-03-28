@@ -11,6 +11,6 @@ env:
     - CELERY_TASK_SERIALIZER=json
     - DATABASE_URL=postgres://vogonweb:vogonweb@localhost:5432/vogonweb
 before_script:
-  - psql -c 'create role vogonweb with password "vogonweb"; create database vogonweb with owner vogonweb; alter role vogonweb creatdb;' -U postgres
+  - psql -c 'create role vogonweb with password vogonweb; create database vogonweb with owner vogonweb; alter role vogonweb creatdb;' -U postgres
 script:
   - python manage.py test
