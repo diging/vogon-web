@@ -476,6 +476,9 @@ class Repository(models.Model):
         return unicode(self.name)
 
 
+
+# TODO: remove this model, as it is no longer used (in favor of the repository
+#  module).
 class Authorization(models.Model):
     """
     Represents an authorization token for an external service.
