@@ -85,7 +85,8 @@ class ConceptLifecycle(object):
 
     @property
     def is_external(self):
-        return not self.is_native and not self.is_created
+        print self._get_namespace(), self.is_native, self.is_created
+        return not (self.is_native or self.is_created)
 
     @property
     def default_state(self):
@@ -95,8 +96,10 @@ class ConceptLifecycle(object):
         """
         if self.is_native:
             return Concept.RESOLVED
-        elif self.is_external:
+        elif self.is_created:
             return Concept.PENDING
+        elif self.is_external:
+            return Concept.APPROVED
         elif self.instance.uri:
             return Concept.APPROVED
 
@@ -123,7 +126,6 @@ class ConceptLifecycle(object):
 
     @staticmethod
     def create_from_raw(data):
-        print "::create from raw::", data, type(data)
         _type_uri = data.get('type_uri')
         if _type_uri:
             _typed, _ = Type.objects.get_or_create(uri=_type_uri)
@@ -272,7 +274,6 @@ class ConceptLifecycle(object):
             raise ConceptUpstreamException("There was an error adding the"
                                            " concept to Conceptpower:"
                                            " %s" % str(E))
-        print data, type(data)
         target = ConceptLifecycle.create_from_raw(data).instance
         self.instance.merged_with = target
         self.instance.concept_state = Concept.MERGED

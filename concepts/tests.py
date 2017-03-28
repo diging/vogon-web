@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.db.models.signals import post_save
 from concepts.authorities import resolve, search
 from concepts.models import Concept, Type
-# from concepts.signals import concept_post_save_receiver, type_post_save_receiver
+from concepts.signals import concept_post_save_receiver
 import mock, json
 from concepts.lifecycle import *
 
@@ -65,6 +65,8 @@ class TestConceptLifeCycle(TestCase):
     The :class:`.ConceptLifecycle` guides :class:`.Concept`\s through their
     various trials and tribulations.
     """
+    def setUp(self):
+        disconnect_signal(post_save, concept_post_save_receiver, Concept)
 
     def test_is_native(self):
         """
@@ -362,6 +364,7 @@ class TestConceptLifeCycle(TestCase):
         manager = ConceptLifecycle.create(
             label = "Test",
             uri = "http://vogonweb.net/test",
+            typed = Type.objects.get_or_create(uri='viaf:personal')[0]
         )
         concept = manager.instance
 
@@ -417,6 +420,7 @@ class TestConceptLifeCycle(TestCase):
             label = "Test",
             uri = "http://viaf.org/viaf/12345",
             resolve = False,
+            typed = Type.objects.get_or_create(uri='viaf:personal')[0]
         )
         concept = manager.instance
 
@@ -435,3 +439,4 @@ class TestConceptLifeCycle(TestCase):
     def tearDown(self):
         Concept.objects.all().delete()
         Type.objects.all().delete()
+        reconnect_signal(post_save, concept_post_save_receiver, Type)
