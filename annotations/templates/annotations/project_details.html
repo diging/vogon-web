@@ -92,6 +92,12 @@
     </p>
     {% endif %}
 
+    {% if relations and relations.count > 0 %}
+    <div class="h3">Recent Annotations
+        <a class="btn btn-sm" href="{% url "relations" %}?project={{ project.id }}">See all</a>
+    </div>
+    {% include "annotations/relations_list_fragment.html" %}
+    {% endif %}
 </div>
 
 {% endblock %}

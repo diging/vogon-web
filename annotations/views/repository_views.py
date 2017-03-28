@@ -185,14 +185,17 @@ def repository_search(request, repository_id):
     return render(request, 'annotations/repository_search.html', context)
 
 
-@login_required
 def repository_details(request, repository_id):
+    from django.contrib.auth.models import AnonymousUser
     template = "annotations/repository_details.html"
+
+    user = None if isinstance(request.user, AnonymousUser) else request.user 
+
     repository = get_object_or_404(Repository, pk=repository_id)
-    manager = RepositoryManager(repository.configuration, user=request.user)
+    manager = RepositoryManager(repository.configuration, user=user)
     project_id = request.GET.get('project_id')
     context = {
-        'user': request.user,
+        'user': user,
         'repository': repository,
         'manager': manager,
         'title': 'Repository details: %s' % repository.name,

@@ -12,7 +12,7 @@ from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
 
-from annotations.models import TextCollection
+from annotations.models import TextCollection, RelationSet
 from annotations.forms import ProjectForm
 
 
@@ -48,11 +48,17 @@ def view_project(request, project_id):
         # If page is out of range (e.g. 9999), deliver last page of results.
         texts = paginator.page(paginator.num_pages)
 
+    from annotations.filters import RelationSetFilter
+
+    filtered = RelationSetFilter({'project': project.id}, queryset=RelationSet.objects.all())
+    relations = filtered.qs
+
     context = {
         'user': request.user,
         'title': project.name,
         'project': project,
         'texts': texts,
+        'relations': relations,
     }
 
     return render(request, template, context)

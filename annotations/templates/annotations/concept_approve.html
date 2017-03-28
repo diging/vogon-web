@@ -42,7 +42,7 @@
         {% for candidate in matches %}
         <li class="list-group-item clearfix">
             <div class="pull-right btn-group">
-                <a class="btn btn-success" href="{% url "merge_concepts" concept.id candidate.id %}?next={{ next_page }}">Merge</a>
+                <a class="btn btn-success" href="{% url "merge_concepts" concept.id %}?target={{ candidate.uri }}&next={{ next_page }}">Merge</a>
             </div>
             <div><strong>{{ candidate.label }}</strong> </div>
             <div class="text-warning">
@@ -62,7 +62,7 @@
         {% for candidate in candidates %}
         <li class="list-group-item clearfix">
             <div class="pull-right btn-group">
-                <a class="btn btn-success" href="{% url "merge_concepts" concept.id candidate.id %}?next={{ next_page }}">Merge</a>
+                <a class="btn btn-success" href="{% url "merge_concepts" concept.id %}?target={{ candidate.uri }}&next={{ next_page }}">Merge</a>
             </div>
             <div><strong>{{ candidate.label }}</strong> </div>
             <div class="text-warning">
@@ -78,7 +78,7 @@
     {% endif %}
 
     <a class="btn btn-md btn-danger" href="{{ next_page }}">Take me back!</a>
-    <a class="btn btn-md btn-{% if matches %}warning{% else %}success{% endif %}" href="?confirmed=true&next={{ next_page }}">{% if matches %}I disagree; approve anyway!{% else %}Approve{% endif %}</a>
+    <a class="btn btn-md btn-{% if matches or candidates %}warning{% else %}success{% endif %}" href="?confirmed=true&next={{ next_page }}">{% if matches or candidates %}I accept the risks: approve anyway!{% else %}Approve{% endif %}</a>
 </div>
 
 

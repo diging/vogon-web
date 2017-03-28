@@ -60,7 +60,7 @@ def to_appellationevent(appellation, toString=False):
     appellation_event = _created_element(ET.Element('appellation_event'), appellation)
     term = _created_element(ET.SubElement(appellation_event, 'term'), appellation)
     interpretation = ET.SubElement(term, 'interpretation')
-    interpretation.text = appellation.interpretation.uri
+    interpretation.text = appellation.interpretation.master.uri
 
     printed_representation = _created_element(ET.SubElement(term, 'printed_representation'), appellation)
 
@@ -256,7 +256,7 @@ def submit_relationsets(relationsets, text, user,
     auth = HTTPBasicAuth(userid, password)
     headers = {'Accept': 'application/xml'}
     r = requests.post(endpoint, data=payload, auth=auth, headers=headers)
-    
+
     if r.status_code == requests.codes.ok:
         response_data = parse_response(r.text)
         response_data.update(params)

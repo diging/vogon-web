@@ -73,6 +73,20 @@
     {% endfor %}
     {% endif %}
     {% endwith %}
+
+    {% with filter.form.project as field %}
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon">Project</span>
+            {{ field|addcss:"form-control" }}
+        </div>
+    </div>
+    {% if field.errors %}
+    {% for error in field.errors %}
+    <div class="alert alert-warning">{{ error }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
     <div class="clearfix">
         <input type="submit" class="btn btn-sm btn-default pull-right" value="Apply" />
     </div>

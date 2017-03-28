@@ -53,9 +53,9 @@ def search(query, pos='noun'):
 
     concepts = []
     for r in results:
-        r['label'] = r['lemma']
+        r['label'] = r['word']
         instance, created = Concept.objects.get_or_create(
-                                uri=r['id'],
+                                uri=r['uri'],
                                 authority=manager.__name__)
         if created:
             instance = update_instance(Concept, instance, r, manager.__name__)
@@ -118,7 +118,7 @@ def resolve(sender, instance):
 
     if type(instance_cast) is Concept:
         get_method = 'get'
-        label_field = 'lemma'
+        label_field = 'word'
     elif type(instance_cast) is Type:
         get_method = 'get_type'
         label_field = 'type'
@@ -208,11 +208,17 @@ def add(instance):
     pos = instance.pos
     if not pos:
         pos = 'noun'
+    kwargs = {}
+    if instance.uri:
+        kwargs.update({
+            'equal_uris': instance.uri
+        })
     response = conceptpower.create(settings.CONCEPTPOWER_USERID,
                                    settings.CONCEPTPOWER_PASSWORD,
                                    instance.label, pos.lower(),
                                    concept_list, instance.description,
                                    instance.typed.uri)
+
     # This is kind of hacky, but the current version of Conceptpower does not
     #  return the full URI of the new Concept -- just its ID. We can remove this
     #  when the new version of Conceptpower is released.

@@ -18,11 +18,10 @@ from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 
 from annotations.serializers import *
-from annotations.tasks import get_manager
 from annotations.models import (VogonUser, Repository, Appellation, RelationSet,
                                 Relation, TemporalBounds, Text, TextCollection)
 from concepts.models import Concept, Type
-from concepts.tasks import search_concept
+from concepts.lifecycle import *
 
 import uuid
 
@@ -89,30 +88,6 @@ class RepositoryViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, )
 
 
-class RemoteCollectionViewSet(viewsets.ViewSet):
-    def list(self, request, repository_pk=None):
-        repository = Repository.objects.get(pk=repository_pk)
-        manager = get_manager(repository.manager)(repository.endpoint)
-        return Response(manager.collections())
-
-    def retrieve(self, request, pk=None, repository_pk=None):
-        repository = Repository.objects.get(pk=repository_pk)
-        manager = get_manager(repository.manager)(repository.endpoint)
-        return Response(manager.collection(pk))
-
-
-class RemoteResourceViewSet(viewsets.ViewSet):
-    def list(self, request, collection_pk=None, repository_pk=None):
-        repository = Repository.objects.get(pk=repository_pk)
-        manager = get_manager(repository.manager)(repository.endpoint)
-        return Response(manager.collection(collection_pk))
-
-    def retrieve(self, request, pk=None, collection_pk=None, repository_pk=None):
-        repository = Repository.objects.get(pk=repository_pk)
-        manager = get_manager(repository.manager)(repository.endpoint)
-        return Response(manager.resource(pk))
-
-
 class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
@@ -134,31 +109,32 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             try:
                 concept = Concept.objects.get(uri=interpretation)
             except Concept.DoesNotExist:
-                try:
-                    concept_data = goat.Concept.retrieve(identifier=interpretation)
-                    type_data = concept_data.data.get('concept_type')
-                    type_instance = None
-                    if type_data:
-                        try:
-                            type_instance = Type.objects.get(uri=type_data.get('identifier'))
-                        except Type.DoesNotExist:
-                            print type_data
-                            type_instance = Type.objects.create(
-                                uri = type_data.get('identifier'),
-                                label = type_data.get('name'),
-                                description = type_data.get('description'),
-                                authority = concept_data.data.get('authority', {}).get('name'),
-                            )
-                    concept = Concept.objects.create(
-                        uri = interpretation,
-                        label = concept_data.data.get('name'),
-                        description = concept_data.data.get('description'),
-                        typed = type_instance,
-                        authority = concept_data.data.get('authority', {}).get('name'),
-                    )
-                except Exception as E:
-                    print E
-                    raise E
+                # try:
+                concept_data = goat.Concept.retrieve(identifier=interpretation)
+                type_data = concept_data.data.get('concept_type')
+                type_instance = None
+                if type_data:
+                    try:
+                        type_instance = Type.objects.get(uri=type_data.get('identifier'))
+                    except Type.DoesNotExist:
+                        print type_data
+                        type_instance = Type.objects.create(
+                            uri = type_data.get('identifier'),
+                            label = type_data.get('name'),
+                            description = type_data.get('description'),
+                            authority = concept_data.data.get('authority', {}).get('name'),
+                        )
+
+                concept = ConceptLifecycle.create(
+                    uri = interpretation,
+                    label = concept_data.data.get('name'),
+                    description = concept_data.data.get('description'),
+                    typed = type_instance,
+                    authority = concept_data.data.get('authority', {}).get('name'),
+                ).instance
+                # except Exception as E:
+                #     print E
+                #     raise E
             data['interpretation'] = concept.id
 
         # occursIn = data.pop('occursIn', None)
@@ -465,8 +441,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
             if pos == 'all':
                 pos = None
 
-            # if remote:  # Spawn asynchronous calls to authority services.
-            #     search_concept.delay(query, pos=pos)
             queryset = queryset.filter(label__icontains=query)
 
         if max_results:

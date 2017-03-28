@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'gtl7=k_#_cx5e9!2(khyq3_#u3=8bh97fi_t0e*p#*u66rwg=&'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = eval(os.environ.get('DEBUG', 'False'))
@@ -215,7 +215,7 @@ djcelery.setup_loader()
 CELERYBEAT_SCHEDULE = {
     'accession_ready_relationsets': {
         'task': 'annotations.tasks.accession_ready_relationsets',
-        'schedule': timedelta(seconds=360),
+        'schedule': timedelta(seconds=30),
     },
 }
 
@@ -238,3 +238,8 @@ MAX_GILES_UPLOADS = 20
 
 GOAT = os.environ.get('GOAT', 'http://127.0.0.1:8000')
 GOAT_APP_TOKEN = os.environ.get('GOAT_APP_TOKEN')
+
+LOGIN_URL = BASE_URL + 'login/github/'
+# LOGOUT_REDIRECT_URL = 'home'
+
+LOGLEVEL = os.environ.get('LOGLEVEL', 'DEBUG')

@@ -14,13 +14,13 @@
                 <div class="panel">
                     <div class="panel-heading clearfix">
                         <span class="h4">Recently Annotated</span>
-                        <span class="pull-right btn-group">
+                        <!-- <span class="pull-right btn-group">
                             <a href="" class="btn btn-xs">View all</a>
-                        </span>
+                        </span> -->
                     </div>
                     <div class="list-group">
                         {% for text in recent_texts %}
-                        <a class="list-group-item" href="">{{ text.top_level_text.title }}</a>
+                        <a class="list-group-item" href="{{ text.get_absolute_url }}">{{ text.top_level_text.title }}</a>
                         {% endfor %}
                     </div>
                 </div>
@@ -29,13 +29,13 @@
                 <div class="panel">
                     <div class="panel-heading clearfix">
                         <span class="h4">Recently Added</span>
-                        <span class="pull-right btn-group">
+                        <!-- <span class="pull-right btn-group">
                             <a href="" class="btn btn-xs">View all</a>
-                        </span>
+                        </span> -->
                     </div>
                     <div class="list-group">
                         {% for text in added_texts %}
-                        <a class="list-group-item" href="">{{ text.title }}</a>
+                        <a class="list-group-item" href="{{ text.get_absolute_url }}">{{ text.title }}</a>
                         {% endfor %}
                     </div>
 

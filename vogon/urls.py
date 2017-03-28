@@ -37,12 +37,7 @@ router.register(r'concept', views.rest_views.ConceptViewSet)
 router.register(r'type', views.rest_views.TypeViewSet)
 router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 
-# TODO: do we still need this nested router business?
-repository_router = nrouters.NestedSimpleRouter(router, r'repository', lookup='repository')
-repository_router.register('collection', views.rest_views.RemoteCollectionViewSet, base_name='repository')
 
-remotecollection_router = nrouters.NestedSimpleRouter(repository_router, r'collection', lookup='collection')
-remotecollection_router.register('resource', views.rest_views.RemoteResourceViewSet, base_name='collection')
 
 
 #Error Handlers
@@ -56,7 +51,7 @@ urlpatterns = [
     url(r'^activity/$', views.main_views.recent_activity),
 
     url(r'^users/(?P<userid>[0-9]+)/$', views.user_views.user_details, name="user_details"),
-    url(r'^accounts/login/$', views.user_views.login_view, name='login'),
+    url(r'^accounts/login/$', views.user_views.login_view, name='login_fallback'),
     url(r'^accounts/logout/$', views.user_views.logout_view, name='logout'),
     url(r'^accounts/profile/', views.user_views.dashboard, name='dashboard'),
     url(r'^accounts/projects/', views.user_views.user_projects, name='user_projects'),
@@ -69,8 +64,6 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^rest/', include(router.urls)),
-    url(r'^rest/', include(repository_router.urls)),
-    url(r'^rest/', include(remotecollection_router.urls)),
 
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
     # url(r'^text/$', views.text_views.texts, name='text_search'),
@@ -111,9 +104,8 @@ urlpatterns = [
     url(r'^concept/(?P<concept_id>[0-9]+)/$', conceptViews.concept, name='concept'),
     url(r'^concept/(?P<concept_id>[0-9]+)/add/$', conceptViews.add_concept, name='add_concept'),
     url(r'^concept/(?P<concept_id>[0-9]+)/edit/$', conceptViews.edit_concept, name='edit_concept'),
-    url(r'^concept/(?P<concept_id>[0-9]+)/resolve/$', conceptViews.resolve_concept, name="resolve_concept"),
     url(r'^concept/(?P<concept_id>[0-9]+)/approve/$', conceptViews.approve_concept, name="approve_concept"),
-    url(r'^concept/(?P<source_concept_id>[0-9]+)/merge/(?P<target_concept_id>[0-9]+)/$', conceptViews.merge_concepts, name='merge_concepts'),
+    url(r'^concept/(?P<source_concept_id>[0-9]+)/merge/$', conceptViews.merge_concepts, name='merge_concepts'),
 
     # url(r'^concept_autocomplete/', views.search_views.concept_autocomplete, name='concept_autocomplete'),
 
@@ -132,6 +124,8 @@ urlpatterns = [
     url(r'^repository/(?P<repository_id>[0-9]+)/text/(?P<text_id>[0-9]+)/project/(?P<project_id>[0-9]+)$', views.repository_views.repository_text_add_to_project, name='repository_text_add_to_project'),
 
     url(r'^repository/$', views.repository_views.repository_list, name='repository_list'),
+
+    url(r'^text/(?P<text_id>[0-9]+)/public/$', views.text_views.text_public, name='text_public'),
 
     url(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
 

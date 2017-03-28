@@ -8,24 +8,22 @@ from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
 
-import requests
-import uuid
-import re
-from itertools import groupby
+import requests, uuid, re
+from itertools import groupby, chain
+from collections import defaultdict
 
-from . import managers
 from annotations.models import *
 from annotations import quadriga
 
 from celery import shared_task
 
+from django.conf import settings
+import logging
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(settings.LOGLEVEL)
 
-def get_manager(name):
-    print dir(managers), name
-    try:
-        return getattr(managers, name)
-    except AttributeError:
-        raise ValueError('No such manager.')
+
 
 
 def tokenize(content, delimiter=u' '):
@@ -173,20 +171,26 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
 
 @shared_task
 def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
+    logger.debug('Submitting %i relations to Quadriga' % len(rset_ids))
     rsets = RelationSet.objects.filter(pk__in=rset_ids)
     text = Text.objects.get(pk=text_id)
     user = VogonUser.objects.get(pk=user_id)
     status, response = quadriga.submit_relationsets(rsets, text, user, **kwargs)
 
     if status:
+        qsr = RelationSet.objects.filter(pk__in=rset_ids)
+        project_id = response.get('projectId')
+        workspace_id = response.get('workspaceId')
+        network_id = response.get('networkId')
         accession = QuadrigaAccession.objects.create(**{
             'createdBy': user,
-            'project_id': response.get('project_id'),
-            'workspace_id': response.get('workspace_id'),
-            'network_id': response.get('networkid')
+            'project_id': project_id,
+            'workspace_id': workspace_id,
+            'network_id': network_id
         })
+        logger.debug('Submitted %i relations as network %s to project %s workspace %s' % (qsr.count(), network_id, project_id, workspace_id))
 
-        for relationset in rsets:
+        for relationset in qsr:
             relationset.submitted = True
             relationset.submittedOn = accession.created
             relationset.submittedWith = accession
@@ -201,25 +205,29 @@ def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
                 appellation.submittedOn = accession.created
                 appellation.submittedWith = accession
                 appellation.save()
-
+    else:
+        logger.debug('Quadriga submission failed with %s' % str(response))
 
 @shared_task
 def accession_ready_relationsets():
-    print 'processing %i relationsets' % len(all_rsets)
+    logger.debug('Looking for relations to accession to Quadriga...')
+    # print 'processing %i relationsets' % len(all_rsets)
     # project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
 
     # for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
     kwargs = {}
 
-    for project_id in [None] + TextCollection.objects.values_list('quadriga_id', flat=True).distinct('quadriga_id'):
+    for project_id in chain([None], TextCollection.objects.values_list('quadriga_id', flat=True).distinct('quadriga_id')):
         if project_id:
             kwargs.update({
                 'project_id': project_id,
             })
 
         qs = RelationSet.objects.filter(submitted=False, pending=False)
-        if project_id is not None:
-            qs = qs.filter(project_id=project_id)
+        if project_id:
+            qs = qs.filter(project_id__quadriga_id=project_id)
+        else:    # Don't grab relations that actually do belong to a project.
+            qs = qs.filter(project_id__isnull=True)
 
         # Do not submit a relationset to Quadriga if the constituent interpretations
         #  involve concepts that are not resolved.
@@ -229,7 +237,8 @@ def accession_ready_relationsets():
         for relationset in qs:
             relationsets[relationset.occursIn.id][relationset.createdBy.id].append(relationset)
         for text_id, text_rsets in relationsets.iteritems():
-            for user_id, user_rsets in relationsets.iteritems():
+            for user_id, user_rsets in text_rsets.iteritems():
+
                 # Update state.
                 def _state(obj):
                     obj.pending = True

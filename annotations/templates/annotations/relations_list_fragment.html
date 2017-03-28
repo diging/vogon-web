@@ -16,7 +16,7 @@
                 data-toggle="tooltip"
                 data-placement="left"
                 data-container="body"
-                title="{% if relation.submitted %}Submitted on {{ relation.submitted_on }}{% else %}Pending submission{% endif %}"></span>
+                title="{% if relation.submitted %}Submitted on {{ relation.submittedOn }}{% else %}Pending submission{% endif %}"></span>
         </div>
         <div>{{ relation.representation }} <span class="text-muted">{% for date in relation.date_appellations %}<span class="label label-default" style="margin-right: 5px; margin-left: 5px;">{{ date.1.label.title }}: {{date.0}}</span>{% endfor %}</span></div>
         <div class="text-muted">
@@ -25,7 +25,7 @@
         </div>
         <div class="text-warning">
             <span class="glyphicon glyphicon-book"></span>
-            <a href="{{ relation.occursIn.get_absolute_url }}">{{ relation.occursIn.top_level_text.title }}</a>
+            <a href="{% if user.is_authenticated %}{{ relation.occursIn.get_absolute_url }}{% else %}{% url "text_public" relation.occursIn.id %}{% endif %}">{{ relation.occursIn.top_level_text.title }}</a>
         </div>
     </div>
 {% endfor %}

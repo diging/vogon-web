@@ -32,6 +32,8 @@ def relations(request):
     qs = RelationSet.objects.all()
     filtered = RelationSetFilter(request.GET, queryset=qs)
     qs = filtered.qs
+    for r in qs:
+        print r.__dict__
 
     paginator = Paginator(qs, 40)
     page = request.GET.get('page')

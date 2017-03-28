@@ -218,8 +218,8 @@ def dashboard(request):
         recent_texts.append(group.next())    # Take the first item only.
 
     added_texts = Text.objects.filter(addedBy_id=request.user.id, part_of__isnull=True)\
-                                .order_by('-added')\
-                                .values('id', 'title', 'added')
+                                .order_by('-added')
+                                # .values('id', 'title', 'added')
 
     flds = ['id', 'name', 'description']
     projects_owned = request.user.collections.all().values(*flds)

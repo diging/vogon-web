@@ -90,5 +90,21 @@ class Concept(HeritableObject):
     def get_absolute_url(self):
         return reverse('concept', args=(self.id,))
 
+    @property
+    def master(self):
+        """
+        Get the highest-level merge target.
+        """
+        _visited = set()
+        def _get(concept):
+            if concept.id in _visited:
+                raise RuntimeError("Circular merge chain::: %s" % ', '.join(map(str, list(visited))))
+            _visited.add(concept.id)
+            if concept.merged_with:
+                return _get(concept.merged_with)
+            return concept
+        return _get(self)
+
+
 class Type(Concept):
     pass

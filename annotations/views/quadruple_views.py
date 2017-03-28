@@ -23,7 +23,7 @@ def appellation_xml(request, appellation_id):
     ----------
     :class:`django.http.response.HttpResponse`
     """
-    
+
     appellation = Appellation.objects.get(pk=appellation_id)
     appellation_xml = quadriga.to_appellationevent(appellation, toString=True)
     return HttpResponse(appellation_xml, content_type='application/xml')
@@ -84,5 +84,5 @@ def text_xml(request, text_id, user_id):
     text = Text.objects.get(pk=text_id)
     user = VogonUser.objects.get(pk=user_id)
     relationsets = RelationSet.objects.filter(occursIn_id=text_id, createdBy_id=user_id)
-    text_xml = quadriga.to_quadruples(relationsets, text, user, toString=True)
+    text_xml, _ = quadriga.to_quadruples(relationsets, text, user, toString=True)
     return HttpResponse(text_xml, content_type='application/xml')

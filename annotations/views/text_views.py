@@ -181,6 +181,7 @@ def text(request, textid):
     return render(request, template, context)
 
 
+#TODO: retire this view.
 @login_required
 def upload_file(request):
     """
@@ -223,3 +224,20 @@ def upload_file(request):
 def texts(request):
     qs = Text.objects.filter(Q(addedBy=request.user))
     return render(request, 'annotations/list_texts.html', {'object_list': qs})
+
+
+def text_public(request, text_id):
+    """
+    Detail view for texts to which the user does not have direct access.
+    """
+    from annotations.filters import RelationSetFilter
+    text = get_object_or_404(Text, pk=text_id)
+
+    filtered = RelationSetFilter({'occursIn': text.uri}, queryset=RelationSet.objects.all())
+    relations = filtered.qs
+
+    context = {
+        'text': text,
+        'relations': relations,
+    }
+    return render(request, 'annotations/text_public.html', context)
