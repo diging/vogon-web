@@ -54,9 +54,9 @@ class PlainTextAnnotator(Annotator):
 
     def get_content(self, resource):
 
-        response = requests.get(resource.get('location')).decode('utf-8')
+        response = requests.get(resource.get('location'))
         if response.status_code == requests.codes.OK:
-            return tokenize(response.content)
+            return tokenize(response.content.decode('utf-8'))
         return
 
     def get_context(self):
