@@ -396,7 +396,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         q = request.GET.get('search', None)
         pos = request.GET.get('pos', None)
 
-        concepts = goat.Concept.search(q=q, pos=pos)
+        concepts = goat.Concept.search(q=q, pos=pos, limit=50)
         def _relabel(datum):
             _fields = {
                 'name': 'label',
