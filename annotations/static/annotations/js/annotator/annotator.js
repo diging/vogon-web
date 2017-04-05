@@ -29,7 +29,6 @@ var getTextPosition = function(textPosition) {
     var textContent = textContainer.childNodes.item(0);
 
     var containerRect = textContainer.getBoundingClientRect();
-    // console.log(rect.top, rect.right, rect.bottom, rect.left);
 
     range.setStart(textContent, textPosition.startOffset);
     range.setEnd(textContent, textPosition.endOffset);
@@ -133,7 +132,6 @@ var ConceptListItem = {
                </div>`,
     methods: {
         select: function() {
-            console.log('ConceptListItem::: select concept', this.concept.uri);
             this.$emit('selectconcept', this.concept);
         }
     }
@@ -184,7 +182,6 @@ var ConceptSearch = {
         selectConcept: function(concept) {
             // Clear the concept search results.
             this.concepts = [];
-            console.log('ConceptSearch::: select concept', concept.uri);
             this.$emit('selectconcept', concept);
         },
         ready: function() {     // TODO: should be able to recover from errors.
@@ -192,7 +189,6 @@ var ConceptSearch = {
         },
         search: function() {
             this.searching = true;    // Instant feedback for the user.
-            console.log("ConceptSearch:: search for", this.query);
 
             // Asynchronous quries are beautiful.
             var self = this;    // Need a closure since Concept is global.
@@ -201,8 +197,6 @@ var ConceptSearch = {
                 payload['pos'] = this.pos;
             }
             Concept.search(payload).then(function(response) {
-                console.log("ConceptSearch:: search succeeded with",
-                            response.body.results.length);
                 self.concepts = response.body.results;
                 self.searching = false;
             }).catch(function(error) {
@@ -406,7 +400,6 @@ AppellationDisplay = {
     },
     methods: {
         selectAppellation: function(appellation) {
-            console.log('AppellationDisplay:: select appellation', appellation.id);
             this.$emit('selectappellation', appellation);
         }
     }
@@ -458,7 +451,6 @@ TextSelectionDisplay = {
         //  the calculated position of the overlay.
         self = this;
         EventBus.$on('updatepositions', function() {
-            console.log("TextSelectionDisplay:: got updatepositions");
             sleep(1500).then(self.updatePosition)
         });
     },
@@ -800,7 +792,6 @@ DateAppellationCreator = {
             this.$emit('cancelappellation');
         },
         createAppellation: function() {
-            console.log('DateAppellationCreator:: creating new appellation');
             if (!(this.submitted || this.saving)) {
                 // this.submitted = true;      // Prevent multiple submissions.
                 // this.saving = true;
@@ -820,7 +811,6 @@ DateAppellationCreator = {
                     month: this.month,
                     day: this.day
                 }).then(function(response) {
-                    console.log('yep', response);
                     self.reset();
                     self.$emit('createddateappellation', response.body);
                 }).catch(function(error){
@@ -912,7 +902,6 @@ AppellationCreator = {
             this.create = false;
         },
         createAppellation: function() {
-            console.log('AppellationCreator:: creating new appellation');
             if (!(this.submitted || this.saving)) {
                 this.submitted = true;      // Prevent multiple submissions.
                 this.saving = true;
@@ -1296,7 +1285,6 @@ RelationCreator = {
         cancel: function() { this.$emit('cancelrelation'); },
         create: function() {
             this.prepareSubmission();
-            console.log('create with ', this.fields);
             self = this;
             RelationTemplateResource.create({id: this.id}, {
                 fields: this.fields,
@@ -1488,7 +1476,6 @@ Appellator = new Vue({
             this.selected_text = null;
         },
         createdDateAppellation: function(appellation) {
-            console.log('yep!!', appellation);
             self = this;
             var offsets = appellation.position.position_value.split(',');
             appellation.position.startOffset = offsets[0];
@@ -1498,7 +1485,6 @@ Appellator = new Vue({
             self.dateappellations.push(appellation);
             self.selectDateAppellation(appellation);
             this.selected_text = null;
-            console.log(this.textIsSelected(), this.selected_text, this.text_listener);
         },
         updateAppellations: function(callback) {
             // "CO" is the "character offset" DocumentPosition type. For image
