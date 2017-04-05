@@ -2,7 +2,7 @@ import requests
 from django.shortcuts import get_object_or_404, render
 from annotations.tasks import tokenize
 from annotations.utils import basepath
-from annotations.models import TextCollection
+from annotations.models import TextCollection, VogonUserDefaultProject
 
 class Annotator(object):
     template = ''
@@ -10,14 +10,13 @@ class Annotator(object):
 
     def __init__(self, request, text):
         project_id = request.GET.get('project_id')
-        if project_id is not None:
-            try:
-                self.project = TextCollection.objects.get(pk=project_id)
-            except TextCollection.DoesNotExist:
-                self.project = None
+        if project_id:
+            project = TextCollection.objects.get(pk=project_id)
         else:
-            self.project = None
+            project = request.user.get_default_project()
 
+        project.texts.add(text)
+        self.project = project;
         self.context = {
             'request': request,
             'user': request.user,
@@ -35,7 +34,7 @@ class Annotator(object):
 
 
 class PlainTextAnnotator(Annotator):
-    template = 'annotations/text.html'
+    template = 'annotations/vue.html'
     content_types = ('text/plain',)
 
 
@@ -56,7 +55,7 @@ class PlainTextAnnotator(Annotator):
 
         response = requests.get(resource.get('location'))
         if response.status_code == requests.codes.OK:
-            return tokenize(response.content)
+            return response.content
         return
 
     def get_context(self):

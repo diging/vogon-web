@@ -1,0 +1,52 @@
+<div class="action-panel-container">
+    <div class="panel with-nav-tabs panel-default"
+            ng-controller="ActionPanelController">
+        <div class="panel-heading">
+            <ul class="nav nav-tabs">
+                <li class="active clearfix">
+                    <a id="appellationTabAnchor"
+                        class="action-tab-anchor text-small"
+                        data-target="#tabAppellations"
+                        data-toggle="tab">Tags</a>
+                </li>
+                <li>
+                    <a id="relationTabAnchor"
+                        class="action-tab-anchor text-small"
+                        data-target="#tabRelations"
+                        data-toggle="tab">Relations</a>
+                </li>
+                <li>
+                    <a id="graphTabAnchor"
+                        class="action-tab-anchor text-small"
+                        data-target="#tabGraph"
+                        data-toggle="tab">Graph</a>
+                </li>
+                <!-- <li class=""> -->
+                    <div class="btn btn-group-sm pull-right">
+                        <a class="btn btn-success"
+                                ng-click="startCreatingRelation()"
+                                id="createRelationButton"
+                                data-toggle="tooltip"
+                                title="Create a new relation"
+                                data-placement="left">
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </a>
+                        <script>
+                        $(function() {
+                            $('#createRelationButton').tooltip();
+                        });
+                        </script>
+                    </div>
+                <!-- </li> -->
+            </ul>
+        </div>
+        <div class="panel-body action-panel-body" ng-cloak>
+            <div class="tab-content action-body">
+                {% include "annotations/text/appellationTab.html" %}
+                {% include "annotations/text/relationTab.html" %}
+                {% include "annotations/text/graphTab.html" %}
+
+            </div>
+        </div>
+    </div>
+</div>
