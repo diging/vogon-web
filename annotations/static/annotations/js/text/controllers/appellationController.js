@@ -1,11 +1,22 @@
 angular.module('annotationApp')
     .controller('AppellationsController',
-        ['$scope', '$rootScope', 'appellationService', 'selectionService',
-         function($scope, $rootScope, appellationService, selectionService) {
+        ['$scope', '$rootScope', 'appellationService', 'selectionService', '$cookies',
+         function($scope, $rootScope, appellationService, selectionService, $cookies) {
 
     $scope.data = {};    // Child controllers should update this object.
 
+    $scope.hidden = [3,];
 
+    $scope.isVisible = function(appellation) {
+        return ($scope.hidden.indexOf(appellation.id) < 0);
+    }
+
+    $scope.hide = function(appellation) {
+        $scope.hidden.push(appellation.id);
+    }
+    $scope.show = function(appellation) {
+        $scope.hidden.splice($scope.hidden.indexOf(appellation.id), 1);
+    }
 
     /**
       *  Generate a string representation of the selected passage (for

@@ -41,7 +41,7 @@ class Concept(HeritableObject):
     resolved = models.BooleanField(default=False)
     typed = models.ForeignKey('Type', related_name='instances', **optional )
     description = models.TextField(**optional)
-    authority = models.CharField(max_length=255)
+    authority = models.CharField(max_length=255, blank=True, null=True)
     pos = models.CharField(max_length=255, **optional)
 
     PENDING = 'Pending'

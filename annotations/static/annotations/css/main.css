@@ -397,7 +397,7 @@ a.appellation-list-item.selected {
  *  it should ride at the bottom of the window on top of the text.
  */
  .action-body {
-     max-height: 300px;
+
      overflow-y: scroll;
  }
 
@@ -409,6 +409,7 @@ a.appellation-list-item.selected {
     bottom: -10px;
     position: fixed;
 }
+
 .fixed-bottom .action-body {
     max-height: 150px;
 }
@@ -682,4 +683,46 @@ a.appellation-list-item.selected {
 
 .relation-list-group {
     font-size: 0.9em;
+}
+
+
+.action-panel-body {
+    padding: 5px 8px;
+}
+
+
+
+.relation-list-item {
+    font-size: 0.8em;
+    padding: 5px 8px;
+}
+
+.relation-list-item p {
+    margin-bottom: 0px;
+}
+
+.appellation-list-item {
+    font-size: 0.8em;
+    padding: 5px 8px;
+}
+
+.annotation-panel-heading {
+    padding: 0px 0px;
+}
+
+.annotation-preamble {
+    font-size: 0.9em;
+}
+
+
+.alert-xs {
+    padding: 5px;
+    font-size: 0.8em;
+    margin-bottom: 5px;
+}
+
+.alert-sm {
+    padding: 8px;
+    font-size: 0.9em;
+    margin-bottom: 10px;
 }

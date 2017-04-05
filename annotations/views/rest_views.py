@@ -18,8 +18,7 @@ from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 
 from annotations.serializers import *
-from annotations.models import (VogonUser, Repository, Appellation, RelationSet,
-                                Relation, TemporalBounds, Text, TextCollection)
+from annotations.models import *
 from concepts.models import Concept, Type
 from concepts.lifecycle import *
 
@@ -28,6 +27,11 @@ import uuid
 import goat
 goat.GOAT = settings.GOAT
 goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
+
+import logging
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(settings.LOGLEVEL)
 
 
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
@@ -88,6 +92,64 @@ class RepositoryViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, )
 
 
+class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
+    queryset = DateAppellation.objects.all()
+    serializer_class = DateAppellationSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+
+    def create(self, request, *args, **kwargs):
+        print request.data
+        data = request.data.copy()
+        position = data.pop('position', None)
+        if 'month' in data and data['month'] is None:
+            data.pop('month')
+        if 'day' in data and data['day'] is None:
+            data.pop('day')
+        serializer_class = self.get_serializer_class()
+
+        try:
+            serializer = serializer_class(data=data)
+        except Exception as E:
+            print serializer.errors
+            raise E
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as E:
+            print serializer.errors
+            raise E
+
+        # raise AttributeError('asdf')
+        try:
+            instance = serializer.save()
+        except Exception as E:
+            print ":::", E
+            raise E
+
+        text_id = serializer.data.get('occursIn')
+
+        if position:
+            if type(position) is not DocumentPosition:
+                position_serializer = DocumentPositionSerializer(data=position)
+                try:
+                    position_serializer.is_valid(raise_exception=True)
+                except Exception as E:
+                    print "DocumentPosition::", position_serializer.errors
+                    raise E
+                position = position_serializer.save()
+
+            instance.position = position
+            instance.save()
+
+        instance.refresh_from_db()
+        reserializer = DateAppellationSerializer(instance, context={'request': request})
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(reserializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
+
+
+
 class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
@@ -136,17 +198,24 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
                 #     print E
                 #     raise E
             data['interpretation'] = concept.id
-
+        print 'ok'
         # occursIn = data.pop('occursIn', None)
         serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=data)
+        print 'still ok'
+        try:
+            serializer = serializer_class(data=data)
+        except Exception as E:
+            print serializer.errors
+            raise E
+        print 'yep ok'
         # if occursIn:
         #     text = Text.objects.get(pk=occursIn)
         #     data
         try:
             serializer.is_valid(raise_exception=True)
+            print 'asdfasdfasdf'
         except Exception as E:
-            print E
+            print serializer.errors
             raise E
 
         # raise AttributeError('asdf')
@@ -180,16 +249,24 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         if position:
             if type(position) is not DocumentPosition:
                 position_serializer = DocumentPositionSerializer(data=position)
-                position_serializer.is_valid(raise_exception=True)
+                try:
+                    position_serializer.is_valid(raise_exception=True)
+                except Exception as E:
+                    print "DocumentPosition::", position_serializer.errors
+                    raise E
                 position = position_serializer.save()
 
             instance.position = position
             instance.save()
 
+        instance.refresh_from_db()
+        reserializer = AppellationSerializer(instance, context={'request': request})
+
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
+        return Response(reserializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
 
+    # TODO: implement some real filters!
     def get_queryset(self, *args, **kwargs):
 
         queryset = AnnotationFilterMixin.get_queryset(self, *args, **kwargs)
@@ -198,6 +275,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         text = self.request.query_params.get('text', None)
         thisuser = self.request.query_params.get('thisuser', False)
         project_id = self.request.query_params.get('project', None)
+        position_type = self.request.query_params.get('position_type', None)
 
         if thisuser:
             queryset = queryset.filter(createdBy_id=self.request.user.id)
@@ -207,7 +285,9 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             queryset = queryset.filter(occursIn_id=text)
         if project_id:
             queryset = queryset.filter(project_id=project_id)
-        return queryset
+        if position_type and position_type in DocumentPosition.TYPES:
+            queryset = queryset.filter(position__position_type=position_type)
+        return queryset.order_by('-created')
 
 
 class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
@@ -241,7 +321,7 @@ class RelationSetViewSet(viewsets.ModelViewSet):
         if project_id:
             queryset = queryset.filter(project_id=project_id)
 
-        return queryset
+        return queryset.order_by('-created')
 
 
 class RelationViewSet(viewsets.ModelViewSet):
@@ -380,10 +460,20 @@ class ConceptViewSet(viewsets.ModelViewSet):
             data['uri'] = 'http://vogonweb.net/{0}'.format(uuid.uuid4())
 
         if 'lemma' not in data:
-            data['lemma'] = data['label'].lower()
+            data['lemma'] = data['label']
+
+        concept_type = data.get('typed', '')
+        try:
+            int(concept_type)
+        except:
+            data['typed'] = Type.objects.get(uri=concept_type).id
 
         serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as E:
+            print serializer.errors
+            raise E
 
         self.perform_create(serializer)
         headers = self.get_success_headers(data)
@@ -394,6 +484,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
     @list_route()
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
+        if not q:
+            return Response({'results': []})
         pos = request.GET.get('pos', None)
 
         concepts = goat.Concept.search(q=q, pos=pos, limit=50)

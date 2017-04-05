@@ -19,6 +19,7 @@ class RemoteCollectionSerializer(serializers.Serializer):
 
 
 
+
 class RemoteResourceSerializer(serializers.Serializer):
     source = serializers.IntegerField()
     id_or_uri = serializers.CharField(max_length=255)
@@ -41,6 +42,15 @@ class DocumentPositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentPosition
         fields = '__all__'
+
+
+class DateAppellationSerializer(serializers.ModelSerializer):
+    position = DocumentPositionSerializer(required=False)
+
+    class Meta:
+        model = DateAppellation
+        fields = ('created', 'createdBy', 'id', 'occursIn', 'position', 'year',
+                  'month', 'day', 'project', 'stringRep', 'dateRepresentation')
 
 
 class TextSerializer(serializers.ModelSerializer):
@@ -107,12 +117,13 @@ class TypeSerializer(serializers.ModelSerializer):
 
 class RelationSetSerializer(serializers.ModelSerializer):
     appellations = AppellationSerializer(many=True)
+    date_appellations = DateAppellationSerializer(many=True)
     concepts = ConceptSerializer(many=True)
 
     class Meta:
         model = RelationSet
         fields = ('id', 'label', 'created', 'template', 'createdBy', 'occursIn',
-                  'appellations', 'concepts', 'project', 'representation')
+                  'appellations', 'concepts', 'project', 'representation', 'date_appellations')
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):

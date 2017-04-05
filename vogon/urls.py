@@ -36,6 +36,8 @@ router.register(r'user', views.rest_views.UserViewSet)
 router.register(r'concept', views.rest_views.ConceptViewSet)
 router.register(r'type', views.rest_views.TypeViewSet)
 router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
+router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
+
 
 
 
@@ -128,5 +130,8 @@ urlpatterns = [
     url(r'^text/(?P<text_id>[0-9]+)/public/$', views.text_views.text_public, name='text_public'),
 
     url(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
+
+
+    url(r'^sandbox/(?P<text_id>[0-9]+)/$', conceptViews.sandbox, name='sandbox'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

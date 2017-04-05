@@ -223,18 +223,19 @@ class ChoiceIntegerField(forms.IntegerField):
             return -1
 
 
+# TODO: widget details (e.g. CSS classes) should be in the template.
 class RelationTemplateForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'placeholder': 'What is this relation called?'
         }))
     description = forms.CharField(widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'rows': 2,
             'placeholder': 'Please describe this relation.',
         }))
     expression = forms.CharField(widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'rows': 3,
             'placeholder': "Enter an expression pattern for this relation."
                            " This should be a full-sentence structure that"
@@ -246,7 +247,7 @@ class RelationTemplateForm(forms.ModelForm):
                            " the third part."
         }))
     terminal_nodes = forms.CharField(widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'rows': 2,
             'placeholder': "Enter comma-separated node identifiers. E.g."
                            " ``0s,1o``."
@@ -290,6 +291,7 @@ class UberCheckboxInput(forms.CheckboxInput):
         return True
 
 
+# TODO: styling (CSS classes) should be in the template.
 class RelationTemplatePartForm(forms.ModelForm):
     """
 
@@ -297,53 +299,53 @@ class RelationTemplatePartForm(forms.ModelForm):
     """
     source_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
     source_concept_description = forms.CharField(widget=forms.Textarea(attrs={
-        'class': 'form-control',
+        'class': 'form-control input-sm',
         'rows': 2,
         'disabled': True,
         'readonly': True,
         'style': 'visibility: hidden;'
     }), required=False)
     source_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.NODE_CHOICES), required=True,
-                                         widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'source'}))
+                                         widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'source'}))
 
     source_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'source_concept', 'description': 'source_concept_description'}), required=False)
     source_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
     source_description = forms.CharField(widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'rows': 2,
             'placeholder': 'Any additional explanatory information, to be displayed to the user.',
         }), required=False)
 
     predicate_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
     predicate_concept_description = forms.CharField(widget=forms.Textarea(attrs={
-        'class': 'form-control',
+        'class': 'form-control input-sm',
         'rows': 2,
         'disabled': True,
         'readonly': True,
         'style': 'visibility: hidden;'
     }), required=False)
     predicate_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.PRED_CHOICES), required=True,
-                                            widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'predicate'}))
+                                            widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'predicate'}))
     predicate_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'predicate_concept', 'description': 'predicate_concept_description'}), required=False)
     predicate_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
     predicate_description = forms.CharField(widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'rows': 2,
             'placeholder': 'Any additional explanatory information, to be displayed to the user.',
         }), required=False)
 
     object_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
     object_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.NODE_CHOICES), required=True,
-                                         widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'object'}))
+                                         widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'object'}))
     object_concept_text= forms.CharField(widget=AutocompleteWidget(attrs={'target': 'object_concept', 'description': 'object_concept_description'}), required=False)
     object_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
     object_description = forms.CharField(widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'rows': 2,
             'placeholder': 'Any additional explanatory information, to be displayed to the user.',
         }), required=False)
     object_concept_description = forms.CharField(widget=forms.Textarea(attrs={
-        'class': 'form-control',
+        'class': 'form-control input-sm',
         'rows': 2,
         'disabled': True,
         'readonly': True,
@@ -391,7 +393,7 @@ class RelationTemplatePartForm(forms.ModelForm):
             if 'prompt_text' in fname:
                 continue
             if 'class' not in field.widget.attrs:
-                field.widget.attrs.update({'class': 'form-control'})
+                field.widget.attrs.update({'class': 'form-control input-sm'})
 
             if 'target' in field.widget.attrs:
                 field.widget.attrs['target'] = 'id_{0}-'.format(self.prefix) + field.widget.attrs['target']

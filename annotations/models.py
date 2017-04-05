@@ -95,6 +95,11 @@ class VogonUserManager(BaseUserManager):
         return user
 
 
+class VogonUserDefaultProject(models.Model):
+    for_user = models.OneToOneField('VogonUser', related_name='default_project')
+    project = models.ForeignKey('TextCollection', related_name='is_default_for')
+
+
 class VogonUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=255, unique=True)
     email = models.EmailField(
@@ -196,6 +201,15 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
         if self.conceptpower_uri:
             return self.conceptpower_uri
         return settings.BASE_URI_NAMESPACE + reverse('user_details', args=[self.id])
+
+    def get_default_project(self):
+        project = TextCollection.objects.filter(is_default_for__for_user=self).first()
+        if project is None:
+            project = TextCollection.objects.create(
+                name="%s's default project" % self.username,
+                ownedBy=self)
+            VogonUserDefaultProject.objects.create(for_user=self, project=project)
+        return project
 
 
 class GroupManager(models.Manager):
@@ -597,13 +611,40 @@ class DateAppellation(Annotation):
     month = models.IntegerField(default=0)
     day = models.IntegerField(default=0)
 
+    stringRep = models.TextField(null=True, blank=True)
+    """
+    Plain-text snippet spanning the selected text.
+    """
+
+    project = models.ForeignKey('TextCollection', related_name='date_appellations',
+                                null=True, blank=True)
+    """
+    Since a :class:`.Text` can belong to more than one :class:`.TextCollection`
+    it follows not all :class:`.Appellation`\s for a text will belong to the
+    same :class:`.TextCollection`\.
+    """
+
+    position = models.ForeignKey('DocumentPosition', blank=True, null=True,
+                                 related_name='date_appellations')
+    """
+    Represents the specific location (phrase or passage) for which the user
+    has registered an interpretation.
+    """
+
+    @property
+    def dateRepresentation(self):
+        _rep = str(self.year)
+        if self.month:
+            _rep += '-' + str(self.month).zfill(2)
+        if self.day:
+            _rep += '-' + str(self.day).zfill(2)
+        return _rep
+
     def __unicode__(self):
         """
         Returns an ISO-8601 compliant unicode representation of the date.
         """
-        return u'-'.join([unicode(getattr(self, part))
-                          for part in ['year', 'month', 'day']
-                          if getattr(self, part)])
+        return unicode(self.dateRepresentation)
 
     @property
     def precision(self):
@@ -649,7 +690,7 @@ class Appellation(Annotation, Interpreted):
     has registered an interpretation.
     """
 
-    tokenIds = models.TextField()
+    tokenIds = models.TextField(null=True, blank=True)
     """
     IDs of words (in the tokenizedContent) selected for this Appellation.
 
@@ -782,14 +823,11 @@ class RelationSet(models.Model):
             for part in ['source', 'object']:
                 target_type = getattr(relation, '%s_content_type' % part)
                 if target_type.id == dtype.id:
-                    appellations.append((
-                        DateAppellation.objects.get(pk=getattr(relation, '%s_object_id' % part)),
-                        relation.predicate.interpretation
-                    ))
+                    appellations.append(DateAppellation.objects.get(pk=getattr(relation, '%s_object_id' % part)))
 
         if appellations:
             return appellations
-        return
+        return []
 
 
     @property
@@ -966,6 +1004,7 @@ class RelationTemplate(models.Model):
             for field in ['source', 'predicate', 'object']:
                 evidenceRequired = getattr(tpart, '%s_prompt_text' % field)
                 nodeType = getattr(tpart, '%s_node_type' % field)
+                print nodeType
                 # The user needs to provide specific concepts for TYPE fields.
                 if nodeType == RelationTemplatePart.TYPE:
                     part_type = getattr(tpart, '%s_type' % field)
@@ -975,6 +1014,23 @@ class RelationTemplate(models.Model):
                     concept_label = getattr(part_type, 'label', None)
                     fields.append({
                         'type': 'TP',
+                        'part_id': tpart.id,
+                        'part_field': field,
+                        'concept_id': concept_id,
+                        'label': part_label,
+                        'concept_label': concept_label,
+                        'evidence_required': evidenceRequired,
+                        'description': part_description,
+                    })
+                elif nodeType == RelationTemplatePart.DATE:
+                    print '!!'
+                    part_type = getattr(tpart, '%s_type' % field)
+                    part_label = getattr(tpart, '%s_label' % field)
+                    part_description = getattr(tpart, '%s_description' % field)
+                    concept_id = getattr(part_type, 'id', None)
+                    concept_label = getattr(part_type, 'label', None)
+                    fields.append({
+                        'type': 'DT',
                         'part_id': tpart.id,
                         'part_field': field,
                         'concept_id': concept_id,
@@ -1015,9 +1071,11 @@ class RelationTemplatePart(models.Model):
     TOBE = 'IS'
     HAS = 'HA'
     RELATION = 'RE'
+    DATE = 'DT'
     NODE_CHOICES = (
         (TYPE, 'Open concept'),
         (CONCEPT, 'Specific concept'),
+        (DATE, 'Date appellation'),
         (RELATION, 'Relation'),
     )
     PRED_CHOICES = (
@@ -1107,6 +1165,7 @@ class DocumentPosition(models.Model):
     XPATH = 'XP'
     CHARACTER_OFFSET = 'CO'
     WHOLE_DOCUMENT = 'WD'
+    TYPES = [TOKEN_ID, BOUNDING_BOX, XPATH, CHARACTER_OFFSET, WHOLE_DOCUMENT]
     TYPE_CHOICES = (
         (TOKEN_ID, 'Token IDs'),
         (BOUNDING_BOX, 'Bounding box'),
@@ -1123,8 +1182,7 @@ class DocumentPosition(models.Model):
     * ``TI`` - Token IDs: word identifiers in a tokenized plain-text document.
     * ``BB`` - Bounding box: X,Y offset and width, height.
     * ``XP`` - XPath
-    * ``CO`` - Character offset. The original Vogon desktop application used
-      this. Currently not used in VogonWeb.
+    * ``CO`` - Character offset.
     * ``WD`` - Whole document.
     """
 

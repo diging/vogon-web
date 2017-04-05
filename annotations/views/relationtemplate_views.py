@@ -63,13 +63,28 @@ def add_relationtemplate(request):
         context['formset'] = relationtemplatepart_formset
         context['templateform'] = relationtemplate_form
 
-        if all([relationtemplatepart_formset.is_valid(),
-                relationtemplate_form.is_valid()]):
+        formset_is_valid = relationtemplatepart_formset.is_valid()
+        form_is_valid = relationtemplate_form.is_valid()
+
+        # Verify that the terminal nodes and expression are consistent with
+        #  the relation template parts.
+        extra_valid = True
+        terminal_nodes = relationtemplate_form.cleaned_data.get('terminal_nodes', '')
+        expression = relationtemplate_form.cleaned_data.get('expression', '')
+        for i in zip(*map(tuple, terminal_nodes.split(',')))[0]:
+            if int(i) > len(relationtemplatepart_formset) - 1:
+                extra_valid =  False
+        for k in Formatter().parse(expression):
+            if int(k[1][0]) > len(relationtemplatepart_formset) - 1:
+                extra_valid =  False
+
+
+        if all([formset_is_valid, form_is_valid, extra_valid]):
             logger.debug('add_relationtemplate: both forms are valid')
             # We commit the RelationTemplate to the database first, so that we
             #  can use it in the FK relation ``RelationTemplatePart.part_of``.
             relationTemplate = relationtemplate_form.save()
-            relationTemplate.terminal_nodes = relationtemplate_form.cleaned_data.get('terminal_nodes', '')
+            relationTemplate.terminal_nodes = terminal_nodes
             relationTemplate.save()
 
             # We index RTPs so that we can fill FK references among them.
@@ -97,7 +112,11 @@ def add_relationtemplate(request):
                                 form.cleaned_data[part + '_type'])
                         setattr(relationTemplatePart, part + '_description',
                                 form.cleaned_data[part + '_description'])
-
+                    elif form.cleaned_data[part + '_node_type'] == 'DT':
+                        setattr(relationTemplatePart, part + '_type',
+                                form.cleaned_data[part + '_type'])
+                        setattr(relationTemplatePart, part + '_description',
+                                form.cleaned_data[part + '_description'])
                     # Node is a specific Concept, e.g. ``employ``.
                     elif form.cleaned_data[part + '_node_type'] == 'CO':
                         setattr(relationTemplatePart, part + '_concept',
@@ -214,9 +233,8 @@ def list_relationtemplate(request):
             'name': rt.name,
             'description': rt.description,
             'fields': rt.fields,
-            } for rt in queryset]
+            } for rt in queryset.order_by('-id')]
         }
-
     response_format = request.GET.get('format', None)
     if response_format == 'json':
         return JsonResponse(data)
@@ -293,14 +311,13 @@ def create_from_relationtemplate(request, template_id):
     # Index RelationTemplateParts by ID.
     template_parts = {part.id: part for part in template.template_parts.all()}
 
-    if request.POST:
+    if request.method == 'POST':
         relations = {}
         data = json.loads(request.body)
-        project_id = data.get('project')
 
+        project_id = data.get('project')
         relation_data = {}
         for field in data['fields']:
-
             if field['part_id'] not in relation_data:
                 relation_data[int(field['part_id'])] = {}
             relation_data[int(field['part_id'])][field['part_field']] = field
@@ -318,8 +335,9 @@ def create_from_relationtemplate(request, template_id):
                 pass
         relation_set.save()
 
+        # TODO: Move this to the root level, and re-parameterize as needed.
         def _create_appellation(field_data, template_part, field,
-                               evidence_required=True):
+                                evidence_required=True):
             """
             Some fields may have data for appellations that have not yet been
             created. So we do that here.
@@ -327,8 +345,9 @@ def create_from_relationtemplate(request, template_id):
             node_type = getattr(template_part, '%s_node_type' % field)
 
             appellation_data = {
-                'occursIn_id': data['occursIn'],
-                'createdBy_id': request.user.id,
+                'occursIn_id': data['occursIn'],    # <- local (reparameterize)
+                'createdBy_id': request.user.id,    # <- local (reparameterize)
+                'project_id': project_id            # <- local (reparameterize)
             }
             if evidence_required and field_data:
                 # We may be dealing with an image appellation, in which case
@@ -352,11 +371,10 @@ def create_from_relationtemplate(request, template_id):
                 # The interpretation is already provided.
                 interpretation = getattr(template_part, '%s_concept' % field)
 
-            # TODO: these should not be hard-coded. Add these URIs to config.
             elif node_type == RelationTemplatePart.TOBE:
-                interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316")
+                interpretation = Concept.objects.get(uri=settings.PREDICATES.get('be'))    # http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316
             elif node_type == RelationTemplatePart.HAS:
-                interpretation = Concept.objects.get(uri="http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9")
+                interpretation = Concept.objects.get(uri=settings.PREDICATES.get('have'))    # "http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9"
             if interpretation:
                 appellation_data.update({'interpretation': interpretation})
 
@@ -400,6 +418,11 @@ def create_from_relationtemplate(request, template_id):
                     field_data = relation_data[part_id][field]
                     part_data['%s_object_id' % field] = int(field_data['appellation']['id'])
                     part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
+                elif node_type == RelationTemplatePart.DATE:
+                    print "!!!!!", node_type
+                    field_data = relation_data[part_id][field]
+                    part_data['%s_object_id' % field] = int(field_data['appellation']['id'])
+                    part_data['%s_content_type' % field] = ContentType.objects.get_for_model(DateAppellation)
                 elif node_type == RelationTemplatePart.RELATION:
                     # -vv- Recusion happens here! -vv-
                     child_part = getattr(template_part, '%s_relationtemplate' % field)
@@ -442,6 +465,8 @@ def create_from_relationtemplate(request, template_id):
                 _target = getattr(relation, '%s_content_object' % pos)
                 if isinstance(_target, Appellation):
                     _val = _target.interpretation.label
+                elif isinstance(_target, DateAppellation):
+                    _val = _target.dateRepresentation
 
             expression_data['%s%s' % (part_id, part_pos)] = _val
         relation_set.representation = template.expression.format(**expression_data)
@@ -449,7 +474,6 @@ def create_from_relationtemplate(request, template_id):
 
         # Set the terminal nodes (concepts) on the RelationSet.
         if template.terminal_nodes:
-
             for part_id, part_pos in map(tuple, template.terminal_nodes.split(',')):
                 relation_id = relation_data_processed[part_map[int(part_id)]][0]
                 relation = Relation.objects.get(pk=relation_id)
@@ -461,9 +485,6 @@ def create_from_relationtemplate(request, template_id):
                     _target = getattr(relation, '%s_content_object' % pos)
                     if isinstance(_target, Appellation):
                         relation_set.terminal_nodes.add(_target.interpretation)
-
-
-
 
         # The first element should be the root of the graph. This is where we
         #  need to "attach" the temporal relations.
@@ -480,7 +501,9 @@ def create_from_relationtemplate(request, template_id):
                 predicate_uri = settings.TEMPORAL_PREDICATES.get(temporalType)
                 if not predicate_uri:
                     continue
-                predicate_concept = Concept.objects.get_or_create(uri=predicate_uri, defaults={'authority': 'Conceptpower'})[0]
+                predicate_concept, _ = Concept.objects.get_or_create(
+                                        uri=predicate_uri,
+                                        defaults={'authority': 'Conceptpower'})
                 predicate_data = {
                     'occursIn_id': data['occursIn'],
                     'createdBy_id': request.user.id,
@@ -490,21 +513,28 @@ def create_from_relationtemplate(request, template_id):
                 predicate_appellation = Appellation(**predicate_data)
                 predicate_appellation.save()
 
-                # The object need not have a URI (concept) interpretation; we
-                #  use an ISO8601 date literal instead. This non-concept
-                #  appellation is represented internally as a DateAppellation.
-                object_data = {
-                    'occursIn_id': data['occursIn'],
-                    'createdBy_id': request.user.id,
-                }
-                for field in ['year', 'month', 'day']:
-                    value = temporalData.get(field)
-                    if not value:
-                        continue
-                    object_data[field] = value
+                temporal_id = temporalData.get('id')
+                if temporal_id:
+                    object_appellation = DateAppellation.objects.get(pk=temporal_id)
+                else:
+                    # The object need not have a URI (concept) interpretation; we
+                    #  use an ISO8601 date literal instead. This non-concept
+                    #  appellation is represented internally as a DateAppellation.
+                    object_data = {
+                        'occursIn_id': data['occursIn'],
+                        'createdBy_id': request.user.id,
+                    }
+                    if project_id:
+                        object_data.update({'project_id': project_id})
 
-                object_appellation = DateAppellation(**object_data)
-                object_appellation.save()
+                    for field in ['year', 'month', 'day']:
+                        value = temporalData.get(field)
+                        if not value:
+                            continue
+                        object_data[field] = value
+
+                    object_appellation = DateAppellation(**object_data)
+                    object_appellation.save()
 
                 temporalRelation = Relation(**{
                     'source_content_type': ContentType.objects.get_for_model(Relation),

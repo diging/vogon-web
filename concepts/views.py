@@ -6,9 +6,10 @@ from django.core.urlresolvers import reverse
 from concepts.models import Concept, Type
 from concepts.filters import *
 from concepts.lifecycle import *
-from annotations.models import RelationSet, Appellation
+from annotations.models import RelationSet, Appellation, TextCollection, VogonUserDefaultProject
 from django.shortcuts import render, get_object_or_404
 from concepts.authorities import ConceptpowerAuthority, update_instance
+from django.contrib.auth.decorators import login_required
 import re, urllib, string
 from unidecode import unidecode
 
@@ -188,3 +189,30 @@ def edit_concept(request, concept_id):
         'next_page': urllib.quote_plus(next_page),
     }
     return render(request, "annotations/concept_edit.html", context)
+
+
+
+@login_required
+def sandbox(request, text_id):
+    from annotations.models import Text
+    text = Text.objects.get(pk=text_id)
+    project_id = request.GET.get('project')
+    if project_id:
+        project = TextCollection.objects.get(pk=project_id)
+    else:
+
+        project = TextCollection.objects.filter(is_default_for__for_user=request.user).first()
+        if project is None:
+            project = TextCollection.objects.create(
+                name="%s's default collection" % request.user.username,
+                ownedBy=request.user)
+            VogonUserDefaultProject.objects.create(for_user=request.user, project=project)
+
+    project.texts.add(text)
+
+    context = {
+        'text': text,
+        'project': project,
+        'user': request.user
+    }
+    return render(request, "annotations/vue.html", context)

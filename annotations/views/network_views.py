@@ -50,10 +50,14 @@ def network_for_text(request, text_id):
 
     # We may want to show this graph on the public (non-annotation) text view,
     #  and thus want to load appellations created by everyone.
-    user_id = request.GET.get('user', None)
+    user_id = request.GET.get('user')
     if user_id:
         relationsets = relationsets.filter(createdBy_id=user_id)
         appellations = appellations.filter(createdBy_id=user_id)
+    project_id = request.GET.get('project')
+    if project_id:
+        relationsets = relationsets.filter(project_id=project_id)
+        appellations = appellations.filter(project_id=project_id)
 
     nodes, edges = generate_network_data_fast(relationsets, text_id=text_id, appellation_queryset=appellations)
 
@@ -67,7 +71,7 @@ def generate_network_data_fast(relationsets, text_id=None, user_id=None, appella
     from itertools import groupby, combinations
     if appellation_queryset is None:
         appellation_queryset = Appellation.objects.all()
-        
+
     nodes = {}
     edges = Counter()
     fields = ['id',
