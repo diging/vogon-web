@@ -242,10 +242,7 @@
                                     'col-sm-3': sidebarIsShown(),
                                     'action-column': true
                                 }">
-                                <div v-bind:style="{
-                                        position: swimmerPosition,
-                                        top: swimmerTop
-                                    }">
+                                <div>
                                     <relation-template-selector
                                         v-if="template == null && creating_relation"
                                         v-on:selectedtemplate="selectedTemplate">
