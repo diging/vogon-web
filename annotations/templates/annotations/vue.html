@@ -237,68 +237,72 @@
                                     v-on:selecttext="selectText">
                                 </text-display>
                             </div>
-                            <div v-bind:class="{
+                            <div id="sticky-swimlane" v-bind:class="{
                                     'col-sm-4': !sidebarIsShown(),
                                     'col-sm-3': sidebarIsShown(),
                                     'action-column': true
                                 }">
-                                <relation-template-selector
-                                    v-if="template == null && creating_relation"
-                                    v-on:selectedtemplate="selectedTemplate">
-                                </relation-template-selector>
-                                <relation-creator
-                                    v-if="template != null && creating_relation"
-                                    v-on:fieldislisteningfortext="fieldIsListeningForText"
-                                    v-on:fieldisdonelisteningfortext="fieldIsDoneListeningForText"
-                                    v-on:createdrelation="createdRelation"
-                                    v-on:cancelrelation="cancelRelation"
-                                    v-bind:user=user
-                                    v-bind:text=text
-                                    v-bind:template=template
-                                    v-bind:project=project>
-                                </relation-creator>
-                                <div class="appellation-type-selector text-right" v-if="textIsSelected()">
-                                    <a v-bind:class="{
-                                            btn: true,
-                                            'btn-sm': true,
-                                            'btn-success': !create_date_appellation,
-                                            'btn-default': create_date_appellation
-                                        }"
-                                        v-tooltip="'Concept'"
-                                        v-on:click="toggleDateAppellation">
-                                        <span class="glyphicon glyphicon-grain"></span>
-                                    </a>
-                                    <a v-bind:class="{
-                                            btn: true,
-                                            'btn-sm': true,
-                                            'btn-success': create_date_appellation,
-                                            'btn-default': !create_date_appellation
-                                        }"
-                                        v-tooltip="'Date'"
-                                        v-on:click="toggleDateAppellation">
-                                        <span class="glyphicon glyphicon-calendar"></span>
-                                    </a>
+                                <div v-bind:style="{
+                                        position: swimmerPosition,
+                                        top: swimmerTop
+                                    }">
+                                    <relation-template-selector
+                                        v-if="template == null && creating_relation"
+                                        v-on:selectedtemplate="selectedTemplate">
+                                    </relation-template-selector>
+                                    <relation-creator
+                                        v-if="template != null && creating_relation"
+                                        v-on:fieldislisteningfortext="fieldIsListeningForText"
+                                        v-on:fieldisdonelisteningfortext="fieldIsDoneListeningForText"
+                                        v-on:createdrelation="createdRelation"
+                                        v-on:cancelrelation="cancelRelation"
+                                        v-bind:user=user
+                                        v-bind:text=text
+                                        v-bind:template=template
+                                        v-bind:project=project>
+                                    </relation-creator>
+                                    <div class="appellation-type-selector text-right" v-if="textIsSelected()">
+                                        <a v-bind:class="{
+                                                btn: true,
+                                                'btn-sm': true,
+                                                'btn-success': !create_date_appellation,
+                                                'btn-default': create_date_appellation
+                                            }"
+                                            v-tooltip="'Concept'"
+                                            v-on:click="toggleDateAppellation">
+                                            <span class="glyphicon glyphicon-grain"></span>
+                                        </a>
+                                        <a v-bind:class="{
+                                                btn: true,
+                                                'btn-sm': true,
+                                                'btn-success': create_date_appellation,
+                                                'btn-default': !create_date_appellation
+                                            }"
+                                            v-tooltip="'Date'"
+                                            v-on:click="toggleDateAppellation">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </a>
+                                    </div>
+                                    <date-appellation-creator
+                                        v-if="textIsSelected() && create_date_appellation"
+                                        v-bind:user=user
+                                        v-bind:text=text
+                                        v-bind:project=project
+                                        v-bind:position=selected_text
+                                        v-on:createddateappellation="createdDateAppellation"
+                                        v-on:cancelappellation="cancelAppellation"
+                                        v-on:createdappellation="createdAppellation">
+                                    </date-appellation-creator>
+                                    <appellation-creator
+                                        v-if="textIsSelected() && !create_date_appellation"
+                                        v-bind:user=user
+                                        v-bind:text=text
+                                        v-bind:project=project
+                                        v-bind:position=selected_text
+                                        v-on:cancelappellation="cancelAppellation"
+                                        v-on:createdappellation="createdAppellation">
+                                    </appellation-creator>
                                 </div>
-                                <date-appellation-creator
-                                    v-if="textIsSelected() && create_date_appellation"
-                                    v-bind:user=user
-                                    v-bind:text=text
-                                    v-bind:project=project
-                                    v-bind:position=selected_text
-                                    v-on:createddateappellation="createdDateAppellation"
-                                    v-on:cancelappellation="cancelAppellation"
-                                    v-on:createdappellation="createdAppellation">
-                                </date-appellation-creator>
-                                <appellation-creator
-                                    v-if="textIsSelected() && !create_date_appellation"
-                                    v-bind:user=user
-                                    v-bind:text=text
-                                    v-bind:project=project
-                                    v-bind:position=selected_text
-                                    v-on:cancelappellation="cancelAppellation"
-                                    v-on:createdappellation="createdAppellation">
-                                </appellation-creator>
-
                             </div>
                             <div v-bind:class="{
                                         'col-sm-1': !sidebarIsShown(),

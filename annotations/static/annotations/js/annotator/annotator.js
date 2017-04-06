@@ -102,6 +102,10 @@ var clearMouseTextSelection = function () {
     }
 }
 
+var getAbsoluteTop = function(elemId) {
+    return document.getElementById(elemId).getClientRects()[0].top + window.scrollY;
+}
+
 /******************************************************************************
   *         Resources!
   *****************************************************************************/
@@ -1405,7 +1409,9 @@ Appellator = new Vue({
             creating_relation: true,
             text_listener: null,
             sidebar: 'relations',
-            create_date_appellation: false
+            create_date_appellation: false,
+            swimmerPosition: 'static',
+            swimmerTop: 0
         }
     },
     mounted: function() {
