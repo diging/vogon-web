@@ -69,6 +69,9 @@ class AnnotationFilterMixin(object):
         textid = self.request.query_params.get('text', None)
         texturi = self.request.query_params.get('text_uri', None)
         userid = self.request.query_params.get('user', None)
+        position_type = self.request.query_params.get('position_type', None)
+        if position_type:
+            queryset = queryset.filter(position_type=position_type )
         if textid:
             queryset = queryset.filter(occursIn=int(textid))
         if texturi:
