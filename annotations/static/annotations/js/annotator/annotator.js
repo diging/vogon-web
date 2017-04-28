@@ -721,7 +721,7 @@ ConceptCreator = {
             this.concept_type = "";
             this.pos = "noun";
             this.error = false;
-            this.submitted = fals;
+            this.submitted = false;
         },
         createConcept: function() {
             if (this.ready) {
