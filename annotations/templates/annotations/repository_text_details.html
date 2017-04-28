@@ -36,14 +36,19 @@
         Multiple content types may be available.
     </p>
     <div class="list-group">
-    {% for obj in serial_content %}
+    {% for ctype, parts in serial_content %}
         <div class="list-group-item">
-            {{ obj.content_type }}
-            <div class="btn-group pull-right">
-                <a class="btn btn-xs btn-success" href="{% if obj.text %}{% url "annotate" obj.text.id %}{% else %}{% url "repository_text_content" repository.id obj.source_id obj.content_id %}{% endif %}?part_of={{ result.id }}{% if project_id %}&project_id={{ project_id }}{% endif %}">
-                    <span class="glyphicon glyphicon-tag"></span> Annotate
+            {{ ctype }}
+            <div class="text-center">
+                {% for i, part in parts %}
+                <a class="btn btn-xs btn-success" href="{% if part.text %}{% url "annotate" part.text.id %}{% else %}{% url "repository_text_content" repository.id part.source_id part.content_id %}{% endif %}?part_of={{ result.id }}{% if project_id %}&project_id={{ project_id }}{% endif %}">
+                    <span class="glyphicon glyphicon-tag"></span> Page {{ i|add:"1" }}
                 </a>
+                {% endfor %}
             </div>
+            <!-- <div class="btn-group pull-right">
+
+            </div> -->
         </div>
     {% endfor %}
     </div>

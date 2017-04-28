@@ -107,20 +107,20 @@ var getAbsoluteTop = function(elemId) {
 }
 
 /******************************************************************************
-  *         Resources!
+  *         Redatasources!
   *****************************************************************************/
 Vue.http.headers.common['X-CSRFTOKEN'] = Cookie.get('csrftoken');
 
-var Appellation = Vue.resource(BASE_URL + '/rest/appellation{/id}');
-var DateAppellation = Vue.resource(BASE_URL + '/rest/dateappellation{/id}');
-var Relation = Vue.resource(BASE_URL + '/rest/relationset{/id}');
-var Concept = Vue.resource(BASE_URL + '/rest/concept{/id}', {}, {
+var Appellation = Vue.redatasource(BASE_URL + '/rest/appellation{/id}');
+var DateAppellation = Vue.redatasource(BASE_URL + '/rest/dateappellation{/id}');
+var Relation = Vue.redatasource(BASE_URL + '/rest/relationset{/id}');
+var Concept = Vue.redatasource(BASE_URL + '/rest/concept{/id}', {}, {
     search: {method: 'GET', url: BASE_URL + '/rest/concept/search'}
 });
-var RelationTemplateResource = Vue.resource(BASE_URL + '/relationtemplate{/id}/', {}, {
+var RelationTemplateRedatasource = Vue.redatasource(BASE_URL + '/relationtemplate{/id}/', {}, {
     create: {method: 'POST', url: BASE_URL + '/relationtemplate{/id}/create/'}
 });
-var ConceptType = Vue.resource(BASE_URL + '/rest/type{/id}');
+var ConceptType = Vue.redatasource(BASE_URL + '/rest/type{/id}');
 
 /******************************************************************************
   *         Components!
@@ -165,6 +165,15 @@ var ConceptSearch = {
                         </div>
                       </div>
                   </div>
+                  <div>
+                        <div class="form-group" style="width: 79%;">
+                            <label class="control-label">Force fresh search
+                              <input type="checkbox" class="checkbox"  style="width: 100%;" v-model="force">
+                              </label>
+
+
+                        </div>
+                  </div>
                   <div class="list-group concept-search-list-group">
                       <concept-list-item
                             v-on:selectconcept="selectConcept"
@@ -179,7 +188,8 @@ var ConceptSearch = {
             concepts: [],
             searching: false,
             error: false,
-            pos: ""
+            pos: "",
+            force: false
         }
     },
     methods: {
@@ -199,6 +209,9 @@ var ConceptSearch = {
             var payload = {search: this.query};
             if (this.pos != "") {
                 payload['pos'] = this.pos;
+            }
+            if (this.force) {
+                payload['force'] = true;
             }
             Concept.search(payload).then(function(response) {
                 self.concepts = response.body.results;
@@ -1290,7 +1303,7 @@ RelationCreator = {
         create: function() {
             this.prepareSubmission();
             self = this;
-            RelationTemplateResource.create({id: this.id}, {
+            RelationTemplateRedatasource.create({id: this.id}, {
                 fields: this.fields,
                 start: this.start,
                 end: this.end,
@@ -1302,7 +1315,7 @@ RelationCreator = {
                 this.ready = false;
                 self.$emit('createdrelation', response.body);
             }).catch(function(error) {
-                console.log('RelationTemplateResource:: failed miserably', error);
+                console.log('RelationTemplateRedatasource:: failed miserably', error);
                 self.error = true;
                 self.ready = false;
             });     // TODO: implement callback and exception handling!!
@@ -1355,7 +1368,7 @@ RelationTemplateSelector = {
         search: function() {
             this.searching = true;
             self = this;
-            RelationTemplateResource.query({search: this.query, format: "json"}).then(function(response) {
+            RelationTemplateRedatasource.query({search: this.query, format: "json"}).then(function(response) {
                 self.templates = response.body.templates;
                 self.searching = false;
             }).catch(function(error) {

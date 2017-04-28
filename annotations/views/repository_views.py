@@ -4,7 +4,7 @@ Provides views related to external repositories.
 
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
 from django.db.models import Q
 
@@ -189,7 +189,7 @@ def repository_details(request, repository_id):
     from django.contrib.auth.models import AnonymousUser
     template = "annotations/repository_details.html"
 
-    user = None if isinstance(request.user, AnonymousUser) else request.user 
+    user = None if isinstance(request.user, AnonymousUser) else request.user
 
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=user)
@@ -222,6 +222,8 @@ def repository_list(request):
 
 @login_required
 def repository_text(request, repository_id, text_id):
+    from collections import defaultdict
+
     project_id = request.GET.get('project_id')
     if project_id:
         project = TextCollection.objects.get(pk=project_id)
@@ -229,7 +231,10 @@ def repository_text(request, repository_id, text_id):
         project = None
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
-    result = manager.resource(id=int(text_id))
+    try:
+        result = manager.resource(id=int(text_id))
+    except IOError:
+        return HttpResponseNotFound('Not found')
 
     try:
         master_text = Text.objects.get(uri=result.get('uri'))
@@ -239,12 +244,22 @@ def repository_text(request, repository_id, text_id):
     try:
         _parts = result.get('parts')
         if _parts:
+            serial_content = defaultdict(list)
             first_part = _parts[0]
-            serial_content = [{
-                'source_id': first_part.get('id'),
-                'content_id': content_part['id'],
-                'content_type': content_part['content_type']
-            } for content_part in first_part['content']]
+            for _part in _parts:
+                for _content_part in _part['content']:
+                    _ctype = _content_part['content_type']
+                    serial_content[_ctype].append({
+                        'source_id': _part.get('id'),
+                        'content_id': _content_part['id'],
+                    })
+            # serial_content = [{
+            #     'source_id': first_part.get('id'),
+            #     'content_id': content_part['id'],
+            #     'content_type': content_part['content_type']
+            # } for content_part in first_part['content']]
+            serial_content = [(k, enumerate(sorted(v, key=lambda o: o['source_id'])))
+                              for k, v in serial_content.iteritems()]
         else:
             serial_content = []
     except IndexError:
