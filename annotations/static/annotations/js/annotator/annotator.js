@@ -18,6 +18,27 @@ var truncateURI = function(input) {
   return input.split('/').pop();
 }
 
+var getOffsetTop = function(elem) {
+    var offsetTop = 0;
+    do {
+      if ( !isNaN( elem.offsetTop ) )
+      {
+          offsetTop += elem.offsetTop;
+      }
+    } while( elem = elem.offsetParent );
+    return offsetTop;
+}
+
+var getOffsetLeft = function( elem ) {
+    var offsetLeft = 0;
+    do {
+      if ( !isNaN( elem.offsetLeft ) )
+      {
+          offsetLeft += elem.offsetLeft;
+      }
+    } while( elem = elem.offsetParent );
+    return offsetLeft;
+}
 
 /**
   * Get a bounding box for a text selection in the '#text-content' element.
@@ -354,7 +375,8 @@ AppellationList = {
 
 AppellationDisplayItem = {
     props: ['appellation'],
-    template: `<li v-tooltip="getLabel()"
+    template: `<div v-if="appellation.visible">
+                <li v-tooltip="getLabel()"
                     v-if="appellation.visible"
                     v-on:click="selectAppellation"
                     v-bind:style="{
@@ -370,7 +392,43 @@ AppellationDisplayItem = {
                         'date-appellation': this.appellation.dateRepresentation != null,
                         'appellation-selected': appellation.selected
                     }">
-                </li>`,
+                </li>
+                <li v-if="manyLinesAreSelected()"
+                     v-on:click="selectAppellation"
+                     v-for="line in mid_lines"
+                     v-tooltip="getLabel()"
+                     v-bind:class="{
+                         'appellation': this.appellation.interpretation != null,
+                         'date-appellation': this.appellation.dateRepresentation != null,
+                         'appellation-selected': appellation.selected
+                     }"
+                     v-bind:style="{
+                       height: line.height,
+                       top: line.top,
+                       left: line.left,
+                       position: 'absolute',
+                       width: line.width,
+                       'z-index': 2
+                   }">
+                </li>
+                <li v-if="multipleLinesAreSelected()"
+                    v-tooltip="getLabel()"
+                    v-on:click="selectAppellation"
+                    v-bind:style="{
+                         height: line_height,
+                         top: end_position.top,
+                         left: end_position.left,
+                         position: 'absolute',
+                         width: end_position.width,
+                         'z-index': 2
+                     }"
+                     v-bind:class="{
+                         'appellation': this.appellation.interpretation != null,
+                         'date-appellation': this.appellation.dateRepresentation != null,
+                         'appellation-selected': appellation.selected
+                     }">
+                </li>
+                </div>`,
     data: function() {
         return {
             position: {
@@ -380,7 +438,10 @@ AppellationDisplayItem = {
                 right: 0,
                 bottom: 0
             },
-            line_height: 0
+            line_height: 0,
+            multi_line: null,
+            mid_lines: [],
+            end_position: {}
         }
     },
     mounted: function() {
@@ -395,11 +456,49 @@ AppellationDisplayItem = {
                 return this.appellation.dateRepresentation;
             }
         },
+        multipleLinesAreSelected: function() { return this.end_position.top !== undefined; },
+        manyLinesAreSelected: function() { return this.mid_lines.length > 0; },
         selectAppellation: function() { this.$emit('selectappellation', this.appellation); },
         updatePosition: function() {
+            console.log(this.appellation);
+            this.mid_lines = [];
             var lineHeight = parseInt(getStyle('text-content', 'line-height'));
             this.position = getTextPosition(this.appellation.position);
             this.line_height = lineHeight - 1;
+            var endPoint = getPointPosition(this.appellation.position.endOffset);
+            var nLines = 1 + (endPoint.bottom - this.position.bottom)/lineHeight;
+            if (nLines > 1) {    // The selection may span several lines.
+                // clientLeft/clientWidth don't account for inner padding.
+                var _padding = parseInt(getStyle('text-content', 'padding'));
+                if (!_padding) {    // Firefox.
+                    _padding = parseInt(getStyle('text-content', 'paddingLeft'));
+                }
+                var _left = parseInt(document.getElementById('text-content').clientLeft);
+                var _width = parseInt(document.getElementById('text-content').clientWidth);
+                var left = _left + _padding;
+                var width = _width - (2 * _padding);
+
+                this.end_position = {    // This is the last line, running from
+                    top: endPoint.top,   //  far left to the end of the
+                    left: left,          //   selection.
+                    width: endPoint.right - left
+                }
+
+                // If the selection spans more than two lines, we need to
+                //  highlight the intermediate lines at full width.
+                for (i = 0; i < Math.max(0, nLines - 2); i++) {
+                    this.mid_lines.push({
+                        top: this.position.top + (i + 1) * lineHeight,
+                        left: left,
+                        width: width,
+                        height: lineHeight - 1
+                    })
+                }
+            } else {
+                this.end_position = {};
+            }
+            console.log(this.mid_lines);
+            console.log(this.end_position);
         }
     }
 }
@@ -531,7 +630,9 @@ TextSelectionDisplay = {
     }
 }
 
-
+// TODO: we should use v-html="text" here instead of putting the text in as
+// plain text. but this may break some existing appellations, so talk to
+// Julia first.
 TextDisplay = {
     props: ['appellations', 'dateappellations'],
     template: `<div style="position: relative;">
@@ -1425,15 +1526,33 @@ Appellator = new Vue({
             sidebar: 'relations',
             create_date_appellation: false,
             swimmerPosition: 'static',
-            swimmerTop: 0
+            swimmerTop: 0,
+            swimmerRef: 0,
+            swimmerLeft: -2,
+            swimmerWidth: 0
         }
     },
     mounted: function() {
         this.updateAppellations();
         this.updateRelations();
         this.updateDateAppellations();
+        var shadow_elem = document.getElementById('shadow-swimlane');
+        this.swimmerRef = getOffsetTop(shadow_elem);
+        this.swimmerWidth = shadow_elem.clientWidth + 2;
+        this.handleScroll();
     },
     methods: {
+        handleScroll: function() {
+            var swimmer = document.getElementById('sticky-swimlane');
+            var scrolled = this.swimmerRef - window.scrollY;
+            console.log(scrolled);
+            if (scrolled < 0) {
+                this.swimmerTop = 0;
+            } else {
+                this.swimmerTop = this.swimmerRef;
+            }
+
+        },
         toggleDateAppellation: function() { this.create_date_appellation = !this.create_date_appellation; },
         fieldIsListeningForText: function() { this.text_listener = true; },
         fieldIsDoneListeningForText: function() { this.text_listener = null; },
@@ -1581,5 +1700,12 @@ Appellator = new Vue({
         showRelationsSidebar: function() { this.sidebar = 'relations'; },
         showAppellationsSidebar: function() { this.sidebar = 'appellations'; },
         showDateAppellationsSidebar: function() { this.sidebar = 'dateappellations'; }
+
+    },
+    created () {
+        window.addEventListener('scroll', this.handleScroll);
+    },
+    destroyed () {
+      window.removeEventListener('scroll', this.handleScroll);
     }
 });

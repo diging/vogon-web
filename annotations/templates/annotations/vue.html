@@ -221,7 +221,6 @@
                     <conductor></conductor> <!-- The appellator interface is inserted here. -->
                 </div>
                 <script id="annotation-template" type="text/x-template">
-
                     <div class="container-fluid">
                         <div class="row">
 
@@ -237,10 +236,23 @@
                                     v-on:selecttext="selectText">
                                 </text-display>
                             </div>
-                            <div id="sticky-swimlane" v-bind:class="{
+                            <div id="shadow-swimlane" v-bind:class="{
                                     'col-sm-4': !sidebarIsShown(),
                                     'col-sm-3': sidebarIsShown(),
                                     'action-column': true
+                                }" style="height: 100%;">
+                            </div>
+                            <div id="sticky-swimlane" v-bind:class="{
+                                    'col-sm-offset-7': true,
+                                    'col-sm-4': !sidebarIsShown(),
+                                    'col-sm-3': sidebarIsShown(),
+                                    'action-column': true,
+                                }"
+                                v-bind:style="{
+                                    position: 'fixed',
+                                    top: swimmerTop,
+                                    left: swimmerLeft,
+                                    width: swimmerWidth
                                 }">
                                 <div>
                                     <relation-template-selector

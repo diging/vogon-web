@@ -649,6 +649,7 @@ a.appellation-list-item.selected {
     opacity: 0;
 }
 .footer, .push {
+    margin-top: 60px;
     height: 60px;
     background: #e0e0e0;
 }
