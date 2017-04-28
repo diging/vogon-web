@@ -166,13 +166,14 @@ var ConceptSearch = {
                       </div>
                   </div>
                   <div>
-                        <div class="form-group" style="width: 79%;">
-                            <label class="control-label">Force fresh search
-                              <input type="checkbox" class="checkbox"  style="width: 100%;" v-model="force">
-                              </label>
-
-
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="checkbox"  style="width: 100%;" v-model="force">
+                                Force fresh search
+                            </label>
                         </div>
+                    </div>
                   </div>
                   <div class="list-group concept-search-list-group">
                       <concept-list-item
@@ -211,7 +212,7 @@ var ConceptSearch = {
                 payload['pos'] = this.pos;
             }
             if (this.force) {
-                payload['force'] = true;
+                payload['force'] = 'force';
             }
             Concept.search(payload).then(function(response) {
                 self.concepts = response.body.results;
