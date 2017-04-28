@@ -107,20 +107,20 @@ var getAbsoluteTop = function(elemId) {
 }
 
 /******************************************************************************
-  *         Redatasources!
+  *         Resources!
   *****************************************************************************/
 Vue.http.headers.common['X-CSRFTOKEN'] = Cookie.get('csrftoken');
 
-var Appellation = Vue.redatasource(BASE_URL + '/rest/appellation{/id}');
-var DateAppellation = Vue.redatasource(BASE_URL + '/rest/dateappellation{/id}');
-var Relation = Vue.redatasource(BASE_URL + '/rest/relationset{/id}');
-var Concept = Vue.redatasource(BASE_URL + '/rest/concept{/id}', {}, {
+var Appellation = Vue.resource(BASE_URL + '/rest/appellation{/id}');
+var DateAppellation = Vue.resource(BASE_URL + '/rest/dateappellation{/id}');
+var Relation = Vue.resource(BASE_URL + '/rest/relationset{/id}');
+var Concept = Vue.resource(BASE_URL + '/rest/concept{/id}', {}, {
     search: {method: 'GET', url: BASE_URL + '/rest/concept/search'}
 });
-var RelationTemplateRedatasource = Vue.redatasource(BASE_URL + '/relationtemplate{/id}/', {}, {
+var RelationTemplateResource = Vue.resource(BASE_URL + '/relationtemplate{/id}/', {}, {
     create: {method: 'POST', url: BASE_URL + '/relationtemplate{/id}/create/'}
 });
-var ConceptType = Vue.redatasource(BASE_URL + '/rest/type{/id}');
+var ConceptType = Vue.resource(BASE_URL + '/rest/type{/id}');
 
 /******************************************************************************
   *         Components!
@@ -721,7 +721,7 @@ ConceptCreator = {
             this.concept_type = "";
             this.pos = "noun";
             this.error = false;
-            this.submitted = false;
+            this.submitted = fals;
         },
         createConcept: function() {
             if (this.ready) {
@@ -1303,7 +1303,7 @@ RelationCreator = {
         create: function() {
             this.prepareSubmission();
             self = this;
-            RelationTemplateRedatasource.create({id: this.id}, {
+            RelationTemplateResource.create({id: this.id}, {
                 fields: this.fields,
                 start: this.start,
                 end: this.end,
@@ -1315,7 +1315,7 @@ RelationCreator = {
                 this.ready = false;
                 self.$emit('createdrelation', response.body);
             }).catch(function(error) {
-                console.log('RelationTemplateRedatasource:: failed miserably', error);
+                console.log('RelationTemplateResource:: failed miserably', error);
                 self.error = true;
                 self.ready = false;
             });     // TODO: implement callback and exception handling!!
@@ -1368,7 +1368,7 @@ RelationTemplateSelector = {
         search: function() {
             this.searching = true;
             self = this;
-            RelationTemplateRedatasource.query({search: this.query, format: "json"}).then(function(response) {
+            RelationTemplateResource.query({search: this.query, format: "json"}).then(function(response) {
                 self.templates = response.body.templates;
                 self.searching = false;
             }).catch(function(error) {
