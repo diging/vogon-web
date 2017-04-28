@@ -1538,18 +1538,18 @@ Appellator = new Vue({
         this.updateDateAppellations();
         var shadow_elem = document.getElementById('shadow-swimlane');
         this.swimmerRef = getOffsetTop(shadow_elem);
-        this.swimmerWidth = shadow_elem.clientWidth + 2;
         this.handleScroll();
     },
     methods: {
         handleScroll: function() {
+            var shadow_elem = document.getElementById('shadow-swimlane');
             var swimmer = document.getElementById('sticky-swimlane');
             var scrolled = this.swimmerRef - window.scrollY;
-            console.log(scrolled);
+            this.swimmerWidth = shadow_elem.clientWidth + 2;
             if (scrolled < 0) {
                 this.swimmerTop = 0;
             } else {
-                this.swimmerTop = this.swimmerRef;
+                this.swimmerTop = this.swimmerRef - window.scrollY;
             }
 
         },
@@ -1704,8 +1704,10 @@ Appellator = new Vue({
     },
     created () {
         window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleScroll);
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);
+      window.removeEventListener('resize', this.handleScroll);
     }
 });
