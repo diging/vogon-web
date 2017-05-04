@@ -636,8 +636,8 @@ TextSelectionDisplay = {
 TextDisplay = {
     props: ['appellations', 'dateappellations'],
     template: `<div style="position: relative;">
-                   <div id="text-content"
-                        v-on:mouseup="handleMouseup">{{ text }}</div>
+                   <pre id="text-content"
+                        v-on:mouseup="handleMouseup">{{ text }}</pre>
                    <appellation-display
                        v-bind:appellations=appellations
                        v-on:selectappellation="selectAppellation">

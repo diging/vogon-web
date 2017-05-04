@@ -4,6 +4,7 @@ from annotations.tasks import tokenize
 from annotations.utils import basepath
 from annotations.models import TextCollection, VogonUserDefaultProject
 
+
 class Annotator(object):
     template = ''
     content_types = []
