@@ -11,7 +11,7 @@ logger.setLevel(settings.LOGLEVEL)
 
 
 ## Handle Concept and Type signals. ###
-@receiver(post_save, sender=Concept)
+# @receiver(post_save, sender=Concept)
 def concept_post_save_receiver(sender, **kwargs):
     """
     When a :class:`.Concept` is saved, attempt to resolve it using one of the

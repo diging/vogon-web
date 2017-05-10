@@ -305,8 +305,6 @@ def repository_text_content(request, repository_id, text_id, content_id):
     from annotations import annotators
     if not annotators.annotator_exists(content_type):
         return _repository_text_fail(request, repository, resource, content)
-
-
     resource_text_defaults = {
         'title': resource.get('title'),
         'created': resource.get('created'),
@@ -314,7 +312,6 @@ def repository_text_content(request, repository_id, text_id, content_id):
         'repository_source_id': text_id,
         'addedBy': request.user,
     }
-
     part_of_id = request.GET.get('part_of')
     if part_of_id:
         master = manager.resource(id=int(part_of_id))

@@ -823,7 +823,7 @@ class RelationSet(models.Model):
             for part in ['source', 'object']:
                 target_type = getattr(relation, '%s_content_type' % part)
                 if target_type.id == dtype.id:
-                    appellations.append(DateAppellation.objects.get(pk=getattr(relation, '%s_object_id' % part)))
+                    appellations.append((relation.predicate.interpretation, DateAppellation.objects.get(pk=getattr(relation, '%s_object_id' % part))))
 
         if appellations:
             return appellations

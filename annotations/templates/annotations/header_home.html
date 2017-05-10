@@ -42,16 +42,15 @@ $(function() {
 });
 
 $(window).resize(function(){
-    var jumbo = $('.jumbotron');
-    if (jumbo.css('padding-left') == '60px') {
-        $('.nav-hide').css('visibility', 'visible');
-    } else {
+    var jumbo = $('.splash');
+    if ($('#navbar').hasClass('in')) {
         if ($('.navbar-nav').height() > 0) {
             $('.nav-hide').css('visibility', 'hidden');
         }
+    } else {
+        $('.nav-hide').css('visibility', 'visible');
+
     }
-
-
 });
 
 $('body').on('show.bs.collapse', function(e) {
@@ -66,9 +65,9 @@ $('body').on('hide.bs.collapse', function(e) {
 <div class="container-fluid nav-hide" style="margin-top: 15px;" id="jumbo">
     <div class="row">
         <div class="col-xs-12">
-            <div class="jumbotron jumbotron-transparent">
+            <div class="splash">
                 <!-- <div class="container"> -->
-                    <div class="h2" style="padding-left: 15px; padding-right: 15px;">
+                    <div class="h2">
                         Vogon(Web): <small>knowledge is more than the printed word</small>
                     </div>
                     <p>

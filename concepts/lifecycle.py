@@ -175,7 +175,7 @@ class ConceptLifecycle(object):
             self.instance.label = data.label
             self.instance.description = data.description
             if _typed:
-                self.instance.typed = typed
+                self.instance.typed = _typed
             self.instance.pos = data.pos
             self.instance.concept_state = Concept.RESOLVED
             self.instance.save()

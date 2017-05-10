@@ -242,17 +242,8 @@ circle.node {
  }
 
 
-/* make navbar taller */
-.navbar-brand,
-.navbar-nav li a {
-    line-height: 35px;
-    height: 35px;
-    padding-top: 0;
-    font-family: Arial;
-    padding-left: 8px;
-    padding-right: 8px;
 
-}
+
 
 .navbar .glyphicon {
     line-height: 35px;
@@ -266,14 +257,6 @@ circle.node {
 }
 
 
-.navbar-brand {
-
-
-}
-.navbar-brand img {
-    padding-top: 8px;
-    height: 32px;
-}
 
 .navbar-nav {
     font-size: 1.0em;
@@ -462,6 +445,48 @@ a.appellation-list-item.selected {
 
     border: 0;
 }
+
+.navbar li {
+    padding: 5px 2px;
+    border-radius: 5px;
+    margin: 5px;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-brand li {
+    padding: 5px 2px;
+    border-radius: 5px;
+    margin: 5px;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.open>a {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    background-image: none;
+    border-color: none;
+    border: none;
+}
+
+/* make navbar taller */
+.navbar-brand,
+.navbar-nav li a {
+    line-height: 35px;
+    height: 35px;
+    padding-top: 0;
+    font-family: Arial;
+    padding-left: 8px;
+    padding-right: 8px;
+
+}
+.navbar-brand img {
+    margin-top: 12px;
+    height: 30px;
+}
+
+.navbar li .glyphicon {
+    color: #ea9801;
+}
+
 
 .navbar-home {
     background-repeat: no-repeat;
@@ -726,4 +751,14 @@ a.appellation-list-item.selected {
     padding: 8px;
     font-size: 0.9em;
     margin-bottom: 10px;
+}
+
+
+.splash {
+    padding: 15px;
+    background-color: #ddd;
+    border-radius: 5px;
+}
+.splash .h2 {
+    margin-top: 10px;
 }
