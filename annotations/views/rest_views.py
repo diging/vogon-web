@@ -174,7 +174,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             try:
                 concept = Concept.objects.get(uri=interpretation)
             except Concept.DoesNotExist:
-                # try:
+
                 concept_data = goat.Concept.retrieve(identifier=interpretation)
                 type_data = concept_data.data.get('concept_type')
                 type_instance = None
@@ -197,23 +197,17 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
                     typed = type_instance,
                     authority = concept_data.data.get('authority', {}).get('name'),
                 ).instance
-                # except Exception as E:
-                #     print E
-                #     raise E
+
             data['interpretation'] = concept.id
-        print 'ok'
-        # occursIn = data.pop('occursIn', None)
+
         serializer_class = self.get_serializer_class()
-        print 'still ok'
+
         try:
             serializer = serializer_class(data=data)
         except Exception as E:
             print serializer.errors
             raise E
-        print 'yep ok'
-        # if occursIn:
-        #     text = Text.objects.get(pk=occursIn)
-        #     data
+
         try:
             serializer.is_valid(raise_exception=True)
             print 'asdfasdfasdf'
@@ -279,7 +273,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         thisuser = self.request.query_params.get('thisuser', False)
         project_id = self.request.query_params.get('project', None)
         position_type = self.request.query_params.get('position_type', None)
-
         if thisuser:
             queryset = queryset.filter(createdBy_id=self.request.user.id)
         if concept:

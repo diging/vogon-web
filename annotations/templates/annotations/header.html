@@ -3,18 +3,16 @@
 
 <div id="header" class="{% block extranavcontainerclasses %}{% endblock %}">
 	<nav class="navbar navbar-inverse {% block extranavclasses %}{% endblock %}">
-			<div class="navbar-header nav navbar-nav clearfix">
+			<div class="navbar-header nav navbar-nav brand-nav clearfix">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                   <span class="sr-only">Toggle navigation</span>
                   <span class="icon-bar"></span>
                   <span class="icon-bar"></span>
                   <span class="icon-bar"></span>
                 </button>
-
-    				<a class="navbar-brand" href="{% url "home" %}">
-    					<img alt="Brand" src="{% static "annotations/img/VogonTiny_beta.png" %}" />
-    				</a>
-                
+				<a class="navbar-brand" href="{% url "home" %}">
+					<img alt="Brand" src="{% static "annotations/img/VogonTiny_beta.png" %}" />
+				</a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">

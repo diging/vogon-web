@@ -1,5 +1,6 @@
 import requests
 from django.shortcuts import get_object_or_404, render
+from django.http import Http404
 from annotations.tasks import tokenize
 from annotations.utils import basepath
 from annotations.models import TextCollection, VogonUserDefaultProject
@@ -33,11 +34,17 @@ class Annotator(object):
         context.update(self.get_context())
         return render(self.context.get('request'), self.template, context)
 
+    def render_display(self, context={}):
+        if not hasattr(self, 'display_template'):
+            raise Http404('No display renderer for this format.')
+        context.update(self.get_context())
+        return render(self.context.get('request'), self.display_template, context)
+
 
 class PlainTextAnnotator(Annotator):
     template = 'annotations/vue.html'
+    display_template = 'annotations/annotation_display.html'
     content_types = ('text/plain',)
-
 
     def get_resource(self):
         if not self.text.repository:
@@ -47,8 +54,6 @@ class PlainTextAnnotator(Annotator):
 
 
     def get_resource(self):
-        if not self.text.repository:
-            return self.text.tokenizedContent
         manager = self.text.repository.manager(self.context['user'])
         return manager.content(id=int(self.text.repository_source_id))
 

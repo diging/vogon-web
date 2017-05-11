@@ -11,198 +11,7 @@
         <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
         <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
         <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
-        <style>
-
-            .main {
-                min-height: 1000px;
-            }
-            #text-content {
-                padding: 10px;
-            }
-            .appellation {
-                border: 0.5px solid orange;
-                background-color: yellow;
-                opacity: 0.2;
-                list-style-type: none;
-                margin: 0;
-                padding: 0;
-                cursor: pointer;
-            }
-            .date-appellation {
-                border: 0.5px solid green;
-                background-color: green;
-                opacity: 0.2;
-                list-style-type: none;
-                margin: 0;
-                padding: 0;
-                cursor: pointer;
-            }
-
-            .relation-list {
-                font-size: 0.8em;
-            }
-            .relation-list .btn {
-                font-size: 1em;
-            }
-            .relation-list-item {
-                font-size: 1em;
-                padding: 5px;
-            }
-
-
-            .appellation.appellation-selected {
-                border: 2px solid orange;
-                background-color: orange;
-                opacity: 0.6;
-            }
-            .date-appellation.appellation-selected {
-                border: 2px solid green;
-                background-color: green;
-                opacity: 0.6;
-            }
-            .appellation-list {
-                font-size: 0.8em;
-            }
-            .appellation-list .btn {
-                font-size: 1em;
-            }
-            .appellation-list-item {
-                font-size: 1em;
-                padding: 5px;
-            }
-            .appellation-list-item.appellation-selected {
-                background-color: rgba(255, 165, 0, 0.5);
-            }
-            .text-selection {
-                border: 0.5px solid blue;
-                background-color: blue;
-                opacity: 0.2;
-                list-style-type: none;
-                margin: 0;
-                padding: 0;
-            }
-
-            .concept-item {
-                padding: 5px;
-                font-size: 8pt;
-            }
-            .concept-search-list-group {
-                max-height: 300px;
-                overflow-y: scroll;
-            }
-
-
-            #text-content {
-                font-size: 0.9em;
-            }
-
-            .appellation-type-selector {
-                margin-bottom: 5px;
-                margin-top: 5px;
-            }
-
-            .appellation-creator {
-                font-size: 0.8em;
-                padding: 5px;
-                border: 0.5px solid #ddd;
-            }
-            .appellation-creator .form-control {
-                font-size: 1.0em;
-            }
-            .appellation-creator-representation {
-                font-style: italic;
-                color: #6d6d6d;
-            }
-            .appellation-creator-offsets {
-                font-weight:bold;
-            }
-
-            .relation-form {
-                font-size: 0.8em;
-            }
-            .relation-form .form-control {
-                font-size: 1.0em;
-            }
-
-            .relation-template-selector {
-                font-size: 0.8em;
-            }
-            .relationtemplate-item {
-                cursor: pointer;
-                padding: 3px;
-                margin-bottom: 0px;
-                border: none;
-            }
-            .relation-template-selector .form-group {
-                .font-size: 1em;
-            }
-            .relation-field {
-                margin-bottom: 5px;
-            }
-
-            .action-column {
-                background-color: white;
-
-                border-left: 1px solid #ddd;
-                border-right: 1px solid #ddd;
-                border-bottom: 1px solid #ddd;
-                padding-top: 10px;
-                padding-left: 5px;
-                padding-right: 5px;
-                padding-bottom: 10px;
-            }
-
-            .date-selector {
-                margin-top: 8px;
-                margin-bottom: 8px;
-            }
-
-            .relation-date-bits {
-                font-size: 0.8em;
-            }
-
-            .relation-creator {
-                padding: 5px;
-                border: 0.5px solid #ddd;
-            }
-
-            .sidebar-buttons {
-                margin-bottom: 5px;
-            }
-
-            .annotation-preamble {
-                padding: 10px;
-                border-bottom: 1px solid #ddd;
-            }
-
-
-            /*********** Tooltips! ***********/
-            .tooltip {
-                display: none;
-                opacity: 0;
-                transition: opacity .15s;
-                pointer-events: none;
-                padding: 4px;
-                z-index: 10000;
-              }
-              .tooltip .tooltip-content {
-                background-color: #ddd;
-                color: black;
-                border-radius: 5px;
-                border: 1px solid gray;
-                padding: 3px 5px 2px;
-              }
-              .tooltip.tooltip-open-transitionend {
-                display: block;
-              }
-              .tooltip.tooltip-after-open {
-                opacity: 1;
-              }
-              #shadow-swimlane.action-column {
-                  border: 0;
-                  background-color: rgb(250, 250, 250);
-              }
-        </style>
+        <link rel="stylesheet" href="{% static "annotations/css/annotators/text.css" %}">
         {% endblock %}
     <!-- </head> -->
     {% block main %}
@@ -231,6 +40,7 @@
                             <div v-bind:class="{
                                     'col-sm-7': true
                                 }"
+                                id="shadow-swimlane"
                                 style="padding: 3px;">
                                 <text-display
                                     v-bind:appellations=appellations
@@ -240,158 +50,160 @@
                                     v-on:selecttext="selectText">
                                 </text-display>
                             </div>
-                            <div id="shadow-swimlane" v-bind:class="{
-                                    'col-sm-4': !sidebarIsShown(),
-                                    'col-sm-3': sidebarIsShown(),
-                                    'action-column': true
-                                }" style="height: 100%;">
-                            </div>
-                            <div id="sticky-swimlane" v-bind:class="{
+
+                            <div v-bind:class="{
                                     'col-sm-offset-7': true,
-                                    'col-sm-4': !sidebarIsShown(),
-                                    'col-sm-3': sidebarIsShown(),
+                                    'col-sm-5': true,
                                     'action-column': true,
+                                    'affix': true,
+                                    'container-fluid': true
                                 }"
                                 v-bind:style="{
-                                    position: 'fixed',
                                     top: swimmerTop,
                                     left: swimmerLeft,
-                                    width: swimmerWidth
-                                }">
-                                <div>
-                                    <relation-template-selector
-                                        v-if="template == null && creating_relation"
-                                        v-on:selectedtemplate="selectedTemplate">
-                                    </relation-template-selector>
-                                    <relation-creator
-                                        v-if="template != null && creating_relation"
-                                        v-on:fieldislisteningfortext="fieldIsListeningForText"
-                                        v-on:fieldisdonelisteningfortext="fieldIsDoneListeningForText"
-                                        v-on:createdrelation="createdRelation"
-                                        v-on:cancelrelation="cancelRelation"
-                                        v-bind:user=user
-                                        v-bind:text=text
-                                        v-bind:template=template
-                                        v-bind:project=project>
-                                    </relation-creator>
-                                    <div class="appellation-type-selector text-right" v-if="textIsSelected()">
-                                        <a v-bind:class="{
-                                                btn: true,
-                                                'btn-sm': true,
-                                                'btn-success': !create_date_appellation,
-                                                'btn-default': create_date_appellation
+                                }"
+                                id="sticky-swimlane"
+                                >
+                                <div class="row">
+                                    <div v-bind:class="{
+                                                'col-xs-10': !sidebarIsShown(),
+                                                'col-xs-7': sidebarIsShown(),
                                             }"
-                                            v-tooltip="'Concept'"
-                                            v-on:click="toggleDateAppellation">
-                                            <span class="glyphicon glyphicon-grain"></span>
-                                        </a>
-                                        <a v-bind:class="{
-                                                btn: true,
-                                                'btn-sm': true,
-                                                'btn-success': create_date_appellation,
-                                                'btn-default': !create_date_appellation
-                                            }"
-                                            v-tooltip="'Date'"
-                                            v-on:click="toggleDateAppellation">
-                                            <span class="glyphicon glyphicon-calendar"></span>
-                                        </a>
-                                    </div>
-                                    <date-appellation-creator
-                                        v-if="textIsSelected() && create_date_appellation"
-                                        v-bind:user=user
-                                        v-bind:text=text
-                                        v-bind:project=project
-                                        v-bind:position=selected_text
-                                        v-on:createddateappellation="createdDateAppellation"
-                                        v-on:cancelappellation="cancelAppellation"
-                                        v-on:createdappellation="createdAppellation">
-                                    </date-appellation-creator>
-                                    <appellation-creator
-                                        v-if="textIsSelected() && !create_date_appellation"
-                                        v-bind:user=user
-                                        v-bind:text=text
-                                        v-bind:project=project
-                                        v-bind:position=selected_text
-                                        v-on:cancelappellation="cancelAppellation"
-                                        v-on:createdappellation="createdAppellation">
-                                    </appellation-creator>
-                                </div>
-                            </div>
-                            <div v-bind:class="{
-                                        'col-sm-1': !sidebarIsShown(),
-                                        'col-sm-2': sidebarIsShown()
-                                    }"
-                                 style="padding: 3px;">
-                                <div class="container-fluid">
-                                    <div class="row">
-                                        <div v-if="sidebarIsShown()" class="col-xs-12" style="padding: 0px;">
-                                            <div class="clearfix sidebar-buttons">
-                                                <a v-if="sidebarIsShown()" class="btn" v-on:click="hideSidebar"  style="padding: 2px;">
-                                                    <span class="glyphicon glyphicon-chevron-right"></span>
-                                                </a>
-                                                <div class="pull-right btn-group">
-                                                    <a  v-tooltip="'Appellations'"
-                                                        v-bind:class="{
-                                                                btn: true,
-                                                                'btn-success': sidebar == 'appellations',
-                                                                'btn-default': sidebar != 'appellations'
-                                                            }"
-                                                        v-on:click="showAppellationsSidebar">
-                                                        <span class="glyphicon glyphicon-tag"></span>
-                                                    </a>
-                                                    <a  v-tooltip="'Date Appellations'"
-                                                        v-bind:class="{
-                                                                btn: true,
-                                                                'btn-success': sidebar == 'dateappellations',
-                                                                'btn-default': sidebar != 'dateappellations'
-                                                            }"
-                                                        v-on:click="showDateAppellationsSidebar">
-                                                        <span class="glyphicon glyphicon-calendar"></span>
-                                                    </a>
-                                                    <a v-tooltip="'Relations'"
-                                                        v-bind:class="{
-                                                                btn: true,
-                                                                'btn-success': sidebar == 'relations',
-                                                                'btn-default': sidebar != 'relations'
-                                                            }"
-                                                        v-on:click="showRelationsSidebar">
-                                                        <span class="glyphicon glyphicon-th-list"></span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <relation-list
-                                                v-if="sidebar == 'relations'"
-                                                v-bind:relations=relations
-                                                v-on:selectrelation="selectRelation">
-                                            </relation-list>
-                                            <appellation-list
-                                                v-if="sidebar == 'appellations'"
-                                                v-bind:appellations=appellations
-                                                v-on:hideallappellations="hideAllAppellations"
-                                                v-on:showallappellations="showAllAppellations"
-                                                v-on:showappellation="showAppellation"
-                                                v-on:hideappellation="hideAppellation"
-                                                v-on:selectappellation="selectAppellation">
-                                            </appellation-list>
-                                            <appellation-list
-                                                v-if="sidebar == 'dateappellations'"
-                                                v-bind:appellations=dateappellations
-                                                v-on:hideallappellations="hideAllDateAppellations"
-                                                v-on:showallappellations="showAllDateAppellations"
-                                                v-on:showappellation="showDateAppellation"
-                                                v-on:hideappellation="hideDateAppellation"
-                                                v-on:selectappellation="selectDateAppellation">
-                                            </appellation-list>
-                                        </div>
-                                        <div v-else class="col-xs-12">
-                                            <a class="btn" v-on:click="showSidebar" style="padding: 2px;">
-                                                <span class="glyphicon glyphicon-chevron-left"></span>
+                                            style="padding-right: 5px;">
+                                        <relation-template-selector
+                                            v-if="template == null && creating_relation"
+                                            v-on:selectedtemplate="selectedTemplate">
+                                        </relation-template-selector>
+                                        <relation-creator
+                                            v-if="template != null && creating_relation"
+                                            v-on:fieldislisteningfortext="fieldIsListeningForText"
+                                            v-on:fieldisdonelisteningfortext="fieldIsDoneListeningForText"
+                                            v-on:createdrelation="createdRelation"
+                                            v-on:cancelrelation="cancelRelation"
+                                            v-bind:user=user
+                                            v-bind:text=text
+                                            v-bind:template=template
+                                            v-bind:project=project>
+                                        </relation-creator>
+                                        <div class="appellation-type-selector text-right" v-if="textIsSelected()">
+                                            <a v-bind:class="{
+                                                    btn: true,
+                                                    'btn-sm': true,
+                                                    'btn-success': !create_date_appellation,
+                                                    'btn-default': create_date_appellation
+                                                }"
+                                                v-tooltip="'Concept'"
+                                                v-on:click="toggleDateAppellation">
+                                                <span class="glyphicon glyphicon-grain"></span>
+                                            </a>
+                                            <a v-bind:class="{
+                                                    btn: true,
+                                                    'btn-sm': true,
+                                                    'btn-success': create_date_appellation,
+                                                    'btn-default': !create_date_appellation
+                                                }"
+                                                v-tooltip="'Date'"
+                                                v-on:click="toggleDateAppellation">
+                                                <span class="glyphicon glyphicon-calendar"></span>
                                             </a>
                                         </div>
+                                        <date-appellation-creator
+                                            v-if="textIsSelected() && create_date_appellation"
+                                            v-bind:user=user
+                                            v-bind:text=text
+                                            v-bind:project=project
+                                            v-bind:position=selected_text
+                                            v-on:createddateappellation="createdDateAppellation"
+                                            v-on:cancelappellation="cancelAppellation"
+                                            v-on:createdappellation="createdAppellation">
+                                        </date-appellation-creator>
+                                        <appellation-creator
+                                            v-if="textIsSelected() && !create_date_appellation"
+                                            v-bind:user=user
+                                            v-bind:text=text
+                                            v-bind:project=project
+                                            v-bind:position=selected_text
+                                            v-on:cancelappellation="cancelAppellation"
+                                            v-on:createdappellation="createdAppellation">
+                                        </appellation-creator>
+                                    </div>
+                                    <div v-bind:class="{
+                                                'col-xs-2': !sidebarIsShown(),
+                                                'col-xs-5': sidebarIsShown(),
+                                            }"
+                                            style="padding-right: 15px;">
+                                         <a v-if="sidebarIsShown()" class="btn" v-on:click="hideSidebar"  style="padding: 2px;">
+                                             <span class="glyphicon glyphicon-chevron-right"></span>
+                                         </a>
+                                         <a v-else class="btn" v-on:click="showSidebar" style="padding: 2px;">
+                                             <span class="glyphicon glyphicon-chevron-left"></span>
+                                         </a>
+
+
+                                                <div v-if="sidebarIsShown()" style="padding: 0px;">
+                                                    <div class="clearfix sidebar-buttons">
+
+                                                        <div class="pull-right btn-group">
+                                                            <a  v-tooltip="'Appellations'"
+                                                                v-bind:class="{
+                                                                        btn: true,
+                                                                        'btn-success': sidebar == 'appellations',
+                                                                        'btn-default': sidebar != 'appellations'
+                                                                    }"
+                                                                v-on:click="showAppellationsSidebar">
+                                                                <span class="glyphicon glyphicon-tag"></span>
+                                                            </a>
+                                                            <a  v-tooltip="'Date Appellations'"
+                                                                v-bind:class="{
+                                                                        btn: true,
+                                                                        'btn-success': sidebar == 'dateappellations',
+                                                                        'btn-default': sidebar != 'dateappellations'
+                                                                    }"
+                                                                v-on:click="showDateAppellationsSidebar">
+                                                                <span class="glyphicon glyphicon-calendar"></span>
+                                                            </a>
+                                                            <a v-tooltip="'Relations'"
+                                                                v-bind:class="{
+                                                                        btn: true,
+                                                                        'btn-success': sidebar == 'relations',
+                                                                        'btn-default': sidebar != 'relations'
+                                                                    }"
+                                                                v-on:click="showRelationsSidebar">
+                                                                <span class="glyphicon glyphicon-th-list"></span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    <relation-list
+                                                        v-if="sidebar == 'relations'"
+                                                        v-bind:relations=relations
+                                                        v-on:selectrelation="selectRelation">
+                                                    </relation-list>
+                                                    <appellation-list
+                                                        v-if="sidebar == 'appellations'"
+                                                        v-bind:appellations=appellations
+                                                        v-on:hideallappellations="hideAllAppellations"
+                                                        v-on:showallappellations="showAllAppellations"
+                                                        v-on:showappellation="showAppellation"
+                                                        v-on:hideappellation="hideAppellation"
+                                                        v-on:selectappellation="selectAppellation">
+                                                    </appellation-list>
+                                                    <appellation-list
+                                                        v-if="sidebar == 'dateappellations'"
+                                                        v-bind:appellations=dateappellations
+                                                        v-on:hideallappellations="hideAllDateAppellations"
+                                                        v-on:showallappellations="showAllDateAppellations"
+                                                        v-on:showappellation="showDateAppellation"
+                                                        v-on:hideappellation="hideDateAppellation"
+                                                        v-on:selectappellation="selectDateAppellation">
+                                                    </appellation-list>
+                                                </div>
+
+
 
                                     </div>
                                 </div>
                             </div>
+
 
                         </div>
                     </div>
@@ -605,7 +417,14 @@
 
         </script>
 
-        <script src="{% static "annotations/js/annotator/annotator.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/buses.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/util.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/resources.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/relationlist.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/appellationlist.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/appellationdisplay.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/textdisplay.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/text.js" %}"></script>
     </body>
     {% endblock %}
 <!-- </html> -->

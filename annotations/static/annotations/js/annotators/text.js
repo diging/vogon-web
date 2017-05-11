@@ -1,147 +1,4 @@
-if(typeof(String.prototype.trim) === "undefined")
-{
-    String.prototype.trim = function()
-    {
-        return String(this).replace(/^\s+|\s+$/g, '');
-    };
-}
 
-EventBus = new Vue();
-AppellationBus = new Vue();
-TextBus = new Vue();
-
-function sleep (time) {
-  return new Promise(function(resolve) {setTimeout(resolve, time)});
-}
-
-var truncateURI = function(input) {
-  return input.split('/').pop();
-}
-
-var getOffsetTop = function(elem) {
-    var offsetTop = 0;
-    do {
-      if ( !isNaN( elem.offsetTop ) )
-      {
-          offsetTop += elem.offsetTop;
-      }
-    } while( elem = elem.offsetParent );
-    return offsetTop;
-}
-
-var getOffsetLeft = function( elem ) {
-    var offsetLeft = 0;
-    do {
-      if ( !isNaN( elem.offsetLeft ) )
-      {
-          offsetLeft += elem.offsetLeft;
-      }
-    } while( elem = elem.offsetParent );
-    return offsetLeft;
-}
-
-/**
-  * Get a bounding box for a text selection in the '#text-content' element.
-  */
-var getTextPosition = function(textPosition) {
-
-    var range = document.createRange();
-    var textContainer = document.getElementById('text-content');
-    var textContent = textContainer.childNodes.item(0);
-
-    var containerRect = textContainer.getBoundingClientRect();
-
-    range.setStart(textContent, textPosition.startOffset);
-    range.setEnd(textContent, textPosition.endOffset);
-    // These rects contain the client coordinates in top, left
-    var rects = range.getClientRects()[0];
-
-    return {
-        top: rects.top -  containerRect.top,
-        bottom: rects.bottom - containerRect.top,
-        left: rects.left - containerRect.left,
-        right: rects.right - containerRect.left,
-        width: rects.width
-    };
-}
-
-/**
-  * Get a bounding box for a text position in the '#text-content' element.
-  */
-var getPointPosition = function(offset) {
-    var range = document.createRange();
-
-    var textContainer = document.getElementById('text-content');
-    var textContent = textContainer.childNodes.item(0);
-
-    var containerRect = textContainer.getBoundingClientRect();
-    range.setStart(textContent, offset);
-    range.setEnd(textContent, offset);
-    // These rects contain the client coordinates in top, left
-    var rects = range.getClientRects()[0];
-
-    return {
-        top: rects.top - containerRect.top,
-        bottom: rects.bottom - containerRect.top,
-        left: rects.left - containerRect.left,
-        right: rects.right - containerRect.left,
-        width: rects.width
-    };
-}
-
-
-/**
-  * Get the computed value of a style property for an element.
-  */
-var getStyle = function(el, styleprop){
-	el = document.getElementById(el);
-    var val = null;
-	if(window.getComputedStyle){
-        val = window.getComputedStyle(el)[styleprop];   // Firegox
-        if (val == null) {
-    		return document.defaultView.getComputedStyle(el, null)
-                                       .getPropertyValue(styleprop);
-        } else {
-            return val;
-        }
-	} else if(el.currentStyle){
-		return el.currentStyle[styleprop.encamel()];
-	}
-	return null;
-}
-
-
-var clearMouseTextSelection = function () {
-    if (window.getSelection) {
-        if (window.getSelection().empty) {  // Chrome
-            window.getSelection().empty();
-        } else if (window.getSelection().removeAllRanges) {  // Firefox
-            window.getSelection().removeAllRanges();
-        }
-    } else if (document.selection) {  // IE?
-        document.selection.empty();
-    }
-}
-
-var getAbsoluteTop = function(elemId) {
-    return document.getElementById(elemId).getClientRects()[0].top + window.scrollY;
-}
-
-/******************************************************************************
-  *         Resources!
-  *****************************************************************************/
-Vue.http.headers.common['X-CSRFTOKEN'] = Cookie.get('csrftoken');
-
-var Appellation = Vue.resource(BASE_URL + '/rest/appellation{/id}');
-var DateAppellation = Vue.resource(BASE_URL + '/rest/dateappellation{/id}');
-var Relation = Vue.resource(BASE_URL + '/rest/relationset{/id}');
-var Concept = Vue.resource(BASE_URL + '/rest/concept{/id}', {}, {
-    search: {method: 'GET', url: BASE_URL + '/rest/concept/search'}
-});
-var RelationTemplateResource = Vue.resource(BASE_URL + '/relationtemplate{/id}/', {}, {
-    create: {method: 'POST', url: BASE_URL + '/relationtemplate{/id}/create/'}
-});
-var ConceptType = Vue.resource(BASE_URL + '/rest/type{/id}');
 
 /******************************************************************************
   *         Components!
@@ -247,483 +104,6 @@ var ConceptSearch = {
     },
     components: {
         'concept-list-item': ConceptListItem
-    }
-}
-
-
-RelationListItem = {
-    props: ['relation'],
-    template: `<li v-bind:class="{
-                        'list-group-item': true,
-                        'relation-list-item': true,
-                        'relation-selected': isSelected()
-                    }">
-                    <span class="pull-right text-muted btn-group">
-                        <a class="btn btn-xs" v-on:click="select">
-                            <span class="glyphicon glyphicon-hand-down"></span>
-                        </a>
-                    </span>
-                    <div>
-                    {{ relation.representation }}
-                    </div>
-                </li>`,
-
-    methods: {
-        select: function() { this.$emit('selectrelation', this.relation); },
-        isSelected: function() { return this.relation.selected; }
-    }
-}
-
-RelationList = {
-    props: ['relations'],
-    template: `<ul class="list-group relation-list">
-                   <relation-list-item
-                       v-on:selectrelation="selectRelation"
-                       v-bind:relation=relation
-                       v-for="relation in relations">
-                   </relation-list-item>
-               </ul>`,
-    components: {
-        'relation-list-item': RelationListItem
-    },
-    methods: {
-        selectRelation: function(relation) { this.$emit('selectrelation', relation); }
-    }
-}
-
-
-var AppellationListItem = {
-    props: ['appellation'],
-    template: `<li v-bind:class="{
-                        'list-group-item': true,
-                        'appellation-list-item': true,
-                        'appellation-selected': isSelected()
-                    }">
-                <span class="pull-right text-muted btn-group">
-                    <a class="btn btn-xs" v-on:click="select">
-                        <span class="glyphicon glyphicon-hand-down"></span>
-                    </a>
-                    <a class="btn btn-xs" v-on:click="toggle">
-                        <span v-if="appellation.visible" class="glyphicon glyphicon glyphicon-eye-open"></span>
-                        <span v-else class="glyphicon glyphicon glyphicon-eye-close"></span>
-                    </a>
-                </span>
-                {{ label() }}
-                <div class="text-warning">{{ appellation.position.position_value }}</div>
-               </li>`,
-    methods: {
-        hide: function() { this.$emit("hideappellation", this.appellation); },
-        show: function() { this.$emit("showappellation", this.appellation); },
-        toggle: function() {
-            if(this.appellation.visible) {
-                this.hide();
-            } else {
-                this.show();
-            }
-        },
-        isSelected: function() { return this.appellation.selected; },
-        select: function() { this.$emit('selectappellation', this.appellation); },
-        label: function() {
-            if (this.appellation.interpretation) {
-                return this.appellation.interpretation.label;
-            } else if (this.appellation.dateRepresentation) {
-                return this.appellation.dateRepresentation;
-            }
-        }
-    }
-}
-
-
-AppellationList = {
-    props: ['appellations'],
-    template: `<ul class="list-group appellation-list">
-                   <div class="text-right">
-                       <a v-if="allHidden()" v-on:click="showAll" class="btn">
-                           Show all
-                       </a>
-                        <a v-on:click="hideAll" class="btn">
-                            Hide all
-                        </a>
-                   </div>
-                   <appellation-list-item
-                       v-on:hideappellation="hideAppellation"
-                       v-on:showappellation="showAppellation"
-                       v-on:selectappellation="selectAppellation"
-                       v-bind:appellation=appellation
-                       v-for="appellation in appellations">
-                   </appellation-list-item>
-               </ul>`,
-    components: {
-        'appellation-list-item': AppellationListItem
-    },
-    methods: {
-        allHidden: function() {
-            var ah = true;
-            this.appellations.forEach(function(appellation) {
-                if (appellation.visible) ah = false;
-            });
-            return ah;
-        },
-        hideAll: function() { this.$emit("hideallappellations"); },
-        showAll: function() { this.$emit("showallappellations"); },
-        hideAppellation: function(appellation) { this.$emit("hideappellation", appellation); },
-        showAppellation: function(appellation) { this.$emit("showappellation", appellation); },
-        selectAppellation: function(appellation) { this.$emit('selectappellation', appellation); }
-    }
-}
-
-
-AppellationDisplayItem = {
-    props: ['appellation'],
-    template: `<div v-if="appellation.visible">
-                <li v-tooltip="getLabel()"
-                    v-if="appellation.visible"
-                    v-on:click="selectAppellation"
-                    v-bind:style="{
-                        top: position.top,
-                        left: position.left,
-                        position: 'absolute',
-                        width: position.width,
-                        height: line_height,
-                        'z-index': 2
-                    }"
-                    v-bind:class="{
-                        'appellation': this.appellation.interpretation != null,
-                        'date-appellation': this.appellation.dateRepresentation != null,
-                        'appellation-selected': appellation.selected
-                    }">
-                </li>
-                <li v-if="manyLinesAreSelected()"
-                     v-on:click="selectAppellation"
-                     v-for="line in mid_lines"
-                     v-tooltip="getLabel()"
-                     v-bind:class="{
-                         'appellation': this.appellation.interpretation != null,
-                         'date-appellation': this.appellation.dateRepresentation != null,
-                         'appellation-selected': appellation.selected
-                     }"
-                     v-bind:style="{
-                       height: line.height,
-                       top: line.top,
-                       left: line.left,
-                       position: 'absolute',
-                       width: line.width,
-                       'z-index': 2
-                   }">
-                </li>
-                <li v-if="multipleLinesAreSelected()"
-                    v-tooltip="getLabel()"
-                    v-on:click="selectAppellation"
-                    v-bind:style="{
-                         height: line_height,
-                         top: end_position.top,
-                         left: end_position.left,
-                         position: 'absolute',
-                         width: end_position.width,
-                         'z-index': 2
-                     }"
-                     v-bind:class="{
-                         'appellation': this.appellation.interpretation != null,
-                         'date-appellation': this.appellation.dateRepresentation != null,
-                         'appellation-selected': appellation.selected
-                     }">
-                </li>
-                </div>`,
-    data: function() {
-        return {
-            position: {
-                top: 0,
-                left: 0,
-                width: 0,
-                right: 0,
-                bottom: 0
-            },
-            line_height: 0,
-            multi_line: null,
-            mid_lines: [],
-            end_position: {}
-        }
-    },
-    mounted: function() {
-        this.updatePosition();
-        window.addEventListener('resize', this.updatePosition);
-    },
-    methods: {
-        getLabel: function() {
-            if (this.appellation.interpretation) {
-                return this.appellation.interpretation.label;
-            } else {
-                return this.appellation.dateRepresentation;
-            }
-        },
-        multipleLinesAreSelected: function() { return this.end_position.top !== undefined; },
-        manyLinesAreSelected: function() { return this.mid_lines.length > 0; },
-        selectAppellation: function() { this.$emit('selectappellation', this.appellation); },
-        updatePosition: function() {
-            console.log(this.appellation);
-            this.mid_lines = [];
-            var lineHeight = parseInt(getStyle('text-content', 'line-height'));
-            this.position = getTextPosition(this.appellation.position);
-            this.line_height = lineHeight - 1;
-            var endPoint = getPointPosition(this.appellation.position.endOffset);
-            var nLines = 1 + (endPoint.bottom - this.position.bottom)/lineHeight;
-            if (nLines > 1) {    // The selection may span several lines.
-                // clientLeft/clientWidth don't account for inner padding.
-                var _padding = parseInt(getStyle('text-content', 'padding'));
-                if (!_padding) {    // Firefox.
-                    _padding = parseInt(getStyle('text-content', 'paddingLeft'));
-                }
-                var _left = parseInt(document.getElementById('text-content').clientLeft);
-                var _width = parseInt(document.getElementById('text-content').clientWidth);
-                var left = _left + _padding;
-                var width = _width - (2 * _padding);
-
-                this.end_position = {    // This is the last line, running from
-                    top: endPoint.top,   //  far left to the end of the
-                    left: left,          //   selection.
-                    width: endPoint.right - left
-                }
-
-                // If the selection spans more than two lines, we need to
-                //  highlight the intermediate lines at full width.
-                for (i = 0; i < Math.max(0, nLines - 2); i++) {
-                    this.mid_lines.push({
-                        top: this.position.top + (i + 1) * lineHeight,
-                        left: left,
-                        width: width,
-                        height: lineHeight - 1
-                    })
-                }
-            } else {
-                this.end_position = {};
-            }
-            console.log(this.mid_lines);
-            console.log(this.end_position);
-        }
-    }
-}
-
-
-AppellationDisplay = {
-    props: ['appellations'],
-    template: `<ul>
-                <appellation-display-item
-                    v-on:selectappellation="selectAppellation"
-                    v-bind:appellation=appellation
-                    v-for="appellation in appellations"></appellation-display-item>
-                </ul>`,
-    components: {
-        'appellation-display-item': AppellationDisplayItem
-    },
-    methods: {
-        selectAppellation: function(appellation) {
-            this.$emit('selectappellation', appellation);
-        }
-    }
-}
-
-
-TextSelectionDisplay = {
-    props: ['selected'],
-    template: `<div>
-                    <div class="text-selection"
-                           v-if="textIsSelected()"
-                           v-bind:style="{
-                             height: line_height,
-                             top: position.top,
-                             left: position.left,
-                             position: 'absolute',
-                             width: position.width,
-                             'z-index': 2
-                         }">
-                    </div>
-                    <div class="text-selection"
-                         v-if="manyLinesAreSelected()"
-                         v-for="line in mid_lines"
-                         v-bind:style="{
-                           height: line.height,
-                           top: line.top,
-                           left: line.left,
-                           position: 'absolute',
-                           width: line.width,
-                           'z-index': 2
-                       }">
-                    </div>
-                    <div class="text-selection"
-                           v-if="multipleLinesAreSelected()"
-                           v-bind:style="{
-                             height: line_height,
-                             top: end_position.top,
-                             left: end_position.left,
-                             position: 'absolute',
-                             width: end_position.width,
-                             'z-index': 2
-                         }">
-                    </div>
-                </div>`,
-    mounted: function () {
-        window.addEventListener('resize', this.updatePosition);
-
-        // Some activities will shift the text display in ways that invalidate
-        //  the calculated position of the overlay.
-        self = this;
-        EventBus.$on('updatepositions', function() {
-            sleep(1500).then(self.updatePosition)
-        });
-    },
-    data: function() {
-        return {
-            position: {},
-            multi_line: null,
-            mid_lines: [],
-            end_position: {},
-            line_height: 0
-        }
-    },
-    watch: {
-        selected: function() { this.updatePosition(); }
-    },
-    methods: {
-        textIsSelected: function() { return this.selected.startOffset != null; },
-        multipleLinesAreSelected: function() { return this.end_position.top !== undefined; },
-        manyLinesAreSelected: function() { return this.mid_lines.length > 0; },
-        updatePosition: function() {
-            this.mid_lines = [];
-            this.position = getTextPosition(this.selected);
-            var endPoint = getPointPosition(this.selected.endOffset);
-            var lineHeight = parseInt(getStyle('text-content', 'line-height'));
-
-            this.line_height = lineHeight - 1;  // So that they don't stack.
-            var nLines = 1 + (endPoint.bottom - this.position.bottom)/lineHeight;
-
-            if (nLines > 1) {    // The selection may span several lines.
-                // clientLeft/clientWidth don't account for inner padding.
-                var _padding = parseInt(getStyle('text-content', 'padding'));
-                if (!_padding) {    // Firefox.
-                    _padding = parseInt(getStyle('text-content', 'paddingLeft'));
-                }
-                var _left = parseInt(document.getElementById('text-content').clientLeft);
-                var _width = parseInt(document.getElementById('text-content').clientWidth);
-                var left = _left + _padding;
-                var width = _width - (2 * _padding);
-
-                this.end_position = {    // This is the last line, running from
-                    top: endPoint.top,   //  far left to the end of the
-                    left: left,          //   selection.
-                    width: endPoint.right - left
-                }
-
-                // If the selection spans more than two lines, we need to
-                //  highlight the intermediate lines at full width.
-                for (i = 0; i < Math.max(0, nLines - 2); i++) {
-                    this.mid_lines.push({
-                        top: this.position.top + (i + 1) * lineHeight,
-                        left: left,
-                        width: width,
-                        height: lineHeight - 1
-                    })
-                }
-            } else {
-                this.end_position = {};
-            }
-        }
-    }
-}
-
-// TODO: we should use v-html="text" here instead of putting the text in as
-// plain text. but this may break some existing appellations, so talk to
-// Julia first.
-TextDisplay = {
-    props: ['appellations', 'dateappellations'],
-    template: `<div style="position: relative;">
-                   <pre id="text-content"
-                        v-on:mouseup="handleMouseup">{{ text }}</pre>
-                   <appellation-display
-                       v-bind:appellations=appellations
-                       v-on:selectappellation="selectAppellation">
-                   </appellation-display>
-                   <appellation-display
-                       v-bind:appellations=dateappellations
-                       v-on:selectappellation="selectDateAppellation">
-                   </appellation-display>
-                   <text-selection-display
-                       v-bind:selected=selected></text-selection-display>
-                </div>`,
-    data: function() {
-        return {
-            text: TEXT_CONTENT,
-            selected: {
-                startOffset: null,
-                endOffset: null
-            },
-            selected_position: {
-                top: 0,
-                left: 0,
-                width: 0,
-                bottom: 0
-            },
-            selected_multi_line: false,
-            selected_mid_lines: null,
-            selected_end_position: null
-        }
-    },
-    mounted: function() {
-        EventBus.$on('cleartextselection', this.resetTextSelection);
-    },
-    methods: {
-        resetTextSelection: function() {
-            this.selected = {
-                startOffset: null,
-                endOffset: null
-            };
-            this.selected_position = {
-                top: 0,
-                left: 0,
-                width: 0,
-                bottom: 0
-            };
-            this.selected_multi_line = false;
-            this.selected_mid_lines = null;
-            this.selected_end_position = null;
-        },
-        selectAppellation: function(appellation) { this.$emit('selectappellation', appellation); },
-        selectDateAppellation: function(appellation) { this.$emit('selectdateappellation', appellation); },
-        textIsSelected: function() { return this.selected.startOffset != null; },
-        handleMouseup: function(e) {
-            // We're looking for an event in which the user has selected some
-            //  text.
-            if (e.target.id != 'text-content') return;    // Out of scope.
-            e.stopPropagation();
-
-            // Get the start and end position of the selection. The selection
-            //  may have been left-to-right or right-to-left.
-            var selection = document.getSelection();
-            var startOffset = Math.min(selection.anchorOffset, selection.focusOffset);
-            var endOffset = Math.max(selection.anchorOffset, selection.focusOffset);
-
-            // If the user double-clicks (e.g. to select a whole word), the
-            // first mouse-up will get as far as here, even though no text has
-            // actually been selected.
-            if (endOffset == startOffset) return;
-
-            var raw = document.getElementById('text-content').childNodes[0].textContent.slice(startOffset, endOffset);
-            this.selected = {    // Notifies TextSelectionDisplay.
-                    startOffset: startOffset,
-                    endOffset: endOffset,
-                    representation: raw
-            }
-            this.selected_position = getTextPosition(this.selected);
-            this.$emit('selecttext', this.selected);   // Fire!
-
-            // Now that we have registered the selection, we can clear the
-            //  original browser highlighting, so that only our overlay is
-            //  displayed.
-            clearMouseTextSelection();
-        },
-    },
-    components: {
-        'appellation-display': AppellationDisplay,
-        'text-selection-display': TextSelectionDisplay
     }
 }
 
@@ -1485,8 +865,6 @@ RelationTemplateSelector = {
 }
 
 
-
-
 Appellator = new Vue({
     el: '#appellator',
 
@@ -1536,11 +914,18 @@ Appellator = new Vue({
         this.updateAppellations();
         this.updateRelations();
         this.updateDateAppellations();
-        var shadow_elem = document.getElementById('shadow-swimlane');
-        this.swimmerRef = getOffsetTop(shadow_elem);
+        this.updateSwimRef();
         this.handleScroll();
     },
     methods: {
+        getSwimmerWidth: function() {
+            var shadow_elem = document.getElementById('shadow-swimlane');
+            if (shadow_elem == null) {
+                return 0;
+            } else {
+                return shadow_elem.clientWidth + 2;
+            }
+        },
         handleScroll: function() {
             var shadow_elem = document.getElementById('shadow-swimlane');
             var swimmer = document.getElementById('sticky-swimlane');
@@ -1551,7 +936,10 @@ Appellator = new Vue({
             } else {
                 this.swimmerTop = this.swimmerRef - window.scrollY;
             }
-
+        },
+        updateSwimRef: function() {
+            var shadow_elem = document.getElementById('shadow-swimlane');
+            this.swimmerRef = getOffsetTop(shadow_elem);
         },
         toggleDateAppellation: function() { this.create_date_appellation = !this.create_date_appellation; },
         fieldIsListeningForText: function() { this.text_listener = true; },
@@ -1563,8 +951,12 @@ Appellator = new Vue({
         },
         cancelRelation: function() { this.template = null; },
         sidebarIsShown: function() { return this.sidebarShown; },
-        showSidebar: function() { this.sidebarShown = true; },
-        hideSidebar: function() { this.sidebarShown = false; },
+        showSidebar: function() {
+            this.sidebarShown = true;
+        },
+        hideSidebar: function() {
+            this.sidebarShown = false;
+        },
         selectConcept: function(concept) { this.selected_concept = concept; },
         hideAllAppellations: function() { this.appellations.forEach(function(a) { a.visible = false; }); },
         showAllAppellations: function() { this.appellations.forEach(function(a) { a.visible = true; }); },
@@ -1574,12 +966,14 @@ Appellator = new Vue({
         showAllDateAppellations: function() { this.dateappellations.forEach(function(a) { a.visible = true; }); },
         showDateAppellation: function(appellation) { this.dateappellations.forEach(function(a) { if (a.id == appellation.id) a.visible = true; }); },
         hideDateAppellation: function(appellation) { this.dateappellations.forEach(function(a) { if (a.id == appellation.id) a.visible = false; }); },
+        scrollToAppellation: function(appellation) { window.scrollTo(0, getTextPosition(appellation.position).top); },
         selectAppellation: function(appellation) {
             this.appellations.forEach(function(a) { a.selected = (a.id == appellation.id); });
             AppellationBus.$emit('selectedappellation', appellation);
             EventBus.$emit('cleartextselection');
             this.unselectText();
             this.unselectDateAppellation();
+            this.scrollToAppellation(appellation);
         },
         selectDateAppellation: function(appellation) {
             this.dateappellations.forEach(function(a) { a.selected = (a.id == appellation.id); });
@@ -1587,6 +981,7 @@ Appellator = new Vue({
             EventBus.$emit('cleartextselection');
             this.unselectText();
             this.unselectAppellation();
+            this.scrollToAppellation(appellation);
         },
         selectAppellationsById: function(appellation_ids) {
             this.appellations.forEach(function(appellation) {
@@ -1705,6 +1100,11 @@ Appellator = new Vue({
     created () {
         window.addEventListener('scroll', this.handleScroll);
         window.addEventListener('resize', this.handleScroll);
+        var self = this;
+        document.getElementById('graphContainer').onmouseup = function() {
+            self.updateSwimRef();
+            self.handleScroll();
+        }
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);

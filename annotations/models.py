@@ -815,7 +815,7 @@ class RelationSet(models.Model):
     terminal_nodes = models.ManyToManyField(Concept)
 
     @property
-    def date_appellations(self):
+    def date_appellations_with_predicate(self):
         dtype = ContentType.objects.get_for_model(DateAppellation)
 
         appellations = []
@@ -824,6 +824,21 @@ class RelationSet(models.Model):
                 target_type = getattr(relation, '%s_content_type' % part)
                 if target_type.id == dtype.id:
                     appellations.append((relation.predicate.interpretation, DateAppellation.objects.get(pk=getattr(relation, '%s_object_id' % part))))
+
+        if appellations:
+            return appellations
+        return []
+
+    @property
+    def date_appellations(self):
+        dtype = ContentType.objects.get_for_model(DateAppellation)
+
+        appellations = []
+        for relation in self.constituents.all():
+            for part in ['source', 'object']:
+                target_type = getattr(relation, '%s_content_type' % part)
+                if target_type.id == dtype.id:
+                    appellations.append(DateAppellation.objects.get(pk=getattr(relation, '%s_object_id' % part)))
 
         if appellations:
             return appellations

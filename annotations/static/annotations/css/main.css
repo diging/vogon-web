@@ -446,6 +446,10 @@ a.appellation-list-item.selected {
     border: 0;
 }
 
+.navbar-nav.brand-nav {
+    margin-left: 0px !important;
+}
+
 .navbar li {
     padding: 5px 2px;
     border-radius: 5px;
@@ -457,14 +461,26 @@ a.appellation-list-item.selected {
     padding: 5px 2px;
     border-radius: 5px;
     margin: 5px;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
 .navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.open>a {
-    background-color: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.3) !important;
     background-image: none;
     border-color: none;
     border: none;
+}
+
+.navbar-inverse .dropdown-menu li {
+    padding: 2px;
+    height: 30px;
+    /*background-color: #ddd;*/
+}
+
+.navbar-inverse .dropdown-menu a {
+    color: #ea9801 !important;
+    font-size: 1.1em;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
 /* make navbar taller */
@@ -492,8 +508,8 @@ a.appellation-list-item.selected {
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center top;
-
-    height: 525px;
+    padding-bottom: 45px;
+    /*height: 525px;*/
 }
 
 .navbar-nav>li>a {

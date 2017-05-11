@@ -17,9 +17,6 @@ class RemoteCollectionSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
 
 
-
-
-
 class RemoteResourceSerializer(serializers.Serializer):
     source = serializers.IntegerField()
     id_or_uri = serializers.CharField(max_length=255)
@@ -123,7 +120,7 @@ class RelationSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = RelationSet
         fields = ('id', 'label', 'created', 'template', 'createdBy', 'occursIn',
-                  'appellations', 'concepts', 'project', 'representation', 'date_appellations')
+                  'appellations', 'concepts', 'project', 'representation', 'date_appellations' )    #
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):

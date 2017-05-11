@@ -18,7 +18,7 @@
                 data-container="body"
                 title="{% if relation.submitted %}Submitted on {{ relation.submittedOn }}{% else %}Pending submission{% endif %}"></span>
         </div>
-        <div>{% if relation.representation %}{{ relation.representation }}{% else %}{{ relation.template.name }}: {% for concept in relation.concepts %}{% if concept.label %}<span class="text-warning">{{ concept.label }}</span>; {% endif %}{% endfor %}{% endif %} <span class="text-muted">{% for predicate, date in relation.date_appellations %}<span class="label label-default" style="margin-right: 5px; margin-left: 5px;">{{ predicate.label.title }}: {{date}}</span>{% endfor %}</span></div>
+        <div>{% if relation.representation %}{{ relation.representation }}{% else %}{{ relation.template.name }}: {% for concept in relation.concepts %}{% if concept.label %}<span class="text-warning">{{ concept.label }}</span>; {% endif %}{% endfor %}{% endif %} <span class="text-muted">{% for predicate, date in relation.date_appellations_with_predicate %}<span class="label label-default" style="margin-right: 5px; margin-left: 5px;">{{ predicate.label.title }}: {{date}}</span>{% endfor %}</span></div>
         <div class="text-muted">
             <span class="glyphicon glyphicon-user"></span>
             Asserted by <a href="{% url "user_details" relation.createdBy.id %}">{{ relation.createdBy }}</a> on {{ relation.created}}

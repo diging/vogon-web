@@ -84,6 +84,7 @@ urlpatterns = [
     # url(r'^text/add/upload/$', views.text_views.upload_file, name="file_upload"),
     # url(r'^text/(?P<textid>[0-9]+)/$', views.text_views.text, name="text"),
     url(r'^annotate/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate, name="annotate"),
+    url(r'^display/(?P<text_id>[0-9]+)/$', views.annotation_views.annotation_display, name="annotation-display"),
 
     url(r'^project/(?P<project_id>[0-9]+)/$', views.project_views.view_project, name='view_project'),
     url(r'^project/(?P<project_id>[0-9]+)/edit/$', views.project_views.edit_project, name='edit_project'),

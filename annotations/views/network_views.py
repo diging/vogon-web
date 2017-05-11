@@ -109,8 +109,6 @@ def generate_network_data_fast(relationsets, text_id=None, user_id=None, appella
     return nodes, edges
 
 
-
-
 def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                           appellation_queryset=None):
     """

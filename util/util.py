@@ -1,3 +1,26 @@
+def unescape(s):
+    return s.replace('&amp;', '&')\
+        .replace('&lt;', '<')\
+        .replace('&gt;', '>')\
+        .replace("&#39;", "'")\
+        .replace('&quot;', '"')
+
+
+def escape(s):
+    """
+    < is converted to &lt;
+    > is converted to &gt;
+    ' (single quote) is converted to &#39;
+    " (double quote) is converted to &quot;
+    & is converted to &amp;
+    """
+    return s.replace('&', '&amp;')\
+        .replace('<', '&lt;')\
+        .replace('>', '&gt;')\
+        .replace("'", "&#39;")\
+        .replace('"', '&quot;')
+
+
 def correctPosition(position):
     text = position.occursIn
     manager = text.repository.manager(user)
@@ -11,8 +34,8 @@ def correctPosition(position):
     escaped = escape(raw_content)
     start_o = len(unescape(escaped[:start]))
     end_o = len(unescape(escaped[:end]))
-    position.position_value = '%i,%i' % (start_o, end_o)
-    position.save()
+    # position.position_value = '%i,%i' % (start_o, end_o)
+    # position.save()
     print start, end, ':: --> ::', start_o, end_o
     print escaped[start:end], unescape(escaped)[start_o:end_o]
 

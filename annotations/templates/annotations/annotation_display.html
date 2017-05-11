@@ -1,0 +1,583 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+<!-- <html>
+    <head> -->
+        {% block extrahead %}
+
+        <script src="{% static "annotations/js/vue.min.js" %}"></script>
+        <script src="{% static "annotations/js/tiny-cookie.min.js" %}"></script>
+
+        <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
+        <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
+        <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
+        <link rel="stylesheet" href="{% static "annotations/css/annotators/text.css" %}">
+        {% endblock %}
+    <!-- </head> -->
+    {% block main %}
+    <body>
+        <div class="row">
+            <div class="col-xs-12" id="tabGraph">
+                <div id="graphContainer" style="height: 100px; padding:5px; resize: vertical; overflow: auto; border: 1px solid #ddd; margin: 5px;">
+                    <div id="graph"  style="height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid" id="main-container">
+            <div class="row">
+                <div class="col-xs-12">
+                    {% include "annotations/text/preamble_display.html" %}
+                </div>
+            </div>
+                <div id="appellator">
+                    <conductor></conductor> <!-- The appellator interface is inserted here. -->
+                </div>
+                <script id="annotation-template" type="text/x-template">
+                    <div class="container-fluid">
+                        <div class="row">
+
+                            <div v-bind:class="{
+                                    'col-sm-7': true
+                                }"
+                                style="padding: 3px;">
+                                <text-display
+                                    v-bind:appellations=appellations
+                                    v-bind:dateappellations=dateappellations
+                                    v-on:selectappellation="selectAppellation"
+                                    v-on:selectdateappellation="selectDateAppellation"
+                                    v-on:selecttext="selectText">
+                                </text-display>
+                            </div>
+                            <div id="shadow-swimlane" v-bind:class="{
+                                    'col-sm-5': true,
+                                    'action-column': true
+                                }" style="height: 100%;">
+                            </div>
+                            <div id="sticky-swimlane"
+                                 v-bind:class="{
+                                        'col-sm-5': true,
+                                        'col-sm-offset-7': true,
+                                        'action-column': true
+                                    }"
+                                v-bind:style="{
+                                    position: 'fixed',
+                                    top: swimmerTop,
+                                    left: swimmerLeft,
+                                    width: swimmerWidth
+                                }"
+                                 style="padding: 3px;">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-xs-12" style="padding: 0px;">
+                                            <div class="clearfix sidebar-buttons">
+                                                <div class="pull-right btn-group">
+                                                    <a  v-tooltip="'Appellations'"
+                                                        v-bind:class="{
+                                                                btn: true,
+                                                                'btn-success': sidebar == 'appellations',
+                                                                'btn-default': sidebar != 'appellations'
+                                                            }"
+                                                        v-on:click="showAppellationsSidebar">
+                                                        <span class="glyphicon glyphicon-tag"></span>
+                                                    </a>
+                                                    <a  v-tooltip="'Date Appellations'"
+                                                        v-bind:class="{
+                                                                btn: true,
+                                                                'btn-success': sidebar == 'dateappellations',
+                                                                'btn-default': sidebar != 'dateappellations'
+                                                            }"
+                                                        v-on:click="showDateAppellationsSidebar">
+                                                        <span class="glyphicon glyphicon-calendar"></span>
+                                                    </a>
+                                                    <a v-tooltip="'Relations'"
+                                                        v-bind:class="{
+                                                                btn: true,
+                                                                'btn-success': sidebar == 'relations',
+                                                                'btn-default': sidebar != 'relations'
+                                                            }"
+                                                        v-on:click="showRelationsSidebar">
+                                                        <span class="glyphicon glyphicon-th-list"></span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <relation-list
+                                                v-if="sidebar == 'relations'"
+                                                v-bind:relations=relations
+                                                v-on:selectrelation="selectRelation">
+                                            </relation-list>
+                                            <appellation-list
+                                                v-if="sidebar == 'appellations'"
+                                                v-bind:appellations=appellations
+                                                v-on:hideallappellations="hideAllAppellations"
+                                                v-on:showallappellations="showAllAppellations"
+                                                v-on:showappellation="showAppellation"
+                                                v-on:hideappellation="hideAppellation"
+                                                v-on:selectappellation="selectAppellation">
+                                            </appellation-list>
+                                            <appellation-list
+                                                v-if="sidebar == 'dateappellations'"
+                                                v-bind:appellations=dateappellations
+                                                v-on:hideallappellations="hideAllDateAppellations"
+                                                v-on:showallappellations="showAllDateAppellations"
+                                                v-on:showappellation="showDateAppellation"
+                                                v-on:hideappellation="hideDateAppellation"
+                                                v-on:selectappellation="selectDateAppellation">
+                                            </appellation-list>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </script>
+            </div>
+
+          <script src="https://unpkg.com/tether"></script>
+          <script src="https://unpkg.com/tether-drop"></script>
+          <script src="https://unpkg.com/tether-tooltip"></script>
+          <script src="{% static "annotations/js/v-tooltip.browser.js" %}"></script>
+          <style>
+          pre {
+                white-space: pre-wrap;       /* Since CSS 2.1 */
+                white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+                white-space: -pre-wrap;      /* Opera 4-6 */
+                white-space: -o-pre-wrap;    /* Opera 7 */
+                word-wrap: break-word;       /* Internet Explorer 5.5+ */
+                font-size: 10pt;
+            }
+          </style>
+         <script>
+            var TEXT_ID = '{{ text.id }}';
+            var TEXT_TITLE = '{{ text.title }}';
+            var USER_ID = '{{ user.id }}';
+            var USER_NAME = '{{ user.username }}';
+            var PROJECT_ID = '{{ project.id }}';
+            var PROJECT_NAME = '{{ project.name }}';
+            var TEXT_CONTENT = `{{ content|safe }}`;
+            var BASE_URL = '{{ base_url }}';
+
+        // Appellator is the text annotation application. Even though we load
+        //  is later on, we want it in scope for node events in the Cytoscape
+        //  visualization.
+        var Appellator;
+
+        var reloadGraph = function() {
+            var cy;
+            $.ajax('{% url "network_for_text" text.id %}', {
+                // When the data is returned, generate an interative visualization
+                //  using Cytoscape.js.
+                success: function(data) {
+                    if (data.elements.length == 0) {
+                        return;
+                    }
+                    // Normalize node and edge weights.
+                    var minEdgeWeight = 1.0;
+                    var maxEdgeWeight = 0.0;
+                    var minNodeWeight = 1.0;
+                    var maxNodeWeight = 0.0;
+
+                    data.elements.forEach(function(elem) {
+                        var weight = Number(elem.data.weight);
+                        if (elem.data.source) {  // Edge.
+                            if (weight > maxEdgeWeight) maxEdgeWeight = weight;
+                            if (weight < minEdgeWeight) minEdgeWeight = weight;
+                        } else {
+                            if (weight > maxNodeWeight) maxNodeWeight = weight;
+                            if (weight < minNodeWeight) minNodeWeight = weight;
+                        }
+                    });
+
+                    // If min and max are the same, cytoscape will throw a TypeError,
+                    //  so we decrement the min values just to be safe.
+                    minNodeWeight = Number(minNodeWeight.toPrecision(4)) - 1;
+                    maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
+                    minEdgeWeight = Number(minEdgeWeight.toPrecision(4)) - 1;
+                    maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
+                    var currentHeight = $('#graph').height();
+                    var currentWidth = $('#graph').width();
+                    cy = cytoscape({
+                        container: $('#graph'),
+                        elements: data.elements,
+                        zoom: 1,
+                        minZoom: 0.1,
+                        maxZoom: 3,
+                        panningEnabled: true,
+                        style: [    // The stylesheet for the graph.
+                            {   // Node size is a function of topic prevalence.
+                                selector: 'node',
+                                style: {
+                                    'background-color': '#B74934',
+                                    'label': 'data(label)',
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 36)'
+                                }
+                            }, {
+                                selector: 'node.connectedNodes',
+                                style: {
+                                    'opacity': 1.0,
+                                    'border-color': '#AA9A66',
+                                    'border-width': 2,
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 20)'
+                                }
+                            }, {
+                                selector: 'node.nonConnectedNodes',
+                                style: {
+                                    'opacity': 0.5,
+                                }
+                            }, { // When a node is selected, it should be slightly larger and have a colored border.
+                                selector: 'node:selected',
+                                style: {
+                                    'border-color': '#AA9A66',
+                                    'border-width': 4,
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 10, 35)',
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                }
+                            }, { // Active nodes should be slightly larger.
+                                selector: 'node:active',
+                                style: {
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                }
+                            }, { // Edge weight is a function of nPMI.
+                                selector: 'edge',
+                                style: {
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 0.5, 6)',
+                                    'opacity': 'mapData(weight, 0.01, 0.5, 0.1, 1)',
+                                    'line-color': '#67655D',
+                                    'target-arrow-color': '#ccc',
+                                },
+                            }, {
+                                selector: 'edge.connectedEdge',
+                                style: {
+                                    'opacity': 1,
+                                    'line-color': '#AA9A66',
+                                    'z-index': 500,
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 1, 12)',
+                                }
+                            }, {
+                                // A selected edge should be slightly thicker, and be colored a brighter color.
+                                selector: 'edge:selected',
+                                style: {
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 2, 8)',
+                                    'opacity': 1,
+                                    'line-color': '#AA9A66',
+                                }
+                            }
+                        ],
+                        layout: {
+                          name: 'cose',
+                        //   rows: 1,
+                        //   ready               : function() {},
+                        //   stop                : function() {},
+                        //   animate             : true,
+                        //   animationThreshold  : 250,
+                        //   refresh             : 20,
+                        //   fit                 : true,
+                          padding             : 0,
+                          boundingBox         :  { x1: 0, y1: 0, w: currentWidth, h: currentHeight},
+                        //   componentSpacing    : 100,
+                        //   nodeRepulsion       : function( node ){ return 40; },
+                        //   nodeOverlap         : 10,
+                        //   idealEdgeLength     : function( edge ){ return 10; },
+                        //   edgeElasticity      : function( edge ){ return 100; },
+                        //   nestingFactor       : 5,
+                        //   gravity             : 80,
+                        //   numIter             : 1000,
+                        //   initialTemp         : 200,
+                        //   coolingFactor       : 0.95,
+                        //   minTemp             : 1.0,
+                        //   useMultitasking     : true
+                        }
+                    });
+
+                    // We just want to give a visual indication of which appellations'
+                    //  are related to each node. Selecting appellations doesn't really
+                    //  make sense, because there can be several appellations per node
+                    //  (nodes represent concepts).
+                    cy.on('select', 'node', function(event) {
+                        var node = event.cyTarget;
+                        if (Appellator) {
+                            Appellator.selectAppellationsById(node._private.data.appellations);
+                        }
+                    });
+                    cy.on('unselect', 'node', function(event) {
+                        var node = event.cyTarget;
+                        if (Appellator) {
+                            Appellator.unselectAppellation();
+                        }
+                    });
+                    cy.on('select', 'edge', function(event) {
+                        var edge = event.cyTarget;
+                        if (Appellator) {
+                            Appellator.selectRelationsByConcepts(edge._private.data.source, edge._private.data.target);
+                        }
+                    });
+
+                }
+            });
+
+
+            var resizeGraph = function() {
+                if (cy) {
+                    cy.resize();
+                    cy.fit();
+                }
+            }
+            $(window).resize(resizeGraph);
+
+            var graphContainerHeight = $('#graphContainer').height();
+            // We can't bind the #graphContainer resize directly, so let's
+            //  check for height changes on mouseup.
+            $(document).mouseup(function(e) {   // The mouseup can happen anywhere.
+                var currentHeight = $('#graphContainer').height();
+                if (currentHeight != graphContainerHeight) {
+                    graphContainerHeight = currentHeight;
+                    resizeGraph();
+                }
+            });
+        }
+
+        $('body').ready(reloadGraph);
+
+        </script>
+
+        <script src="{% static "annotations/js/annotators/buses.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/util.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/resources.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/relationlist.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/appellationlist.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/appellationdisplay.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/textdisplay.js" %}"></script>
+        <script>
+        Appellator = new Vue({
+            el: '#appellator',
+
+            components: {
+                'appellation-list': AppellationList,
+                'relation-list': RelationList,
+                'text-display': TextDisplay
+            },
+            template: `#annotation-template`,
+            data: function() {
+                return {
+                    appellations: [],
+                    dateappellations: [],
+                    relations: [],
+                    selected: null,
+                    selected_text: null,
+                    user: {
+                        id: USER_ID,
+                        username: USER_NAME
+                    },
+                    text: {
+                        id: TEXT_ID,
+                        title: TEXT_TITLE
+                    },
+                    project: {
+                        id: PROJECT_ID,
+                        name: PROJECT_NAME
+                    },
+                    template: null,
+                    creating_relation: true,
+                    text_listener: null,
+                    sidebar: 'appellations',
+                    create_date_appellation: false,
+                    swimmerPosition: 'static',
+                    swimmerTop: 0,
+                    swimmerRef: 0,
+                    swimmerLeft: -2,
+                    swimmerWidth: 0
+                }
+            },
+            mounted: function() {
+                this.updateAppellations();
+                this.updateRelations();
+                this.updateDateAppellations();
+                this.updateSwimRef();
+                this.handleScroll();
+            },
+            methods: {
+                handleScroll: function() {
+                    var shadow_elem = document.getElementById('shadow-swimlane');
+                    var swimmer = document.getElementById('sticky-swimlane');
+                    var scrolled = this.swimmerRef - window.scrollY;
+                    this.swimmerWidth = shadow_elem.clientWidth + 2;
+                    if (scrolled < 0) {
+                        this.swimmerTop = 0;
+                    } else {
+                        this.swimmerTop = this.swimmerRef - window.scrollY;
+                    }
+
+                },
+                updateSwimRef: function() {
+                    var shadow_elem = document.getElementById('shadow-swimlane');
+                    this.swimmerRef = getOffsetTop(shadow_elem);
+                },
+                toggleDateAppellation: function() { this.create_date_appellation = !this.create_date_appellation; },
+                fieldIsListeningForText: function() { this.text_listener = true; },
+                fieldIsDoneListeningForText: function() { this.text_listener = null; },
+                sidebarIsShown: function() { return this.sidebarShown; },
+                showSidebar: function() { this.sidebarShown = true; },
+                hideSidebar: function() { this.sidebarShown = false; },
+                selectConcept: function(concept) { this.selected_concept = concept; },
+                hideAllAppellations: function() { this.appellations.forEach(function(a) { a.visible = false; }); },
+                showAllAppellations: function() { this.appellations.forEach(function(a) { a.visible = true; }); },
+                showAppellation: function(appellation) { this.appellations.forEach(function(a) { if (a.id == appellation.id) a.visible = true; }); },
+                hideAppellation: function(appellation) { this.appellations.forEach(function(a) { if (a.id == appellation.id) a.visible = false; }); },
+                hideAllDateAppellations: function() { this.dateappellations.forEach(function(a) { a.visible = false; }); },
+                showAllDateAppellations: function() { this.dateappellations.forEach(function(a) { a.visible = true; }); },
+                showDateAppellation: function(appellation) { this.dateappellations.forEach(function(a) { if (a.id == appellation.id) a.visible = true; }); },
+                hideDateAppellation: function(appellation) { this.dateappellations.forEach(function(a) { if (a.id == appellation.id) a.visible = false; }); },
+                selectAppellation: function(appellation) {
+                    this.appellations.forEach(function(a) { a.selected = (a.id == appellation.id); });
+                    AppellationBus.$emit('selectedappellation', appellation);
+                    EventBus.$emit('cleartextselection');
+                    this.unselectText();
+                    this.unselectDateAppellation();
+                    this.scrollToAppellation(appellation);
+                },
+                scrollToAppellation: function(appellation) { window.scrollTo(0, getTextPosition(appellation.position).top); },
+                selectDateAppellation: function(appellation) {
+                    this.dateappellations.forEach(function(a) { a.selected = (a.id == appellation.id); });
+                    AppellationBus.$emit('selecteddateappellation', appellation);
+                    EventBus.$emit('cleartextselection');
+                    this.unselectText();
+                    this.unselectAppellation();
+                    this.scrollToAppellation(appellation);
+                },
+                selectAppellationsById: function(appellation_ids) {
+                    this.appellations.forEach(function(appellation) {
+                        appellation.selected = (appellation_ids.indexOf(appellation.id) > -1);
+                    });
+                },
+                selectRelationsByConcepts: function(source_id, target_id) {
+                    source_id = Number(source_id);
+                    target_id = Number(target_id);
+                    var self = this;
+                    this.relations.forEach(function(relation) {
+                        var interp_ids = relation.appellations.map(function(appellation) { return appellation.interpretation.id; });
+                        relation.selected = (interp_ids.indexOf(source_id) >= 0 && interp_ids.indexOf(target_id) >= 0);
+                        if (relation.selected) {
+                            self.selectRelationAppellations(relation);
+                        }
+                    });
+
+                },
+                unselectAppellation: function() { this.appellations.forEach(function(a) { a.selected = false; }); },
+                unselectDateAppellation: function() { this.dateappellations.forEach(function(a) { a.selected = false; }); },
+                selectText: function(position) {
+                    this.unselectAppellation();
+                    if (!this.text_listener) { this.selected_text = position; }
+                    TextBus.$emit('selectedtext', position);
+                },
+                unselectText: function() { this.selected_text = null; },
+                textIsSelected: function() { return this.selected_text != null && this.text_listener == null; },
+                updateAppellations: function(callback) {
+                    // "CO" is the "character offset" DocumentPosition type. For image
+                    //  annotation this should be changed to "BB".
+                    self = this;
+                    Appellation.query({
+                            position_type: "CO",
+                            text: this.text.id,
+                            limit: 500
+                    }).then(function(response) {
+                        // DocumentPosition.position_value is represented with a
+                        //  TextField, so serialized as a string. Start and end offsets
+                        //  should be comma-delimited.
+                        self.appellations = response.body.results.map(function(appellation) {
+                            var offsets = appellation.position.position_value.split(',');
+                            appellation.position.startOffset = offsets[0];
+                            appellation.position.endOffset = offsets[1];
+                            appellation.visible = true;
+                            appellation.selected = false;
+                            return appellation;
+                        }).sort(function(a, b) {
+                            var offsets_a = a.position.position_value.split(',');
+                            var offsets_b = b.position.position_value.split(',');
+                            return Number(offsets_a[0]) - Number(offsets_b[0]);
+                        });
+                        if (callback) callback(response);
+                    });
+                },
+                updateDateAppellations: function(callback) {
+                    // "CO" is the "character offset" DocumentPosition type. For image
+                    //  annotation this should be changed to "BB".
+                    self = this;
+                    DateAppellation.query({
+                        position_type: "CO",
+                        text: this.text.id,
+                        limit: 500
+                    }).then(function(response) {
+                        // DocumentPosition.position_value is represented with a
+                        //  TextField, so serialized as a string. Start and end offsets
+                        //  should be comma-delimited.
+                        self.dateappellations = response.body.results.map(function(appellation) {
+                            var offsets = appellation.position.position_value.split(',');
+                            appellation.position.startOffset = offsets[0];
+                            appellation.position.endOffset = offsets[1];
+                            appellation.visible = true;
+                            appellation.selected = false;
+                            return appellation;
+                        }).sort(function(a, b) {
+                            var offsets_a = a.position.position_value.split(',');
+                            var offsets_b = b.position.position_value.split(',');
+                            return Number(offsets_a[0]) - Number(offsets_b[0]);
+                        });
+                        if (callback) callback(response);
+                    });
+                },
+                selectRelation: function(relation) {
+                    this.selected_relation = relation;
+                    this.selected = null;
+                    this.relations.forEach(function(r) { r.selected = (r.id == relation.id); });
+                    this.selectRelationAppellations(relation);
+                },
+                selectRelationAppellations: function(relation) {
+                    var appellation_ids = relation.appellations.map(function(appellation) { return appellation.id; });
+                    this.appellations.forEach(function(appellation) { appellation.selected = (appellation_ids.indexOf(appellation.id) > -1); });
+                    var dateappellation_ids = relation.date_appellations.map(function(appellation) { return appellation.id; });
+                    this.dateappellations.forEach(function(appellation) { appellation.selected = (dateappellation_ids.indexOf(appellation.id) > -1); });
+                },
+                updateRelations: function() {
+                    self = this;
+                    Relation.query({
+                        text: this.text.id,
+                        limit: 500
+                    }).then(function(response) {
+                        self.relations = response.body.results;
+                    }).catch(function(error) {
+                        console.log('failed to get relations', error);
+                    });
+                    if (reloadGraph) {
+                        reloadGraph();
+                    }
+                },
+                showRelationsSidebar: function() { this.sidebar = 'relations'; },
+                showAppellationsSidebar: function() { this.sidebar = 'appellations'; },
+                showDateAppellationsSidebar: function() { this.sidebar = 'dateappellations'; }
+            },
+            created () {
+                window.addEventListener('scroll', this.handleScroll);
+                window.addEventListener('resize', this.handleScroll);
+                var self = this;
+                document.getElementById('graphContainer').onmouseup = function() {
+                    self.updateSwimRef();
+                    self.handleScroll();
+                }
+            },
+            destroyed () {
+              window.removeEventListener('scroll', this.handleScroll);
+              window.removeEventListener('resize', this.handleScroll);
+            }
+        });
+
+        </script>
+    </body>
+    {% endblock %}
+<!-- </html> -->

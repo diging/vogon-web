@@ -19,6 +19,12 @@ def annotate(request, text_id):
 
 
 @login_required
+def annotation_display(request, text_id):
+    text = get_object_or_404(Text, pk=text_id)
+    annotator = annotator_factory(request, text)
+    return annotator.render_display()
+
+@login_required
 def annotate_image(request, text_id):
     template = "annotations/annotate_image.html"
     text = Text.objects.get(pk=text_id)

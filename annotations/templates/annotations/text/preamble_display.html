@@ -1,0 +1,30 @@
+<div class="annotation-preamble">
+    <div class="h4">
+        {{ text.title }}
+        {% if text.originalResource %}
+        <a href="{{ text.originalResource }}"
+            type="button"
+            class="btn"
+            title="Please click to access the original resource">
+            <span class="glyphicon glyphicon-new-window "></span>
+        </a>
+        {% endif %}
+    </div>
+    <div class="text-warning">
+        Added on {{ text.added }} from <a href="{% url "repository_details" text.repository.id  %}">{{ text.repository.name }}</a>.
+        {% if text.part_of %}Part of <a href="{% url "repository_text" text.top_level_text.repository.id text.top_level_text.repository_source_id %}">{{ text.top_level_text.title }}</a>.{% endif %}
+    </div>
+    <p class="text-warning">
+        {{ text.uri }}
+    </p>
+    <div class="clearfix">
+        {% if previous %}
+        <a href="{% url "repository_text_content" repository_id previous previous_content  %}{% if text.part_of %}?part_of={{ text.top_level_text.repository_source_id }}{% endif %}">Previous page</a>
+        {% endif %}
+        {% if next %}
+        <span class="pull-right">
+            <a href="{% url "repository_text_content" repository_id next next_content  %}{% if text.part_of %}?part_of={{ text.top_level_text.repository_source_id }}{% endif %}">Next page</a>
+        </span>
+        {% endif %}
+    </div>
+</div>

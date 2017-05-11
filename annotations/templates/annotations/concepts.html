@@ -9,60 +9,72 @@
 
 <div class="container-fluid">
     <form class="form" action="" method="get">
-        {% with filter.form.authority as field %}
-        <div class="form-group">
-        {% if field.errors %}
-        {% for error in field.errors %}
-        <div class="alert alert-warning">{{ error }}</div>
-        {% endfor %}
-        {% endif %}
-            <div class="input-group">
-                <span class="input-group-addon">Authority</span>
-                {{ field|addcss:"form-control" }}
+        <div class="row">
+            <div class="col-sm-6">
+                {% with filter.form.authority as field %}
+                <div class="form-group">
+                {% if field.errors %}
+                {% for error in field.errors %}
+                <div class="alert alert-warning">{{ error }}</div>
+                {% endfor %}
+                {% endif %}
+                    <div class="input-group">
+                        <span class="input-group-addon">Authority</span>
+                        {{ field|addcss:"form-control input-sm" }}
+                    </div>
+                </div>
+                {% endwith %}
+            </div>
+            <div class="col-sm-6">
+                {% with filter.form.pos as field %}
+                <div class="form-group">
+                {% if field.errors %}
+                {% for error in field.errors %}
+                <div class="alert alert-warning">{{ error }}</div>
+                {% endfor %}
+                {% endif %}
+                    <div class="input-group">
+                        <span class="input-group-addon">POS</span>
+                        {{ field|addcss:"form-control input-sm" }}
+                    </div>
+                </div>
+                {% endwith %}
             </div>
         </div>
-        {% endwith %}
-        {% with filter.form.pos as field %}
-        <div class="form-group">
-        {% if field.errors %}
-        {% for error in field.errors %}
-        <div class="alert alert-warning">{{ error }}</div>
-        {% endfor %}
-        {% endif %}
-            <div class="input-group">
-                <span class="input-group-addon">POS</span>
-                {{ field|addcss:"form-control" }}
+        <div class="row">
+            <div class="col-sm-6">
+                {% with filter.form.concept_state as field %}
+                <div class="form-group">
+                {% if field.errors %}
+                {% for error in field.errors %}
+                <div class="alert alert-warning">{{ error }}</div>
+                {% endfor %}
+                {% endif %}
+                    <div class="input-group">
+                        <span class="input-group-addon">State</span>
+                        {{ field|addcss:"form-control input-sm" }}
+                    </div>
+                </div>
+                {% endwith %}
+            </div>
+            <div class="col-sm-6">
+                {% with filter.form.typed as field %}
+                <div class="form-group">
+                {% if field.errors %}
+                {% for error in field.errors %}
+                <div class="alert alert-warning">{{ error }}</div>
+                {% endfor %}
+                {% endif %}
+                    <div class="input-group">
+                        <span class="input-group-addon">Type</span>
+                        {{ field|addcss:"form-control input-sm" }}
+                    </div>
+                </div>
+                {% endwith %}
             </div>
         </div>
-        {% endwith %}
-        {% with filter.form.concept_state as field %}
-        <div class="form-group">
-        {% if field.errors %}
-        {% for error in field.errors %}
-        <div class="alert alert-warning">{{ error }}</div>
-        {% endfor %}
-        {% endif %}
-            <div class="input-group">
-                <span class="input-group-addon">State</span>
-                {{ field|addcss:"form-control" }}
-            </div>
-        </div>
-        {% endwith %}
-        {% with filter.form.typed as field %}
-        <div class="form-group">
-        {% if field.errors %}
-        {% for error in field.errors %}
-        <div class="alert alert-warning">{{ error }}</div>
-        {% endfor %}
-        {% endif %}
-            <div class="input-group">
-                <span class="input-group-addon">Type</span>
-                {{ field|addcss:"form-control" }}
-            </div>
-        </div>
-        {% endwith %}
         <div class="clearfix">
-            <input type="submit" class="btn btn-sm btn-default pull-right" value="Apply" />
+            <input type="submit" class="btn btn-xs btn-default pull-right" value="Apply" />
         </div>
     </form>
     <div class="row">
@@ -92,34 +104,41 @@
         {% with concept|get_namespace as namespace %}
         {% with concept.concept_state as concept_state %}
         <div class="list-group-item">
-            <div class="pull-right btn-group">
-                <a class="btn btn-xs btn-default glyphicon {% if concept_state  == concept.PENDING %}glyphicon-hourglass{% elif concept_state  == concept.REJECTED %}glyphicon-thumbs-down{% elif concept_state  == concept.MERGED %}glyphicon-arrow-right{% elif concept_state  == concept.APPROVED %}glyphicon-thumbs-up{% else %}glyphicon-ok-circle{% endif %}"
-                    data-toggle="tooltip"
-                    data-placement="left"
-                    data-container="body"
-                    style="color: {% if concept_state  == concept.PENDING %}gray{% elif concept_state  == concept.REJECTED %}red{% elif concept_state  == concept.APPROVED %}orange{% else %}green{% endif %};"
-                    title="{{concept.get_concept_state_display}}"
-                    {% if concept_state  == concept.MERGED %}href="{{ concept.merged_with.get_absolute_url }}"{% endif %}
-                    ></a>
+            <div class="pull-right">
+                <div class="btn-group">
+                    <a class="btn btn-xs btn-default glyphicon {% if concept_state  == concept.PENDING %}glyphicon-hourglass{% elif concept_state  == concept.REJECTED %}glyphicon-thumbs-down{% elif concept_state  == concept.MERGED %}glyphicon-arrow-right{% elif concept_state  == concept.APPROVED %}glyphicon-thumbs-up{% else %}glyphicon-ok-circle{% endif %}"
+                        data-toggle="tooltip"
+                        data-placement="left"
+                        data-container="body"
+                        style="color: {% if concept_state  == concept.PENDING %}gray{% elif concept_state  == concept.REJECTED %}red{% elif concept_state  == concept.APPROVED %}orange{% else %}green{% endif %};"
+                        title="{{concept.get_concept_state_display}}"
+                        {% if concept_state  == concept.MERGED %}href="{{ concept.merged_with.get_absolute_url }}"{% endif %}
+                        ></a>
+                </div>
+                <div class="btn-group">
+                    {% if concept_state  == concept.PENDING and concept|is_conceptpower_namespaced is not True %}<a style="top: 1;" href="{% url "approve_concept" concept.id %}?next={{ path }}" class="btn btn-xs btn-success">Approve</a>{% endif %}
+                    {% if concept_state  == concept.APPROVED %}{% if concept.typed %}<a style="top: 1;" href="{% url "add_concept" concept.id %}?next={{ path }}" class="btn btn-xs btn-success">Add</a>{% else %}<a href="{% url "edit_concept" concept.id %}?next={{ path }}" class="btn btn-xs btn-primary">Set Type</a>{% endif %}{% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <a href="{{ concept.get_absolute_url }}"><span class=" glyphicon glyphicon-stats"></span></a>
+                    <strong>{{ concept.label }}</strong>
+                    <span class="badge">{{ concept.appellation_set.count }}</span>
+                </div>
+                <div class="col-sm-5 text-warning">
+                    <span class="glyphicon glyphicon-globe"></span>
+                    {{concept.authority}}: {{ concept.uri|urlize }}
+                </div>
             </div>
             <div>
-                <a href="{{ concept.get_absolute_url }}"><span class=" glyphicon glyphicon-stats"></span></a>
-                <strong>{{ concept.label }}</strong>
-            </div>
-            <div class="text-warning">
-                <span class="glyphicon glyphicon-globe"></span>
-                {{concept.authority}}: {{ concept.uri }}
-            </div>
-            <p>
                 {{ concept.description }}
-            </p>
+            </div>
             {% if user.is_admin %}
             <div class="clearfix">
-                <span class="btn-group pull-right">
-                    {% if concept_state  == concept.PENDING and concept|is_conceptpower_namespaced is not True %}<a href="{% url "approve_concept" concept.id %}?next={{ path }}" class="btn btn-xs btn-success">Approve</a>{% endif %}
-                    {% if concept_state  == concept.APPROVED %}{% if concept.typed %}<a href="{% url "add_concept" concept.id %}?next={{ path }}" class="btn btn-xs btn-success">Add</a>{% else %}<a href="{% url "edit_concept" concept.id %}?next={{ path }}" class="btn btn-xs btn-primary">Set Type</a>{% endif %}{% endif %}
-                </span>
-                <span class="text-muted label label-default">{{ concept.typed.label }}</span> <span class="label label-primary">{{ concept.appellation_set.count }}</span>
+
+                <span class="text-success">{% if concept.typed.label %}{{ concept.typed.label }}{% else %}{{ concept.typed.uri }}{% endif %}</span>
 
             </div>
             {% endif %}
