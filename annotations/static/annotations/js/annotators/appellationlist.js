@@ -15,13 +15,8 @@ var AppellationListItem = {
                     </a>
                 </span>
                 {{ label() }}
-                <div class="text-warning">{{ appellation.position.position_value }}</div>
+                <div class="text-warning">Created by <strong>{{ getCreatorName(appellation.createdBy) }}</strong> on {{ getFormattedDate(appellation.created) }}</div>
                </li>`,
-    watch: {
-        appellation: function(appellation) {
-            console.log('changed::', appellation);
-        }
-    },
     methods: {
         hide: function() { this.$emit("hideappellation", this.appellation); },
         show: function() { this.$emit("showappellation", this.appellation); },
@@ -61,12 +56,33 @@ AppellationList = {
                        v-on:showappellation="showAppellation"
                        v-on:selectappellation="selectAppellation"
                        v-bind:appellation=appellation
-                       v-for="appellation in appellations"
+                       v-for="appellation in current_appellations"
                        v-if="appellation != null">
                    </appellation-list-item>
                </ul>`,
     components: {
         'appellation-list-item': AppellationListItem
+    },
+    data: function() {
+        return {
+            current_appellations: this.appellations
+        }
+    },
+    watch: {
+        appellations: function(value) {
+            // Replace an array prop wholesale doesn't seem to trigger a
+            //  DOM update in the v-for binding, but a push() does; so we'll
+            //  just push the appellations that aren't already in the array.
+            var current_ids = this.current_appellations.map(function(elem) {
+                return elem.id;
+            });
+            var self = this;
+            this.appellations.forEach(function(elem) {
+                if (current_ids.indexOf(elem.id) < 0) {
+                    self.current_appellations.push(elem);
+                }
+            });
+        }
     },
     methods: {
         allHidden: function() {

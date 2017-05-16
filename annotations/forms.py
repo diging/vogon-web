@@ -292,6 +292,7 @@ class UberCheckboxInput(forms.CheckboxInput):
 
 
 # TODO: styling (CSS classes) should be in the template.
+# TODO: Move away from the AutocompleteWidget; too janky.
 class RelationTemplatePartForm(forms.ModelForm):
     """
 
@@ -308,7 +309,7 @@ class RelationTemplatePartForm(forms.ModelForm):
     source_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.NODE_CHOICES), required=True,
                                          widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'source'}))
 
-    source_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'source_concept', 'description': 'source_concept_description'}), required=False)
+    source_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'source_concept', 'results-target': 'source_concept_results_elem', 'status-target': 'source_concept_status_elem', 'description': 'source_concept_description'}), required=False)
     source_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
     source_description = forms.CharField(widget=forms.Textarea(attrs={
             'class': 'form-control input-sm',
@@ -326,7 +327,7 @@ class RelationTemplatePartForm(forms.ModelForm):
     }), required=False)
     predicate_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.PRED_CHOICES), required=True,
                                             widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'predicate'}))
-    predicate_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'predicate_concept', 'description': 'predicate_concept_description'}), required=False)
+    predicate_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'predicate_concept', 'results-target': 'predicate_concept_results_elem', 'status-target': 'predicate_concept_status_elem', 'description': 'predicate_concept_description'}), required=False)
     predicate_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
     predicate_description = forms.CharField(widget=forms.Textarea(attrs={
             'class': 'form-control input-sm',
@@ -337,7 +338,7 @@ class RelationTemplatePartForm(forms.ModelForm):
     object_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
     object_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.NODE_CHOICES), required=True,
                                          widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'object'}))
-    object_concept_text= forms.CharField(widget=AutocompleteWidget(attrs={'target': 'object_concept', 'description': 'object_concept_description'}), required=False)
+    object_concept_text= forms.CharField(widget=AutocompleteWidget(attrs={'target': 'object_concept', 'results-target': 'object_concept_results_elem', 'status-target': 'object_concept_status_elem', 'description': 'object_concept_description'}), required=False)
     object_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
     object_description = forms.CharField(widget=forms.Textarea(attrs={
             'class': 'form-control input-sm',
@@ -358,7 +359,7 @@ class RelationTemplatePartForm(forms.ModelForm):
     internal_id = forms.IntegerField(widget=widgets.HiddenInput())
 
     class Media:
-        js = ('annotations/js/autocomplete.js',)
+        # js = ('annotations/js/autocomplete.js',)
         css = {
             'all': ['annotations/css/autocomplete.css']
         }
@@ -377,8 +378,6 @@ class RelationTemplatePartForm(forms.ModelForm):
             )
 
     def __init__(self, *args, **kwargs):
-
-
         super(RelationTemplatePartForm, self).__init__(*args, **kwargs)
 
         # We need a bit of set-up for angular data bindings to work properly
@@ -395,8 +394,9 @@ class RelationTemplatePartForm(forms.ModelForm):
             if 'class' not in field.widget.attrs:
                 field.widget.attrs.update({'class': 'form-control input-sm'})
 
-            if 'target' in field.widget.attrs:
-                field.widget.attrs['target'] = 'id_{0}-'.format(self.prefix) + field.widget.attrs['target']
+            for name in ['target', 'results-target', 'status-target']:
+                if name in field.widget.attrs:
+                    field.widget.attrs[name] = 'id_{0}-'.format(self.prefix) + field.widget.attrs[name]
             if 'description' in field.widget.attrs:
                 field.widget.attrs['description'] = 'id_{0}-'.format(self.prefix) + field.widget.attrs['description']
 
@@ -410,6 +410,12 @@ class RelationTemplatePartForm(forms.ModelForm):
             # if selected_node_type == 'TP':
             #     if not self.cleaned_data.get('%s_type' % field, None):
             #         self.add_error('%s_type' % field, 'Must select a concept type')
+
+        for field in ['source', 'predicate', 'object']:
+            evidence = self.cleaned_data.get('%s_prompt_text' % field)
+            label = self.cleaned_data.get('%s_label' % field)
+            if evidence and not label:
+                self.add_error('%s_label' % field, 'Please add a label')
 
 
 class RelationTemplatePartFormSet(BaseFormSet):

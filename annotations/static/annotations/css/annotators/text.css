@@ -173,6 +173,10 @@
     pointer-events: none;
     padding: 4px;
     z-index: 10000;
+    max-width: 200px;
+    overflow-x: wrap;
+    text-align: center;
+
   }
   .tooltip .tooltip-content {
     background-color: #ddd;

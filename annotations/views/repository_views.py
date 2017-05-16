@@ -253,11 +253,7 @@ def repository_text(request, repository_id, text_id):
                         'source_id': _part.get('id'),
                         'content_id': _content_part['id'],
                     })
-            # serial_content = [{
-            #     'source_id': first_part.get('id'),
-            #     'content_id': content_part['id'],
-            #     'content_type': content_part['content_type']
-            # } for content_part in first_part['content']]
+            
             serial_content = [(k, enumerate(sorted(v, key=lambda o: o['source_id'])))
                               for k, v in serial_content.iteritems()]
         else:

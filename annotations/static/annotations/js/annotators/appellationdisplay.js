@@ -132,10 +132,31 @@ AppellationDisplay = {
                 <appellation-display-item
                     v-on:selectappellation="selectAppellation"
                     v-bind:appellation=appellation
-                    v-for="appellation in appellations"></appellation-display-item>
+                    v-for="appellation in current_appellations"></appellation-display-item>
                 </ul>`,
     components: {
         'appellation-display-item': AppellationDisplayItem
+    },
+    data: function() {
+        return {
+            current_appellations: this.appellations
+        }
+    },
+    watch: {
+        appellations: function(value) {
+            // Replace an array prop wholesale doesn't seem to trigger a
+            //  DOM update in the v-for binding, but a push() does; so we'll
+            //  just push the appellations that aren't already in the array.
+            var current_ids = this.current_appellations.map(function(elem) {
+                return elem.id;
+            });
+            var self = this;
+            this.appellations.forEach(function(elem) {
+                if (current_ids.indexOf(elem.id) < 0) {
+                    self.current_appellations.push(elem);
+                }
+            });
+        }
     },
     methods: {
         selectAppellation: function(appellation) {

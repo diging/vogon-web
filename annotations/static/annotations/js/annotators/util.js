@@ -121,3 +121,33 @@ var clearMouseTextSelection = function () {
 var getAbsoluteTop = function(elemId) {
     return document.getElementById(elemId).getClientRects()[0].top + window.scrollY;
 }
+
+getFormattedDate = function(isodate) {
+    var date = new Date(isodate);
+    var monthNames = [
+        "January", "February", "March",
+        "April", "May", "June", "July",
+        "August", "September", "October",
+        "November", "December"
+      ];
+      var minutes = String(date.getMinutes());
+      if (minutes.length == 1) {
+          minutes = '0' + minutes;
+      }
+
+      var day = date.getDate();
+      var monthIndex = date.getMonth();
+      var year = date.getFullYear();
+
+      return day + ' ' + monthNames[monthIndex] + ', ' + year + ' at ' + date.getHours() + ':' + minutes;
+}
+
+
+getCreatorName = function(creator) {
+    console.log(creator);
+    if (creator.id == USER_ID) {
+        return 'you';
+    } else {
+        return creator.username;
+    }
+}

@@ -83,6 +83,7 @@ class AppellationSerializer(serializers.ModelSerializer):
     stringRep = serializers.CharField(required=False)
     occursIn = TextSerializer(required=False)
     interpretation = ConceptSerializer(required=False)
+    createdBy = UserSerializer()
 
     class Meta:
         model = Appellation
@@ -116,6 +117,7 @@ class RelationSetSerializer(serializers.ModelSerializer):
     appellations = AppellationSerializer(many=True)
     date_appellations = DateAppellationSerializer(many=True)
     concepts = ConceptSerializer(many=True)
+    createdBy = UserSerializer()
 
     class Meta:
         model = RelationSet

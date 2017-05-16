@@ -1007,7 +1007,6 @@ class RelationTemplate(models.Model):
 
     terminal_nodes = property(_get_terminal_nodes, _set_terminal_nodes)
 
-
     @property
     def fields(self):
         """
@@ -1038,7 +1037,6 @@ class RelationTemplate(models.Model):
                         'description': part_description,
                     })
                 elif nodeType == RelationTemplatePart.DATE:
-                    print '!!'
                     part_type = getattr(tpart, '%s_type' % field)
                     part_label = getattr(tpart, '%s_label' % field)
                     part_description = getattr(tpart, '%s_description' % field)

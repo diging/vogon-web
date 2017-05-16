@@ -11,6 +11,7 @@ RelationListItem = {
                         </a>
                     </span>
                     <div>{{ getRepresentation(relation) }}</div>
+                    <div class="text-warning">Created by <strong>{{ getCreatorName(relation.createdBy) }}</strong> on {{ getFormattedDate(relation.created) }}</div>
                 </li>`,
 
     methods: {

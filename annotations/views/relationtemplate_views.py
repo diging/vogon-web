@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.db import transaction
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -17,6 +18,7 @@ from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm,
                                RelationTemplateForm)
 from annotations.models import *
+from annotations.relations import create_template, InvalidTemplate, create_relationset
 from concepts.models import Concept, Type
 
 import copy
@@ -43,17 +45,12 @@ def add_relationtemplate(request):
     :class:`django.http.response.HttpResponse`
     """
 
-    # TODO: This could use quite a bit of refactoring, or at least breaking
-    #  apart into more manageable bits.
-
-    # Each RelationTemplatePart is a "triple", the subject or object of which
-    #  might be another RelationTemplatePart.
     formset = formset_factory(RelationTemplatePartForm,
                               formset=RelationTemplatePartFormSet)
     form_class = RelationTemplateForm   # e.g. Name, Description.
 
     context = {}
-    error = None    # TODO: <-- make this less hacky.
+
     if request.POST:
         logger.debug('add_relationtemplate: post request')
 
@@ -66,138 +63,20 @@ def add_relationtemplate(request):
         formset_is_valid = relationtemplatepart_formset.is_valid()
         form_is_valid = relationtemplate_form.is_valid()
 
-        # Verify that the terminal nodes and expression are consistent with
-        #  the relation template parts.
-        extra_valid = True
-        terminal_nodes = relationtemplate_form.cleaned_data.get('terminal_nodes', '')
-        expression = relationtemplate_form.cleaned_data.get('expression', '')
-        for i in zip(*map(tuple, terminal_nodes.split(',')))[0]:
-            if int(i) > len(relationtemplatepart_formset) - 1:
-                extra_valid =  False
-        for k in Formatter().parse(expression):
-            if int(k[1][0]) > len(relationtemplatepart_formset) - 1:
-                extra_valid =  False
+        if formset_is_valid and form_is_valid:
+            relationtemplate_data = dict(relationtemplate_form.cleaned_data)
+            part_data = [dict(form.cleaned_data) for form in relationtemplatepart_formset]
 
-
-        if all([formset_is_valid, form_is_valid, extra_valid]):
-            logger.debug('add_relationtemplate: both forms are valid')
-            # We commit the RelationTemplate to the database first, so that we
-            #  can use it in the FK relation ``RelationTemplatePart.part_of``.
-            relationTemplate = relationtemplate_form.save()
-            relationTemplate.terminal_nodes = terminal_nodes
-            relationTemplate.save()
-
-            # We index RTPs so that we can fill FK references among them.
-            relationTemplateParts = {}
-            dependency_order = {}    # Source RTP index -> target RTP index.
-            for form in relationtemplatepart_formset:
-                relationTemplatePart = RelationTemplatePart()
-                relationTemplatePart.part_of = relationTemplate
-                relationTemplatePart.internal_id = form.cleaned_data['internal_id']
-
-                # Since many field names are shared for source, predicate, and
-                #  object, this approach should cut down on a lot of repetitive
-                #  code.
-                for part in ['source', 'predicate', 'object']:
-                    setattr(relationTemplatePart, part + '_node_type',
-                            form.cleaned_data[part + '_node_type'])
-                    setattr(relationTemplatePart, part + '_prompt_text',
-                            form.cleaned_data[part + '_prompt_text'])
-                    setattr(relationTemplatePart, part + '_label',
-                            form.cleaned_data[part + '_label'])
-
-                    # Node is a concept Type. e.g. ``E20 Person``.
-                    if form.cleaned_data[part + '_node_type'] == 'TP':
-                        setattr(relationTemplatePart, part + '_type',
-                                form.cleaned_data[part + '_type'])
-                        setattr(relationTemplatePart, part + '_description',
-                                form.cleaned_data[part + '_description'])
-                    elif form.cleaned_data[part + '_node_type'] == 'DT':
-                        setattr(relationTemplatePart, part + '_type',
-                                form.cleaned_data[part + '_type'])
-                        setattr(relationTemplatePart, part + '_description',
-                                form.cleaned_data[part + '_description'])
-                    # Node is a specific Concept, e.g. ``employ``.
-                    elif form.cleaned_data[part + '_node_type'] == 'CO':
-                        setattr(relationTemplatePart, part + '_concept',
-                                form.cleaned_data[part + '_concept'])
-                        # We may still want to provide instructions to the user
-                        #  via the description field.
-                        setattr(relationTemplatePart, part + '_description',
-                                form.cleaned_data[part + '_description'])
-
-                    # Node is another RelationTemplatePart.
-                    elif form.cleaned_data[part + '_node_type'] == 'RE':
-                        target_id = form.cleaned_data[part + '_relationtemplate_internal_id']
-                        setattr(relationTemplatePart,
-                                part + '_relationtemplate_internal_id',
-                                target_id)
-                        if target_id > -1:
-                            # This will help us to figure out the order in
-                            #  which to save RTPs.
-                            dependency_order[relationTemplatePart.internal_id] = target_id
-
-                # Index so that we can fill FK references among RTPs.
-                relationTemplateParts[relationTemplatePart.internal_id] = relationTemplatePart
-
-            # If there is interdependency among RTPs, determine and execute
-            #  the correct save order.
-            if len(dependency_order) > 0:
-                # Find the relation template furthest downstream.
-                # TODO: is this really better than hitting the database twice?
-                start_rtp = copy.deepcopy(dependency_order.keys()[0])
-                this_rtp = copy.deepcopy(start_rtp)
-                save_order = [this_rtp]
-                iteration = 0
-                while True:
-                    this_rtp = copy.deepcopy(dependency_order[this_rtp])
-                    if this_rtp not in save_order:
-                        save_order.insert(0, copy.deepcopy(this_rtp))
-                    if this_rtp in dependency_order:
-                        iteration += 1
-                    else:   # Found the downstream relation template.
-                        break
-
-                    # Make sure that we're not in an endless loop.
-                    # TODO: This is kind of a hacky way to handle the situation.
-                    #  Maybe we should move this logic to the validation phase,
-                    #  so that we can handle errors in a Django-esque fashion.
-                    if iteration > 0 and this_rtp == start_rtp:
-                        error = 'Endless loop'
-                        break
-                if not error:
-                    # Resolve internal ids for RTP references into instance pks,
-                    #  and populate the RTP _relationtemplate fields.
-                    for i in save_order:
-                        for part in ['source', 'object']:
-                            dep = getattr(relationTemplateParts[i],
-                                          part + '_relationtemplate_internal_id')
-                            if dep > -1:
-                                setattr(relationTemplateParts[i],
-                                        part + '_relationtemplate',
-                                        relationTemplateParts[dep])
-                        # Only save non-committed instances.
-                        if not relationTemplateParts[i].id:
-                            relationTemplateParts[i].save()
-
-            # Otherwise, just save the (one and only) RTP.
-            elif len(relationTemplateParts) == 1:
-                relationTemplateParts.values()[0].save()
-
-            if not error:
-                # TODO: when the list view for RTs is implemented, we should
-                #  direct the user there.
-                return HttpResponseRedirect(reverse('list_relationtemplate'))
-
-            else:
-                # For now, we can render this view-wide error separately. But
-                #  we should probably make this part of the normal validation
-                #  process in the future. See comments above.
-                context['error'] = error
-        else:
-            logger.debug('add_relationtemplate: forms not valid')
-            context['formset'] = relationtemplatepart_formset
-            context['templateform'] = relationtemplate_form
+            try:
+                # create_template() calls validation methods.
+                template = create_template(relationtemplate_data, part_data)
+                return HttpResponseRedirect(reverse('get_relationtemplate',
+                                            args=(template.id,)))
+            except InvalidTemplate as E:
+                relationtemplate_form.add_error(None, E.message)
+                logger.debug('creating relationtemplate failed: %s' % (E.message))
+        context['formset'] = relationtemplatepart_formset
+        context['templateform'] = relationtemplate_form
 
     else:   # No data, start with a fresh formset.
         context['formset'] = formset(prefix='parts')
@@ -308,247 +187,15 @@ def create_from_relationtemplate(request, template_id):
     #  modularization.
     template = get_object_or_404(RelationTemplate, pk=template_id)
 
-    # Index RelationTemplateParts by ID.
-    template_parts = {part.id: part for part in template.template_parts.all()}
 
     if request.method == 'POST':
-        relations = {}
         data = json.loads(request.body)
-
+        text = get_object_or_404(Text, pk=data['occursIn'])
         project_id = data.get('project')
-        relation_data = {}
-        for field in data['fields']:
-            if field['part_id'] not in relation_data:
-                relation_data[int(field['part_id'])] = {}
-            relation_data[int(field['part_id'])][field['part_field']] = field
-
-        relation_set = RelationSet(
-            template=template,
-            createdBy=request.user,
-            occursIn_id=data['occursIn'],
-        )
-        if project_id:
-            try:
-                project = TextCollection.objects.get(pk=project_id)
-                relation_set.project = project
-            except TextCollection.DoesNotExist:
-                pass
-        relation_set.save()
-
-        # TODO: Move this to the root level, and re-parameterize as needed.
-        def _create_appellation(field_data, template_part, field,
-                                evidence_required=True):
-            """
-            Some fields may have data for appellations that have not yet been
-            created. So we do that here.
-            """
-            node_type = getattr(template_part, '%s_node_type' % field)
-
-            appellation_data = {
-                'occursIn_id': data['occursIn'],    # <- local (reparameterize)
-                'createdBy_id': request.user.id,    # <- local (reparameterize)
-                'project_id': project_id            # <- local (reparameterize)
-            }
-            if evidence_required and field_data:
-                # We may be dealing with an image appellation, in which case
-                #  we should expect to find position data in the request.
-                position_data = field_data.pop('position', None)
-                if position_data:
-                    position = DocumentPosition.objects.create(**position_data)
-                    appellation_data.update({
-                        'position': position,
-                    })
-
-                # These should be blank instead of null.
-                appellation_data.update({
-                    'tokenIds': field_data['data'].get('tokenIds', ''),
-                    'stringRep': field_data['data'].get('stringRep', ''),
-                })
-            else:    # TODO: is this necessary?
-                appellation_data.update({'asPredicate': True})
-
-            if node_type == RelationTemplatePart.CONCEPT:
-                # The interpretation is already provided.
-                interpretation = getattr(template_part, '%s_concept' % field)
-
-            elif node_type == RelationTemplatePart.TOBE:
-                interpretation = Concept.objects.get(uri=settings.PREDICATES.get('be'))    # http://www.digitalhps.org/concepts/CON3fbc4870-6028-4255-9998-14acf028a316
-            elif node_type == RelationTemplatePart.HAS:
-                interpretation = Concept.objects.get(uri=settings.PREDICATES.get('have'))    # "http://www.digitalhps.org/concepts/CON83f5110b-5034-4c95-82f8-8f80ff55a1b9"
-            if interpretation:
-                appellation_data.update({'interpretation': interpretation})
-
-            if field == 'predicate':
-                appellation_data.update({'asPredicate': True})
-            appellation = Appellation(**appellation_data)
-            appellation.save()
-            return appellation
-
-        relation_dependency_graph = nx.DiGraph()
-
-
-        # Since we don't know anything about the structure of the
-        #  RelationTemplate, we watch for nodes that expect to be Relation
-        #  instances and recurse to create them as needed. We store the results
-        #  for each Relation in ``relation_data_processed`` so that we don't
-        #  create duplicate Relation instances.
-        relation_data_processed = {}
-        def process_recurse(part_id, template_part):
-            """
-
-            Returns
-            -------
-            relation_id : int
-            relation : :class:`.Relation`
-            """
-
-            if part_id in relation_data_processed:
-                return relation_data_processed[part_id]
-
-            part_data = {
-                'createdBy': request.user,
-                'occursIn_id': data['occursIn']
-            }
-            for field in ['source', 'predicate', 'object']:
-
-                node_type = getattr(template_part, '%s_node_type' % field)
-                evidence_required = getattr(template_part, '%s_prompt_text' % field)
-
-                if node_type == RelationTemplatePart.TYPE:
-                    field_data = relation_data[part_id][field]
-                    part_data['%s_object_id' % field] = int(field_data['appellation']['id'])
-                    part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
-                elif node_type == RelationTemplatePart.DATE:
-                    print "!!!!!", node_type
-                    field_data = relation_data[part_id][field]
-                    part_data['%s_object_id' % field] = int(field_data['appellation']['id'])
-                    part_data['%s_content_type' % field] = ContentType.objects.get_for_model(DateAppellation)
-                elif node_type == RelationTemplatePart.RELATION:
-                    # -vv- Recusion happens here! -vv-
-                    child_part = getattr(template_part, '%s_relationtemplate' % field)
-                    part_data['%s_object_id' % field], part_data['%s_content_type' % field] = process_recurse(child_part.id, child_part)
-                    relation_dependency_graph.add_edge(part_id, part_data['%s_object_id' % field])
-                else:   # We will need to create an Appellation.
-                    field_data = relation_data[part_id].get(field, None)
-                    part_data['%s_object_id' % field] = _create_appellation(field_data, template_part, field, evidence_required).id
-                    part_data['%s_content_type' % field] = ContentType.objects.get_for_model(Appellation)
-
-            part_data['predicate_id'] = part_data['predicate_object_id']
-            del part_data['predicate_object_id']
-            del part_data['predicate_content_type']
-            part_data['part_of'] = relation_set
-
-            relation = Relation(**part_data)
-            relation.save()
-            relation_data_processed[part_id] = (relation.id, ContentType.objects.get_for_model(Relation))
-            return (relation.id, ContentType.objects.get_for_model(Relation))
-
-
-        for part_id, template_part in template_parts.iteritems():
-            process_recurse(part_id, template_part)
-
-        # Generate a human-readable phrase that expresses the relation.
-
-        part_map = {rtp.internal_id: k for k, rtp in template_parts.iteritems()}
-
-        expression_keys = [k[1] for k in Formatter().parse(template.expression)]
-        expression_data = {}
-        _pos_map = {'s': 'source', 'p': 'predicate', 'o': 'object'}
-        for part_id, part_pos in map(tuple, expression_keys):
-            relation_id = relation_data_processed[part_map[int(part_id)]][0]
-            relation = Relation.objects.get(pk=relation_id)
-            pos = _pos_map.get(part_pos)
-            _val = None
-            if pos == 'predicate':    # Always an Appellation.
-                _val = relation.predicate.interpretation.label
-            else:
-                _target = getattr(relation, '%s_content_object' % pos)
-                if isinstance(_target, Appellation):
-                    _val = _target.interpretation.label
-                elif isinstance(_target, DateAppellation):
-                    _val = _target.dateRepresentation
-
-            expression_data['%s%s' % (part_id, part_pos)] = _val
-        relation_set.representation = template.expression.format(**expression_data)
-        relation_set.save()
-
-        # Set the terminal nodes (concepts) on the RelationSet.
-        if template.terminal_nodes:
-            for part_id, part_pos in map(tuple, template.terminal_nodes.split(',')):
-                relation_id = relation_data_processed[part_map[int(part_id)]][0]
-                relation = Relation.objects.get(pk=relation_id)
-
-                pos = _pos_map.get(part_pos)
-                if pos == 'predicate':    # Always an Appellation.
-                    relation_set.terminal_nodes.add(relation.predicate.interpretation)
-                else:
-                    _target = getattr(relation, '%s_content_object' % pos)
-                    if isinstance(_target, Appellation):
-                        relation_set.terminal_nodes.add(_target.interpretation)
-
-        # The first element should be the root of the graph. This is where we
-        #  need to "attach" the temporal relations.
-        if len(template_parts) == 1:
-            root = template_parts.keys()[0]
-        else:
-            root = nx.topological_sort(relation_dependency_graph)[0]
-
-        for temporalType in ['start', 'end', 'occur']:
-            temporalData = data.get(temporalType, None)
-            if temporalData:
-
-                # The predicate indicates the type of temporal dimension.
-                predicate_uri = settings.TEMPORAL_PREDICATES.get(temporalType)
-                if not predicate_uri:
-                    continue
-                predicate_concept, _ = Concept.objects.get_or_create(
-                                        uri=predicate_uri,
-                                        defaults={'authority': 'Conceptpower'})
-                predicate_data = {
-                    'occursIn_id': data['occursIn'],
-                    'createdBy_id': request.user.id,
-                    'interpretation': predicate_concept,
-                    'asPredicate': True,
-                }
-                predicate_appellation = Appellation(**predicate_data)
-                predicate_appellation.save()
-
-                temporal_id = temporalData.get('id')
-                if temporal_id:
-                    object_appellation = DateAppellation.objects.get(pk=temporal_id)
-                else:
-                    # The object need not have a URI (concept) interpretation; we
-                    #  use an ISO8601 date literal instead. This non-concept
-                    #  appellation is represented internally as a DateAppellation.
-                    object_data = {
-                        'occursIn_id': data['occursIn'],
-                        'createdBy_id': request.user.id,
-                    }
-                    if project_id:
-                        object_data.update({'project_id': project_id})
-
-                    for field in ['year', 'month', 'day']:
-                        value = temporalData.get(field)
-                        if not value:
-                            continue
-                        object_data[field] = value
-
-                    object_appellation = DateAppellation(**object_data)
-                    object_appellation.save()
-
-                temporalRelation = Relation(**{
-                    'source_content_type': ContentType.objects.get_for_model(Relation),
-                    'source_object_id': relation_data_processed[root][0],
-                    'part_of': relation_set,
-                    'predicate': predicate_appellation,
-                    'object_content_type': ContentType.objects.get_for_model(DateAppellation),
-                    'object_object_id': object_appellation.id,
-                    'occursIn_id': data['occursIn'],
-                    'createdBy_id': request.user.id,
-                })
-                temporalRelation.save()
-
-        response_data = {'relationset': relation_set.id}
+        if project_id is None:
+            project_id = VogonUserDefaultProject.objects.get(for_user=request.user).project.id
+        relationset = create_relationset(template, data, request.user, text, project_id)
+        response_data = {'relationset': relationset.id}
     else:   # Not sure if we want to do anything for GET requests at this point.
         response_data = {}
 

@@ -340,12 +340,12 @@ AppellationCreator = {
     template: `<div class="appellation-creator">
                     <div class="h4">
                         What is this?
+                        <span class="glyphicon glyphicon-question-sign"
+                            v-tooltip="'Create an appellation by attaching a concept from a controlled vocabulary. An appellation is a statement (by you) that the selected text refers to a specific concept.'">
+                       </span>
                     </div>
                     <p class="text-warning">
-                        Create an appellation by attaching a concept from a
-                        controlled vocabulary. An appellation is a statement
-                        (by you) that the selected text refers to a specific
-                        concept.
+
                     </p>
                     <div>
                         <span class="appellation-creator-offsets">{{ position.startOffset }}&ndash;{{ position.endOffset }}</span>:
@@ -770,7 +770,7 @@ RelationCreator = {
                     };
                     field.data = {
                         tokenIds: null,
-                        strinRep: position.representation
+                        stringRep: position.representation
                     };
                 }
             });
@@ -832,7 +832,7 @@ RelationTemplateSelector = {
                         Relation templates are pre-configured "formulas" for encoding relational information
                         in a text.
                     </p>
-                    <div class="list-group" v-if="showingTemplates()">
+                    <div class="list-group" v-if="showingTemplates()" style="max-height: 300px; overflow-y: scroll;">
                         <a v-on:click="selectTemplate(template)"
                             v-for="template in templates"
                             v-bind:template=template
@@ -948,6 +948,7 @@ Appellator = new Vue({
         createdRelation: function(relation) {
             this.template = null;
             this.updateRelations();
+            this.updateAppellations();
         },
         cancelRelation: function() { this.template = null; },
         sidebarIsShown: function() { return this.sidebarShown; },
@@ -1023,7 +1024,7 @@ Appellator = new Vue({
         updateAppellations: function(callback) {
             // "CO" is the "character offset" DocumentPosition type. For image
             //  annotation this should be changed to "BB".
-            self = this;
+            var self = this;
             Appellation.query({
                     position_type: "CO",
                     text: this.text.id,
@@ -1047,7 +1048,7 @@ Appellator = new Vue({
         updateDateAppellations: function(callback) {
             // "CO" is the "character offset" DocumentPosition type. For image
             //  annotation this should be changed to "BB".
-            self = this;
+            var self = this;
             DateAppellation.query({
                     position_type: "CO",
                     text: this.text.id,
@@ -1077,7 +1078,7 @@ Appellator = new Vue({
             var dateappellation_ids = relation.date_appellations.map(function(appellation) { return appellation.id; });
             this.dateappellations.forEach(function(appellation) { appellation.selected = (dateappellation_ids.indexOf(appellation.id) > -1); });
         },
-        updateRelations: function() {
+        updateRelations: function(callback) {
             self = this;
             Relation.query({
                 text: this.text.id,
@@ -1085,6 +1086,7 @@ Appellator = new Vue({
                 project: this.project.id
             }).then(function(response) {
                 self.relations = response.body.results;
+                if (callback) { callback(response); }
             }).catch(function(error) {
                 console.log('failed to get relations', error);
             });
