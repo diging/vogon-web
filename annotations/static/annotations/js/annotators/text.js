@@ -854,7 +854,7 @@ RelationTemplateSelector = {
         search: function() {
             this.searching = true;
             self = this;
-            RelationTemplateResource.query({search: this.query, format: "json"}).then(function(response) {
+            RelationTemplateResource.query({search: this.query, format: "json", all: true}).then(function(response) {
                 self.templates = response.body.templates;
                 self.searching = false;
             }).catch(function(error) {

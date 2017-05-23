@@ -326,16 +326,21 @@ def generate_expression(template, relations):
     expression_keys = [k[1].replace('_', '') for k in Formatter().parse(template.expression)
                        if k[1] is not None]
     expression_data = {}
+    print expression_keys
+    print relations
     for key in expression_keys:
         try:
             relation = relations[int(key[0])]
             attr_name = PRED_MAP.get(key[1])
+            value = expression_partial(getattr(relation, attr_name))
         except ValueError:
-            return ''
+            value = '[missing]'
+        except KeyError:
+            value = '[missing]'
         if not attr_name:
             continue
-        obj = getattr(relation, attr_name)
-        expression_data[key] = expression_partial(obj)
+
+        expression_data[key] = value
     return template.expression.replace('_', '').format(**expression_data)
 
 
@@ -345,7 +350,10 @@ def get_terminal_nodes(template, relations):
         return nodes
 
     for key in template.terminal_nodes.split(','):
-        obj = getattr(relations[int(key[0])], PRED_MAP.get(key[1]))
+        try:
+            obj = getattr(relations[int(key[0])], PRED_MAP.get(key[1]))
+        except KeyError:
+            continue
         if hasattr(obj, 'interpretation') and obj.interpretation:
             nodes.append(obj.interpretation)
     return nodes
