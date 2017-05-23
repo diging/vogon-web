@@ -24,73 +24,73 @@
     {% endif %}
     {% endif %}
 
-    {% if result.content %}
-    <p class="text-muted">
-        The following content objects are associated with this resource. Select a content object to
-        begin annotating that object in VogonWeb.
-    </p>
-    {% if serial_content %}
-    <div class="h4">Serial Content</div>
-    <p>
-        The following content are serialized parts of this resource, such as individuated pages.
-        Multiple content types may be available.
-    </p>
-    <div class="list-group">
-    {% for ctype, parts in serial_content %}
-        <div class="list-group-item">
-            {{ ctype }}
-            <div class="text-center">
-                {% for i, part in parts %}
-                <a class="btn btn-xs btn-success" href="{% if part.text %}{% url "annotate" part.text.id %}{% else %}{% url "repository_text_content" repository.id part.source_id part.content_id %}{% endif %}?part_of={{ result.id }}{% if project_id %}&project_id={{ project_id }}{% endif %}">
-                    <span class="glyphicon glyphicon-tag"></span> Page {{ i|add:"1" }}
-                </a>
+    {% if result.content or aggregate_content %}
+        <p class="text-muted">
+            The following content objects are associated with this resource. Select a content object to
+            begin annotating that object in VogonWeb.
+        </p>
+            {% if aggregate_content %}
+            <div class="h4">Serial Content</div>
+            <p>
+                The following content are serialized parts of this resource, such as individuated pages.
+                Multiple content types may be available.
+            </p>
+            <div class="list-group">
+            {% for content_series in aggregate_content %}
+            {% with content_series.resources.0 as part %}
+                {% if part %}
+                <div class="list-group-item">
+                    <div class="pull-right">
+                        <a class="btn btn-xs btn-success" href="{% if part.text %}{% url "annotate" part.text.id %}{% else %}{% url "repository_text_content" repository.id part.content_for part.id %}{% endif %}?part_of={{ result.id }}{% if project_id %}&project_id={{ project_id }}{% endif %}">
+                            <span class="glyphicon glyphicon-tag"></span> First page
+                        </a>
+                    </div>
+                    {{ content_series.content_type }}
+                </div>
+                {% endif %}
+            {% endwith %}
+            {% endfor %}
+            </div>
+            {% endif %}
+            {% if content %}
+            <div class="h4">Additional Content</div>
+            <p>
+                The following content represent the resource as a whole. This may include complex objects
+                like PDF documents, whole-text OCR documents, or other files.
+            </p>
+            <div class="list-group">
+                {% for content_object in content %}
+                <div class="list-group-item">
+                    <div>{{ content_object.name }}
+                        <div class="btn-group pull-right">
+                            <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id result.id content_object.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
+                                <span class="glyphicon glyphicon-tag"></span> Annotate
+                            </a>
+                        </div>
+                    </div>
+                    <dl class="dl-horizontal">
+                        <dt>Content type</dt>
+                        <dd>{{ content_object.content_type }}
+                    {% for name, fieldvalue in content_object.data.iteritems %}
+                    {% if name != 'name' %}
+                    {{ fieldvalue.render }}
+                    {% endif %}
+                    {% endfor %}
+
+                </div>
                 {% endfor %}
             </div>
-            <!-- <div class="btn-group pull-right">
-
-            </div> -->
-        </div>
-    {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="h4">Additional Content</div>
-    <p>
-        The following content represent the resource as a whole. This may include complex objects
-        like PDF documents, whole-text OCR documents, or other files.
-    </p>
-    <div class="list-group">
-        {% for content_object in content %}
-        <div class="list-group-item">
-            <div>{{ content_object.name }}
-                <div class="btn-group pull-right">
-                    <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id result.id content_object.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
-                        <span class="glyphicon glyphicon-tag"></span> Annotate
-                    </a>
-                </div>
-            </div>
-            <dl class="dl-horizontal">
-                <dt>Content type</dt>
-                <dd>{{ content_object.content_type }}
-            {% for name, fieldvalue in content_object.data.iteritems %}
-            {% if name != 'name' %}
-            {{ fieldvalue.render }}
             {% endif %}
-            {% endfor %}
+        {% else %}
+        <p>This resource has no associated content.</p>
+        {% endif %}
 
+
+        {% if relations %}
+        <div class="h3">Recent Annotations
+            <a class="btn btn-sm" href="{% url "relations" %}?occursIn={{ master_text.uri }}">See all</a>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p>This resource has no associated content.</p>
-    {% endif %}
-
-
-    {% if relations %}
-    <div class="h3">Recent Annotations
-        <a class="btn btn-sm" href="{% url "relations" %}?occursIn={{ master_text.uri }}">See all</a>
-    </div>
-    {% include "annotations/relations_list_fragment.html" %}
+        {% include "annotations/relations_list_fragment.html" %}
     {% endif %}
 </div>
 {% endblock %}

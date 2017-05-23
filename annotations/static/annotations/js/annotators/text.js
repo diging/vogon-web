@@ -24,7 +24,7 @@ var ConceptSearch = {
                     <div class="form-inline">
                        <div class="form-group" style="width: 20%;">
                            <label class="sr-only">Part of Speech</label>
-                           <select class="form-control"
+                           <select class="form-control input-sm"
                                 id="concept-search-pos"
                                 v-model="pos">
                                 <option value="noun">Noun</option>
@@ -34,7 +34,7 @@ var ConceptSearch = {
                        </div>
                       <div class="form-group" style="width: 79%;">
                         <div class="input-group input-group-sm" style="width: 100%;">
-                            <input type="text" class="form-control"  style="width: 100%;" v-model="query">
+                            <input type="text" class="form-control input-sm"  style="width: 100%;" v-model="query">
                             <span class="input-group-btn">
                                 <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" v-on:click="search" style="color: green;"></a>
                                 <span v-if="searching" class="btn btn-sm glyphicon glyphicon-hourglass" style="color: orange;"></span>
@@ -124,7 +124,7 @@ ConceptCreator = {
                     </div>
                    <div class="form-group">
                        <label class="control-label">Name</label>
-                       <input class="form-control"
+                       <input class="form-control input-sm"
                             type="text"
                             placeholder="This is how other users will find this concept."
                             id="concept-creator-name"
@@ -132,7 +132,7 @@ ConceptCreator = {
                    </div>
                    <div class="form-group">
                        <label class="control-label">Description</label>
-                       <textarea class="form-control"
+                       <textarea class="form-control input-sm"
                             type="text"
                             placeholder="Make it easy for other users to identify this concept."
                             id="concept-creator-description"
@@ -141,7 +141,7 @@ ConceptCreator = {
                    </div>
                    <div class="form-group">
                        <label class="control-label">Type</label>
-                       <select class="form-control"
+                       <select class="form-control input-sm"
                             id="concept-creator-type"
                             v-model="concept_type">
                             <option>---</option>
@@ -152,7 +152,7 @@ ConceptCreator = {
                    </div>
                    <div class="form-group">
                        <label class="control-label">Part of Speech</label>
-                       <select class="form-control"
+                       <select class="form-control input-sm"
                             id="concept-creator-pos"
                             v-model="pos">
                             <option value="noun">Noun</option>
@@ -203,7 +203,7 @@ ConceptCreator = {
             this.concept_type = "";
             this.pos = "noun";
             this.error = false;
-            this.submitted = fals;
+            this.submitted = false;
         },
         createConcept: function() {
             if (this.ready) {
@@ -234,7 +234,11 @@ ConceptCreator = {
             if (ctype.label) {
                 return ctype.label;
             } else {
-                return ctype.authority.name + ': ' + truncateURI(ctype.uri);
+                if (ctype.authority) {
+                    return ctype.authority.name + ': ' + truncateURI(ctype.uri);
+                } else {
+                    return truncateURI(ctype.uri);
+                }
             }
         }
     }
@@ -337,7 +341,7 @@ AppellationCreator = {
 
         }
     },
-    template: `<div class="appellation-creator">
+    template: `<div class="appellation-creator" style="max-height: 300px; overflow-y: scroll;">
                     <div class="h4">
                         What is this?
                         <span class="glyphicon glyphicon-question-sign"

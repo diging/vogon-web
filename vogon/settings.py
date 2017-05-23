@@ -243,3 +243,5 @@ LOGIN_URL = BASE_URL + 'login/github/'
 # LOGOUT_REDIRECT_URL = 'home'
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'DEBUG')
+
+SESSION_COOKIE_NAME = 'vogon'

@@ -14,6 +14,7 @@ from repository.models import Repository
 from repository.auth import *
 from repository.managers import *
 from annotations.models import Text, TextCollection, RelationSet
+from annotations.annotators import supported_content_types
 
 import requests
 from urlparse import urlparse, parse_qs
@@ -27,6 +28,9 @@ def _get_params(request):
     params = request.GET.get('params', {})
     if params:
         params = dict(map(lambda p: p.split(':'), params.split('|')))
+
+    # Filter resources by the annotators available in this application.
+    params.update({'content_type': supported_content_types()})
     return params
 
 
@@ -83,7 +87,6 @@ def repository_collections(request, repository_id):
 def repository_collection(request, repository_id, collection_id):
     params = _get_params(request)
 
-
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     collection = manager.collection(id=collection_id, **params)
@@ -100,6 +103,8 @@ def repository_collection(request, repository_id, collection_id):
         'collection_id': collection_id,
         'title': 'Browse collections in %s' % repository.name,
         'project_id': project_id,
+        'resources': collection.get('resources', []),
+        'subcollections': collection.get('subcollections', [])
     }
     previous_page, next_page = _get_pagination(collection, base_url, base_params)
     if next_page:
@@ -241,27 +246,27 @@ def repository_text(request, repository_id, text_id):
     except Text.DoesNotExist:
         master_text = None
 
-    try:
-        _parts = result.get('parts')
-        if _parts:
-            serial_content = defaultdict(list)
-            first_part = _parts[0]
-            for _part in _parts:
-                for _content_part in _part['content']:
-                    _ctype = _content_part['content_type']
-                    serial_content[_ctype].append({
-                        'source_id': _part.get('id'),
-                        'content_id': _content_part['id'],
-                    })
-            
-            serial_content = [(k, enumerate(sorted(v, key=lambda o: o['source_id'])))
-                              for k, v in serial_content.iteritems()]
-        else:
-            serial_content = []
-    except IndexError:
-        first_part = None
-        serial_content = None
-
+    # try:
+    #     _parts = result.get('parts')
+    #     if _parts:
+    #         serial_content = defaultdict(list)
+    #         first_part = _parts[0]
+    #         for _part in _parts:
+    #             for _content_part in _part['content']:
+    #                 _ctype = _content_part['content_type']
+    #                 serial_content[_ctype].append({
+    #                     'source_id': _part.get('id'),
+    #                     'content_id': _content_part['id'],
+    #                 })
+    #
+    #         serial_content = [(k, enumerate(sorted(v, key=lambda o: o['source_id'])))
+    #                           for k, v in serial_content.iteritems()]
+    #     else:
+    #         serial_content = []
+    # except IndexError:
+    aggregate_content = result.get('aggregate_content')
+    serial_content = None
+    print aggregate_content
     context = {
         'user': request.user,
         'repository': repository,
@@ -270,6 +275,7 @@ def repository_text(request, repository_id, text_id):
         'text_id': text_id,
         'title': 'Text: %s' % result.get('title'),
         'serial_content': serial_content,
+        'aggregate_content': aggregate_content,
         'project_id': project_id,
         'project': project,
         'master_text': master_text,

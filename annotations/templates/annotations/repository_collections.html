@@ -37,9 +37,9 @@
             <a href="{% url "repository_collection" repository.id collection.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="list-group-item clearfix">
                 <span class="label label-primary pull-right">{{ collection.size }}</span>
                 {{ collection.name }}
-                <p class="text-warning">
+                <div class="text-warning">
                     {{ collection.description }}
-                </p>
+                </div>
             </a>
             {% endfor %}
 

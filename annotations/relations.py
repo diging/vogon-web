@@ -6,12 +6,11 @@ from django.db import transaction
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
-from annotations.models import RelationTemplatePart, RelationTemplate, Relation, RelationSet, Appellation, DocumentPosition
+from annotations.models import *
 from concepts.models import Concept
 
 import networkx as nx
 from string import Formatter
-
 
 
 PRED_MAP = {    # Used in expression and terminal node templates.
@@ -30,6 +29,104 @@ class InvalidData(RuntimeError):
 
 
 datum_as_key = lambda datum: (datum['part_id'], datum['part_field'])
+
+
+def get_fields(template):
+    """
+    Retrieve the set of fields that are required to generate a new
+    :class:`.RelationSet` from a :class:`.RelationTemplate`\. These fields can
+    be used to generate :class:`.Appellation`\s that will be used in the
+    eventual :class:`.RelationSet`\.
+
+    Each field should be specified using the following keys:
+
+    ================    ========================================================
+    type                A value from :prop:`.RelationTemplatePart.NODE_CHOICES`
+    part_id             The pk-id of the template part to which this field
+                        belongs (int).
+    part_field          The name of the field (source, predicate, object).
+    concept_id          If a TYPE field, this is the pk-id of the
+                        :class:`concepts.models.Type` to which the
+                        interpretation should belong. Otherwise, the pk-id of
+                        the specified  :class:`concepts.models.Concept` to be
+                        used as the interpretation (int).
+    concept_label       The display label for the selected concept (str).
+    label               The display label for the field (str).
+    evidence_required   Whether or not a text selection is required for the
+                        appellation (bool).
+    description         A freeform description (to be displayed along with
+                        ``label``) of the field (str).
+    ================    ========================================================
+
+
+    Parameters
+    ----------
+    template : :class:`annotations.models.RelationTemplate`
+
+    Returns
+    -------
+    list
+        Each item is a dict specifying the nature of the field.
+    """
+
+    fields = []
+    for tpart in template.template_parts.all():
+        for field in ['source', 'predicate', 'object']:
+            evidenceRequired = getattr(tpart, '%s_prompt_text' % field)
+            nodeType = getattr(tpart, '%s_node_type' % field)
+            # The user needs to provide specific concepts for TYPE fields.
+            if nodeType == RelationTemplatePart.TYPE:
+                part_type = getattr(tpart, '%s_type' % field)
+                part_label = getattr(tpart, '%s_label' % field)
+                part_description = getattr(tpart, '%s_description' % field)
+                concept_id = getattr(part_type, 'id', None)
+                concept_label = getattr(part_type, 'label', None)
+                fields.append({
+                    'type': 'TP',
+                    'part_id': tpart.id,
+                    'part_field': field,
+                    'concept_id': concept_id,
+                    'label': part_label,
+                    'concept_label': concept_label,
+                    'evidence_required': evidenceRequired,
+                    'description': part_description,
+                })
+            elif nodeType == RelationTemplatePart.DATE:
+                part_type = getattr(tpart, '%s_type' % field)
+                part_label = getattr(tpart, '%s_label' % field)
+                part_description = getattr(tpart, '%s_description' % field)
+                concept_id = getattr(part_type, 'id', None)
+                concept_label = getattr(part_type, 'label', None)
+                fields.append({
+                    'type': 'DT',
+                    'part_id': tpart.id,
+                    'part_field': field,
+                    'concept_id': concept_id,
+                    'label': part_label,
+                    'concept_label': concept_label,
+                    'evidence_required': evidenceRequired,
+                    'description': part_description,
+                })
+
+            # Even if there is an explicit concept, we may require textual
+            #  evidence from the user.
+            elif evidenceRequired and nodeType == RelationTemplatePart.CONCEPT:
+                part_concept = getattr(tpart, '%s_concept' % field)
+                concept_id = getattr(part_concept, 'id', None)
+                concept_label = getattr(part_concept, 'label', None)
+                part_label = getattr(tpart, '%s_label' % field)
+                part_description = getattr(tpart, '%s_description' % field)
+                fields.append({
+                    'type': 'CO',
+                    'part_id': tpart.id,
+                    'part_field': field,
+                    'concept_id': concept_id,
+                    'label': part_label,
+                    'concept_label': concept_label,
+                    'evidence_required': evidenceRequired,
+                    'description': part_description,
+                })
+    return fields
 
 
 def build_dependency_graph_from_template(template):
@@ -184,16 +281,12 @@ def create_appellation(field_data, field, cache={}, project_id=None, creator=Non
     }
 
     position_data = field_data.pop('position', None)
-    print '**' * 20
-    print field_data
 
     if position_data:
         position = DocumentPosition.objects.create(**position_data)
-        print position.__dict__
         appellation_data.update({
             'position': position,
         })
-    print '==' * 20
 
     appellation_data.update({
         'tokenIds': field_data.get('data', {}).get('tokenIds', ''),
@@ -213,7 +306,6 @@ def create_appellation(field_data, field, cache={}, project_id=None, creator=Non
     if field['part_field'] == 'predicate':
         appellation_data['asPredicate'] = True
 
-    print "appellation_data:::", appellation_data
     appellation = Appellation.objects.create(**appellation_data)
 
     if cache:
@@ -260,7 +352,11 @@ def get_terminal_nodes(template, relations):
 
 
 def handle_temporal_data(template, data, creator, text, relationset, relations, project_id=None):
-    root = nx.topological_sort(build_dependency_graph_from_template(template))[0]
+    depgraph = build_dependency_graph_from_template(template)
+    if depgraph.size() == 0:
+        root = template.template_parts.first().internal_id
+    else:
+        root = nx.topological_sort(depgraph)[0]
     top_relation = relations[root]    # To which we attach temporal relations.
 
     for relation_type in ['start', 'end', 'occur']:
@@ -324,9 +420,7 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
     """
 
     _as_key = lambda datum: (datum['part_id'], datum['part_field'])
-    print template.fields
-    print '::', raw_data
-    required = {_as_key(datum): datum for datum in template.fields}
+    required = {_as_key(datum): datum for datum in get_fields(template)}
     provided = {_as_key(datum): datum for datum in raw_data['fields']}
     template_parts = template.template_parts.all()
 
@@ -352,13 +446,10 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
             'occursIn': text,
         }
 
-        print '** template_part **', template_part.__dict__
         for pred in ['source', 'predicate', 'object']:    # Collect field data
-            print '---', pred, '---'
             node_type = getattr(template_part, '%s_node_type' % pred)
             method = field_handlers.get(node_type, field_handlers['__other__'])
             datum = provided.get((template_part.id, pred))
-            print 'datum', datum
 
             dkey = 'predicate' if pred == 'predicate' else '%s_content_object' % pred
 
@@ -374,7 +465,6 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
                 }
                 relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
 
-        print 'relation_data ::: ', relation_data
         relation = Relation.objects.create(**relation_data)
 
         if cache:
@@ -394,7 +484,6 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
         for template_part in template_parts:
             relation = create_relation(template_part, provided, relationset, cache=relation_cache, appellation_cache=appellation_cache, project_id=project_id)
             relations[template_part.internal_id] = relation
-            print relation.__dict__
 
         relationset.expression = generate_expression(template, relations)
         relationset.terminal_nodes.add(*get_terminal_nodes(template, relations))

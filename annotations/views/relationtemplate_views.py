@@ -18,7 +18,7 @@ from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm,
                                RelationTemplateForm)
 from annotations.models import *
-from annotations.relations import create_template, InvalidTemplate, create_relationset
+from annotations import relations
 from concepts.models import Concept, Type
 
 import copy
@@ -68,11 +68,11 @@ def add_relationtemplate(request):
             part_data = [dict(form.cleaned_data) for form in relationtemplatepart_formset]
 
             try:
-                # create_template() calls validation methods.
-                template = create_template(relationtemplate_data, part_data)
+                # relations.create_template() calls validation methods.
+                template = relations.create_template(relationtemplate_data, part_data)
                 return HttpResponseRedirect(reverse('get_relationtemplate',
                                             args=(template.id,)))
-            except InvalidTemplate as E:
+            except relations.InvalidTemplate as E:
                 relationtemplate_form.add_error(None, E.message)
                 logger.debug('creating relationtemplate failed: %s' % (E.message))
         context['formset'] = relationtemplatepart_formset
@@ -89,6 +89,8 @@ def add_relationtemplate(request):
 def list_relationtemplate(request):
     """
     Returns a list of all :class:`.RelationTemplate`\s.
+
+    This view will return JSON if ``format=json`` is passed in the GET request.
 
     Parameters
     ----------
@@ -111,7 +113,7 @@ def list_relationtemplate(request):
             'id': rt.id,
             'name': rt.name,
             'description': rt.description,
-            'fields': rt.fields,
+            'fields': relations.get_fields(rt),
             } for rt in queryset.order_by('-id')]
         }
     response_format = request.GET.get('format', None)
@@ -132,6 +134,8 @@ def get_relationtemplate(request, template_id):
     """
     Returns data on fillable fields in a :class:`.RelationTemplate`\.
 
+    This view will return JSON if ``format=json`` is passed in the GET request.
+
     Parameters
     ----------
     request : `django.http.requests.HttpRequest`
@@ -145,7 +149,7 @@ def get_relationtemplate(request, template_id):
     relation_template = get_object_or_404(RelationTemplate, pk=template_id)
 
     data = {
-        'fields': relation_template.fields,
+        'fields': relations.get_fields(relation_template),
         'name': relation_template.name,
         'description': relation_template.description,
         'id': template_id,
@@ -194,7 +198,7 @@ def create_from_relationtemplate(request, template_id):
         project_id = data.get('project')
         if project_id is None:
             project_id = VogonUserDefaultProject.objects.get(for_user=request.user).project.id
-        relationset = create_relationset(template, data, request.user, text, project_id)
+        relationset = relations.create_relationset(template, data, request.user, text, project_id)
         response_data = {'relationset': relationset.id}
     else:   # Not sure if we want to do anything for GET requests at this point.
         response_data = {}
