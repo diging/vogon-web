@@ -102,11 +102,14 @@ def list_relationtemplate(request):
     """
     queryset = RelationTemplate.objects.all()
     search = request.GET.get('search', None)
+    all_templates = request.GET.get('all', False)
     if search:
         queryset = queryset.filter(
             Q(name__icontains=search) |
             Q(description__icontains=search)
         )
+    if not all_templates:
+        queryset = queryset.filter(createdBy=request.user)
 
     data = {
         'templates': [{
@@ -124,6 +127,7 @@ def list_relationtemplate(request):
     context = {
         'user': request.user,
         'data': data,
+        'all_templates': all_templates
     }
 
     return render(request, template, context)

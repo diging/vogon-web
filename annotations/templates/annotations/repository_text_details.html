@@ -37,18 +37,20 @@
             </p>
             <div class="list-group">
             {% for content_series in aggregate_content %}
-            {% with content_series.resources.0 as part %}
-                {% if part %}
+            {% if content_series.resources %}
                 <div class="list-group-item">
-                    <div class="pull-right">
+                    <div class="h4">
+                    {{ content_series.content_type }}
+                    </div>
+                    {% for part in content_series.resources %}
+                    <div class="btn-group">
                         <a class="btn btn-xs btn-success" href="{% if part.text %}{% url "annotate" part.text.id %}{% else %}{% url "repository_text_content" repository.id part.content_for part.id %}{% endif %}?part_of={{ result.id }}{% if project_id %}&project_id={{ project_id }}{% endif %}">
-                            <span class="glyphicon glyphicon-tag"></span> First page
+                            {{ forloop.counter }}
                         </a>
                     </div>
-                    {{ content_series.content_type }}
+                    {% endfor %}
                 </div>
-                {% endif %}
-            {% endwith %}
+            {% endif %}
             {% endfor %}
             </div>
             {% endif %}

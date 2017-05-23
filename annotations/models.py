@@ -985,6 +985,9 @@ class RelationTemplate(models.Model):
     .. todo:: Add ``created_by`` field, perhaps others.
     """
 
+    createdBy = models.ForeignKey(VogonUser, related_name='templates')
+    created = models.DateTimeField(auto_now_add=True)
+
     name = models.CharField(max_length=255)
     """A descriptive name used in menus in the annotation interface."""
 

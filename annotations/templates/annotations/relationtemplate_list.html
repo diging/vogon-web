@@ -17,10 +17,10 @@
                 </a>
             </div>
             <div class="h2">
-                Relation Templates
+                {% if not all_templates %}My {% endif %}Relation Templates {% if all_templates %}<a href="{% url "list_relationtemplate" %}" class="btn"><span class='glyphicon glyphicon-filter'></span> My templates</a>{% else %}<a href="?all=true" class="btn"><span class='glyphicon glyphicon-filter'></span> View all</a>{% endif %}
             </div>
             <p>
-                Relation templates provide a mechanism for mapping user annotations
+                Relation templates provide a mechanism for mapping annotations
                 onto complex nested relations (quadruples).
             </p>
             <table class="table table-condensed table-responsive table-hover">

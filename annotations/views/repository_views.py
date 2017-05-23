@@ -245,28 +245,8 @@ def repository_text(request, repository_id, text_id):
         master_text = Text.objects.get(uri=result.get('uri'))
     except Text.DoesNotExist:
         master_text = None
-
-    # try:
-    #     _parts = result.get('parts')
-    #     if _parts:
-    #         serial_content = defaultdict(list)
-    #         first_part = _parts[0]
-    #         for _part in _parts:
-    #             for _content_part in _part['content']:
-    #                 _ctype = _content_part['content_type']
-    #                 serial_content[_ctype].append({
-    #                     'source_id': _part.get('id'),
-    #                     'content_id': _content_part['id'],
-    #                 })
-    #
-    #         serial_content = [(k, enumerate(sorted(v, key=lambda o: o['source_id'])))
-    #                           for k, v in serial_content.iteritems()]
-    #     else:
-    #         serial_content = []
-    # except IndexError:
     aggregate_content = result.get('aggregate_content')
     serial_content = None
-    print aggregate_content
     context = {
         'user': request.user,
         'repository': repository,
