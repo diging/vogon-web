@@ -70,11 +70,15 @@ def repository_collections(request, repository_id):
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     project_id = request.GET.get('project_id')
+    try:
+        collections = manager.collections()
+    except IOError:
+        return render(request, 'annotations/repository_ioerror.html', {}, status=500)
 
     context = {
         'user': request.user,
         'repository': repository,
-        'collections': manager.collections(),
+        'collections': collections,
         'title': 'Browse collections in %s' % repository.name,
         'project_id': project_id,
         'manager': manager,
@@ -89,7 +93,11 @@ def repository_collection(request, repository_id, collection_id):
 
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
-    collection = manager.collection(id=collection_id, **params)
+    try:
+        collection = manager.collection(id=collection_id, **params)
+    except IOError:
+        return render(request, 'annotations/repository_ioerror.html', {}, status=500)
+
     project_id = request.GET.get('project_id')
     base_url = reverse('repository_collection', args=(repository_id, collection_id))
     base_params = {}
@@ -122,7 +130,10 @@ def repository_browse(request, repository_id):
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     project_id = request.GET.get('project_id')
-    resources = manager.list(**params)
+    try:
+        resources = manager.list(**params)
+    except IOError:
+        return render(request, 'annotations/repository_ioerror.html', {}, status=500)
 
     base_url = reverse('repository_browse', args=(repository_id,))
     base_params = {}
@@ -158,7 +169,10 @@ def repository_search(request, repository_id):
     query = request.GET.get('query', None)
     project_id = request.GET.get('project_id')
     if query:
-        results = manager.search(query=query, **params)
+        try:
+            results = manager.search(query=query, **params)
+        except IOError:
+            return render(request, 'annotations/repository_ioerror.html', {}, status=500)
         form = RepositorySearchForm({'query': query})
     else:
         results = None
@@ -239,7 +253,7 @@ def repository_text(request, repository_id, text_id):
     try:
         result = manager.resource(id=int(text_id))
     except IOError:
-        return HttpResponseNotFound('Not found')
+        return render(request, 'annotations/repository_ioerror.html', {}, status=500)
 
     try:
         master_text = Text.objects.get(uri=result.get('uri'))
@@ -281,8 +295,12 @@ def repository_text_content(request, repository_id, text_id, content_id):
     manager = RepositoryManager(repository.configuration, user=request.user)
     # content_resources = {o['id']: o for o in resource['content']}
     # content = content_resources.get(int(content_id))    # Not a dict.
-    content = manager.content(id=int(content_id))
-    resource = manager.resource(id=int(text_id))
+    try:
+        content = manager.content(id=int(content_id))
+        resource = manager.resource(id=int(text_id))
+    except IOError:
+        return render(request, 'annotations/repository_ioerror.html', {}, status=500)
+
     content_type = content.get('content_type', None)
     from annotations import annotators
     if not annotators.annotator_exists(content_type):
@@ -296,7 +314,10 @@ def repository_text_content(request, repository_id, text_id, content_id):
     }
     part_of_id = request.GET.get('part_of')
     if part_of_id:
-        master = manager.resource(id=int(part_of_id))
+        try:
+            master = manager.resource(id=int(part_of_id))
+        except IOError:
+            return render(request, 'annotations/repository_ioerror.html', {}, status=500)
         master_resource, _ = Text.objects.get_or_create(uri=master['uri'],
                                                         defaults={
             'title': master.get('title'),
@@ -352,7 +373,10 @@ def repository_text_add_to_project(request, repository_id, text_id, project_id):
 
     manager = RepositoryManager(repository.configuration, user=request.user)
 
-    resource = manager.resource(id=int(text_id))
+    try:
+        resource = manager.resource(id=int(text_id))
+    except IOError:
+        return render(request, 'annotations/repository_ioerror.html', {}, status=500)
     defaults = {
         'title': resource.get('title'),
         'created': resource.get('created'),

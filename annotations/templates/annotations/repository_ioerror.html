@@ -1,0 +1,15 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+
+{% block main %}
+<div class="container">
+    <div class="h1 text-danger">Whoops! <i class="fa fa-frown-o" aria-hidden="true"></i></div>
+    <p class="text-warning">
+        There was a problem communicating with the remote repository that contains
+        this content. Please go back, and try again. If this problem persists,
+        please contact an <a href="mailto:erick.peirson@asu.edu">administrator</a>.
+    </p>
+</div>
+
+{% endblock %}
