@@ -7,8 +7,12 @@
 <script src="{% static "annotations/js/cytoscape.min.js" %}"></script>
 {% endblock %}
 
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "list_projects" %}" class="btn btn-xs">Projects</a>
+{% endblock %}
+
 {% block main %}
-<div class="container">
+<div class="container-fluid">
     {% block titleblock %}
     <div class="h2">
         Projects

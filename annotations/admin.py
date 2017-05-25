@@ -15,22 +15,24 @@ class VogonUserAdmin(UserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('email', 'affiliation', 'is_admin')
+    list_display = ('username', 'full_name', 'email', 'affiliation', 'is_admin')
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {
-            'fields': ('full_name', 'affiliation', 'location', 'link', )
+            'fields': ('full_name', 'affiliation', 'location', 'link',
+                       'conceptpower_uri')
         }),
-        ('Permissions', {'fields': ('is_admin',)}),
+        ('Permissions', {'fields': ('is_admin', 'is_active')}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'full_name', 'affiliation', 'location')}
-        ),
+            'fields': ('email', 'password1', 'password2', 'full_name',
+                       'affiliation', 'location')
+        }),
     )
     search_fields = ('email',)
     ordering = ('email',)
@@ -63,9 +65,8 @@ def submit_relationsets(modeladmin, request, queryset):
     #  involve concepts that are not resolved.
     all_rsets = [rs for rs in queryset if rs.ready()]
 
-    project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
+    project_grouper = lambda rs: getattr(rs.project, 'quadriga_id', -1)
     for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
-        print project_id
         for text_id, text_group in groupby(project_group, key=lambda rs: rs.occursIn.id):
             text = Text.objects.get(pk=text_id)
             for user_id, user_group in groupby(text_group, key=lambda rs: rs.createdBy.id):
@@ -73,7 +74,7 @@ def submit_relationsets(modeladmin, request, queryset):
                 # We lose the iterator after the first pass, so we want a list here.
                 rsets = []
                 for rs in user_group:
-                    rsets.append(rs)
+                    rsets.append(rs.id)
                     rs.pending = True
                     rs.save()
                 kwargs = {}
@@ -81,7 +82,7 @@ def submit_relationsets(modeladmin, request, queryset):
                     kwargs.update({
                         'project_id': project_id,
                     })
-                submit_relationsets_to_quadriga.delay(rsets, text, user, **kwargs)
+                submit_relationsets_to_quadriga.delay(rsets, text.id, user.id, **kwargs)
 
 
 def submit_relationsets_synch(modeladmin, request, queryset):
@@ -98,9 +99,8 @@ def submit_relationsets_synch(modeladmin, request, queryset):
     #  involve concepts that are not resolved.
     all_rsets = [rs for rs in queryset if rs.ready()]
 
-    project_grouper = lambda rs: getattr(rs.occursIn.partOf.first(), 'quadriga_id', -1)
+    project_grouper = lambda rs: getattr(rs.project, 'quadriga_id', -1)
     for project_id, project_group in groupby(sorted(all_rsets, key=project_grouper), key=project_grouper):
-        print project_id
         for text_id, text_group in groupby(project_group, key=lambda rs: rs.occursIn.id):
             text = Text.objects.get(pk=text_id)
             for user_id, user_group in groupby(text_group, key=lambda rs: rs.createdBy.id):
@@ -108,15 +108,15 @@ def submit_relationsets_synch(modeladmin, request, queryset):
                 # We lose the iterator after the first pass, so we want a list here.
                 rsets = []
                 for rs in user_group:
-                    rsets.append(rs)
+                    rsets.append(rs.id)
                     rs.pending = True
                     rs.save()
                 kwargs = {}
-                if project_id:
+                if project_id and project_id > 0:
                     kwargs.update({
                         'project_id': project_id,
                     })
-                submit_relationsets_to_quadriga(rsets, text, user, **kwargs)
+                submit_relationsets_to_quadriga(rsets, text.id, user.id, **kwargs)
 
 
 class RelationSetAdmin(admin.ModelAdmin):
@@ -139,7 +139,6 @@ admin.site.register(VogonUser, VogonUserAdmin)
 admin.site.register(Appellation, AppellationAdmin)
 admin.site.register(Text, TextAdmin)
 admin.site.register(TextCollection)
-admin.site.register(Repository)
 admin.site.register(Relation, RelationAdmin)
 admin.site.register(RelationSet, RelationSetAdmin)
 admin.site.register(RelationTemplate)

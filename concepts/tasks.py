@@ -1,9 +1,16 @@
 from __future__ import absolute_import
 
+from django.conf import settings
+import logging
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(settings.LOGLEVEL)
+
 import requests
 
 from concepts.authorities import resolve, search, add
 from concepts.models import Concept
+from concepts.lifecycle import *
 
 # This will make sure the app is always imported when
 # Django starts so that shared_task will use this app.
@@ -11,27 +18,19 @@ from celery import shared_task
 
 
 @shared_task
-def resolve_concept(sender, instance):
+def resolve_concept(instance_id):
+    """
+    Since resolving concepts can involve several API calls, we handle it
+    asynchronously.
+    """
     try:
-        resolve(sender, instance)
-    except requests.exceptions.ConnectionError:
-        pass
+        manager = ConceptLifecycle(Concept.objects.get(pk=instance_id))
+    except Concept.DoesNotExist:
+        return
 
-
-@shared_task
-def add_concept(sender, instance):
     try:
-        response_data = add(instance)
-        instance.uri = response_data['uri']
-        instance.concept_state = Concept.RESOLVED
-        instance.save()
-    except requests.exceptions.ConnectionError:
-        pass
-
-
-@shared_task
-def search_concept(query, pos='noun'):
-    try:
-        search(query, pos)
-    except requests.exceptions.ConnectionError:
-        pass
+        manager.resolve()
+    except ConceptLifecycleException as E:
+        logger.debug("Resolve concept failed: %s" % str(E))
+        return 
+    logger.debug("Resolved concept %s" % manager.instance.uri)

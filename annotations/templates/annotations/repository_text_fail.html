@@ -1,0 +1,21 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>&raquo;<a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">{{ repository.name }}</a>&raquo;<a href="{% url "repository_text" repository.id result.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Resource: {{ result.title }}</a>
+{% endblock %}
+
+{% block main %}
+
+<div class="container-fluid">
+    <div class="h3">Resource: {{ result.title }}
+        <span class="small">in repository <strong>{{repository.name}}</strong></span>
+    </div>
+
+    <p class="text-danger">
+        Whoops! Unfortunately, VogonWeb doesn't support annotation for objects of type <strong>{{ content_type }}</strong>.
+    </p>
+</div>
+{% endblock %}

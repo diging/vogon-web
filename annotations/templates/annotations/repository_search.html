@@ -1,0 +1,94 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>&raquo;<a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">{{ repository.name }}</a>&raquo;<a href="{% url "repository_search" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Search</a>
+{% endblock %}
+
+{% block main %}
+
+<script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
+<div class="container-fluid">
+    <div class="h3">Repository <strong>{{ repository.name }}</strong></div>
+    <p class="">{{ repository.description }}</p>
+    <ul class="nav nav-pills nav-justified">
+        {% if "search" in manager.methods %}
+        <li class="active">
+            <a href="{% url "repository_search" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Search</a>
+        </li>
+        {% endif %}
+        {% if "list" in manager.methods %}
+        <li>
+            <a href="{% url "repository_browse" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Browse</a>
+        </li>
+        {% endif %}
+        {% if "collections" in manager.methods %}
+        <li>
+            <a href="{% url "repository_collections" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Collections</a>
+        </li>
+        {% endif %}
+    </ul>
+    <div style="margin-top: 10px;">
+        <form class="form" action="." method="GET">
+
+            {% with form.query as field %}
+            <div class="form-group">
+                <div class="input-group">
+                    {{ field }}
+                    <span class="input-group-btn">
+                        <input type="submit" class="btn btn-success" type="button" value="Search"></input>
+                    </span>
+                </div>
+            </div>
+            {% endwith %}
+            {% if project_id %}
+            <input type="hidden" name="project_id" value="{{ project_id }}" />
+            {% endif %}
+        </form>
+
+        {% if query %}
+        <div class="h4">Showing {{ results.count }} results for query <strong>{{ query }}</strong></div>
+        <div class="row">
+            <div class="col-xs-12 clearfix">
+            {% if previous_page %}
+            <a href="{{ previous_page }}" class="btn btn-xs">&laquo; Previous</a>
+            {% endif %}
+
+            {% if next_page %}
+            <div class="pull-right btn-group">
+                <a href="{{ next_page }}" class="btn btn-xs">Next &raquo;</a>
+            </div>
+            {% endif %}
+            </div>
+        </div>
+        <div class="list-group">
+            {% for result in results.resources  %}
+            <a class="list-group-item clearfix"
+                href="{% url "repository_text" repository.id result.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
+                <strong>{{ result.title }}</strong>
+                <p class="text-muted">{{ result.uri }}</p>
+                <span class="text-warning pull-right">
+                {% for ctype in result.content_types %}<span style="margin-right: 15px;">{{ ctype}}</span>{% endfor %}
+                </span>
+            </a>
+            {% endfor %}
+        </div>
+        <div class="row">
+            <div class="col-xs-12 clearfix">
+            {% if previous_page %}
+            <a href="{{ previous_page }}" class="btn btn-xs">&laquo; Previous</a>
+            {% endif %}
+
+            {% if next_page %}
+            <div class="pull-right btn-group">
+                <a href="{{ next_page }}" class="btn btn-xs">Next &raquo;</a>
+            </div>
+            {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

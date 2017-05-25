@@ -1,0 +1,25 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>
+{% endblock %}
+
+{% block main %}
+
+<script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
+<div class="container-fluid">
+    <div class="h2">Repositories</div>
+    <p class="text-muted">
+        Repositories are configured by the system administrator.
+    </p>
+    {% for repository in repositories %}
+    <a class="list-group-item clearfix" href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
+        <div class="h4">{{ repository.name }}</div>
+        <div class="text-muted text-small">{{ repository.description }}</div>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

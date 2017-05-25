@@ -1,7 +1,12 @@
 {% extends "annotations/base.html" %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "users" %}" class="btn btn-xs">Contributors</a>&raquo;<a href="{% url "user_details" detail_user.id %}" class="btn btn-xs">{{ detail_user.username}}</a>
+{% endblock %}
+
 {% load staticfiles %}
 {% block main %}
-<div id="main" class="container">
+<div id="main" class="container-fluid">
     <div class="row">
         <div class="col-sm-2 col-xs-4">
         	<img src="{% if detail_user.imagefile %}{{detail_user.imagefile}}{% else %}{{default_user_image}}{% endif %}"
@@ -13,7 +18,7 @@
         	<div class="h2">
                 {{ detail_user.username }}{% if detail_user.full_name %} <small>| {{ detail_user.full_name}}</small>{% endif %}
                 {% if detail_user.id == user.id %}
-                <a class="pull-right btn btm-md"
+                <a class="pull-right btn btn-md btn-success"
                     href="?mode=edit">
                     <span class="glyphicon glyphicon-pencil"></span>
                     Edit
@@ -79,22 +84,14 @@
 			});
 		</script>
 	</div>
-	{% if recent_activity|length > 0 %}
-	<div  style="max-height: 400px; overflow-y: scroll;">
-		<ul class="list-group">
-			{% for key, item in recent_activity.items %}
-			<li class="list-group-item">User <b>{{ key.1 }}</b> added
-				{% if item.appelation_count > 1 %}<b>{{ item.appelation_count }}</b> appellations{% endif %}
-				{% if item.appelation_count == 1 %}<b>{{ item.appelation_count }}</b> appellation{% endif %}
-				{% if item.relation_count > 0 and item.appelation_count > 0 %}and   {% endif %}
-				 {% if item.relation_count == 1 %}<b>{{ item.relation_count }}</b> relation{% endif %}
-				{% if item.relation_count > 1 %}<b>{{ item.relation_count }}</b> relations{% endif %}
-				<b>{{ key.0 |timesince }}</b> ago
-			</li>
-			{% endfor %}
-		</ul>
-	</div>
-	{% endif %}
+
+    {% if relations %}
+    <div class="h3">Recent Annotations
+        <a class="btn btn-sm" href="{% url "relations" %}?createdBy={{ user.id }}">See all</a>
+    </div>
+    {% include "annotations/relations_list_fragment.html" %}
+    {% endif %}
+
 </div>
 {% endblock %}
 Status API Training Shop Blog About

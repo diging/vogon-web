@@ -1,0 +1,49 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>&raquo;<a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">{{ repository.name }}</a>&raquo;<a href="{% url "repository_collections" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Collections</a>
+{% endblock %}
+
+{% block main %}
+
+<script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
+<div class="container-fluid">
+    <div class="h3">Repository <strong>{{ repository.name }}</strong></div>
+    <p class="">{{ repository.description }}</p>
+    <ul class="nav nav-pills nav-justified">
+        {% if "search" in manager.methods %}
+        <li>
+            <a href="{% url "repository_search" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Search</a>
+        </li>
+        {% endif %}
+        {% if "list" in manager.methods %}
+        <li>
+            <a href="{% url "repository_browse" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Browse</a>
+        </li>
+        {% endif %}
+        {% if "collections" in manager.methods %}
+        <li class="active">
+            <a href="{% url "repository_collections" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">Collections</a>
+        </li>
+        {% endif %}
+    </ul>
+    <div style="margin-top: 10px;">
+        <div class="list-group">
+
+            {% for collection in collections  %}
+            <a href="{% url "repository_collection" repository.id collection.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="list-group-item clearfix">
+                <span class="label label-primary pull-right">{{ collection.size }}</span>
+                {{ collection.name }}
+                <div class="text-warning">
+                    {{ collection.description }}
+                </div>
+            </a>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

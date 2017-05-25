@@ -4,9 +4,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django import forms
 from django.forms import widgets, BaseFormSet
-from crispy_forms.helper import FormHelper
 from django.db.models import Count
 from django.db.utils import ProgrammingError
+from django.conf import settings
 
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
@@ -165,17 +165,35 @@ class ConceptField(forms.CharField):
         The ``_concept`` field should be populated with the :class:`.Concept`\s
         id.
         """
-        return obj.id
+        return obj.uri
 
     def to_python(self, value):
         if value in self.empty_values:
             return None
         try:
-            key = 'pk'
-            value = self.queryset.get(**{key: value})
-        except (ValueError, TypeError, self.queryset.model.DoesNotExist):
+            key = 'uri'
+            py_value = self.queryset.get(**{key: value})
+        except self.queryset.model.DoesNotExist:
+            import goat
+            goat.GOAT = settings.GOAT
+            goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
+            concept = goat.Concept.retrieve(identifier=value)
+
+            data = dict(
+                uri=value,
+                label=concept.data['name'],
+                description=concept.data['description'],
+            )
+            ctype_data = concept.data['concept_type']#
+            if ctype_data:
+                data.update({'typed': Type.objects.get_or_create(uri=ctype_data['identifier'])[0]})
+
+            py_value = Concept.objects.create(**data)
+
+            return py_value
+        except (ValueError, TypeError):
             raise ValidationError(self.error_messages['invalid_choice'], code='invalid_choice')
-        return value
+        return py_value
 
 
 class TemplateChoiceField(forms.ChoiceField):
@@ -205,21 +223,53 @@ class ChoiceIntegerField(forms.IntegerField):
             return -1
 
 
+# TODO: widget details (e.g. CSS classes) should be in the template.
 class RelationTemplateForm(forms.ModelForm):
     name = forms.CharField(widget=forms.TextInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'placeholder': 'What is this relation called?'
         }))
     description = forms.CharField(widget=forms.Textarea(attrs={
-            'class': 'form-control',
+            'class': 'form-control input-sm',
             'rows': 2,
             'placeholder': 'Please describe this relation.',
         }))
     expression = forms.CharField(widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 2,
-            'placeholder': 'Enter an expression pattern for this relation.'
+            'class': 'form-control input-sm',
+            'rows': 3,
+            'placeholder': "Enter an expression pattern for this relation."
+                           " This should be a full-sentence structure that"
+                           " expresses the content of the relation. Indicate"
+                           " the position of nodes (concepts) in the template"
+                           " using node identifiers, e.g. {0s} for the subject"
+                           " of this first relation part, {1o} for the object"
+                           " of the second part, or {2p} for the predicate of"
+                           " the third part."
         }))
+    terminal_nodes = forms.CharField(widget=forms.TextInput(attrs={
+            'class': 'form-control input-sm',
+            'rows': 2,
+            'placeholder': "Enter comma-separated node identifiers. E.g."
+                           " ``0s,1o``."
+        }))
+
+    def clean_expression(self):
+        from string import Formatter
+        value = self.cleaned_data.get('expression')
+        try:
+            [k[1] for k in Formatter().parse(value)]
+        except Exception as E:
+            raise ValidationError('Invalid expression')
+        return value
+
+    def clean_terminal_nodes(self):
+        value = self.cleaned_data.get('terminal_nodes')
+        try:
+            for u, v in map(tuple, value.split(',')):
+                pass
+        except Exception as E:
+            raise ValidationError('Invalid terminal nodes')
+        return value
 
     class Meta:
         model = RelationTemplate
@@ -241,37 +291,75 @@ class UberCheckboxInput(forms.CheckboxInput):
         return True
 
 
+# TODO: styling (CSS classes) should be in the template.
+# TODO: Move away from the AutocompleteWidget; too janky.
 class RelationTemplatePartForm(forms.ModelForm):
     """
 
     TODO: make sure that there are no self-loops in inter-part references.
     """
     source_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
+    source_concept_description = forms.CharField(widget=forms.Textarea(attrs={
+        'class': 'form-control input-sm',
+        'rows': 2,
+        'disabled': True,
+        'readonly': True,
+        'style': 'visibility: hidden;'
+    }), required=False)
     source_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.NODE_CHOICES), required=True,
-                                         widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'source'}))
+                                         widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'source'}))
 
-    source_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'source_concept'}), required=False)
+    source_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'source_concept', 'results-target': 'source_concept_results_elem', 'status-target': 'source_concept_status_elem', 'description': 'source_concept_description'}), required=False)
     source_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
+    source_description = forms.CharField(widget=forms.Textarea(attrs={
+            'class': 'form-control input-sm',
+            'rows': 2,
+            'placeholder': 'Any additional explanatory information, to be displayed to the user.',
+        }), required=False)
 
     predicate_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
+    predicate_concept_description = forms.CharField(widget=forms.Textarea(attrs={
+        'class': 'form-control input-sm',
+        'rows': 2,
+        'disabled': True,
+        'readonly': True,
+        'style': 'visibility: hidden;'
+    }), required=False)
     predicate_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.PRED_CHOICES), required=True,
-                                            widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'predicate'}))
-    predicate_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'predicate_concept'}), required=False)
+                                            widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'predicate'}))
+    predicate_concept_text = forms.CharField(widget=AutocompleteWidget(attrs={'target': 'predicate_concept', 'results-target': 'predicate_concept_results_elem', 'status-target': 'predicate_concept_status_elem', 'description': 'predicate_concept_description'}), required=False)
     predicate_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
+    predicate_description = forms.CharField(widget=forms.Textarea(attrs={
+            'class': 'form-control input-sm',
+            'rows': 2,
+            'placeholder': 'Any additional explanatory information, to be displayed to the user.',
+        }), required=False)
 
     object_concept = ConceptField(widget=widgets.HiddenInput(), required=False)
     object_node_type = forms.ChoiceField(choices=[('', 'Select a node type')] + list(RelationTemplatePart.NODE_CHOICES), required=True,
-                                         widget=widgets.Select(attrs={'class': 'form-control node_type_field', 'part': 'object'}))
-    object_concept_text= forms.CharField(widget=AutocompleteWidget(attrs={'target': 'object_concept'}), required=False)
+                                         widget=widgets.Select(attrs={'class': 'form-control input-sm node_type_field', 'part': 'object'}))
+    object_concept_text= forms.CharField(widget=AutocompleteWidget(attrs={'target': 'object_concept', 'results-target': 'object_concept_results_elem', 'status-target': 'object_concept_status_elem', 'description': 'object_concept_description'}), required=False)
     object_prompt_text = forms.BooleanField(required=False, initial=True, widget=UberCheckboxInput())
+    object_description = forms.CharField(widget=forms.Textarea(attrs={
+            'class': 'form-control input-sm',
+            'rows': 2,
+            'placeholder': 'Any additional explanatory information, to be displayed to the user.',
+        }), required=False)
+    object_concept_description = forms.CharField(widget=forms.Textarea(attrs={
+        'class': 'form-control input-sm',
+        'rows': 2,
+        'disabled': True,
+        'readonly': True,
+        'style': 'visibility: hidden;'
+    }), required=False)
 
-    source_relationtemplate_internal_id = ChoiceIntegerField(required=False)
-    object_relationtemplate_internal_id = ChoiceIntegerField(required=False)
+    source_relationtemplate_internal_id = ChoiceIntegerField(required=False, widget=widgets.NumberInput(attrs={'placeholder': 'The ID of a relation in this template.'}))
+    object_relationtemplate_internal_id = ChoiceIntegerField(required=False, widget=widgets.NumberInput(attrs={'placeholder': 'The ID of a relation in this template.'}))
 
     internal_id = forms.IntegerField(widget=widgets.HiddenInput())
 
     class Media:
-        js = ('annotations/js/autocomplete.js',)
+        # js = ('annotations/js/autocomplete.js',)
         css = {
             'all': ['annotations/css/autocomplete.css']
         }
@@ -290,14 +378,11 @@ class RelationTemplatePartForm(forms.ModelForm):
             )
 
     def __init__(self, *args, **kwargs):
-
-
         super(RelationTemplatePartForm, self).__init__(*args, **kwargs)
 
         # We need a bit of set-up for angular data bindings to work properly
         #  on the form.
         # Angular can't handle hyphens, so we use underscores.
-        print self.prefix
         self.safe_prefix = self.prefix.replace('-', '_')
 
         self.ident = self.prefix.split('-')[-1]
@@ -307,10 +392,13 @@ class RelationTemplatePartForm(forms.ModelForm):
             if 'prompt_text' in fname:
                 continue
             if 'class' not in field.widget.attrs:
-                field.widget.attrs.update({'class': 'form-control'})
+                field.widget.attrs.update({'class': 'form-control input-sm'})
 
-            if 'target' in field.widget.attrs:
-                field.widget.attrs['target'] = 'id_{0}-'.format(self.prefix) + field.widget.attrs['target']
+            for name in ['target', 'results-target', 'status-target']:
+                if name in field.widget.attrs:
+                    field.widget.attrs[name] = 'id_{0}-'.format(self.prefix) + field.widget.attrs[name]
+            if 'description' in field.widget.attrs:
+                field.widget.attrs['description'] = 'id_{0}-'.format(self.prefix) + field.widget.attrs['description']
 
     def clean(self, *args, **kwargs):
         super(RelationTemplatePartForm, self).clean(*args, **kwargs)
@@ -319,9 +407,15 @@ class RelationTemplatePartForm(forms.ModelForm):
             selected_node_type = self.cleaned_data.get('%s_node_type' % field)
             # If the user has selected the "Concept type" field, then they must
             #  also provide a specific concept type.
-            if selected_node_type == 'TP':
-                if not self.cleaned_data.get('%s_type' % field, None):
-                    self.add_error('%s_type' % field, 'Must select a concept type')
+            # if selected_node_type == 'TP':
+            #     if not self.cleaned_data.get('%s_type' % field, None):
+            #         self.add_error('%s_type' % field, 'Must select a concept type')
+
+        for field in ['source', 'predicate', 'object']:
+            evidence = self.cleaned_data.get('%s_prompt_text' % field)
+            label = self.cleaned_data.get('%s_label' % field)
+            if evidence and not label:
+                self.add_error('%s_label' % field, 'Please add a label')
 
 
 class RelationTemplatePartFormSet(BaseFormSet):
@@ -351,7 +445,6 @@ class RelationTemplatePartFormSet(BaseFormSet):
                 form.add_error(None, 'At least one relation part is disconnected from the rest of the relation.')
 
 
-        # print self.cleaned_data
 
 
 class ProjectForm(forms.ModelForm):
@@ -393,53 +486,8 @@ class MySplitDateTimeWidget(forms.widgets.SplitDateTimeWidget):
         super(forms.widgets.SplitDateTimeWidget, self).__init__(widgets, attrs)
 
 
-# The database annotations in this Form cause call kinds of problems when
-#  testing. TODO: we should find a more elegant solution than just eating
-#  these exceptions.
-try:
-    class RelationSetFilterForm(forms.Form):
-        text = forms.MultipleChoiceField(choices=Text.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'title'),
-                                              required=False,
-                                              widget=forms.widgets.SelectMultiple(attrs={
-                                                    'class': 'form-control ymultiselect'
-                                                }))
-        project = forms.MultipleChoiceField(choices=TextCollection.objects.all().values_list('id', 'name'),
-                                                 required=False,
-                                                 widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
-        text_published_from = forms.DateField(required=False,
 
-                                              widget=forms.widgets.DateInput(attrs={
-                                                    'class': 'datepicker form-control',
-                                                    'placeholder': 'YYYY-MM-DD'
-                                                }))
-        text_published_through = forms.DateField(required=False,
 
-                                              widget=forms.widgets.DateInput(attrs={
-                                                    'class': 'datepicker form-control',
-                                                    'placeholder': 'YYYY-MM-DD'
-                                                }))
-        user = forms.MultipleChoiceField(choices=VogonUser.objects.annotate(num_appellations=Count('appellation')).filter(num_appellations__gte=1).values_list('id', 'username'),
-                                      required=False,
-                                      widget=forms.widgets.SelectMultiple(attrs={'class': 'form-control ymultiselect'}))
-        created_from = forms.SplitDateTimeField(required=False,
-                                                widget=MySplitDateTimeWidget(attrs={
-                                                     'date_class': 'datepicker form-control',
-                                                     'placeholder': 'YYYY-MM-DD',
-                                                     'time_class': 'form-control',
-                                                     'time_placeholder': 'HH:MM:SS'
-                                                 }))
-        created_through = forms.SplitDateTimeField(required=False,
-                                                   widget=MySplitDateTimeWidget(attrs={
-                                                        'date_class': 'datepicker form-control',
-                                                        'placeholder': 'YYYY-MM-DD',
-                                                        'time_class': 'form-control',
-                                                        'time_placeholder': 'HH:MM:SS'
-                                                    }))
 
-        node_types = forms.MultipleChoiceField(choices=Type.objects.all().values_list('id', 'label'), required=False,
-                                                    widget=forms.widgets.SelectMultiple(attrs={
-                                                        'class': 'form-control ymultiselect'
-                                                    }))
-        exclusive = forms.BooleanField(required=False)
-except ProgrammingError:
-    pass
+class RepositorySearchForm(forms.Form):
+    query = forms.CharField(max_length=255, widget=widgets.TextInput(attrs={'class': 'form-control'}))

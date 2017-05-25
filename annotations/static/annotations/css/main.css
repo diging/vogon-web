@@ -4,7 +4,6 @@ body {
     padding: 0px;
     background-color: rgb(250, 250, 250);
 
-    height: 100%;
     font-family: Palatino Linotype;
 
 }
@@ -243,32 +242,24 @@ circle.node {
  }
 
 
-/* make navbar taller */
-.navbar-brand,
-.navbar-nav li a {
-    line-height: 75px;
-    height: 75px;
-    padding-top: 0;
-    font-family: Arial;
+
+
+
+.navbar .glyphicon {
+    line-height: 35px;
+    font-size: 1.5em;
 }
 
 #userdropdown {
-    line-height: 75px;
-    height: 75px;
-    padding-top: 15px;
+    line-height: 35px;
+    height: 35px;
+    padding-top: 3px;
 }
 
 
-.navbar-brand {
-    font-size: 1.8em;
-    font-family: Arial Black;
-}
-.navbar-brand img {
-    padding-top: 10px;
-}
 
 .navbar-nav {
-    font-size: 1.2em;
+    font-size: 1.0em;
 }
 
 
@@ -293,7 +284,6 @@ circle.node {
 .div_padding{
     padding: 30px;
 }
-
 
 
 .btn-group {
@@ -390,7 +380,7 @@ a.appellation-list-item.selected {
  *  it should ride at the bottom of the window on top of the text.
  */
  .action-body {
-     max-height: 300px;
+
      overflow-y: scroll;
  }
 
@@ -402,6 +392,7 @@ a.appellation-list-item.selected {
     bottom: -10px;
     position: fixed;
 }
+
 .fixed-bottom .action-body {
     max-height: 150px;
 }
@@ -437,6 +428,11 @@ a.appellation-list-item.selected {
     height: 400px;
 }
 
+.navbar-inverse {
+    /*height: 35px;*/
+    min-height: 40px;
+}
+
 .navbar-inverse-transparent {
     /*background-color: rgba(0, 0, 0, 0.8);*/
     background-image: none;
@@ -450,39 +446,95 @@ a.appellation-list-item.selected {
     border: 0;
 }
 
+.navbar-nav.brand-nav {
+    margin-left: 0px !important;
+}
+
+.navbar li {
+    padding: 5px 2px;
+    border-radius: 5px;
+    margin: 5px;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.navbar-brand li {
+    padding: 5px 2px;
+    border-radius: 5px;
+    margin: 5px;
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.open>a {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    background-image: none;
+    border-color: none;
+    border: none;
+}
+
+.navbar-inverse .dropdown-menu li {
+    padding: 2px;
+    height: 30px;
+    /*background-color: #ddd;*/
+}
+
+.navbar-inverse .dropdown-menu a {
+    color: #ea9801 !important;
+    font-size: 1.1em;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
+/* make navbar taller */
+.navbar-brand,
+.navbar-nav li a {
+    line-height: 35px;
+    height: 35px;
+    padding-top: 0;
+    font-family: Arial;
+    padding-left: 8px;
+    padding-right: 8px;
+
+}
+.navbar-brand img {
+    margin-top: 12px;
+    height: 30px;
+}
+
+.navbar li .glyphicon {
+    color: #ea9801;
+}
+
+
 .navbar-home {
-    background-image: url('/static/annotations/img/britishmuseum_compressed.jpg');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-position: center top;
-
-    height: 680px;
+    padding-bottom: 45px;
+    /*height: 525px;*/
 }
 
-.navbar-home .navbar-nav>li>a {
-    /*color: black;*/
+.navbar-nav>li>a {
+    color: black;
 }
-
-
 
 
 .jumbotron-transparent {
     /*margin-top: 20px;*/
     background-color: rgba(255, 255, 255, 0.7);
     color: black;
+    padding-top: 5px !important;
 }
 
 
 .jumbotron-transparent p {
-    font-size: 10pt;
+    font-size: 1.2em;
     padding-left: 15px;
     padding-right: 15px;
 }
 
 
-.navbar-home {
+/*.navbar-home {
     position: relative;
-}
+}*/
 
 .navbar-home .brand-footer-right {
     position: absolute;
@@ -638,6 +690,7 @@ a.appellation-list-item.selected {
     opacity: 0;
 }
 .footer, .push {
+    margin-top: 60px;
     height: 60px;
     background: #e0e0e0;
 }
@@ -654,9 +707,74 @@ a.appellation-list-item.selected {
     margin-right: 10px;
 }
 
-
-
 .contributor-details {
     /* Make wrapped text align with text displaced by floating profile image. */
     margin-left: 70px;
+}
+
+.concept-item {
+    font-size: 9pt;
+    padding: 8px;
+}
+
+
+.breadcrumb-block {
+    padding: 5px;
+    font-family: sans-serif;
+}
+
+.relation-list-group {
+    font-size: 0.9em;
+}
+
+
+.action-panel-body {
+    padding: 5px 8px;
+}
+
+
+
+.relation-list-item {
+    font-size: 0.8em;
+    padding: 5px 8px;
+}
+
+.relation-list-item p {
+    margin-bottom: 0px;
+}
+
+.appellation-list-item {
+    font-size: 0.8em;
+    padding: 5px 8px;
+}
+
+.annotation-panel-heading {
+    padding: 0px 0px;
+}
+
+.annotation-preamble {
+    font-size: 0.9em;
+}
+
+
+.alert-xs {
+    padding: 5px;
+    font-size: 0.8em;
+    margin-bottom: 5px;
+}
+
+.alert-sm {
+    padding: 8px;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+
+.splash {
+    padding: 15px;
+    background-color: #ddd;
+    border-radius: 5px;
+}
+.splash .h2 {
+    margin-top: 10px;
 }

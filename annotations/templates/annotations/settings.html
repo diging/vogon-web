@@ -1,9 +1,14 @@
 {% extends "annotations/base.html" %}
 {% load staticfiles %}
 {% url "sign_s3" %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "users" %}" class="btn btn-xs">Contributors</a>&raquo;<a href="{% url "settings" %}" class="btn btn-xs">Settings</a>
+{% endblock %}
+
 {% block main %}
 
-<div class="container">
+<div class="container-fluid">
      <div class="h2">Update your profile</div>
 
     <form  action="#" method="post" enctype='multipart/form-data'>

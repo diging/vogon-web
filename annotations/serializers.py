@@ -26,47 +26,28 @@ class RemoteResourceSerializer(serializers.Serializer):
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Repository
+        fields = '__all__'
 
 
 class RelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Relation
+        fields = '__all__'
 
 
-class AppellationSerializer(serializers.ModelSerializer):
+class DocumentPositionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Appellation
-        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
-                  'interpretation', 'interpretation_type', 'occursIn',
-                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label')
+        model = DocumentPosition
+        fields = '__all__'
 
 
-class ConceptSerializer(serializers.ModelSerializer):
+class DateAppellationSerializer(serializers.ModelSerializer):
+    position = DocumentPositionSerializer(required=False)
+
     class Meta:
-        model = Concept
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-                  'description', 'pos', 'resolved', 'typed_label')
-
-
-class TypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Type
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-                  'description')
-
-
-class RelationSetSerializer(serializers.ModelSerializer):
-    appellations = AppellationSerializer(many=True)
-    concepts = ConceptSerializer(many=True)
-    class Meta:
-        model = RelationSet
-        fields = ('id', 'label', 'created', 'template', 'createdBy', 'occursIn', 'appellations', 'concepts')
-
-
-class TemporalBoundsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TemporalBounds
+        model = DateAppellation
+        fields = ('created', 'createdBy', 'id', 'occursIn', 'position', 'year',
+                  'month', 'day', 'project', 'stringRep', 'dateRepresentation')
 
 
 class TextSerializer(serializers.ModelSerializer):
@@ -89,6 +70,69 @@ class TextSerializer(serializers.ModelSerializer):
         return HttpResponse(text.id)
 
 
+class ConceptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Concept
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+                  'description', 'pos', 'resolved', 'typed_label')
+
+
+class AppellationSerializer(serializers.ModelSerializer):
+    position = DocumentPositionSerializer(required=False)
+    tokenIds = serializers.CharField(required=False)
+    stringRep = serializers.CharField(required=False)
+    occursIn = TextSerializer(required=False)
+    interpretation = ConceptSerializer(required=False)
+    createdBy = UserSerializer()
+
+    class Meta:
+        model = Appellation
+        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
+                  'interpretation', 'interpretation_type', 'occursIn',
+                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
+                  'interpretation_type_label', 'position', 'project')
+
+
+class AppellationPOSTSerializer(serializers.ModelSerializer):
+    position = DocumentPositionSerializer(required=False)
+    tokenIds = serializers.CharField(required=False)
+    stringRep = serializers.CharField(required=False)
+
+    class Meta:
+        model = Appellation
+        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
+                  'interpretation', 'interpretation_type', 'occursIn',
+                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
+                  'interpretation_type_label', 'position', 'project')
+
+
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+                  'description')
+
+
+class RelationSetSerializer(serializers.ModelSerializer):
+    appellations = AppellationSerializer(many=True)
+    date_appellations = DateAppellationSerializer(many=True)
+    concepts = ConceptSerializer(many=True)
+    createdBy = UserSerializer()
+
+    class Meta:
+        model = RelationSet
+        fields = ('id', 'label', 'created', 'template', 'createdBy', 'occursIn',
+                  'appellations', 'concepts', 'project', 'representation', 'date_appellations' )    #
+
+
+class TemporalBoundsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TemporalBounds
+        fields = '__all__'
+
+
+
 class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextCollection
+        fields = '__all__'

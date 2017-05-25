@@ -1,0 +1,98 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>&raquo;<a href="{% url "repository_details" repository.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">{{ repository.name }}</a>&raquo;<a href="{% url "repository_text" repository.id text_id %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Resource: {{ result.title }}</a>
+{% endblock %}
+
+{% block main %}
+
+<div class="container-fluid">
+    <div class="h3">{{ result.title }} <span class="small">in repository <strong>{{repository.name}}</strong></span></div>
+    <p class="text-warning">{{ result.uri }}</p>
+    {% if project_id %}
+    {% if in_project %}
+    <div class="btn btn-xs btn-success">
+        <span class="glyphicon glyphicon-ok"></span> Text already in {{ project.name }}
+    </div>
+    {% else %}
+    <a class="btn btn-xs btn-primary" href="{% url "repository_text_add_to_project" repository.id result.id project_id %}">
+        <span class="glyphicon glyphicon-plus"></span> Add to {{ project.name }}
+    </a>
+    {% endif %}
+    {% endif %}
+
+    {% if result.content or aggregate_content %}
+        <p class="text-muted">
+            The following content objects are associated with this resource. Select a content object to
+            begin annotating that object in VogonWeb.
+        </p>
+            {% if aggregate_content %}
+            <div class="h4">Serial Content</div>
+            <p>
+                The following content are serialized parts of this resource, such as individuated pages.
+                Multiple content types may be available.
+            </p>
+            <div class="list-group">
+            {% for content_series in aggregate_content %}
+            {% if content_series.resources %}
+                <div class="list-group-item">
+                    <div class="h4">
+                    {{ content_series.content_type }}
+                    </div>
+                    {% for part in content_series.resources %}
+                    <div class="btn-group">
+                        <a class="btn btn-xs btn-success" href="{% if part.text %}{% url "annotate" part.text.id %}{% else %}{% url "repository_text_content" repository.id part.content_for part.id %}{% endif %}?part_of={{ result.id }}{% if project_id %}&project_id={{ project_id }}{% endif %}">
+                            {{ forloop.counter }}
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% endfor %}
+            </div>
+            {% endif %}
+            {% if content %}
+            <div class="h4">Additional Content</div>
+            <p>
+                The following content represent the resource as a whole. This may include complex objects
+                like PDF documents, whole-text OCR documents, or other files.
+            </p>
+            <div class="list-group">
+                {% for content_object in content %}
+                <div class="list-group-item">
+                    <div>{{ content_object.name }}
+                        <div class="btn-group pull-right">
+                            <a class="btn btn-xs btn-success" href="{% url "repository_text_content" repository.id result.id content_object.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
+                                <span class="glyphicon glyphicon-tag"></span> Annotate
+                            </a>
+                        </div>
+                    </div>
+                    <dl class="dl-horizontal">
+                        <dt>Content type</dt>
+                        <dd>{{ content_object.content_type }}
+                    {% for name, fieldvalue in content_object.data.iteritems %}
+                    {% if name != 'name' %}
+                    {{ fieldvalue.render }}
+                    {% endif %}
+                    {% endfor %}
+
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% else %}
+        <p>This resource has no associated content.</p>
+        {% endif %}
+
+
+        {% if relations %}
+        <div class="h3">Recent Annotations
+            <a class="btn btn-sm" href="{% url "relations" %}?occursIn={{ master_text.uri }}">See all</a>
+        </div>
+        {% include "annotations/relations_list_fragment.html" %}
+    {% endif %}
+</div>
+{% endblock %}

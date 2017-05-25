@@ -2,9 +2,10 @@
   * Each Concept has a specific Type, usually from the CIDOC-CRM.
   */
 angular.module('annotationApp').factory('RelationSet', function($resource) {
-    return $resource('/rest/relationset/:id/', {
+    return $resource(BASE_URL + '/rest/relationset/:id/', {
         text: TEXTID,
-        thisuser: true
+        thisuser: true,
+        project: PROJECTID
     }, {
         list: {
             method: 'GET',

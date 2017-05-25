@@ -1,16 +1,38 @@
-
-app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function($scope, Concept, Type) {
+/**
+  * The ConceptSearchController handles queries for, and creation of, concepts
+  *  in the appellation creation process.
+  */
+app.controller('ConceptSearchController',
+               ['$scope', 'Concept', 'Type', 'truncateFilter', function($scope, Concept, Type, truncateFilter) {
     $scope.assertUnique = false;
+    $scope.concepts = [];
+    $scope.pos = {
+      id: 'noun',
+      label: 'Noun'
+    };
+    $scope.pos_options = [{
+      id: 'noun',
+      label: 'Noun'
+    }, {
+      id: 'verb',
+      label: 'Verb'
+    }];
 
     $scope.search = function() {
         if ($scope.query.length > 2 & !$scope.creatingConcept) {
-            var params = {search: $scope.query, pos: 'noun', typed: $scope.conceptType, remote: true}
+            var params = {search: $scope.query, pos: $scope.pos.id, typed: $scope.conceptType, remote: true}
+            $scope.concepts = [];
+            $scope.message = 'Searching...';
             Concept.query(params).$promise.then(function(data){
                 $scope.concepts = data.results;
+                $scope.message = null;
             });
         }
     }
 
+    /**
+      * The "selected" concept is available for appellation-related actions.
+      */
     $scope.select = function(concept) {
         $scope.data.selectedConcept = concept;
         $scope.query = concept.label;
@@ -20,16 +42,17 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
     $scope.unselectConcept = function() {
         $scope.data.selectedConcept = null;
         $scope.query = '';
-        Concept.list({pos: 'noun', typed: $scope.conceptType}).$promise.then(function(data) {
-            $scope.concepts = data.results;
-        });
+        $scope.concepts = [];
         $scope.concept = null;
     }
 
+    /**
+      * Clear search results, creation data, and unselect the current selected
+      *  concept.
+      */
     $scope.reset  = function() {
         $scope.concepts = [];
         $scope.newConcept = {};
-
         $scope.unselectConcept();
     }
 
@@ -72,6 +95,15 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
         return ($scope.newConcept.typed != null & $scope.newConcept.description != null);
     }
 
+    /**
+      * Assuming that the user has entered data for a new Concept, this method
+      *  should submit those data to create a new Concept and then trigger
+      *  appellation creation (provided to the current scope by the
+      *  AppellationController).
+      *
+      * Setting `uri` to 'generate' tells the Concept endpoint that this is a
+      *  brand new concept.
+      */
     $scope.createConceptAndAppellation = function() {
         var data = {
             uri: 'generate',
@@ -82,7 +114,7 @@ app.controller('ConceptSearchController', ['$scope', 'Concept', 'Type', function
             pos: 'noun',
         }
         var concept = new Concept(data);
-        console.log(data);
+
         concept.$save().then(function(c) {
             $scope.data.selectedConcept = c;
             $scope.createAppellation();

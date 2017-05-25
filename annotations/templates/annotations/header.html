@@ -1,62 +1,106 @@
 {% load staticfiles %}
+{% load i18n %}
 
-<div id="header">
-	<nav class="navbar navbar-inverse">
-			<div class="navbar-header">
+<div id="header" class="{% block extranavcontainerclasses %}{% endblock %}">
+	<nav class="navbar navbar-inverse {% block extranavclasses %}{% endblock %}">
+			<div class="navbar-header nav navbar-nav brand-nav clearfix">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
 				<a class="navbar-brand" href="{% url "home" %}">
-					<img alt="Brand" src="{% static "annotations/img/VogonTiny_beta.png" %}" height="100%" />
+					<img alt="Brand" src="{% static "annotations/img/VogonTiny_beta.png" %}" />
 				</a>
-				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-			</div>
-			<div id="navbar" class="collapse navbar-collapse">
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">
-					<li><a href="{% url "dashboard" %}">Dashboard</a></li>
 					<li class="dropdown">
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Texts <span class="caret"></span></a>
+						<a href="#" class="dropdown-toggle btn btn-lg"
+                            data-toggle="dropdown"
+                            role="button"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                            <span class="glyphicon glyphicon-book"></span> <span class="caret"></span></a>
 						<ul class="dropdown-menu">
-							<li><a href="{% url "text_search" %}">All Texts</a></li>
+							<li><a href="{% url "repository_list" %}">Texts</a></li>
 							<li><a href="{% url "list_projects" %}">Projects</a></li>
 						</ul>
 
 					</li>
-					<li><a href="{% url "network" %}">Network</a></li>
-					<li><a href="{% url "users" %}">Contributors</a></li>
+					<li >
+                        <a href="{% url "users" %}" class="btn btn-lg"
+                            data-toggle="tooltip" title="Contributors"
+                            data-container="body"
+                            data-placement="bottom">
+                            <span class="glyphicon glyphicon-user"></span>
+                        </a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#"
+                            class="btn btn-lg dropdown-toggle"
+                            data-toggle="dropdown"
+                            role="button"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                            <span
+                                data-toggle="tooltip"
+                                data-container="body"
+                                data-placement="bottom"
+                                title="Data"
+                                class="glyphicon glyphicon-equalizer"></span> <span class="caret">
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url "concepts" %}">Concepts</a></li>
+                            <li><a href="{% url "relations" %}">Annotations</a></li>
+                            {% if user.is_staff %}<li><a href="{% url "list_relationtemplate" %}">Templates</a></li>{% endif %}
+                        </ul>
+                    </li>
 					<li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
+                        <a href="#" class="btn btn-lg" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-info-sign"></span> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="{% url "about" %}">Overview</a></li>
                             <li><a href="{% url "about" %}#goodfer">Use Cases</a></li>
                             <li><a href="{% url "about" %}#team">Our Team</a></li>
                         </ul>
                     </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="{% if user.is_authenticated  %}dropdown{% endif %}">
+                    	{% if user.is_authenticated  %}
+                        <a href="#" class="btn btn-lg"
+                            class="dropdown-toggle"
+                            data-toggle="dropdown"
+                            role="button"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                            <span class="glyphicon glyphicon-dashboard"></span> <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url "dashboard" %}">Dashboard</a></li>
+    						<li><a href="{% url "settings" %}">Settings</a></li>
+    						<li><a href="{% url "logout" %}">Log Out</a></li>
+    						{% if user.is_staff %}
+    							<li><a href="{{ base_url }}/admin/">Admin Site</a></li>
+    						{% endif %}
+                        </ul>
+
+
+
+    					{% else %}
+                            <a class="btn btn-lg" href="{% url 'social:begin' 'github' %}">
+                                <i class="glyphicon fa fa-github" aria-hidden="true"></i>
+                             </a>
+
+    					{% endif %}
+    				</li>
 				</ul>
-				<div class="dropdown pull-right" id="userdropdown">
-					{% if user.is_authenticated  %}
-					<button class="btn btn-default dropdown-toggler" type="button" id="usermenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-						{{ user.username }}
-						<span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu" aria-labelledby="usermenu">
-						<li><a href="/accounts/profile/">Dashboard</a></li>
-						<li><a href="/accounts/settings/">Settings</a></li>
-						<li><a href="/accounts/logout/">Log Out</a></li>
-						{% if user.is_staff %}
-							<li><a href="/admin/">Admin Site</a></li>
-						{% endif %}
-					</ul>
-					{% else %}
-					<div class="btn-group" role="group" aria-label="usermgmt">
-						<a href="/accounts/register/" class="btn btn-primary" id="registerButton">Register</a>
-						<a href="/accounts/login/" class="btn btn-primary" id="loginButton">Log In</a>
-					</div>
-					{% endif %}
-				</div>
+
 			</div><!--/.nav-collapse -->
 
 	</nav>
+    {% block extraheader %}
+    {% endblock %}
 </div>

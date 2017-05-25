@@ -1,0 +1,175 @@
+{% load staticfiles %}
+{% load app_filters %}
+
+<html>
+    <head>
+        <script>
+        var cropFloat = function (x) {
+            return parseInt(10000 * x, 10) / 10000;
+        };
+        var cropFloatStr = function(x) {
+            return cropFloat(x).toString();
+        };
+        var packCoords = function (rect, sep) {
+            if (sep == null) sep = ','; // comma as default separator
+            return [
+                cropFloatStr(rect.x),
+                cropFloatStr(rect.y),
+                cropFloatStr(rect.width),
+                cropFloatStr(rect.height)
+            ].join(sep);
+        };
+
+        function stripTrailingSlash(str) {
+            if(str.substr(-1) === '/') {
+                return str.substr(0, str.length - 1);
+            }
+            return str;
+        }
+
+
+        </script>
+        <script>
+        var BASE_URL = '{{ base_url }}';
+        var BASELOCATION = stripTrailingSlash("{{baselocation}}");
+        var TEXTID = "{{ textid }}",
+            USERID = "{{ userid }}",
+            PROJECTID = "{{ project.id }}";
+
+        var MODE = 'image';
+        </script>
+
+        <script>
+        var IMAGE_LOCATION = "{{ location|safe }}";
+        </script>
+        {% include "annotations/fragment_google_analytics.html" %}
+
+
+
+
+        {% include "annotations/scripts.html" %}
+        <script type="text/javascript" src="{% static "annotations/js/image/digivogon.js" %}"></script>
+
+        {% include "annotations/stylesheets.html" %}
+        <script type="text/javascript" src="{% static "annotations/js/text/actionPanel.js" %}"></script>
+        {% include "annotations/angular.html" %}
+        {% include "annotations/textApp.html" %}
+        <title>{{ title }}</title>
+
+        {% csrf_token %}
+
+        <!-- Mobile support. We want to be slightly zoomed out, or else the interface is simply too mashed. -->
+        <meta name="viewport" content="width=device-width, initial-scale=0.75">
+    </head>
+    <body  ng-app="annotationApp">
+        {% include "annotations/header.html" %}
+
+        <!-- csrf_ajax.js gets the CSRF token for this page, and pre-configures AJAX requests. -->
+        <script src="{% static "annotations/js/csrf_ajax.js" %}"></script>
+
+        <div class="container-fluid" id="main-container">
+            <div class="row" style="padding: 5px;">
+                <ul class="nav nav-pills">
+                </ul>
+            </div>
+            <div class="row">
+                <div class="col-sm-8">
+                    {% include "annotations/text/preamble.html" %}
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading annotation-panel-heading clearfix">
+                            <div class="btn-group pull-right">
+                                <a id="image-zoom-in" class="btn btn-sm glyphicon glyphicon-zoom-in"></a>
+                                <a id="image-zoom-out" class="btn btn-sm glyphicon glyphicon-zoom-out"></a>
+                                <a id="image-select-region"
+                                    class="btn btn-sm glyphicon glyphicon-screenshot"
+                                    data-toggle="tooltip"
+                                    title="Select region">
+                                </a>
+                            </div>
+                            <script>
+                            $('a#image-zoom-in').click(function() {
+                                var $elem = $('#digilib-image-container');
+                                $elem.digilib.apply($elem, ['zoomBy', 1.4]);
+                            });
+                            $('a#image-zoom-out').click(function() {
+                                var $elem = $('#digilib-image-container');
+                                $elem.digilib.apply($elem, ['zoomBy', 0.7]);
+                            });
+                            </script>
+                        </div>
+                        <div class="panel-body image-container-panel-body">
+                            <div id="digilib-image-container">
+                                <img id="digilib-image" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="sticky" class="col-sm-4">
+                    {% include "annotations/text/actionPanel.html" %}
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.js" %}"></script>
+        <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.geometry.js" %}"></script>
+        <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.buttons.js" %}"></script>
+
+        <!-- <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.marks.js" %}"></script>
+        <script type="text/javascript" src="{% static "annotations/js/digilib/jquery/jquery.digilib.regions.js" %}"></script> -->
+
+
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/jquery.digilib.css" %}" />
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/jquery.range.css" %}" />
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/jquery.digilib.measure.css" %}" />
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/annotator.min.css" %}" />
+        <link rel="stylesheet" href="{% static "annotations/css/digilib/jquery.digilib.vogon.css" %}" />
+        <script type="text/javascript">
+        $(document).ready(function(){
+            var container_parent = $('.image-container-panel-body');
+            var width = container_parent.width();
+            // Uses URI.js to rewrite Giles URLs, so that we can preserve
+            //  tokens and other parameters.
+            var target = URI(IMAGE_LOCATION)
+                            .removeSearch('dw')
+                            .addSearch('dw', width)
+                            .toString();
+            $('#digilib-image').attr('src', target);
+            $('#digilib-image-container').digilib({
+                interactionMode: 'embedded',
+                isRegionVisible: true,
+                digilibBaseUrl: '/static/annotations/js/digilib',
+            });
+
+            var data = $($('#digilib-image-container').data('digilib'));
+            data.on('update', handleUpdate);
+
+        });
+        var resizeTimer;
+
+        $(window).on('resize', function(e) {
+            // We only want to update the image once, so this resize nonsense
+            //  ensures that the update happens at the end of the resize.
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                var container_parent = $('.image-container-panel-body');
+                var width = container_parent.width();
+                var image_container = $('#digilib-image-container').width(width);
+                var target = URI(IMAGE_LOCATION).removeSearch('dw').addSearch('dw', width).toString();
+                $('#digilib-image-container img').attr('src', target);
+                var data = $('#digilib-image-container').data('digilib');
+                data.settings.dw = String(width);
+                $('#digilib-image-container').data('digilib', data);
+                $($('#digilib-image-container').data('digilib')).trigger('update');
+
+            }, 250);
+        });
+        </script>
+        <style>
+        .image-container {
+            margin-top: 25px;
+            position: relative !important;
+        }
+        </style>
+    </body>
+
+</html>

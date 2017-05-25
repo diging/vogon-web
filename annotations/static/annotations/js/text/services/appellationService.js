@@ -11,6 +11,8 @@ angular.module('annotationApp').factory('appellationService',
         appellations: [],    // Holds all currently loaded Appellations.
         appellationHash: {}, // Indexes Appellations by their interpretation.
         appellationsById: {}, // Indexes Appellations by ID.
+        regions: {},    // Indexes regionDvis by appellation ID.
+        taggedRegions: {},
 
         /**
           * Add appellation ID and class to appellated words.
@@ -18,17 +20,41 @@ angular.module('annotationApp').factory('appellationService',
         tagWordAsAppellation: function(appellation) {
             // Could be here.
             var tokenIds = appellation.tokenIds.split(',');
-            tokenIds.forEach(function(tokenId) {
-                // Hovering over an appellation displays a tooltip that shows
-                //  the label and type of the interpretation (concept).
-                $('word#' + tokenId).attr('appellation', appellation.id)
-                    .attr('data-toggle', 'tooltip')
-                    .addClass('appellation')
-                    .tooltip({
-                        container: 'body',
-                        title: appellation.interpretation_label + ' (' + appellation.interpretation_type_label + ')'
-                    });  // Fix jumpiness.
-            });
+            if (tokenIds.length > 0 & MODE == 'text') {
+                tokenIds.forEach(function(tokenId) {
+                    // Hovering over an appellation displays a tooltip that shows
+                    //  the label and type of the interpretation (concept).
+                    $('word#' + tokenId).attr('appellation', appellation.id)
+                        .attr('data-toggle', 'tooltip')
+                        .addClass('appellation')
+                        .tooltip({
+                            container: 'body',
+                            title: appellation.interpretation_label + ' (' + appellation.interpretation_type_label + ')'
+                        });  // Fix jumpiness.
+                });
+            } else if (MODE == 'image') {
+
+            }
+        },
+
+        tagRegionAsAppellation: function(appellation) {
+            if (appellation.id in this.taggedRegions) return;
+
+            var $elem = $('#digilib-image-container');
+            var data = $elem.data('digilib');
+
+            var rect = parseCoords(data, appellation.position.position_value);
+
+
+            var attr = {'class': 'vogonRegionURL vogonOverlay dl-region appellation', 'appellation': appellation.id};
+            var item = { 'rect': rect, 'attributes': attr };
+            var $regionDiv = addRegionDiv(data, item);
+            $(data).trigger('newRegion', [$regionDiv]);
+            this.taggedRegions[appellation.id] = appellation;
+        },
+
+        indexRegion: function(appellation, region) {
+            this.regions[appellation.id] = region;
         },
 
         /**
@@ -39,8 +65,20 @@ angular.module('annotationApp').factory('appellationService',
             this.appellations = appellations;
             this.appellations.forEach(function(appellation) {
                 service.indexAppellation(appellation);
-                service.tagWordAsAppellation(appellation);
+                if (appellation.position) {
+                    if (appellation.position.position_type == 'TI' && MODE == 'text') service.tagWordAsAppellation(appellation);
+                    if (appellation.position.position_type == 'BB' && MODE == 'image') service.tagRegionAsAppellation(appellation);
+                };
             });
+
+            // Used only when annotating an image.
+            if (typeof packRegions != 'undefined') {
+                var $elem = $('#digilib-image-container');
+                var data = $elem.data('digilib');
+                packRegions(data);
+                renderRegions(data);
+                $elem.digilib.apply($elem, ['redisplay', data]);
+            }
         },
 
         /**
@@ -78,6 +116,10 @@ angular.module('annotationApp').factory('appellationService',
             // Remove from ID index.
             if (appId in this.appellationsById) {
                 delete this.appellationsById[appId];
+            }
+
+            if (appId in this.taggedRegions) {
+                delete this.taggedRegions[appId];
             }
         },
 

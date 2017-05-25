@@ -1,0 +1,232 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+{% load app_filters %}
+{% load addcss %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="" class="btn btn-xs">Annotations</a>&raquo;<a href="{% url "relations" %}" class="btn btn-xs">Relations</a>&raquo;<a href="{% url "relations_graph" %}" class="btn btn-xs">Graph</a>
+{% endblock %}
+
+
+{% block main %}
+<div id="main" class="container-fluid">
+    {% include "annotations/relations_filter_fragment.html" %}
+    <div class="row" style="margin-bottom: 5px;">
+        <div class="col-xs-12">
+            <a class="btn btn-md btn-default" href="{% url "relations" %}?{{ params }}"><span class="glyphicon glyphicon-list"></span> List</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12" id="tabGraph">
+            <div id="graphContainer">
+                <div  style="height: 500px; border: 3px solid gray;" id="graph"></div>
+
+
+            </div>
+
+        </div>
+
+        <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
+        <script>
+
+        /**
+          *  We wrap this in a function so that we can reload the graph data after
+          *   creating a new appellation or relation.
+          */
+        var reloadGraph = function() {
+            var cy;
+            $.ajax('{{data_path}}', {
+                // When the data is returned, generate an interative visualization
+                //  using Cytoscape.js.
+                success: function(data) {
+                    if (data.elements.length == 0) {
+                        return;
+                    }
+                    // Normalize node and edge weights.
+                    var minEdgeWeight = 1.0;
+                    var maxEdgeWeight = 0.0;
+                    var minNodeWeight = 1.0;
+                    var maxNodeWeight = 0.0;
+
+                    data.elements.forEach(function(elem) {
+                        var weight = Number(elem.data.weight);
+                        if (elem.data.source) {  // Edge.
+                            if (weight > maxEdgeWeight) maxEdgeWeight = weight;
+                            if (weight < minEdgeWeight) minEdgeWeight = weight;
+                        } else {
+                            if (weight > maxNodeWeight) maxNodeWeight = weight;
+                            if (weight < minNodeWeight) minNodeWeight = weight;
+                        }
+                    });
+
+                    // If min and max are the same, cytoscape will throw a TypeError,
+                    //  so we decrement the min values just to be safe.
+                    minNodeWeight = Number(minNodeWeight.toPrecision(4)) - 1;
+                    maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
+                    minEdgeWeight = Number(minEdgeWeight.toPrecision(4)) - 1;
+                    maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
+
+                    cy = cytoscape({
+                        container: $('#graph'),
+                        elements: data.elements,
+                        zoom: 0.1,
+                        minZoom: 0.1,
+                        maxZoom: 3,
+                        panningEnabled: true,
+                        style: [    // The stylesheet for the graph.
+                            {
+                                // Node size is a function of topic prevalence.
+                                selector: 'node',
+                                style: {
+                                    'background-color': '#B74934',
+                                    'label': 'data(label)',
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 36)'
+                                }
+                            },
+                            {
+                                selector: 'node.connectedNodes',
+                                style: {
+                                    'opacity': 1.0,
+                                    'border-color': '#AA9A66',
+                                    'border-width': 2,
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 18, 52)'
+                                }
+                            },
+                            {
+                                selector: 'node.nonConnectedNodes',
+                                style: {
+                                    'opacity': 0.5,
+                                }
+                            },
+                            {
+                                // When a node is selected, it should be slightly larger
+                                //  and have a colored border.
+                                selector: 'node:selected',
+                                style: {
+                                    'border-color': '#AA9A66',
+                                    'border-width': 4,
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 35, 75)',
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                }
+                            },
+                            {
+                                // Active nodes should be slightly larger.
+                                selector: 'node:active',
+                                style: {
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                }
+                            },
+                            {
+                                // Edge weight is a function of nPMI.
+                                selector: 'edge',
+                                style: {
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 0.5, 6)',
+                                    'opacity': 'mapData(weight, 0.01, 0.5, 0.1, 1)',
+                                    'line-color': '#67655D',
+                                    'target-arrow-color': '#ccc',
+                                },
+                            },
+                            {
+                                selector: 'edge.connectedEdge',
+                                style: {
+                                    'opacity': 1,
+                                    'line-color': '#AA9A66',
+                                    'z-index': 500,
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 1, 12)',
+                                }
+                            },
+                            {
+                                // A selected edge should be slightly thicker, and be colored a brighter color.
+                                selector: 'edge:selected',
+                                style: {
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 2, 8)',
+                                    'opacity': 1,
+                                    'line-color': '#AA9A66',
+                                }
+                            },
+                        ],
+
+
+
+                        layout: {
+                          name: 'cose',
+                        //   rows: 1,
+                        //   ready               : function() {},
+                        //   stop                : function() {},
+                        //   animate             : true,
+                        //   animationThreshold  : 250,
+                        //   refresh             : 20,
+                        //   fit                 : true,
+                        //   padding             : 30,
+                        //   boundingBox         :  { x1: 0, y1: 0, w: 10, h: 10},
+                        //   componentSpacing    : 100,
+                        //   nodeRepulsion       : function( node ){ return 40; },
+                        //   nodeOverlap         : 10,
+                        //   idealEdgeLength     : function( edge ){ return 10; },
+                        //   edgeElasticity      : function( edge ){ return 100; },
+                        //   nestingFactor       : 5,
+                        //   gravity             : 80,
+                        //   numIter             : 1000,
+                        //   initialTemp         : 200,
+                        //   coolingFactor       : 0.95,
+                        //   minTemp             : 1.0,
+                        //   useMultitasking     : true
+                        }
+                    });
+
+                    // We just want to give a visual indication of which appellations'
+                    //  are related to each node. Selecting appellations doesn't really
+                    //  make sense, because there can be several appellations per node
+                    //  (nodes represent concepts).
+                    cy.on('select', 'node', function(event) {
+                        var node = event.cyTarget;
+                        node._private.data.appellations.forEach(function(appellation_id) {
+                            $('[appellation='+appellation_id+']').addClass('networkHighlight')
+                        });
+                    })
+                    cy.on('unselect', 'node', function(event) {
+                        var node = event.cyTarget;
+                        node._private.data.appellations.forEach(function(appellation_id) {
+                            $('[appellation='+appellation_id+']').removeClass('networkHighlight');
+                        });
+                    })
+
+                }
+            });
+
+            $('#graphTabAnchor').on('shown.bs.tab', function (e) {
+                resizeGraph();
+                if (cy) cy.layout({name: 'cose'});
+
+            });
+            var resizeGraph = function() {
+                var targetHeight = Number($('.action-body').css('max-height').replace('px', ''));
+                $('#graphContainer').height(targetHeight - 10);
+                if (cy) {
+                    cy.resize();
+                    cy.fit();
+                }
+            }
+            $(window).resize(resizeGraph);
+        }
+
+        // $(document).keydown(function(event){
+        //     if (event.which ==  27) {
+        //         $('word').removeClass('networkHighlight');
+        //     }
+        // });
+
+        $('body').ready(function() {
+            reloadGraph();
+        });
+
+        </script>
+    </div>
+</div>
+{% endblock %}

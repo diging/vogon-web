@@ -1,0 +1,129 @@
+{% extends "annotations/header.html" %}
+{% load staticfiles %}
+{% load i18n admin_static %}
+{% load addcss %}
+
+{% block extranavcontainerclasses %}navbar-home{% endblock %}
+
+{% block extranavclasses %}navbar-inverse-transparent{% endblock %}
+
+{% block extraheader %}
+<script>
+// If the window scrolls below the top of the main content, the right-
+//  hand column should scroll with it.
+function sticky_relocate() {
+	var window_top = $(window).scrollTop(),
+		window_width = $(window).width(),
+		window_height = $(window).height(),
+		div_top = $('#floatingMarker').offset().top;
+
+	$('#floatingButtons').removeClass('fixed-bottom');
+	if (window_top > div_top - 20) {
+		$('#floatingButtons').addClass('fixed');
+		// Setting position: fixed removes the element from the
+		//  flow, so this applies the appropriate left-offset.
+		$('#floatingButtons').addClass('floatingOffset');
+		$('#floatingButtons').addClass('col-xs-12');
+		// $('#floatingButtons').addClass('col-xs-offset-2');
+	} else {
+		// The user hasn't scrolled below the navbar, so we keep
+		//  the action panel in the grid.
+		$('#floatingButtons').removeClass('fixed');
+		$('#floatingButtons').removeClass('col-xs-12');
+		$('#floatingButtons').removeClass('floatingOffset');
+		// $('#floatingButtons').removeClass('col-xs-offset-2');
+	}
+}
+
+$(function() {
+	$(window).scroll(sticky_relocate);
+	$(window).resize(sticky_relocate);
+	sticky_relocate();
+});
+
+$(window).resize(function(){
+    var jumbo = $('.splash');
+    if ($('#navbar').hasClass('in')) {
+        if ($('.navbar-nav').height() > 0) {
+            $('.nav-hide').css('visibility', 'hidden');
+        }
+    } else {
+        $('.nav-hide').css('visibility', 'visible');
+
+    }
+});
+
+$('body').on('show.bs.collapse', function(e) {
+    console.log(e);
+	$('.nav-hide').css('visibility', 'hidden');
+});
+$('body').on('hide.bs.collapse', function(e) {
+    console.log(e);
+	$('.nav-hide').css('visibility', 'visible');
+});
+</script>
+<div class="container-fluid nav-hide" style="margin-top: 15px;" id="jumbo">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="splash">
+                <!-- <div class="container"> -->
+                    <div class="h2">
+                        Vogon(Web): <small>knowledge is more than the printed word</small>
+                    </div>
+                    <p>
+                        The bedrock of our collective knowledge is the intepretation of texts. The epistemic web moves
+                        knowledge-making <strong>out of the cloisters and into the light of day</strong>
+                        by extending the semantic web to support the subjectivity of the interpretive process. Encode
+                        your interpretations of texts&mdash;from scholarly works to websites&mdash;and
+                        help build the epistemic web.
+                    </p>
+                    <div id="floatingMarker" style="visibility: hidden;"></div>
+                    <div id="floatingButtons">
+                        <div class="text-center">
+                            <div class="col-xs-4 text-center"
+                                style="padding: 0px;">
+                                <a class="btn btn-md scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
+                                    target="#build">Build</a>
+                            </div>
+                            <div class="col-xs-4 text-left"
+                                style="padding: 0px;">
+                                <a class="btn btn-md scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
+                                    target="#search">Search</a>
+                            </div>
+                            <div class="col-xs-4 text-right"
+                                style="padding: 0px;">
+                                <a class="btn btn-md scrollButton col-xs-11 col-sm-offset-2 col-sm-8"
+                                    target="#explore">Explore</a>
+                            </div>
+                        </div>
+                        <script>
+                        $('.scrollButton').click(function(e) {
+                            // Scroll to the selected section, but back off
+                            //  far enough that the button element does not
+                            //  lay on top of the content in that section.
+                            var elem = $(e.target);
+                            var section = $(elem.attr('target'));
+                            var targetTop = section.offset().top - 68;
+                            $(window).scrollTop(targetTop);
+                        });
+                        </script>
+                    </div>
+
+                <!-- </div> -->
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+    <div class="text text-warning text-tiny brand-footer-left">
+        Modified version of photograph by <a href="https://commons.wikimedia.org/wiki/User:Diliff">Diliff</a>, released under <a href="http://creativecommons.org/licenses/by/2.5">CC BY 2.5</a>
+    </div>
+</div>
+
+
+
+
+{% endblock %}

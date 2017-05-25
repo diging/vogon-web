@@ -1,0 +1,430 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+<!-- <html>
+    <head> -->
+        {% block extrahead %}
+
+        <script src="{% static "annotations/js/vue.min.js" %}"></script>
+        <script src="{% static "annotations/js/tiny-cookie.min.js" %}"></script>
+
+        <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
+        <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
+        <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
+        <link rel="stylesheet" href="{% static "annotations/css/annotators/text.css" %}">
+        {% endblock %}
+    <!-- </head> -->
+    {% block main %}
+    <body>
+        <div class="row">
+            <div class="col-xs-12" id="tabGraph">
+                <div id="graphContainer" style="height: 100px; padding:5px; resize: vertical; overflow: auto; border: 1px solid #ddd; margin: 5px;">
+                    <div id="graph"  style="height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid" id="main-container">
+            <div class="row">
+                <div class="col-xs-12">
+                    {% include "annotations/text/preamble.html" %}
+                </div>
+            </div>
+                <div id="appellator">
+                    <conductor></conductor> <!-- The appellator interface is inserted here. -->
+                </div>
+                <script id="annotation-template" type="text/x-template">
+                    <div class="container-fluid">
+                        <div class="row">
+
+                            <div v-bind:class="{
+                                    'col-sm-6': true
+                                }"
+                                id="shadow-swimlane"
+                                style="padding: 3px;">
+                                <text-display
+                                    v-bind:appellations=appellations
+                                    v-bind:dateappellations=dateappellations
+                                    v-on:selectappellation="selectAppellation"
+                                    v-on:selectdateappellation="selectDateAppellation"
+                                    v-on:selecttext="selectText">
+                                </text-display>
+                            </div>
+
+                            <div v-bind:class="{
+                                    'col-sm-offset-6': true,
+                                    'col-sm-6': true,
+                                    'action-column': true,
+                                    'affix': true,
+                                    'container-fluid': true
+                                }"
+                                v-bind:style="{
+                                    top: swimmerTop,
+                                    left: swimmerLeft,
+                                }"
+                                id="sticky-swimlane"
+                                >
+                                <div class="row">
+                                    <div v-bind:class="{
+                                                'col-xs-10': !sidebarIsShown(),
+                                                'col-xs-7': sidebarIsShown(),
+                                            }"
+                                            style="padding-right: 5px;">
+                                        <relation-template-selector
+                                            v-if="template == null && creating_relation"
+                                            v-on:selectedtemplate="selectedTemplate">
+                                        </relation-template-selector>
+                                        <relation-creator
+                                            v-if="template != null && creating_relation"
+                                            v-on:fieldislisteningfortext="fieldIsListeningForText"
+                                            v-on:fieldisdonelisteningfortext="fieldIsDoneListeningForText"
+                                            v-on:createdrelation="createdRelation"
+                                            v-on:cancelrelation="cancelRelation"
+                                            v-bind:user=user
+                                            v-bind:text=text
+                                            v-bind:template=template
+                                            v-bind:project=project>
+                                        </relation-creator>
+                                        <div class="appellation-type-selector text-right" v-if="textIsSelected()">
+                                            <a v-bind:class="{
+                                                    btn: true,
+                                                    'btn-sm': true,
+                                                    'btn-success': !create_date_appellation,
+                                                    'btn-default': create_date_appellation
+                                                }"
+                                                v-tooltip="'Concept'"
+                                                v-on:click="toggleDateAppellation">
+                                                <span class="glyphicon glyphicon-grain"></span>
+                                            </a>
+                                            <a v-bind:class="{
+                                                    btn: true,
+                                                    'btn-sm': true,
+                                                    'btn-success': create_date_appellation,
+                                                    'btn-default': !create_date_appellation
+                                                }"
+                                                v-tooltip="'Date'"
+                                                v-on:click="toggleDateAppellation">
+                                                <span class="glyphicon glyphicon-calendar"></span>
+                                            </a>
+                                        </div>
+                                        <date-appellation-creator
+                                            v-if="textIsSelected() && create_date_appellation"
+                                            v-bind:user=user
+                                            v-bind:text=text
+                                            v-bind:project=project
+                                            v-bind:position=selected_text
+                                            v-on:createddateappellation="createdDateAppellation"
+                                            v-on:cancelappellation="cancelAppellation"
+                                            v-on:createdappellation="createdAppellation">
+                                        </date-appellation-creator>
+                                        <appellation-creator
+                                            v-if="textIsSelected() && !create_date_appellation"
+                                            v-bind:user=user
+                                            v-bind:text=text
+                                            v-bind:project=project
+                                            v-bind:position=selected_text
+                                            v-on:cancelappellation="cancelAppellation"
+                                            v-on:createdappellation="createdAppellation">
+                                        </appellation-creator>
+                                    </div>
+                                    <div v-bind:class="{
+                                                'col-xs-2': !sidebarIsShown(),
+                                                'col-xs-5': sidebarIsShown(),
+                                            }"
+                                            style="padding-right: 15px;">
+                                         <a v-if="sidebarIsShown()" class="btn" v-on:click="hideSidebar"  style="padding: 2px;">
+                                             <span class="glyphicon glyphicon-chevron-right"></span>
+                                         </a>
+                                         <a v-else class="btn" v-on:click="showSidebar" style="padding: 2px;">
+                                             <span class="glyphicon glyphicon-chevron-left"></span>
+                                         </a>
+
+
+                                                <div v-if="sidebarIsShown()" style="padding: 0px;">
+                                                    <div class="clearfix sidebar-buttons">
+
+                                                        <div class="pull-right btn-group">
+                                                            <a  v-tooltip="'Appellations'"
+                                                                v-bind:class="{
+                                                                        btn: true,
+                                                                        'btn-success': sidebar == 'appellations',
+                                                                        'btn-default': sidebar != 'appellations'
+                                                                    }"
+                                                                v-on:click="showAppellationsSidebar">
+                                                                <span class="glyphicon glyphicon-tag"></span>
+                                                            </a>
+                                                            <a  v-tooltip="'Date Appellations'"
+                                                                v-bind:class="{
+                                                                        btn: true,
+                                                                        'btn-success': sidebar == 'dateappellations',
+                                                                        'btn-default': sidebar != 'dateappellations'
+                                                                    }"
+                                                                v-on:click="showDateAppellationsSidebar">
+                                                                <span class="glyphicon glyphicon-calendar"></span>
+                                                            </a>
+                                                            <a v-tooltip="'Relations'"
+                                                                v-bind:class="{
+                                                                        btn: true,
+                                                                        'btn-success': sidebar == 'relations',
+                                                                        'btn-default': sidebar != 'relations'
+                                                                    }"
+                                                                v-on:click="showRelationsSidebar">
+                                                                <span class="glyphicon glyphicon-th-list"></span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    <relation-list
+                                                        v-if="sidebar == 'relations'"
+                                                        v-bind:relations=relations
+                                                        v-on:selectrelation="selectRelation">
+                                                    </relation-list>
+                                                    <appellation-list
+                                                        v-if="sidebar == 'appellations'"
+                                                        v-bind:appellations=appellations
+                                                        v-on:hideallappellations="hideAllAppellations"
+                                                        v-on:showallappellations="showAllAppellations"
+                                                        v-on:showappellation="showAppellation"
+                                                        v-on:hideappellation="hideAppellation"
+                                                        v-on:selectappellation="selectAppellation">
+                                                    </appellation-list>
+                                                    <appellation-list
+                                                        v-if="sidebar == 'dateappellations'"
+                                                        v-bind:appellations=dateappellations
+                                                        v-on:hideallappellations="hideAllDateAppellations"
+                                                        v-on:showallappellations="showAllDateAppellations"
+                                                        v-on:showappellation="showDateAppellation"
+                                                        v-on:hideappellation="hideDateAppellation"
+                                                        v-on:selectappellation="selectDateAppellation">
+                                                    </appellation-list>
+                                                </div>
+
+
+
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </script>
+            </div>
+
+          <script src="https://unpkg.com/tether"></script>
+          <script src="https://unpkg.com/tether-drop"></script>
+          <script src="https://unpkg.com/tether-tooltip"></script>
+          <script src="{% static "annotations/js/v-tooltip.browser.js" %}"></script>
+          <style>
+          pre {
+                white-space: pre-wrap;       /* Since CSS 2.1 */
+                white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+                white-space: -pre-wrap;      /* Opera 4-6 */
+                white-space: -o-pre-wrap;    /* Opera 7 */
+                word-wrap: break-word;       /* Internet Explorer 5.5+ */
+                font-size: 10pt;
+            }
+          </style>
+         <script>
+            var TEXT_ID = '{{ text.id }}';
+            var TEXT_TITLE = '{{ text.title }}';
+            var USER_ID = '{{ user.id }}';
+            var USER_NAME = '{{ user.username }}';
+            var PROJECT_ID = '{{ project.id }}';
+            var PROJECT_NAME = '{{ project.name }}';
+            var TEXT_CONTENT = `{{ content|safe }}`;
+            var BASE_URL = '{{ base_url }}';
+
+        // Appellator is the text annotation application. Even though we load
+        //  is later on, we want it in scope for node events in the Cytoscape
+        //  visualization.
+        var Appellator;
+
+        var reloadGraph = function() {
+            var cy;
+            $.ajax('{% url "network_for_text" text.id %}?user={{ user.id }}&project={{ project.id }}', {
+                // When the data is returned, generate an interative visualization
+                //  using Cytoscape.js.
+                success: function(data) {
+                    if (data.elements.length == 0) {
+                        return;
+                    }
+                    // Normalize node and edge weights.
+                    var minEdgeWeight = 1.0;
+                    var maxEdgeWeight = 0.0;
+                    var minNodeWeight = 1.0;
+                    var maxNodeWeight = 0.0;
+
+                    data.elements.forEach(function(elem) {
+                        var weight = Number(elem.data.weight);
+                        if (elem.data.source) {  // Edge.
+                            if (weight > maxEdgeWeight) maxEdgeWeight = weight;
+                            if (weight < minEdgeWeight) minEdgeWeight = weight;
+                        } else {
+                            if (weight > maxNodeWeight) maxNodeWeight = weight;
+                            if (weight < minNodeWeight) minNodeWeight = weight;
+                        }
+                    });
+
+                    // If min and max are the same, cytoscape will throw a TypeError,
+                    //  so we decrement the min values just to be safe.
+                    minNodeWeight = Number(minNodeWeight.toPrecision(4)) - 1;
+                    maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
+                    minEdgeWeight = Number(minEdgeWeight.toPrecision(4)) - 1;
+                    maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
+                    var currentHeight = $('#graph').height();
+                    var currentWidth = $('#graph').width();
+                    cy = cytoscape({
+                        container: $('#graph'),
+                        elements: data.elements,
+                        zoom: 1,
+                        minZoom: 0.1,
+                        maxZoom: 3,
+                        panningEnabled: true,
+                        style: [    // The stylesheet for the graph.
+                            {   // Node size is a function of topic prevalence.
+                                selector: 'node',
+                                style: {
+                                    'background-color': '#B74934',
+                                    'label': 'data(label)',
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 36)'
+                                }
+                            }, {
+                                selector: 'node.connectedNodes',
+                                style: {
+                                    'opacity': 1.0,
+                                    'border-color': '#AA9A66',
+                                    'border-width': 2,
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 20)'
+                                }
+                            }, {
+                                selector: 'node.nonConnectedNodes',
+                                style: {
+                                    'opacity': 0.5,
+                                }
+                            }, { // When a node is selected, it should be slightly larger and have a colored border.
+                                selector: 'node:selected',
+                                style: {
+                                    'border-color': '#AA9A66',
+                                    'border-width': 4,
+                                    'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 10, 35)',
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                }
+                            }, { // Active nodes should be slightly larger.
+                                selector: 'node:active',
+                                style: {
+                                    'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                    'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                }
+                            }, { // Edge weight is a function of nPMI.
+                                selector: 'edge',
+                                style: {
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 0.5, 6)',
+                                    'opacity': 'mapData(weight, 0.01, 0.5, 0.1, 1)',
+                                    'line-color': '#67655D',
+                                    'target-arrow-color': '#ccc',
+                                },
+                            }, {
+                                selector: 'edge.connectedEdge',
+                                style: {
+                                    'opacity': 1,
+                                    'line-color': '#AA9A66',
+                                    'z-index': 500,
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 1, 12)',
+                                }
+                            }, {
+                                // A selected edge should be slightly thicker, and be colored a brighter color.
+                                selector: 'edge:selected',
+                                style: {
+                                    'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 2, 8)',
+                                    'opacity': 1,
+                                    'line-color': '#AA9A66',
+                                }
+                            }
+                        ],
+                        layout: {
+                          name: 'cose',
+                        //   rows: 1,
+                        //   ready               : function() {},
+                        //   stop                : function() {},
+                        //   animate             : true,
+                        //   animationThreshold  : 250,
+                        //   refresh             : 20,
+                        //   fit                 : true,
+                          padding             : 0,
+                          boundingBox         :  { x1: 0, y1: 0, w: currentWidth, h: currentHeight},
+                        //   componentSpacing    : 100,
+                        //   nodeRepulsion       : function( node ){ return 40; },
+                        //   nodeOverlap         : 10,
+                        //   idealEdgeLength     : function( edge ){ return 10; },
+                        //   edgeElasticity      : function( edge ){ return 100; },
+                        //   nestingFactor       : 5,
+                        //   gravity             : 80,
+                        //   numIter             : 1000,
+                        //   initialTemp         : 200,
+                        //   coolingFactor       : 0.95,
+                        //   minTemp             : 1.0,
+                        //   useMultitasking     : true
+                        }
+                    });
+
+                    // We just want to give a visual indication of which appellations'
+                    //  are related to each node. Selecting appellations doesn't really
+                    //  make sense, because there can be several appellations per node
+                    //  (nodes represent concepts).
+                    cy.on('select', 'node', function(event) {
+                        var node = event.cyTarget;
+                        if (Appellator) {
+                            Appellator.selectAppellationsById(node._private.data.appellations);
+                        }
+                    });
+                    cy.on('unselect', 'node', function(event) {
+                        var node = event.cyTarget;
+                        if (Appellator) {
+                            Appellator.unselectAppellation();
+                        }
+                    });
+
+                }
+            });
+
+
+            var resizeGraph = function() {
+                if (cy) {
+                    cy.resize();
+                    cy.fit();
+                }
+            }
+            $(window).resize(resizeGraph);
+
+            var graphContainerHeight = $('#graphContainer').height();
+            // We can't bind the #graphContainer resize directly, so let's
+            //  check for height changes on mouseup.
+            $(document).mouseup(function(e) {   // The mouseup can happen anywhere.
+                var currentHeight = $('#graphContainer').height();
+                if (currentHeight != graphContainerHeight) {
+                    graphContainerHeight = currentHeight;
+                    resizeGraph();
+                }
+            });
+        }
+
+        $('body').ready(reloadGraph);
+
+        </script>
+
+        <script src="{% static "annotations/js/annotators/buses.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/util.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/resources.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/relationlist.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/appellationlist.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/appellationdisplay.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/textdisplay.js" %}"></script>
+        <script src="{% static "annotations/js/annotators/text.js" %}"></script>
+    </body>
+    {% endblock %}
+<!-- </html> -->
