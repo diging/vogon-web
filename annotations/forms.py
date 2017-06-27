@@ -252,7 +252,7 @@ class RelationTemplateForm(forms.ModelForm):
             'placeholder': "Enter comma-separated node identifiers. E.g."
                            " ``0s,1o``."
         }))
-
+    
     def clean_expression(self):
         from string import Formatter
         value = self.cleaned_data.get('expression')
@@ -270,10 +270,10 @@ class RelationTemplateForm(forms.ModelForm):
         except Exception as E:
             raise ValidationError('Invalid terminal nodes')
         return value
-
+    
     class Meta:
         model = RelationTemplate
-        exclude = []
+        exclude = ['createdBy']
 
 
 class UberCheckboxInput(forms.CheckboxInput):
