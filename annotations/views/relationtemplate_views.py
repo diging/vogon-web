@@ -53,7 +53,7 @@ def add_relationtemplate(request):
 
     if request.POST:
         logger.debug('add_relationtemplate: post request')
-
+        
         # Instatiate both form(set)s with data.
         relationtemplatepart_formset = formset(request.POST, prefix='parts')
         relationtemplate_form = form_class(request.POST)
@@ -62,9 +62,10 @@ def add_relationtemplate(request):
 
         formset_is_valid = relationtemplatepart_formset.is_valid()
         form_is_valid = relationtemplate_form.is_valid()
-
+        
         if formset_is_valid and form_is_valid:
             relationtemplate_data = dict(relationtemplate_form.cleaned_data)
+            relationtemplate_data['createdBy'] = request.user
             part_data = [dict(form.cleaned_data) for form in relationtemplatepart_formset]
 
             try:
