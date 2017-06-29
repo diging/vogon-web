@@ -414,10 +414,12 @@ class RelationTemplatePartForm(forms.ModelForm):
         for field in ['source', 'predicate', 'object']:
             evidence = self.cleaned_data.get('%s_prompt_text' % field)
             label = self.cleaned_data.get('%s_label' % field)
+            selected_node_type = self.cleaned_data.get('%s_node_type' % field)
             if evidence and not label:
-                self.add_error('%s_label' % field, 'Please add a label')
-
-
+                if selected_node_type not in [RelationTemplatePart.RELATION, RelationTemplatePart.TOBE, RelationTemplatePart.HAS]:
+                    self.add_error('%s_label' % field, 'Please add a label')
+                
+                
 class RelationTemplatePartFormSet(BaseFormSet):
     """
     Ensure that the structure of the links among relation template parts is
