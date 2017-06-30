@@ -133,8 +133,8 @@ class ConceptLifecycle(object):
             _typed = None
 
         manager = ConceptLifecycle.create(
-            uri = data.get('uri'),
-            label = data.get('word'),
+            uri = data.get('uri') if data.get('uri') else data.get('id'),
+            label = data.get('word') if data.get('word') else data.get('lemma'),
             description = data.get('description'),
             pos = data.get('pos'),
             typed = _typed,
