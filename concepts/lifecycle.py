@@ -281,8 +281,8 @@ class ConceptLifecycle(object):
 
     def _reform(self, raw):
         return ConceptData(**{
-            'label': raw.get('word'),
-            'uri': raw.get('uri'),
+            'label': raw.get('word') if raw.get('word') else raw.get('lemma'),
+            'uri': raw.get('uri') if raw.get('uri') else raw.get('id'),
             'description': raw.get('description'),
             'typed': raw.get('type_uri'),
             'equal_to': raw.get('equal_to', []),
