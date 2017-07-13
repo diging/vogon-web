@@ -64,7 +64,7 @@ def to_appellationevent(appellation, toString=False):
 
     printed_representation = _created_element(ET.SubElement(term, 'printed_representation'), appellation)
 
-    if appellation.position.position_type == DocumentPosition.TOKEN_ID:
+    if appellation.position and appellation.position.position_type == DocumentPosition.TOKEN_ID:
         for tokenId in appellation.position.position_value.split(','):
             term_part = _created_element(ET.SubElement(printed_representation, 'term_part'), appellation)
             pos, exp = _get_token(tokenId, appellation.occursIn.tokenizedContent)
