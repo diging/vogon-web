@@ -50,15 +50,17 @@ def view_project(request, project_id):
 
     from annotations.filters import RelationSetFilter
 
-    filtered = RelationSetFilter({'project': project.id}, queryset=RelationSet.objects.all())
-    relations = filtered.qs
+    # for now let's remove this; it takes long to load the pages and there is a bug somewhere
+    # that throws an error sometimes [VGNWB-215]
+    #filtered = RelationSetFilter({'project': project.id}, queryset=RelationSet.objects.all())
+    #relations = filtered.qs
 
     context = {
         'user': request.user,
         'title': project.name,
         'project': project,
         'texts': texts,
-        'relations': relations,
+        #'relations': relations,
     }
 
     return render(request, template, context)
