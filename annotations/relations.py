@@ -437,8 +437,8 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
         raise InvalidData('Missing fields: %s' % '; '.join(list(remaining)))
 
     def create_relation(template_part, data, relationset, cache={}, appellation_cache={}, project_id=None):
-        if cache:
-            key = datum_as_key(field_data)
+        if cache != None:
+            key = template_part.id 
             if key in cache:
                 return cache[key]
 
@@ -475,8 +475,8 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
 
         relation = Relation.objects.create(**relation_data)
 
-        if cache:
-            cache[datum_as_key(field_data)] = relation
+        if cache != None:
+            cache[template_part.id] = relation
         return relation
 
     appellation_cache = {}
