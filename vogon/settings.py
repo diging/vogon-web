@@ -17,7 +17,6 @@ import socket
 import dj_database_url
 import djcelery
 from datetime import timedelta
-from django.conf import settings
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
