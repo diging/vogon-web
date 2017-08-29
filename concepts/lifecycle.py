@@ -5,11 +5,9 @@ from conceptpower import Conceptpower
 
 from concepts.models import *
 
-TYPES = {
-    'viaf:personal': "986a7cc9-c0c1-4720-b344-853f08c136ab",    # E21 Person
-    'viaf:corporate': "3fc436d0-26e7-472c-94de-0b712b66b3f3",   # E40 Legal Body
-    'viaf:geographic': "dfc95f97-f128-42ae-b54c-ee40333eae8c"    # E53 Place
-}
+from django.conf import settings  
+
+TYPES = settings.LIFECYCLE_TYPES
 
 
 class ConceptLifecycleException(Exception):

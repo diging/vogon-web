@@ -17,6 +17,7 @@ import socket
 import dj_database_url
 import djcelery
 from datetime import timedelta
+from django.conf import settings
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -245,3 +246,16 @@ LOGIN_URL = BASE_URL + 'login/github/'
 LOGLEVEL = os.environ.get('LOGLEVEL', 'DEBUG')
 
 SESSION_COOKIE_NAME = 'vogon'
+
+
+# Lifecycle types
+PERSONAL = os.environ.get('PERSONAL')
+CORPORATE = os.environ.get('CORPORATE')
+GEOGRAPHIC = os.environ.get('GEOGRAPHIC')
+
+LIFECYCLE_TYPES = {
+    'viaf:personal': PERSONAL,    # E21 Person
+    'viaf:corporate': CORPORATE,   # E40 Legal Body
+    'viaf:geographic': GEOGRAPHIC,    # E53 Place
+}
+
