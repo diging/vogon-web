@@ -433,18 +433,7 @@ AppellationCreator = {
             }
         },
         ready: function() {
-
-            // Changes value of start position to true if startOffset value is 0
-            // in order to have create button show up when first character is selected
-            if(this.position.startOffset == 0) {
-                startPos = this.position.startOffset;
-                startPos = true;
-            } else {
-                startPos = this.position.startOffset;
-            }
-
-
-            return (startPos && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
+            return (this.position.startOffset >= 0 && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
         }
     }
 }
