@@ -433,11 +433,10 @@ AppellationCreator = {
             }
         },
         ready: function() {
-            return (this.position.startOffset && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
+            return (this.position.startOffset >= 0 && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
         }
     }
 }
-
 
 RelationField = {
     props: ["field", "listener"],
