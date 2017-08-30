@@ -5,9 +5,8 @@ from conceptpower import Conceptpower
 
 from concepts.models import *
 
-from django.conf import settings  
 
-TYPES = settings.LIFECYCLE_TYPES
+TYPES = settings.CONCEPT_TYPES
 
 
 class ConceptLifecycleException(Exception):
