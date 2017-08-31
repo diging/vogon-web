@@ -248,12 +248,12 @@ SESSION_COOKIE_NAME = 'vogon'
 
 
 # Concept types
-PERSONAL = os.environ.get('PERSONAL', '986a7cc9-c0c1-4720-b344-853f08c136ab')
-CORPORATE = os.environ.get('CORPORATE', '3fc436d0-26e7-472c-94de-0b712b66b3f3')
-GEOGRAPHIC = os.environ.get('GEOGRAPHIC', 'dfc95f97-f128-42ae-b54c-ee40333eae8c')
+PERSONAL_CONCEPT_TYPE = os.environ.get('PERSONAL', '986a7cc9-c0c1-4720-b344-853f08c136ab')
+CORPORATE_CONCEPT_TYPE = os.environ.get('CORPORATE', '3fc436d0-26e7-472c-94de-0b712b66b3f3')
+GEOGRAPHIC_CONCEPT_TYPE = os.environ.get('GEOGRAPHIC', 'dfc95f97-f128-42ae-b54c-ee40333eae8c')
 
 CONCEPT_TYPES = {
-    'viaf:personal': PERSONAL,    # E21 Person
-    'viaf:corporate': CORPORATE,   # E40 Legal Body
-    'viaf:geographic': GEOGRAPHIC,    # E53 Place
+    'viaf:personal': PERSONAL_CONCEPT_TYPE,    # E21 Person
+    'viaf:corporate': CORPORATE_CONCEPT_TYPE,   # E40 Legal Body
+    'viaf:geographic': GEOGRAPHIC_CONCEPT_TYPE,    # E53 Place
 }
