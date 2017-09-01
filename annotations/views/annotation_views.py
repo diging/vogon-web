@@ -43,6 +43,14 @@ def relations(request):
 
     paginator = Paginator(qs, 40)
     page = request.GET.get('page')
+
+    createdBy = request.GET.get('createdBy')
+    createdAfter = request.GET.get('createdAfter')
+    createdBefore = request.GET.get('createdBefore')
+    project = request.GET.get('project')
+    terminal_nodes = request.GET.get('terminal_nodes')
+    occursIn = request.GET.get('occursIn')
+
     try:
         relations = paginator.page(page)
     except PageNotAnInteger:
@@ -57,6 +65,12 @@ def relations(request):
         'relations': relations,
         'params': request.GET.urlencode(),
         'filter': filtered,
+        'createdBy': createdBy,
+        'createdAfter': createdAfter,
+        'createdBefore': createdBefore,
+        'project': project,
+        'terminal_nodes': terminal_nodes,
+        'occursIn': occursIn,
     }
     return render(request, 'annotations/relations.html', context)
 
