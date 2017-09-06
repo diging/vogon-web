@@ -44,6 +44,7 @@ def relations(request):
     paginator = Paginator(qs, 40)
     page = request.GET.get('page')
 
+
     createdBy = request.GET.get('createdBy')
     createdAfter = request.GET.get('createdAfter')
     createdBefore = request.GET.get('createdBefore')

@@ -18,7 +18,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_previous  %}
             <div class="pull-left">
-                <a href="?page={{ relations.previous_page_number }}" class="btn btn-xs">&laquo; Previous</a>
+                <a href="?page={{ relations.previous_page_number }}{% if not createdBy %}{% else %}&createdBy={{ createdBy }}{% endif %}{% if not project %}{% else %}&project={{ project }}{% endif %}{% if not createdBefore %}{% else %}&createdBefore={{ createdBefore }}{% endif %}{% if not createdAfter %}{% else %}&createdAfter={{ createdAfter }}{% endif %}{% if not occursIn %}{% else %}&occursIn={{ occursIn }}{% endif %}{% if not terminal_nodes %}{% else %}&terminal_nodes={{ terminal_nodes }}{% endif %}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
@@ -31,7 +31,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_next %}
             <div class="pull-right">
-                <a href="?page={{ relations.next_page_number }}{% if createdBy != "" %}&createdBy={{ createdBy }}{% endif %}{% if project != "" %}&project={{ project }}{% endif %}{% if createdBefore != "" %}&createdBefore={{ createdBefore }}{% endif %}{% if createdAfter != "" %}&createdAfter={{ createdAfter }}{% endif %}{% if occursIn != "" %}&occursIn={{ occursIn }}{% endif %}{% if occursIn != "" %}&terminal_nodes={{ terminal_nodes }}{% endif %}">Next &raquo;</a>
+                <a href="?page={{ relations.next_page_number }}{% if not createdBy %}{% else %}&createdBy={{ createdBy }}{% endif %}{% if not project %}{% else %}&project={{ project }}{% endif %}{% if not createdBefore %}{% else %}&createdBefore={{ createdBefore }}{% endif %}{% if not createdAfter %}{% else %}&createdAfter={{ createdAfter }}{% endif %}{% if not occursIn %}{% else %}&occursIn={{ occursIn }}{% endif %}{% if not terminal_nodes %}{% else %}&terminal_nodes={{ terminal_nodes }}{% endif %}">Next &raquo;</a>
             </div>
             {% endif %}
         </div>
@@ -42,7 +42,7 @@
 
             {% if relations.has_previous  %}
             <div class="pull-left">
-                <a href="?page={{ relations.previous_page_number }}{% if createdBy != "" %}&createdBy={{ createdBy }}{% endif %}{% if project != "" %}&project={{ project }}{% endif %}{% if createdBefore != "" %}&createdBefore={{ createdBefore }}{% endif %}{% if createdAfter != "" %}&createdAfter={{ createdAfter }}{% endif %}{% if occursIn != "" %}&occursIn={{ occursIn }}{% endif %}{% if occursIn != "" %}&terminal_nodes={{ terminal_nodes }}{% endif %}" class="btn btn-xs">&laquo; Previous</a>
+                <a href="?page={{ relations.previous_page_number }}&{% if not createdBy %}{% else %}&createdBy={{ createdBy }}{% endif %}{% if not project %}{% else %}&project={{ project }}{% endif %}{% if not createdBefore %}{% else %}&createdBefore={{ createdBefore }}{% endif %}{% if not createdAfter %}{% else %}&createdAfter={{ createdAfter }}{% endif %}{% if not occursIn %}{% else %}&occursIn={{ occursIn }}{% endif %}{% if not terminal_nodes %}{% else %}&terminal_nodes={{ terminal_nodes }}{% endif %}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
@@ -55,7 +55,15 @@
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_next %}
             <div class="pull-right">
-                <a href="?page={{ relations.next_page_number }}{% if createdBy != "" %}&createdBy={{ createdBy }}{% endif %}{% if project != "" %}&project={{ project }}{% endif %}{% if createdBefore != "" %}&createdBefore={{ createdBefore }}{% endif %}{% if createdAfter != "" %}&createdAfter={{ createdAfter }}{% endif %}{% if occursIn != "" %}&occursIn={{ occursIn }}{% endif %}{% if occursIn != "" %}&terminal_nodes={{ terminal_nodes }}{% endif %}">Next &raquo;</a>
+                <a href="?page={{ relations.next_page_number }}{% if not createdBy %}{% else %}&createdBy={{ createdBy }}{% endif %}{% if not project %}{% else %}&project={{ project }}{% endif %}{% if not createdBefore %}{% else %}&createdBefore={{ createdBefore }}{% endif %}{% if not createdAfter %}{% else %}&createdAfter={{ createdAfter }}{% endif %}{% if not occursIn %}{% else %}&occursIn={{ occursIn }}{% endif %}{% if not terminal_nodes %}{% else %}&terminal_nodes={{ terminal_nodes }}{% endif %}">Next &raquo;</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-xs-4  clearfix text-center">
+
+            {% if relations.has_previous  %}
+            <div class="pull-left">
+                <a href="?page={{ relations.previous_page_number }}{% if not createdBy %}{% else %}&createdBy={{ createdBy }}{% endif %}{% if not project %}{% else %}&project={{ project }}{% endif %}{% if not createdBefore %}{% else %}&createdBefore={{ createdBefore }}{% endif %}{% if not createdAfter %}{% else %}&createdAfter={{ createdAfter }}{% endif %}{% if not occursIn %}{% else %}&occursIn={{ occursIn }}{% endif %}{% if not terminal_nodes %}{% else %}&terminal_nodes={{ terminal_nodes }}{% endif %}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
