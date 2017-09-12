@@ -26,6 +26,7 @@
             <table class="table table-condensed table-responsive table-hover">
                 <thead>
                     <tr>
+                        <th></th>
                         <th class="col-sm-3">Name</th>
                         <th>Description</th>
                     </tr>
@@ -33,6 +34,7 @@
                 <tbody>
                     {% for template in data.templates %}
                     <tr class='clickable-row' data-href='{% url 'get_relationtemplate' template.id %}'>
+                        <td><a href="#" class="fa fa-close"></a></td>
                         <td>{{ template.name }}</td>
                         <td>{{ template.description }}</td>
                     </tr>
