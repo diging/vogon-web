@@ -9,6 +9,9 @@ from annotations.annotators import annotator_factory
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+from urllib import urlencode
 
 @login_required
 @ensure_csrf_cookie
@@ -44,13 +47,9 @@ def relations(request):
     paginator = Paginator(qs, 40)
     page = request.GET.get('page')
 
-
-    createdBy = request.GET.get('createdBy')
-    createdAfter = request.GET.get('createdAfter')
-    createdBefore = request.GET.get('createdBefore')
-    project = request.GET.get('project')
-    terminal_nodes = request.GET.get('terminal_nodes')
-    occursIn = request.GET.get('occursIn')
+    gt = request.GET.copy()
+    if 'page' in gt:
+        del gt['page']
 
     try:
         relations = paginator.page(page)
@@ -64,15 +63,9 @@ def relations(request):
     context = {
         'paginator': paginator,
         'relations': relations,
-        'params': request.GET.urlencode(),
+        'params': urlencode(gt),
         'filter': filtered,
-        'createdBy': createdBy,
-        'createdAfter': createdAfter,
-        'createdBefore': createdBefore,
-        'project': project,
-        'terminal_nodes': terminal_nodes,
-        'occursIn': occursIn,
-    }
+        }
     return render(request, 'annotations/relations.html', context)
 
 

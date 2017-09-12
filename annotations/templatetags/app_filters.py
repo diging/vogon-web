@@ -32,3 +32,12 @@ def current_fields(form):
 @register.filter
 def get_collection_label(collection_id):
     return TextCollection.objects.get(pk=collection_id).name
+
+@register.simple_tag
+def url_replace(request, field, value):
+
+    dict_ = request.GET.copy()
+
+    dict_[field] = value
+
+    return dict_.urlencode()

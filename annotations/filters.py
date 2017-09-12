@@ -13,7 +13,7 @@ class RelationSetFilter(django_filters.FilterSet):
     terminal_nodes = django_filters.CharFilter('terminal_nodes__uri')
 
 
-    def filter_occursIn(self, queryset, name, value):
+    def filter_occursIn(self, queryset, name, value): 
         if not value:
             return queryset
         return queryset.filter(Q(occursIn__uri=value) | Q(occursIn__part_of__uri=value) | Q(occursIn__part_of__part_of__uri=value))
