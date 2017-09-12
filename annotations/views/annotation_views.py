@@ -9,8 +9,6 @@ from annotations.annotators import annotator_factory
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from django.shortcuts import render_to_response
-from django.template import RequestContext
 from urllib import urlencode
 
 @login_required
