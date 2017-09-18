@@ -34,7 +34,15 @@
                 <tbody>
                     {% for template in data.templates %}
                     <tr class='clickable-row' data-href='{% url 'get_relationtemplate' template.id %}'>
-                        <td><a href="#" class="fa fa-close"></a></td>
+                        <td>
+                            <a class="fa fa-trash"
+                               aria-hidden="true"
+                               id="open-TemplateDeleteModal"
+                               data-toggle="modal"
+                               data-name="{{template.name}}"
+                               href="#TemplateDeleteModal"
+                            />
+                        </td>
                         <td>{{ template.name }}</td>
                         <td>{{ template.description }}</td>
                     </tr>
@@ -52,5 +60,10 @@ jQuery(document).ready(function($) {
         window.document.location = $(this).data("href");
     });
 });
+
+
+
 </script>
+
+{% include "annotations/template_delete_modal.html" %}
 {% endblock %}
