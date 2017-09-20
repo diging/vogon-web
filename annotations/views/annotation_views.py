@@ -72,6 +72,7 @@ def relations(request):
         'occursIn': occursIn,
         'createdAfter': createdAfter,
         'createdBefore': createdBefore,
+        'terminal_nodes': terminal_nodes,
         }
     return render(request, 'annotations/relations.html', context)
 
