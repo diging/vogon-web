@@ -36,18 +36,21 @@ def annotate_image(request, text_id):
 def relations(request):
     from annotations.filters import RelationSetFilter
 
-    qs = RelationSet.objects.all()
-    filtered = RelationSetFilter(request.GET, queryset=qs)
+
+    filtered = RelationSetFilter(request.GET, queryset=RelationSet.objects.all())
     qs = filtered.qs
     for r in qs:
         print r.__dict__
 
-    paginator = Paginator(qs, 40)
+    paginator = Paginator(qs, 20)
     page = request.GET.get('page')
 
-    gt = request.GET.copy()
-    if 'page' in gt:
-        del gt['page']
+    project = filtered.data.get('project')
+    createdBy = filtered.data.get('createdBy')
+    occursIn = filtered.data.get('occursIn')
+    createdAfter = filtered.data.get('createdAfter')
+    createdBefore = filtered.data.get('createdBefore')
+    terminal_nodes = filtered.data.get('terminal_nodes')
 
     try:
         relations = paginator.page(page)
@@ -61,8 +64,14 @@ def relations(request):
     context = {
         'paginator': paginator,
         'relations': relations,
-        'params': urlencode(gt),
+        'params': request.GET.urlencode(),
         'filter': filtered,
+        'qs': qs,
+        'project': project,
+        'createdBy': createdBy,
+        'occursIn': occursIn,
+        'createdAfter': createdAfter,
+        'createdBefore': createdBefore,
         }
     return render(request, 'annotations/relations.html', context)
 
