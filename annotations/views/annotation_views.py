@@ -42,7 +42,7 @@ def relations(request):
     for r in qs:
         print r.__dict__
 
-    paginator = Paginator(qs, 20)
+    paginator = Paginator(qs, 40)
     page = request.GET.get('page')
 
     project = filtered.data.get('project')
