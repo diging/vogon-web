@@ -37,15 +37,48 @@
                         <td>
                             <a class="fa fa-trash"
                                aria-hidden="true"
-                               id="open-TemplateDeleteModal"
                                data-toggle="modal"
-                               data-name="{{template.name}}"
-                               href="#TemplateDeleteModal"
+                               id="openTemplateDeleteModal{{template.id}}"
+                               data-id = "#TemplateDeleteModal{{template.id}}"
                             />
                         </td>
                         <td>{{ template.name }}</td>
                         <td>{{ template.description }}</td>
                     </tr>
+
+                    <!-- Delete Template modal section starts here -->
+                    <div class="modal fade" id="TemplateDeleteModal{{template.id}}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="deleteModalLabel">Delete Template</h4>
+                          </div>
+
+                          <form action=" {% url "delete_relationtemplate" template.id %}" method="post">
+                              {% csrf_token %}
+                          <div class="modal-body">
+                            <h4>
+                              Are you sure you want to delete following template: <br><br>
+                              <div class="form-group">
+                                <strong>Name:</strong> <br><label style="font-weight:normal" >{{template.name}}</label>
+                              </div>
+
+                              <div class="form-group">
+                                <strong>Description:</strong> <br> <label style="font-weight:normal">{{template.description}}</label>
+                              </div>
+                            </h4>
+                          </div>
+                          <div class="modal-footer">
+                            <input class="btn btn-danger" type="submit" value="Delete">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Delete Investigator modal section ends here -->
+
                     {% endfor %}
                 </tbody>
 
@@ -56,14 +89,19 @@
 
 <script>
 jQuery(document).ready(function($) {
+
     $(".clickable-row").click(function() {
         window.document.location = $(this).data("href");
     });
+
+    $("a[id^='openTemplateDeleteModal']").click(function(e) {
+        var id = $(this).attr("data-id")
+        e.stopPropagation();
+        $(id).modal('show');
+    });
+
 });
-
-
 
 </script>
 
-{% include "annotations/template_delete_modal.html" %}
 {% endblock %}

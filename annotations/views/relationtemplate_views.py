@@ -195,8 +195,6 @@ def create_from_relationtemplate(request, template_id):
     # TODO: this could also use quite a bit of attention in terms of
     #  modularization.
     template = get_object_or_404(RelationTemplate, pk=template_id)
-
-
     if request.method == 'POST':
         data = json.loads(request.body)
         text = get_object_or_404(Text, pk=data['occursIn'])
@@ -208,5 +206,12 @@ def create_from_relationtemplate(request, template_id):
     else:   # Not sure if we want to do anything for GET requests at this point.
         response_data = {}
 
-
     return JsonResponse(response_data)
+
+
+def delete_relationtemplate(request, template_id):
+    if request.method == 'POST':
+        RelationTemplate.objects.filter(id=template_id).delete()
+        RelationTemplatePart.objects.filter(id=template_id).delete()
+
+    return HttpResponseRedirect(reverse('list_relationtemplate'))

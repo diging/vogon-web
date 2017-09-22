@@ -80,6 +80,7 @@ urlpatterns = [
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.relationtemplate_views.get_relationtemplate, name="get_relationtemplate"),
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/create/$', views.relationtemplate_views.create_from_relationtemplate, name="create_from_relationtemplate"),
     url(r'^relationtemplate[/]?$', views.relationtemplate_views.list_relationtemplate, name='list_relationtemplate'),
+    url(r'^relationtemplate/(?P<template_id>[0-9]+)/delete/$', views.relationtemplate_views.delete_relationtemplate, name='delete_relationtemplate'),
 
     # url(r'^text/add/upload/$', views.text_views.upload_file, name="file_upload"),
     # url(r'^text/(?P<textid>[0-9]+)/$', views.text_views.text, name="text"),
