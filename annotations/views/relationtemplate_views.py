@@ -209,6 +209,7 @@ def create_from_relationtemplate(request, template_id):
     return JsonResponse(response_data)
 
 
+@staff_member_required
 def delete_relationtemplate(request, template_id):
     if request.method == 'POST':
         RelationTemplate.objects.filter(id=template_id).delete()
