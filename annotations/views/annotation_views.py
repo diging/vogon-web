@@ -9,7 +9,8 @@ from annotations.annotators import annotator_factory
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from urllib import urlencode
+from urllib import urlencode, unquote
+import datetime
 
 @login_required
 @ensure_csrf_cookie
@@ -42,15 +43,22 @@ def relations(request):
     for r in qs:
         print r.__dict__
 
-    paginator = Paginator(qs, 40)
+    paginator = Paginator(qs, 20)
     page = request.GET.get('page')
 
-    project = filtered.data.get('project')
-    createdBy = filtered.data.get('createdBy')
-    occursIn = filtered.data.get('occursIn')
-    createdAfter = filtered.data.get('createdAfter')
-    createdBefore = filtered.data.get('createdBefore')
-    terminal_nodes = filtered.data.get('terminal_nodes')
+    data = filtered.form.cleaned_data
+    dt = {}
+    for key, value in data.items():
+        if key == 'createdBy' or key  == 'project':
+            if value is not None:
+                if hasattr(value, 'id'):
+                    dt[key] = value.id
+        elif key == 'createdBefore' or key == 'createdAfter':
+            if value is not None:
+                value = '{0.month}/{0.day}/{0.year}'.format(value)
+                dt[key] = value
+        else:
+            dt[key] = value
 
     try:
         relations = paginator.page(page)
@@ -67,12 +75,8 @@ def relations(request):
         'params': request.GET.urlencode(),
         'filter': filtered,
         'qs': qs,
-        'project': project,
-        'createdBy': createdBy,
-        'occursIn': occursIn,
-        'createdAfter': createdAfter,
-        'createdBefore': createdBefore,
-        'terminal_nodes': terminal_nodes,
+        'data': data,
+        'dt': urlencode(dt),
         }
     return render(request, 'annotations/relations.html', context)
 
