@@ -9,9 +9,6 @@ from annotations.annotators import annotator_factory
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from urllib import urlencode, unquote
-import datetime
-
 @login_required
 @ensure_csrf_cookie
 def annotate(request, text_id):
