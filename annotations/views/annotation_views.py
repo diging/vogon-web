@@ -43,7 +43,7 @@ def relations(request):
     for r in qs:
         print r.__dict__
 
-    paginator = Paginator(qs, 20)
+    paginator = Paginator(qs, 40)
     page = request.GET.get('page')
 
     data = filtered.form.cleaned_data
@@ -75,7 +75,6 @@ def relations(request):
         'params': request.GET.urlencode(),
         'filter': filtered,
         'qs': qs,
-        'data': data,
         'dt': urlencode(dt),
         }
     return render(request, 'annotations/relations.html', context)
