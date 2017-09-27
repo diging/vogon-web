@@ -71,7 +71,6 @@ def relations(request):
         'relations': relations,
         'params': request.GET.urlencode(),
         'filter': filtered,
-        'qs': qs,
         'dt': urlencode(dt),
         }
     return render(request, 'annotations/relations.html', context)
