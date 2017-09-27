@@ -8,7 +8,7 @@ from annotations.models import Relation, Appellation, VogonUser, Text, RelationS
 from annotations.annotators import annotator_factory
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from urllib import urlencode
 @login_required
 @ensure_csrf_cookie
 def annotate(request, text_id):
