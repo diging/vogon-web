@@ -215,7 +215,7 @@ djcelery.setup_loader()
 CELERYBEAT_SCHEDULE = {
     'accession_ready_relationsets': {
         'task': 'annotations.tasks.accession_ready_relationsets',
-        'schedule': timedelta(seconds=600),
+        'schedule': timedelta(seconds=30),
     },
 }
 
