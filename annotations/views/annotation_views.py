@@ -44,18 +44,18 @@ def relations(request):
     page = request.GET.get('page')
 
     data = filtered.form.cleaned_data
-    dt = {}
+    params_data = {}
     for key, value in data.items():
-        if key == 'createdBy' or key  == 'project':
-            if value is not None:
-                if hasattr(value, 'id'):
-                    dt[key] = value.id
-        elif key == 'createdBefore' or key == 'createdAfter':
+        if key in ('createdBy', 'project'):
+            if value is not None and hasattr(value, 'id'):
+                params_data[key] = value.id
+        elif key in ('createdAfter', 'createdBefore'):
             if value is not None:
                 value = '{0.month}/{0.day}/{0.year}'.format(value)
-                dt[key] = value
+                params_data[key] = value
         else:
-            dt[key] = value
+            params_data[key] = value
+
 
     try:
         relations = paginator.page(page)
@@ -71,7 +71,7 @@ def relations(request):
         'relations': relations,
         'params': request.GET.urlencode(),
         'filter': filtered,
-        'dt': urlencode(dt),
+        'params_data': urlencode(params_data),
         }
     return render(request, 'annotations/relations.html', context)
 

@@ -16,7 +16,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_previous  %}
             <div class="pull-left">
-                <a href="?page={{ relations.previous_page_number }}&{{ dt }}" class="btn btn-xs">&laquo; Previous</a>
+                <a href="?page={{ relations.previous_page_number }}&{{ params_data }}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
@@ -29,7 +29,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_next %}
             <div class="pull-right">
-                <a href="?page={{ relations.next_page_number }}&{{ dt }}">Next &raquo;</a>
+                <a href="?page={{ relations.next_page_number }}&{{ params_data }}">Next &raquo;</a>
             </div>
             {% endif %}
         </div>
@@ -40,7 +40,7 @@
 
             {% if relations.has_previous  %}
             <div class="pull-left">
-                <a href="?page={{ relations.previous_page_number }}&{{ dt }}" class="btn btn-xs">&laquo; Previous</a>
+                <a href="?page={{ relations.previous_page_number }}&{{ params_data }}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
@@ -53,7 +53,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_next %}
             <div class="pull-right">
-                <a href="?page={{ relations.next_page_number }}&{{ dt }}">Next &raquo;</a>
+                <a href="?page={{ relations.next_page_number }}&{{ params_data }}">Next &raquo;</a>
             </div>
             {% endif %}
         </div>
