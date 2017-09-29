@@ -5,10 +5,11 @@ Provides :class:`.RelationTemplate`\-related views.
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.db import transaction
+from django.db import transaction, DatabaseError
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -212,7 +213,12 @@ def create_from_relationtemplate(request, template_id):
 @staff_member_required
 def delete_relationtemplate(request, template_id):
     if request.method == 'POST':
-        RelationTemplate.objects.filter(id=template_id).delete()
-        RelationTemplatePart.objects.filter(id=template_id).delete()
+        try:
+            with transaction.atomic():
+                RelationTemplate.objects.filter(id=template_id).delete()
+                RelationTemplatePart.objects.filter(id=template_id).delete()
+        except DatabaseError:
+            messages.error(request,
+                           'ERROR: There was an error while deleting the relation template. Please redo the operation.')
 
     return HttpResponseRedirect(reverse('list_relationtemplate'))
