@@ -7,18 +7,16 @@
 <a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="" class="btn btn-xs">Annotations</a>&raquo;<a href="{% url "relations" %}" class="btn btn-xs">Relations</a>
 {% endblock %}
 
-
 {% block main %}
 <div id="main" class="container-fluid">
         {% include "annotations/relations_filter_fragment.html" %}
-
 
     <a class="btn btn-md btn-default" href="{% url "relations_graph" %}?{{ params }}"><span class="glyphicon glyphicon-eye-open"></span> Graph</a>
     <div class="row">
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_previous  %}
             <div class="pull-left">
-                <a href="?page={{ relations.previous_page_number }}" class="btn btn-xs">&laquo; Previous</a>
+                <a href="?page={{ relations.previous_page_number }}&{{ params_data }}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
@@ -31,7 +29,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_next %}
             <div class="pull-right">
-                <a href="?page={{ relations.next_page_number }}">Next &raquo;</a>
+                <a href="?page={{ relations.next_page_number }}&{{ params_data }}">Next &raquo;</a>
             </div>
             {% endif %}
         </div>
@@ -42,7 +40,7 @@
 
             {% if relations.has_previous  %}
             <div class="pull-left">
-                <a href="?page={{ relations.previous_page_number }}" class="btn btn-xs">&laquo; Previous</a>
+                <a href="?page={{ relations.previous_page_number }}&{{ params_data }}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
@@ -55,11 +53,10 @@
         <div class="col-xs-4  clearfix text-center">
             {% if relations.has_next %}
             <div class="pull-right">
-                <a href="?page={{ relations.next_page_number }}">Next &raquo;</a>
+                <a href="?page={{ relations.next_page_number }}&{{ params_data }}">Next &raquo;</a>
             </div>
             {% endif %}
         </div>
     </div>
-
 </div>
 {% endblock %}

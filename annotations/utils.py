@@ -7,6 +7,7 @@ from django.conf import settings
 from itertools import chain, combinations, groupby
 import re
 
+from concepts.models import Concept, Type
 
 def help_text(text):
     """
