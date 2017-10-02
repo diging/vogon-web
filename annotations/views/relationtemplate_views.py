@@ -213,12 +213,18 @@ def create_from_relationtemplate(request, template_id):
 @staff_member_required
 def delete_relationtemplate(request, template_id):
     if request.method == 'POST':
-        try:
-            with transaction.atomic():
-                RelationTemplate.objects.filter(id=template_id).delete()
-                RelationTemplatePart.objects.filter(id=template_id).delete()
-        except DatabaseError:
+
+        # Check if there is relation template is associated with a relation set before deleting it
+        if not RelationSet.objects.filter(template_id=template_id):
+            try:
+                with transaction.atomic():
+                    RelationTemplate.objects.filter(id=template_id).delete()
+                    RelationTemplatePart.objects.filter(part_of=template_id).delete()
+            except DatabaseError:
+                messages.error(request,
+                               'ERROR: There was an error while deleting the relation template. Please redo the operation.')
+        else:
             messages.error(request,
-                           'ERROR: There was an error while deleting the relation template. Please redo the operation.')
+                           'ERROR: Could not delete relation template because there is data associated with it')
 
     return HttpResponseRedirect(reverse('list_relationtemplate'))
