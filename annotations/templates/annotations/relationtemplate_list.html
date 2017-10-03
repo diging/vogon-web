@@ -12,18 +12,10 @@
 
 <div class="container-fluid" id="main">
 
-    <!-- Display error message if deletion of relation template fails  -->
-    {% if messages %}
-    <div class="container" style="background-color:Gainsboro;">
-        <ul class="messages">
-            {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
-                <h4>{{ message }}</h4>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
+    <!-- Display error message if there is error in deletion of relation template -->
+    {% for message in messages %}
+    <div class="alert alert-danger"><h4>{{ message }}</h4></div>
+    {% endfor %}
 
     <div class="row">
         <div class="col-sm-12 clearfix">
