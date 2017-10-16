@@ -5,10 +5,11 @@ Provides :class:`.RelationTemplate`\-related views.
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.db import transaction
+from django.db import transaction, DatabaseError
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -195,8 +196,6 @@ def create_from_relationtemplate(request, template_id):
     # TODO: this could also use quite a bit of attention in terms of
     #  modularization.
     template = get_object_or_404(RelationTemplate, pk=template_id)
-
-
     if request.method == 'POST':
         data = json.loads(request.body)
         text = get_object_or_404(Text, pk=data['occursIn'])
@@ -208,5 +207,24 @@ def create_from_relationtemplate(request, template_id):
     else:   # Not sure if we want to do anything for GET requests at this point.
         response_data = {}
 
-
     return JsonResponse(response_data)
+
+
+@staff_member_required
+def delete_relationtemplate(request, template_id):
+    if request.method == 'POST':
+
+        # Check if there is relation template is associated with a relation set before deleting it
+        if not RelationSet.objects.filter(template_id=template_id):
+            try:
+                with transaction.atomic():
+                    RelationTemplate.objects.filter(id=template_id).delete()
+                    RelationTemplatePart.objects.filter(part_of=template_id).delete()
+            except DatabaseError:
+                messages.error(request,
+                               'ERROR: There was an error while deleting the relation template. Please redo the operation.')
+        else:
+            messages.error(request,
+                           'ERROR: Could not delete relation template because there is data associated with it')
+
+    return HttpResponseRedirect(reverse('list_relationtemplate'))
