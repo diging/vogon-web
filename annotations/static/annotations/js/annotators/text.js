@@ -13,19 +13,9 @@ var ConceptListItem = {
                    </div>
                    <div class="text text-muted">{{ concept.description }}</div>
                </div>`,
-    data: function() {
-         return {
-             ident: true,
-         }
-     },
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept);
-        },
-        ide: function() {
-
-              this.ident = true;
-
         },
 
     }
@@ -48,7 +38,7 @@ var ConceptSearch = {
                         <div class="input-group input-group-sm" style="width: 100%;">
                             <input type="text" class="form-control input-sm"  style="width: 100%;" v-model="query">
                             <span class="input-group-btn">
-                                <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" style="color: green;"></a>
+                                <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" v-on:click="search" style="color: green;"></a>
                                 <span v-if="searching" class="btn btn-sm glyphicon glyphicon-hourglass" style="color: orange;"></span>
                                 <span v-if="error" class="btn btn-sm glyphicon glyphicon-exclamation-sign" style="color: red;"></span>
                             </span>

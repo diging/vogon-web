@@ -14,16 +14,13 @@ from urllib import urlencode
 def annotate(request, text_id):
     text = get_object_or_404(Text, pk=text_id)
     annotator = annotator_factory(request, text)
-    print "test2"
     return annotator.render()
 
 
 @login_required
-def annotation_display(request, text_id, conceptid):
+def annotation_display(request, text_id):
     text = get_object_or_404(Text, pk=text_id)
-    concept = get_object_or_404(Concept, pk=conceptid)
     annotator = annotator_factory(request, text)
-    print "test3"
     return annotator.render_display()
 
 @login_required
@@ -72,7 +69,7 @@ def relations(request):
     context = {
         'paginator': paginator,
         'relations': relations,
-        'params': urlencode(gt),
+        'params': request.GET.urlencode(),
         'filter': filtered,
         'params_data': urlencode(params_data),
         }
