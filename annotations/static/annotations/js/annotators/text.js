@@ -6,16 +6,67 @@
 
 var ConceptListItem = {
     props: ['concept'],
-    template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
+    template: `<div>
+                <div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
                    <div>
                        <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ concept.authority.name }})</a>
                    </div>
                    <div class="text text-muted">{{ concept.description }}</div>
-               </div>`,
+                </div>
+
+                <div v-if="identi2" class="list-group-item concept-item clearfix" id="concept-{{ concept2 }}">
+                    <div>
+                      <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ z }})</a>
+
+                  </div>
+                  <div v-if="identi2" class="text text-muted">{{ concept.description }}</div>
+              </div>
+              </div>`,
+    data: function() {
+         return {
+             identi: false,
+             identi2: false,
+             ide: this.concept,
+             z :"",
+             concept2: ""
+         }
+     },
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept);
         },
+        ident: function(identi, concept) {
+          if(typeof this.concept.identities[0].concepts[0] !== 'undefined'){
+          this.identi = true;
+        }
+      },
+      ident2: function(identi2, concept,z, concept2) {
+        if(typeof this.concept.identities[0].concepts[1] !== 'undefined'){
+          this.identi2 = true;
+          var regex = /digitalhps/g;
+          var str = this.concept.identities[0].concepts[1];
+          var m;
+
+          while ((m = regex.exec(str)) !== null) {
+              // This is necessary to avoid infinite loops with zero-width matches
+              if (m.index === regex.lastIndex) {
+                  regex.lastIndex++;
+              }
+
+              // The result can be accessed through the `m`-variable.
+              m.forEach((match, groupIndex) => {
+                  this.concept2 = str;
+                  this.z = "CHPS";
+                  console.log("match");
+                  console.log(this.concept2);
+              });
+            }
+      }
+      }
+    },
+    created() {
+      this.ident(),
+      this.ident2()
 
     }
 }
@@ -37,7 +88,7 @@ var ConceptSearch = {
                         <div class="input-group input-group-sm" style="width: 100%;">
                             <input type="text" class="form-control input-sm"  style="width: 100%;" v-model="query">
                             <span class="input-group-btn">
-                                <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" v-on:click="search" style="color: green;"></a>
+                                <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" style="color: green;"></a>
                                 <span v-if="searching" class="btn btn-sm glyphicon glyphicon-hourglass" style="color: orange;"></span>
                                 <span v-if="error" class="btn btn-sm glyphicon glyphicon-exclamation-sign" style="color: red;"></span>
                             </span>
@@ -101,7 +152,7 @@ var ConceptSearch = {
                 self.error = true;
                 self.searching = false;
             });
-          }
+        },
         },
 
     components: {
@@ -1112,6 +1163,7 @@ Appellator = new Vue({
             self.updateSwimRef();
             self.handleScroll();
         }
+
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);
