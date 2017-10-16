@@ -26,6 +26,7 @@ app.controller('ConceptSearchController',
             Concept.query(params).$promise.then(function(data){
                 $scope.concepts = data.results;
                 $scope.message = null;
+                console.log("testa");
             });
         }
     }

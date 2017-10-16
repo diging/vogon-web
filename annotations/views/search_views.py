@@ -92,7 +92,7 @@ def concept_autocomplete(request):
     Provides the :class:`.Concept` autocomplete in the home view.
     """
     query = request.GET.get('q', '')
-
+    
     if not query:
         suggestions = []
     else:

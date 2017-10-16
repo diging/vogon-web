@@ -24,6 +24,8 @@ from concepts.lifecycle import *
 
 import uuid
 
+import unicodedata
+
 import goat
 goat.GOAT = settings.GOAT
 goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
@@ -32,6 +34,8 @@ import logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
+
+import json
 
 
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
@@ -479,20 +483,66 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
     @list_route()
     def search(self, request, **kwargs):
+        print "starting"
         q = request.GET.get('search', None)
         if not q:
             return Response({'results': []})
         pos = request.GET.get('pos', None)
 
         concepts = goat.Concept.search(q=q, pos=pos, limit=50)
+
+
+
+
+
         def _relabel(datum):
             _fields = {
                 'name': 'label',
                 'id': 'alt_id',
                 'identifier': 'uri'
             }
-            return {_fields.get(k, k): v for k, v in datum.iteritems()}
-        return Response({'results': map(_relabel, [c.data for c in concepts])})
+
+            return {_fields.get(k, k): v for k, v in datum.iteritems() }
+        results = map(_relabel, [c.data for c in concepts])
+
+        i = 0
+        mat = []
+        di = len(results)
+        con1 = []
+        con2 = []
+
+
+        print results
+        while (i != di):
+            test = results[i]["identities"]
+            print len(results[i]["identities"])
+            if results[i]["identities"]:
+                z = 1
+                while (z != len(results[i]["identities"])):
+                    con1 = results[i]["identities"][0]["concepts"]
+                    #print "this is con1: %s", con1
+                    '''if z != len(results[i]["identities"]):
+                        z = z + 1
+                    else:
+                        break'''
+                    if z != len(results[i]["identities"]):
+                        con2 = results[i]["identities"][z]["concepts"]
+                        #print "this is con2: %s", con2
+                        if set(con1) == set(con2):
+                            print "Should delete this: ", results[i]["identities"][z]
+                            results[i]["identities"].pop(z)
+
+
+
+
+                    else:
+                        break
+
+            #print results[i]["identities"]
+            print results[i]["identities"]
+            i = i + 1
+            print results
+        return Response({'results': results})
 
 
     def get_queryset(self, *args, **kwargs):

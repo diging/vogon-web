@@ -11,18 +11,23 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from urllib import urlencode
 
+from concepts.models import Concept, Type
+
 @login_required
 @ensure_csrf_cookie
 def annotate(request, text_id):
     text = get_object_or_404(Text, pk=text_id)
     annotator = annotator_factory(request, text)
+    print "test2"
     return annotator.render()
 
 
 @login_required
-def annotation_display(request, text_id):
+def annotation_display(request, text_id, conceptid):
     text = get_object_or_404(Text, pk=text_id)
+    concept = get_object_or_404(Concept, pk=conceptid)
     annotator = annotator_factory(request, text)
+    print "test3"
     return annotator.render_display()
 
 @login_required
@@ -87,3 +92,30 @@ def relations_graph(request):
     }
 
     return render(request, 'annotations/relations_graph.html', context)
+
+
+def get_identities(request, conceptid):
+    input_dict = json.loads(input_json)
+
+
+    i = 0
+    z = 0
+    mat = []
+    di = len(input_dict)
+    #mat.append(input_dict[0]['concepts'])
+    while (i != di):
+        con1 = input_dict[i]['concepts']
+        if i != di:
+            i = i +1
+        else:
+            break
+        if i != di:
+            con2 = input_dict[i]['concepts']
+            if set(con1) != set(con2):
+                mat.append(con2)
+        else:
+            break
+
+    # Transform python object back into json
+    identities = json.dumps(mat)
+    return identities
