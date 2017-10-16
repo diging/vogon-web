@@ -8,8 +8,7 @@ var ConceptListItem = {
     props: ['concept'],
     template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
                    <div id="conceptDiv">
-                       <a v-if="ident" v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ concept.authority.name }}) {{ concept.identities[0].concepts[0] }}</a>
-                       <a v-else v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ concept.authority.name }})</a>
+                       <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ concept.authority.name }})</a>
                    </div>
                    <div class="text text-muted">{{ concept.description }}</div>
                </div>`,
@@ -1113,10 +1112,6 @@ Appellator = new Vue({
             self.updateSwimRef();
             self.handleScroll();
         },
-        document.getElementById('conceptDiv')il. = function() {
-          self.ident = true;
-        }
-
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);
