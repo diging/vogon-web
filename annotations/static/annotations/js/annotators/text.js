@@ -5,7 +5,7 @@
   *****************************************************************************/
 
 var ConceptListItem = {
-    props: ['concept', 'identi2'],
+    props: ['concept'],
     template: `<div>
                 <div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
                    <div>
@@ -14,20 +14,18 @@ var ConceptListItem = {
                    <div class="text text-muted">{{ concept.description }}</div>
                 </div>
 
-                <div v-if="identi2" class="list-group-item concept-item clearfix" id="concept-{{ concept2 }}">
+                <div v-if="identity2" class="list-group-item concept-item clearfix" id="concept-{{ concept2 }}">
                     <div>
-                      <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ z }})</a>
+                      <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ conceptPower }})</a>
 
                   </div>
-                  <div v-if="identi2" class="text text-muted">{{ concept.description }}</div>
+                  <div v-if="identity2" class="text text-muted">{{ concept.description }}</div>
               </div>
               </div>`,
     data: function() {
          return {
-             identi: false,
-             identi2: false,
-             ide: this.concept,
-             z :"CHPS",
+             identity2: false,
+             conceptPower :"CHPS",
              concept2: ""
          }
      },
@@ -35,14 +33,9 @@ var ConceptListItem = {
         select: function() {
             this.$emit('selectconcept', this.concept);
         },
-        ident: function(identi, concept) {
-          if(typeof this.concept.identities[0].concepts[0] !== 'undefined'){
-          this.identi = true;
-        }
-      },
-      ident2: function(identi2, concept,z, concept2) {
+      ident2: function(identity2, concept, concept2) {
         if(typeof this.concept.identities[0].concepts[1] !== 'undefined'){
-          this.identi2 = true;
+          this.identity2 = true;
           var regex = /digitalhps/g;
           var str = this.concept.identities[0].concepts[1];
           var m;
@@ -58,14 +51,12 @@ var ConceptListItem = {
                   this.concept2 = str;
               });
             }
-            return this.identi2;
+            return this.identity2;
       }
       }
     },
     created() {
-      this.ident(),
       this.ident2()
-
     }
 }
 
@@ -378,7 +369,7 @@ DateAppellationCreator = {
 
 
 AppellationCreator = {
-    props: ["position", "user", "text", "project", "identi2"],
+    props: ["position", "user", "text", "project"],
     components: {
         'concept-search': ConceptSearch,
         'concept-creator': ConceptCreator
@@ -388,11 +379,7 @@ AppellationCreator = {
             concept: null,
             create: false,
             submitted: false,
-            saving: false,
-            check: false,
-            concept2: this.concept2,
-            concept2Auth: "CHPS"
-
+            saving: false
         }
     },
     template: `<div class="appellation-creator" style="max-height: 300px; overflow-y: scroll;">
@@ -443,8 +430,6 @@ AppellationCreator = {
                </div>`,
 
     methods: {
-
-
         reset: function() {
             this.concept = null;
             this.create = false;
@@ -493,9 +478,6 @@ AppellationCreator = {
         ready: function() {
             return (this.position.startOffset >= 0 && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
         }
-    },
-    beforeMount(){
-      this.check();
     }
 }
 

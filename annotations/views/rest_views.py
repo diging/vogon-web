@@ -491,10 +491,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
         concepts = goat.Concept.search(q=q, pos=pos, limit=50)
 
-
-
-
-
         def _relabel(datum):
             _fields = {
                 'name': 'label',
@@ -506,29 +502,23 @@ class ConceptViewSet(viewsets.ModelViewSet):
         results = map(_relabel, [c.data for c in concepts])
 
         i = 0
-        mat = []
-        di = len(results)
-        con1 = []
-        con2 = []
+        resultsLength = len(results)
+        concept1 = []
+        concept2 = []
 
 
         print results
-        while (i != di):
+        while (i != resultsLength):
             test = results[i]["identities"]
             print len(results[i]["identities"])
             if results[i]["identities"]:
                 z = 1
                 while (z != len(results[i]["identities"])):
-                    con1 = results[i]["identities"][0]["concepts"]
-                    #print "this is con1: %s", con1
-                    '''if z != len(results[i]["identities"]):
-                        z = z + 1
-                    else:
-                        break'''
+                    concept1 = results[i]["identities"][0]["concepts"]
                     if z != len(results[i]["identities"]):
-                        con2 = results[i]["identities"][z]["concepts"]
+                        concept2 = results[i]["identities"][z]["concepts"]
                         #print "this is con2: %s", con2
-                        if set(con1) == set(con2):
+                        if set(concept1) == set(concept2):
                             print "Should delete this: ", results[i]["identities"][z]
                             results[i]["identities"].pop(z)
 
