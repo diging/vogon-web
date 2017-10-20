@@ -77,7 +77,7 @@ var ConceptSearch = {
                         <div class="input-group input-group-sm" style="width: 100%;">
                             <input type="text" class="form-control input-sm"  style="width: 100%;" v-model="query">
                             <span class="input-group-btn">
-                                <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" style="color: green;"></a>
+                                <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" v-on:click="search" style="color: green;"></a>
                                 <span v-if="searching" class="btn btn-sm glyphicon glyphicon-hourglass" style="color: orange;"></span>
                                 <span v-if="error" class="btn btn-sm glyphicon glyphicon-exclamation-sign" style="color: red;"></span>
                             </span>
@@ -397,8 +397,7 @@ AppellationCreator = {
                         <span class="appellation-creator-representation">{{ position.representation }}</span>
                     </div>
                     <div v-if="concept != null" class="text-warning">{{ concept.label }}
-                        <span v-if="identi2">({{ concept2Auth }})</span>
-                        <span v-else="concept.authority != null">({{ concept.authority.name }})</span>
+                        <span v-if="concept.authority != null">({{ concept.authority.name }})</span>
                     </div>
 
                    <div v-if="isSaving()" style="position: absolute; top: 0px;">

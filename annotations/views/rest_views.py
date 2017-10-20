@@ -24,8 +24,6 @@ from concepts.lifecycle import *
 
 import uuid
 
-import unicodedata
-
 import goat
 goat.GOAT = settings.GOAT
 goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
@@ -35,7 +33,6 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
 
-import json
 
 
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
@@ -483,7 +480,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
     @list_route()
     def search(self, request, **kwargs):
-        print "starting"
         q = request.GET.get('search', None)
         if not q:
             return Response({'results': []})
