@@ -5,7 +5,7 @@
   *****************************************************************************/
 
 var ConceptListItem = {
-    props: ['concept'],
+    props: ['concept', 'identi2'],
     template: `<div>
                 <div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
                    <div>
@@ -27,7 +27,7 @@ var ConceptListItem = {
              identi: false,
              identi2: false,
              ide: this.concept,
-             z :"",
+             z :"CHPS",
              concept2: ""
          }
      },
@@ -56,11 +56,9 @@ var ConceptListItem = {
               // The result can be accessed through the `m`-variable.
               m.forEach((match, groupIndex) => {
                   this.concept2 = str;
-                  this.z = "CHPS";
-                  console.log("match");
-                  console.log(this.concept2);
               });
             }
+            return this.identi2;
       }
       }
     },
@@ -380,7 +378,7 @@ DateAppellationCreator = {
 
 
 AppellationCreator = {
-    props: ["position", "user", "text", "project"],
+    props: ["position", "user", "text", "project", "identi2"],
     components: {
         'concept-search': ConceptSearch,
         'concept-creator': ConceptCreator
@@ -390,7 +388,10 @@ AppellationCreator = {
             concept: null,
             create: false,
             submitted: false,
-            saving: false
+            saving: false,
+            check: false,
+            concept2: this.concept2,
+            concept2Auth: "CHPS"
 
         }
     },
@@ -409,7 +410,8 @@ AppellationCreator = {
                         <span class="appellation-creator-representation">{{ position.representation }}</span>
                     </div>
                     <div v-if="concept != null" class="text-warning">{{ concept.label }}
-                        <span v-if="concept.authority != null">({{ concept.authority.name }})</span>
+                        <span v-if="identi2">({{ concept2Auth }})</span>
+                        <span v-else="concept.authority != null">({{ concept.authority.name }})</span>
                     </div>
 
                    <div v-if="isSaving()" style="position: absolute; top: 0px;">
@@ -439,7 +441,10 @@ AppellationCreator = {
                        <a v-on:click="cancel" class="btn btn-xs btn-danger">Cancel</a>
                    </div>
                </div>`,
+
     methods: {
+
+
         reset: function() {
             this.concept = null;
             this.create = false;
@@ -488,6 +493,9 @@ AppellationCreator = {
         ready: function() {
             return (this.position.startOffset >= 0 && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
         }
+    },
+    beforeMount(){
+      this.check();
     }
 }
 
