@@ -8,11 +8,7 @@ from annotations.models import Relation, Appellation, VogonUser, Text, RelationS
 from annotations.annotators import annotator_factory
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
 from urllib import urlencode
-
-from concepts.models import Concept, Type
-
 @login_required
 @ensure_csrf_cookie
 def annotate(request, text_id):
@@ -41,8 +37,8 @@ def annotate_image(request, text_id):
 def relations(request):
     from annotations.filters import RelationSetFilter
 
-    qs = RelationSet.objects.all()
-    filtered = RelationSetFilter(request.GET, queryset=qs)
+
+    filtered = RelationSetFilter(request.GET, queryset=RelationSet.objects.all())
     qs = filtered.qs
     for r in qs:
         print r.__dict__
@@ -50,9 +46,19 @@ def relations(request):
     paginator = Paginator(qs, 40)
     page = request.GET.get('page')
 
-    gt = request.GET.copy()
-    if 'page' in gt:
-        del gt['page']
+    data = filtered.form.cleaned_data
+    params_data = {}
+    for key, value in data.items():
+        if key in ('createdBy', 'project'):
+            if value is not None and hasattr(value, 'id'):
+                params_data[key] = value.id
+        elif key in ('createdAfter', 'createdBefore'):
+            if value is not None:
+                value = '{0.month}/{0.day}/{0.year}'.format(value)
+                params_data[key] = value
+        else:
+            params_data[key] = value
+
 
     try:
         relations = paginator.page(page)
@@ -68,6 +74,7 @@ def relations(request):
         'relations': relations,
         'params': urlencode(gt),
         'filter': filtered,
+        'params_data': urlencode(params_data),
         }
     return render(request, 'annotations/relations.html', context)
 
