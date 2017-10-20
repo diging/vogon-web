@@ -1111,7 +1111,7 @@ Appellator = new Vue({
         document.getElementById('graphContainer').onmouseup = function() {
             self.updateSwimRef();
             self.handleScroll();
-        },
+        }
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);
