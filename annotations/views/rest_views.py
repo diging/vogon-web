@@ -484,7 +484,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
         if not q:
             return Response({'results': []})
         pos = request.GET.get('pos', None)
-
         concepts = goat.Concept.search(q=q, pos=pos, limit=50)
 
 

@@ -108,8 +108,13 @@ def concepts(request):
     data = filtered.form.cleaned_data
     params_data = {}
     for key, value in data.items():
-        if value is not None:
-            params_data[key] = value
+        print key
+        if key in ('typed'):
+           if value is not None and hasattr(value, 'id'):
+               params_data[key] = value.id
+        else:
+            if value is not None:
+                params_data[key] = value
 
     try:
         concepts = paginator.page(page)
