@@ -151,7 +151,3 @@ getCreatorName = function(creator) {
         return creator.username;
     }
 }
-
-var prac = function() {
-  return console.log("Test");
-}
