@@ -497,7 +497,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 'identifier': 'uri'
             }
 
-            return {_fields.get(k, k): v for k, v in datum.iteritems() }
+            return {_fields.get(k, k): v for k, v in datum.iteritems()}
         return Response({'results': map(_relabel, [c.data for c in concepts])})
 
 

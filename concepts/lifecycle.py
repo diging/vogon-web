@@ -200,7 +200,7 @@ class ConceptLifecycle(object):
             return
         raise ConceptLifecycleException("Could not resolve concept.")
 
-    
+
     def merge_with(self, uri):
         """
         Merge the managed :class:`.Concept` with some other concept.
