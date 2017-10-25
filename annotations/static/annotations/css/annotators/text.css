@@ -25,6 +25,9 @@
 
 .relation-list {
     font-size: 0.8em;
+    height: 90vh;
+    overflow-y: scroll;
+    white-space: nowrap;
 }
 .relation-list .btn {
     font-size: 1em;
