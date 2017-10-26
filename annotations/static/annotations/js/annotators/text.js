@@ -15,7 +15,8 @@ var ConceptListItem = {
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept);
-        }
+        },
+
     }
 }
 
@@ -100,8 +101,9 @@ var ConceptSearch = {
                 self.error = true;
                 self.searching = false;
             });
-        }
-    },
+          }
+        },
+
     components: {
         'concept-list-item': ConceptListItem
     }
