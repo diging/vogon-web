@@ -368,7 +368,6 @@ def repository_text_content(request, repository_id, text_id, content_id):
 
 @login_required
 def repository_text_add_to_project(request, repository_id, text_id, project_id):
-    print "yes"
     repository = get_object_or_404(Repository, pk=repository_id)
     project = get_object_or_404(TextCollection, pk=project_id)
 
