@@ -101,7 +101,8 @@ var ConceptSearch = {
                 self.error = true;
                 self.searching = false;
             });
-        },
+
+          }
         },
 
     components: {
