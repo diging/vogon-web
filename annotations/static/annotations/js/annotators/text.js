@@ -33,6 +33,7 @@ var ConceptListItem = {
         select: function() {
             this.$emit('selectconcept', this.concept);
         },
+
       ident2: function(identity2, concept, concept2) {
         if(typeof this.concept.identities[0].concepts[1] !== 'undefined'){
           this.identity2 = true;
@@ -141,7 +142,8 @@ var ConceptSearch = {
                 self.error = true;
                 self.searching = false;
             });
-        },
+
+          }
         },
 
     components: {
