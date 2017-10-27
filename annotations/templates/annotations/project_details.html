@@ -54,7 +54,6 @@
             </th>
         </thead>
         {% for text in texts %}
-        <h6>{{ text }}</h6>
         <tbody>
             <tr>
                 <td><a href="{% url "repository_text" text.repository_id text.repository_source_id %}?project_id={{ project.id }}">{{ text.title }}</a></td>
