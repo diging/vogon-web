@@ -77,7 +77,7 @@
     </ul>
     {% endif %}
 
-    <a class="btn btn-md btn-danger" href="{{ next_page }}">Take me back!</a>
+    <input class="btn btn-md btn-danger" type=button value="Take me back!" onClick="javascript:history.go(-1);">
     <a class="btn btn-md btn-{% if matches or candidates %}warning{% else %}success{% endif %}" href="?confirmed=true&next={{ next_page }}">{% if matches or candidates %}I accept the risks: add anyway!{% else %}Approve{% endif %}</a>
 </div>
 
