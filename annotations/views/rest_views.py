@@ -500,7 +500,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         resultsLength = len(results)
         concept1 = []
         concept2 = []
-        
+
         while (i != resultsLength):
             if results[i]["identities"]:
                 z = 1
@@ -508,7 +508,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
                     concept1 = results[i]["identities"][0]["concepts"]
                     if z != len(results[i]["identities"]):
                         concept2 = results[i]["identities"][z]["concepts"]
-                        #print "this is con2: %s", con2
                         if set(concept1) == set(concept2):
                             results[i]["identities"].pop(z)
                     else:
