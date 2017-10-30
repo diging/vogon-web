@@ -484,7 +484,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
         if not q:
             return Response({'results': []})
         pos = request.GET.get('pos', None)
-
         concepts = goat.Concept.search(q=q, pos=pos, limit=50)
 
         def _relabel(datum):
@@ -517,7 +516,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
             i = i + 1
         return Response({'results': results})
-
 
     def get_queryset(self, *args, **kwargs):
         """
