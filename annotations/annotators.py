@@ -74,7 +74,6 @@ class Annotator(object):
         else:
             project = request.user.get_default_project()
 
-        project.texts.add(text)
         self.project = project;
         self.context = {
             'request': request,
