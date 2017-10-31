@@ -6,17 +6,58 @@
 
 var ConceptListItem = {
     props: ['concept'],
-    template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
+    template: `<div>
+                <div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
                    <div>
                        <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ concept.authority.name }})</a>
                    </div>
                    <div class="text text-muted">{{ concept.description }}</div>
-               </div>`,
+                </div>
+
+                <div v-if="identity2" class="list-group-item concept-item clearfix" id="concept-{{ concept2 }}">
+                    <div>
+                      <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ conceptPower }})</a>
+
+                  </div>
+                  <div v-if="identity2" class="text text-muted">{{ concept.description }}</div>
+              </div>
+              </div>`,
+    data: function() {
+         return {
+             identity2: false,
+             conceptPower :"CHPS",
+             concept2: ""
+         }
+     },
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept);
         },
 
+      ident2: function(identity2, concept, concept2) {
+        if(typeof this.concept.identities[0].concepts[1] !== 'undefined'){
+          this.identity2 = true;
+          var regex = /digitalhps/g;
+          var str = this.concept.identities[0].concepts[1];
+          var m;
+
+          while ((m = regex.exec(str)) !== null) {
+              // This is necessary to avoid infinite loops with zero-width matches
+              if (m.index === regex.lastIndex) {
+                  regex.lastIndex++;
+              }
+
+              // The result can be accessed through the `m`-variable.
+              m.forEach((match, groupIndex) => {
+                  this.concept2 = str;
+              });
+            }
+            return this.identity2;
+      }
+      }
+    },
+    created() {
+      this.ident2()
     }
 }
 
@@ -101,6 +142,7 @@ var ConceptSearch = {
                 self.error = true;
                 self.searching = false;
             });
+
           }
         },
 
@@ -340,7 +382,6 @@ AppellationCreator = {
             create: false,
             submitted: false,
             saving: false
-
         }
     },
     template: `<div class="appellation-creator" style="max-height: 300px; overflow-y: scroll;">
@@ -388,6 +429,7 @@ AppellationCreator = {
                        <a v-on:click="cancel" class="btn btn-xs btn-danger">Cancel</a>
                    </div>
                </div>`,
+
     methods: {
         reset: function() {
             this.concept = null;
@@ -1112,6 +1154,7 @@ Appellator = new Vue({
             self.updateSwimRef();
             self.handleScroll();
         }
+
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);

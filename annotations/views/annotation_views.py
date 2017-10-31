@@ -69,7 +69,6 @@ def relations(request):
     context = {
         'paginator': paginator,
         'relations': relations,
-        'params': request.GET.urlencode(),
         'filter': filtered,
         'params_data': urlencode(params_data),
         }

@@ -493,8 +493,28 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 'identifier': 'uri'
             }
 
-            return {_fields.get(k, k): v for k, v in datum.iteritems()}
-        return Response({'results': map(_relabel, [c.data for c in concepts])})
+            return {_fields.get(k, k): v for k, v in datum.iteritems() }
+        results = map(_relabel, [c.data for c in concepts])
+
+        i = 0
+        resultsLength = len(results)
+        concept1 = []
+        concept2 = []
+
+        while (i != resultsLength):
+            if results[i]["identities"]:
+                z = 1
+                while (z != len(results[i]["identities"])):
+                    concept1 = results[i]["identities"][0]["concepts"]
+                    if z != len(results[i]["identities"]):
+                        concept2 = results[i]["identities"][z]["concepts"]
+                        if set(concept1) == set(concept2):
+                            results[i]["identities"].pop(z)
+                    else:
+                        break
+
+            i = i + 1
+        return Response({'results': results})
 
     def get_queryset(self, *args, **kwargs):
         """
