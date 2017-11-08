@@ -24,7 +24,8 @@ from concepts.lifecycle import *
 
 import uuid
 
-import unicodedata
+import xml.etree.ElementTree as ET
+import urllib2
 
 import goat
 goat.GOAT = settings.GOAT
@@ -35,7 +36,6 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
 
-import json
 
 
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
@@ -483,17 +483,17 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
     @list_route()
     def search(self, request, **kwargs):
-        print "starting"
+        print "**************tttttt"
         q = request.GET.get('search', None)
+
+
+
+
         if not q:
             return Response({'results': []})
         pos = request.GET.get('pos', None)
 
         concepts = goat.Concept.search(q=q, pos=pos, limit=50)
-
-
-
-
 
         def _relabel(datum):
             _fields = {
@@ -505,43 +505,51 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return {_fields.get(k, k): v for k, v in datum.iteritems() }
         results = map(_relabel, [c.data for c in concepts])
 
-        i = 0
-        mat = []
-        di = len(results)
-        con1 = []
-        con2 = []
 
-
-        print results
-        while (i != di):
-            test = results[i]["identities"]
-            print len(results[i]["identities"])
-            if results[i]["identities"]:
-                z = 1
-                while (z != len(results[i]["identities"])):
-                    con1 = results[i]["identities"][0]["concepts"]
-                    #print "this is con1: %s", con1
-                    '''if z != len(results[i]["identities"]):
-                        z = z + 1
-                    else:
-                        break'''
-                    if z != len(results[i]["identities"]):
-                        con2 = results[i]["identities"][z]["concepts"]
-                        #print "this is con2: %s", con2
-                        if set(con1) == set(con2):
-                            print "Should delete this: ", results[i]["identities"][z]
-                            results[i]["identities"].pop(z)
-
-
-
-
+        for result in results:
+            length = len(result["identities"])
+            if length != 0:
+                length = length - 1
+                identities = []
+                identities.append(result["identities"][0])
+                while (length != 0):
+                    if (length != 0):
+                        concept1 = result["identities"][length]["concepts"]
+                        if (length != 0):
+                            length = length - 1
+                        else:
+                            break
+                        concept2 = result["identities"][length]["concepts"]
+                        if set(concept1) != set(concept2):
+                            identities.append(result["identities"][length])
                     else:
                         break
+                result["identities"] = identities
+                concepts = result["identities"][0]["concepts"]
+                uri = result["uri"]
+                if uri in concepts: concepts.remove(uri)
 
-            #print results[i]["identities"]
-            print results[i]["identities"]
-            i = i + 1
-            print results
+
+        concept_copy = result["identities"][0]
+
+        for concept in concepts:
+            url = concept
+            data = urllib2.urlopen(url)
+
+            tree = ET.parse(data)
+            root = tree.getroot()
+
+            namespace = {'hps': 'http://www.digitalhps.org/'}
+
+            for entry in root.findall('hps:conceptEntry', namespace):
+                description1 = entry.find('hps:description', namespace)
+                name1 = entry.find('hps:lemma', namespace)
+                concept_description = description1.text
+                concept_name = name1.text
+                concept_parsed = {'concept_name': concept_name, 'concept_desc':concept_description, 'concept_uri':concept}
+                concept_copy.update(concept_parsed)
+
+
         return Response({'results': results})
 
 

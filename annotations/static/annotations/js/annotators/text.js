@@ -14,60 +14,52 @@ var ConceptListItem = {
                    <div class="text text-muted">{{ concept.description }}</div>
                 </div>
 
-                <div v-if="identi2" class="list-group-item concept-item clearfix" id="concept-{{ concept2 }}">
+                <div v-if="identi2" class="list-group-item concept-item clearfix" id="concept-{{ concept_uri }}">
                     <div>
-                      <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ z }})</a>
+                      <a v-on:click="select" style="cursor: pointer;">{{ concept_name}} ({{ concept_auth }})</a>
 
                   </div>
-                  <div v-if="identi2" class="text text-muted">{{ concept.description }}</div>
+                  <div v-if="identi2" class="text text-muted">{{ concept_desc }}</div>
               </div>
               </div>`,
     data: function() {
          return {
-             identi: false,
              identi2: false,
              ide: this.concept,
-             z :"",
-             concept2: ""
          }
      },
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept);
         },
-        ident: function(identi, concept) {
-          if(typeof this.concept.identities[0].concepts[0] !== 'undefined'){
-          this.identi = true;
-        }
-      },
-      ident2: function(identi2, concept,z, concept2) {
-        if(typeof this.concept.identities[0].concepts[1] !== 'undefined'){
+      filter: function(identi2, concept) {
+        if(typeof this.concept.identities[0].concepts[0] !== 'undefined'){
           this.identi2 = true;
           var regex = /digitalhps/g;
-          var str = this.concept.identities[0].concepts[1];
-          var m;
+          var string_to_match = this.concept.identities[0].concepts[0];
+          var match;
 
-          while ((m = regex.exec(str)) !== null) {
+          while ((match = regex.exec(string_to_match)) !== null) {
               // This is necessary to avoid infinite loops with zero-width matches
-              if (m.index === regex.lastIndex) {
+              if (match.index === regex.lastIndex) {
                   regex.lastIndex++;
               }
 
-              // The result can be accessed through the `m`-variable.
-              m.forEach((match, groupIndex) => {
-                  this.concept2 = str;
-                  this.z = "CHPS";
-                  console.log("match");
-                  console.log(this.concept2);
+              // The result can be accessed through the `match`-variable.
+              match.forEach((match, groupIndex) => {
+                  this.concept2 = string_to_match;
+                  this.concept_auth = "CHPS";
+                  this.concept_name = this.concept.identities[0].concept_name;
+                  this.concept_desc = this.concept.identities[0].concept_desc;
+                  this.concept_uri = this.identities[0].concept_uri;
               });
             }
       }
-      }
+    }
+
     },
     created() {
-      this.ident(),
-      this.ident2()
-
+      this.filter()
     }
 }
 
@@ -88,7 +80,7 @@ var ConceptSearch = {
                         <div class="input-group input-group-sm" style="width: 100%;">
                             <input type="text" class="form-control input-sm"  style="width: 100%;" v-model="query">
                             <span class="input-group-btn">
-                                <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" style="color: green;"></a>
+                                <a v-if="ready()" class="btn btn-sm glyphicon glyphicon-search" v-on:click="search" style="color: green;"></a>
                                 <span v-if="searching" class="btn btn-sm glyphicon glyphicon-hourglass" style="color: orange;"></span>
                                 <span v-if="error" class="btn btn-sm glyphicon glyphicon-exclamation-sign" style="color: red;"></span>
                             </span>
@@ -152,7 +144,7 @@ var ConceptSearch = {
                 self.error = true;
                 self.searching = false;
             });
-        },
+          }
         },
 
     components: {
