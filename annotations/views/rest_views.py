@@ -26,6 +26,9 @@ import uuid
 
 import xml.etree.ElementTree as ET
 import urllib2
+import re
+from lxml import etree as e
+
 
 import goat
 goat.GOAT = settings.GOAT
@@ -483,11 +486,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
     @list_route()
     def search(self, request, **kwargs):
-        print "**************tttttt"
         q = request.GET.get('search', None)
-
-
-
 
         if not q:
             return Response({'results': []})
@@ -505,8 +504,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return {_fields.get(k, k): v for k, v in datum.iteritems() }
         results = map(_relabel, [c.data for c in concepts])
 
-
         for result in results:
+            # Filter results to remove dupilcates and any non-duplicates to concepts
+            new_concepts = {}
             length = len(result["identities"])
             if length != 0:
                 length = length - 1
@@ -524,30 +524,71 @@ class ConceptViewSet(viewsets.ModelViewSet):
                             identities.append(result["identities"][length])
                     else:
                         break
+
                 result["identities"] = identities
                 concepts = result["identities"][0]["concepts"]
                 uri = result["uri"]
                 if uri in concepts: concepts.remove(uri)
 
+                i = 0 # used to generate concept name
+                for concept in concepts:
+                    ''' go through all the concepts and parse xml data for each concept
+                        then append info to list and then append list to dictionary so that
+                        list can be referenced as con0, con1, etc
+                    '''
 
-        concept_copy = result["identities"][0]
+                    hps = re.search( r'www.digitalhps.org', concept, re.M|re.I)
+                    viaf = re.search( r'viaf.org', concept, re.M|re.I)
+                    if hps:
+                        url = concept
+                        data = urllib2.urlopen(url)
 
-        for concept in concepts:
-            url = concept
-            data = urllib2.urlopen(url)
+                        tree = ET.parse(data)
+                        root = tree.getroot()
 
-            tree = ET.parse(data)
-            root = tree.getroot()
+                        namespace = {'hps': 'http://www.digitalhps.org/'}
 
-            namespace = {'hps': 'http://www.digitalhps.org/'}
+                        concept_list = []
+                        for entry in root.findall('hps:conceptEntry', namespace):
+                            description1 = entry.find('hps:description', namespace)
+                            name1 = entry.find('hps:lemma', namespace)
+                            concept_description = description1.text
+                            concept_name = name1.text
 
-            for entry in root.findall('hps:conceptEntry', namespace):
-                description1 = entry.find('hps:description', namespace)
-                name1 = entry.find('hps:lemma', namespace)
-                concept_description = description1.text
-                concept_name = name1.text
-                concept_parsed = {'concept_name': concept_name, 'concept_desc':concept_description, 'concept_uri':concept}
-                concept_copy.update(concept_parsed)
+
+                        concept_list.append(concept_name)
+                        concept_list.append(concept_description)
+                        concept_list.append(concept)
+                        concept_list.append("Concept Power")
+                        new_concepts['concept' + str(i)] = concept_list
+                        i = i + 1
+
+                    elif viaf:
+                        url = concept + '/viaf.xml' # have to append /viaf.xml to viaf url's in order to access xml
+                        data = urllib2.urlopen(url)
+                        tree = e.parse(data)
+                        root = tree.getroot()
+
+                        namespace = {'foaf': 'http://xmlns.com/foaf/0.1/', 'ns1': 'http://viaf.org/viaf/terms#', 'owl': 'http://www.w3.org/2002/07/owl#', 'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 'void': 'http://rdfs.org/ns/void#'}
+
+                        concept_list = []
+                        find = e.XPath("//ns1:text", namespaces = namespace)
+                        concept_name = find(root)[0].text
+                        concept_description = find(root)[0].text
+
+                        concept_list.append(concept_name)
+                        concept_list.append(concept_description)
+                        concept_list.append(concept)
+                        concept_list.append("VIAF")
+                        new_concepts['concept' + str(i)] = concept_list
+                        i = i + 1
+                    else:
+                       print "Nothing found!!"
+
+
+                result["identities"][0].update(new_concepts)
+                print result["identities"][0]
+
 
 
         return Response({'results': results})

@@ -14,17 +14,35 @@ var ConceptListItem = {
                    <div class="text text-muted">{{ concept.description }}</div>
                 </div>
 
-                <div v-if="identi2" class="list-group-item concept-item clearfix" id="concept-{{ concept_uri }}">
+                <div v-if="concept1" class="list-group-item concept-item clearfix" id="concept-{{ concept_uri }}">
                     <div>
                       <a v-on:click="select" style="cursor: pointer;">{{ concept_name}} ({{ concept_auth }})</a>
 
                   </div>
-                  <div v-if="identi2" class="text text-muted">{{ concept_desc }}</div>
+                  <div v-if="concept1" class="text text-muted">{{ concept_desc }}</div>
               </div>
+
+              <div v-if="concept2" class="list-group-item concept-item clearfix" id="concept-{{ concept2_uri }}">
+                  <div>
+                    <a v-on:click="select" style="cursor: pointer;">{{ concept2_name }} ({{ concept2_auth }})</a>
+
+                </div>
+                <div v-if="concept2" class="text text-muted">{{ concept2_desc }}</div>
+            </div>
+
+            <div v-if="concept3" class="list-group-item concept-item clearfix" id="concept-{{ concept3_uri }}">
+                <div>
+                  <a v-on:click="select" style="cursor: pointer;">{{ concept3_name }} ({{ concept3_auth }})</a>
+
+              </div>
+              <div v-if="concept3" class="text text-muted">{{ concept3_desc }}</div>
+          </div>
               </div>`,
     data: function() {
          return {
-             identi2: false,
+             concept1: false,
+             concept2: false,
+             concept3: false,
              ide: this.concept,
          }
      },
@@ -32,34 +50,54 @@ var ConceptListItem = {
         select: function() {
             this.$emit('selectconcept', this.concept);
         },
-      filter: function(identi2, concept) {
-        if(typeof this.concept.identities[0].concepts[0] !== 'undefined'){
-          this.identi2 = true;
-          var regex = /digitalhps/g;
-          var string_to_match = this.concept.identities[0].concepts[0];
-          var match;
+      filter: function(concept1, concept) {
+        if(this.concept.identities[0].concepts[0] !== undefined){
+          this.concept1 = true;
+          if(this.concept.identities[0].concept0 !== undefined) {
 
-          while ((match = regex.exec(string_to_match)) !== null) {
-              // This is necessary to avoid infinite loops with zero-width matches
-              if (match.index === regex.lastIndex) {
-                  regex.lastIndex++;
-              }
+              this.concept_name = this.concept.identities[0].concept0[0];
+              this.concept_desc = this.concept.identities[0].concept0[1];
+              this.concept_uri = this.concept.identities[0].concept0[2];
+              this.concept_auth = this.concept.identities[0].concept0[3];
 
-              // The result can be accessed through the `match`-variable.
-              match.forEach((match, groupIndex) => {
-                  this.concept2 = string_to_match;
-                  this.concept_auth = "CHPS";
-                  this.concept_name = this.concept.identities[0].concept_name;
-                  this.concept_desc = this.concept.identities[0].concept_desc;
-                  this.concept_uri = this.identities[0].concept_uri;
-              });
-            }
+          }
+
       }
+    },
+    filter2: function(concept2, concept)  {
+      if(this.concept.identities[0].concepts[1] !== undefined){
+        this.concept2 = true;
+        if(this.concept.identities[0].concept1 !== undefined) {
+
+            this.concept2_name = this.concept.identities[0].concept1[0];
+            this.concept2_desc = this.concept.identities[0].concept1[1];
+            this.concept2_uri = this.concept.identities[0].concept1[2];
+            this.concept2_auth = this.concept.identities[0].concept1[3];
+
+        }
+
+    }
+  },
+    filter3: function(concept3, concept)  {
+      if(this.concept.identities[0].concepts[2] !== undefined){
+        this.concept3 = true;
+        if(this.concept.identities[0].concept2 !== undefined) {
+
+            this.concept3_name = this.concept.identities[0].concept2[0];
+            this.concept3_desc = this.concept.identities[0].concept2[1];
+            this.concept3_uri = this.concept.identities[0].concept2[2];
+            this.concept3_auth = this.concept.identities[0].concept2[3];
+
+        }
+
+    }
     }
 
     },
     created() {
-      this.filter()
+      this.filter(),
+      this.filter2(),
+      this.filter3()
     }
 }
 
