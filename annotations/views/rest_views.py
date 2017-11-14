@@ -29,7 +29,6 @@ import urllib2
 import re
 from lxml import etree as e
 
-
 import goat
 goat.GOAT = settings.GOAT
 goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
@@ -585,12 +584,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                     else:
                        print "Nothing found!!"
 
-
                 result["identities"][0].update(new_concepts)
-                print result["identities"][0]
-
-
-
         return Response({'results': results})
 
 
