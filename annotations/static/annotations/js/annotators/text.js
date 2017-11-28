@@ -51,46 +51,35 @@ var ConceptListItem = {
             this.$emit('selectconcept', this.concept);
         },
       filter: function(concept1, concept) {
-        if(this.concept.identities[0].concepts[0] !== undefined){
+        if(this.concept.identities[1].concept0[0] !== undefined){
           this.concept1 = true;
-          if(this.concept.identities[0].concept0 !== undefined) {
-
-              this.concept_name = this.concept.identities[0].concept0[0];
-              this.concept_desc = this.concept.identities[0].concept0[1];
-              this.concept_uri = this.concept.identities[0].concept0[2];
-              this.concept_auth = this.concept.identities[0].concept0[3];
-
-          }
+          this.concept_name = this.concept.identities[1].concept0[0];
+          this.concept_desc = this.concept.identities[1].concept0[1];
+          this.concept_uri = this.concept.identities[1].concept0[2];
+          this.concept_auth = this.concept.identities[1].concept0[3];
 
       }
     },
     filter2: function(concept2, concept)  {
-      if(this.concept.identities[0].concepts[1] !== undefined){
+      if( this.concept.identities[1].concept1[0] !== undefined){
         this.concept2 = true;
-        if(this.concept.identities[0].concept1 !== undefined) {
+        this.concept_name1 = this.concept.identities[1].concept1[0];
+        this.concept_desc1 = this.concept.identities[1].concept1[1];
+        this.concept_uri1 = this.concept.identities[1].concept1[2];
+        this.concept_auth1 = this.concept.identities[1].concept1[3];
 
-            this.concept2_name = this.concept.identities[0].concept1[0];
-            this.concept2_desc = this.concept.identities[0].concept1[1];
-            this.concept2_uri = this.concept.identities[0].concept1[2];
-            this.concept2_auth = this.concept.identities[0].concept1[3];
-
-        }
 
     }
   },
     filter3: function(concept3, concept)  {
-      if(this.concept.identities[0].concepts[2] !== undefined){
+      if(this.concept.identities[1].concept2[0] !== undefined){
         this.concept3 = true;
-        if(this.concept.identities[0].concept2 !== undefined) {
-
-            this.concept3_name = this.concept.identities[0].concept2[0];
-            this.concept3_desc = this.concept.identities[0].concept2[1];
-            this.concept3_uri = this.concept.identities[0].concept2[2];
-            this.concept3_auth = this.concept.identities[0].concept2[3];
+        this.concept_name2 = this.concept.identities[1].concept2[0];
+        this.concept_desc2 = this.concept.identities[1].concept2[1];
+        this.concept_uri2 = this.concept.identities[1].concept2[2];
+        this.concept_auth2 = this.concept.identities[1].concept2[3];
 
         }
-
-    }
     }
 
     },

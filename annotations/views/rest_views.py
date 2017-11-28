@@ -504,41 +504,35 @@ class ConceptViewSet(viewsets.ModelViewSet):
         results = map(_relabel, [c.data for c in concepts])
 
         for result in results:
-            # Filter results to remove dupilcates and any non-duplicates to concepts
-            new_concepts = {}
-            length = len(result["identities"])
-            if length != 0:
-                length = length - 1
-                identities = []
-                identities.append(result["identities"][0])
-                while (length != 0):
-                    if (length != 0):
-                        concept1 = result["identities"][length]["concepts"]
-                        if (length != 0):
-                            length = length - 1
-                        else:
-                            break
-                        concept2 = result["identities"][length]["concepts"]
-                        if set(concept1) != set(concept2):
-                            identities.append(result["identities"][length])
-                    else:
-                        break
+            identities = []
+            if result["identities"]:
+                identities.append(result["identities"][0]["concepts"])
+            for ident in result["identities"]:
 
-                result["identities"] = identities
-                concepts = result["identities"][0]["concepts"]
+                for identity in identities:
+                    if set(identity) != set(ident["concepts"]):
+                        identities.append(ident)
+
+            result["identities"] = identities
+            if result["identities"]:
+                concepts = result["identities"]
+
                 uri = result["uri"]
-                if uri in concepts: concepts.remove(uri)
-
+                if uri in concepts[0]: concepts[0].remove(uri)
+                print concepts
                 i = 0 # used to generate concept name
-                for concept in concepts:
-                    ''' go through all the concepts and parse xml data for each concept
-                        then append info to list and then append list to dictionary so that
-                        list can be referenced as con0, con1, etc
-                    '''
+                new_concepts = {}
+                for concept in concepts[0]:
+                    print concept
+                     #go through all the concepts and parse xml data for each concept
+                        #then append info to list and then append list to dictionary so that
+                        #list can be referenced as con0, con1, etc
+
 
                     hps = re.search( r'www.digitalhps.org', concept, re.M|re.I)
                     viaf = re.search( r'viaf.org', concept, re.M|re.I)
                     if hps:
+                        print "found HPS"
                         url = concept
                         data = urllib2.urlopen(url)
 
@@ -563,6 +557,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         i = i + 1
 
                     elif viaf:
+                        print "found VIAF"
                         url = concept + '/viaf.xml' # have to append /viaf.xml to viaf url's in order to access xml
                         data = urllib2.urlopen(url)
                         tree = e.parse(data)
@@ -584,7 +579,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
                     else:
                        print "Nothing found!!"
 
-                result["identities"][0].update(new_concepts)
+                result["identities"].append(new_concepts)
+                print results
         return Response({'results': results})
 
 
