@@ -519,16 +519,12 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
                 uri = result["uri"]
                 if uri in concepts[0]: concepts[0].remove(uri)
-                print concepts
                 i = 0 # used to generate concept name
                 new_concepts = {}
                 for concept in concepts[0]:
-                    print concept
                      #go through all the concepts and parse xml data for each concept
                         #then append info to list and then append list to dictionary so that
                         #list can be referenced as con0, con1, etc
-
-
                     hps = re.search( r'www.digitalhps.org', concept, re.M|re.I)
                     viaf = re.search( r'viaf.org', concept, re.M|re.I)
                     if hps:
@@ -580,7 +576,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
                        print "Nothing found!!"
 
                 result["identities"].append(new_concepts)
-                print results
         return Response({'results': results})
 
 
