@@ -528,7 +528,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
                     hps = re.search( r'www.digitalhps.org', concept, re.M|re.I)
                     viaf = re.search( r'viaf.org', concept, re.M|re.I)
                     if hps:
-                        print "found HPS"
                         url = concept
                         data = urllib2.urlopen(url)
 
@@ -553,7 +552,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         i = i + 1
 
                     elif viaf:
-                        print "found VIAF"
                         url = concept + '/viaf.xml' # have to append /viaf.xml to viaf url's in order to access xml
                         data = urllib2.urlopen(url)
                         tree = e.parse(data)
