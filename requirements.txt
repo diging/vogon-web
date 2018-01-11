@@ -7,7 +7,7 @@ conceptpower-api==1.9
 dj-database-url==0.3.0
 dj-static==0.0.6
 Django==1.10.6
-django-autocomplete-light
+django-autocomplete-light==2.3.1
 django-celery==3.2.1
 django-cors-headers==1.1.0
 django-crispy-forms==1.4.0
@@ -39,3 +39,4 @@ Unidecode==0.4.20
 urllib3==1.19.1
 xmltodict==0.10.2
 dicttoxml==1.6.6
+six==1.10.0
