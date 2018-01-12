@@ -17,25 +17,22 @@ var ConceptListItem = {
                 <div v-if="concept1" class="list-group-item concept-item clearfix" id="concept-{{ concept_uri }}">
                     <div>
                       <a v-on:click="select" style="cursor: pointer;">{{ concept_name}} ({{ concept_auth }})</a>
-
-                  </div>
-                  <div v-if="concept1" class="text text-muted">{{ concept_desc }}</div>
-              </div>
+                    </div>
+                    <div v-if="concept1" class="text text-muted">{{ concept_desc }}</div>
+                </div>
 
               <div v-if="concept2" class="list-group-item concept-item clearfix" id="concept-{{ concept2_uri }}">
-                  <div>
-                    <a v-on:click="select" style="cursor: pointer;">{{ concept2_name }} ({{ concept2_auth }})</a>
-
+                    <div>
+                        <a v-on:click="select" style="cursor: pointer;">{{ concept2_name }} ({{ concept2_auth }})</a>
+                    </div>
+                    <div v-if="concept2" class="text text-muted">{{ concept2_desc }}</div>
                 </div>
-                <div v-if="concept2" class="text text-muted">{{ concept2_desc }}</div>
-            </div>
 
             <div v-if="concept3" class="list-group-item concept-item clearfix" id="concept-{{ concept3_uri }}">
                 <div>
-                  <a v-on:click="select" style="cursor: pointer;">{{ concept3_name }} ({{ concept3_auth }})</a>
-
-              </div>
-              <div v-if="concept3" class="text text-muted">{{ concept3_desc }}</div>
+                    <a v-on:click="select" style="cursor: pointer;">{{ concept3_name }} ({{ concept3_auth }})</a>
+                </div>
+                <div v-if="concept3" class="text text-muted">{{ concept3_desc }}</div>
           </div>
               </div>`,
     data: function() {
@@ -413,7 +410,7 @@ AppellationCreator = {
 
         }
     },
-    template: `<div class="appellation-creator" style="max-height: 300px; overflow-y: scroll;">
+    template: `<div class="appellation-creator" style="max-height: 50vh; overflow-y: scroll;">
                     <div class="h4">
                         What is this?
                         <span class="glyphicon glyphicon-question-sign"
