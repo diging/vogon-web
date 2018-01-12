@@ -496,6 +496,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return {_fields.get(k, k): v for k, v in datum.iteritems()}
         return Response({'results': map(_relabel, [c.data for c in concepts])})
 
+
     def get_queryset(self, *args, **kwargs):
         """
         Filter by part of speach (``pos``).
