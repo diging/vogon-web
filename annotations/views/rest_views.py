@@ -504,14 +504,17 @@ class ConceptViewSet(viewsets.ModelViewSet):
         results = map(_relabel, [c.data for c in concepts])
 
         for result in results:
+            
             identities = []
             if result["identities"]:
                 identities.append(result["identities"][0]["concepts"])
+            
             for ident in result["identities"]:
-
                 for identity in identities:
                     if set(identity) != set(ident["concepts"]):
                         identities.append(ident)
+            
+           
 
             result["identities"] = identities
             if result["identities"]:
