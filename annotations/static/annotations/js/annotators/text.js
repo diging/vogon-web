@@ -178,7 +178,7 @@ ConceptCreator = {
             name: "",
             description: "",
             concept_type: "",
-            pos: "noun",
+            pos: "",
             concept_types: [],
             error: false,
             submitted: false
@@ -327,13 +327,60 @@ DateAppellationCreator = {
         }
     }
 }
+ConceptPickerItem = {
+    props: ['concept'],
+    components: {
+    },
+    template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.interpretation.uri }}">
+    <div>
+        <a v-on:click="select" style="cursor: pointer;">{{ concept.interpretation_label }} ({{ concept.interpretation.authority }})</a>
+    </div>
+    <div class="text text-muted">{{ concept.interpretation.description }}</div>
+    </div>`,
+    methods: {
+        select: function() {
+            this.$emit('selectconcept', this.concept);
+            },
 
+        }
+    }
+
+ConceptPicker = {
+    props: ['appellations'],
+    components: {
+        'concept-picker-item': ConceptPickerItem
+    },
+    data: function() {
+        return {
+            concepts: []
+
+        }
+    },
+    template: `<div class="appellation-creator" style="max-height: 50vh; overflow-y: scroll;">
+                <concept-picker-item
+                    v-on:selectconcept="selectConcept"
+                    v-bind:concept=concept
+                    v-for="concept in appellations">
+                </concept-picker-item>
+               </div>`,
+    methods: {
+        selectConcept: function(concept) {
+            // Clear the concept search results.
+            this.concepts = [];
+            this.$emit('selectconcept', concept);
+        },
+    },
+    created: function () {
+        console.log(this.appellations);
+    }
+}
 
 AppellationCreator = {
-    props: ["position", "user", "text", "project"],
+    props: ["position", "user", "text", "project", 'appellations'],
     components: {
         'concept-search': ConceptSearch,
-        'concept-creator': ConceptCreator
+        'concept-creator': ConceptCreator,
+        'concept-picker': ConceptPicker
     },
     data: function() {
         return {
@@ -344,7 +391,7 @@ AppellationCreator = {
 
         }
     },
-    template: `<div class="appellation-creator" style="max-height: 300px; overflow-y: scroll;">
+    template: `<div class="appellation-creator" style="max-height: 80vh; overflow-y: scroll;">
                     <div class="h4">
                         What is this?
                         <span class="glyphicon glyphicon-question-sign"
@@ -385,6 +432,10 @@ AppellationCreator = {
                        v-if="create && concept == null"
                        v-on:createdconcept="createdConcept">
                    </concept-creator>
+                   <concept-picker 
+                        v-bind:appellations=appellations
+                        v-on:selectconcept="selectConcept">
+                   </concept-picker>
                    <div>
                        <a v-on:click="cancel" class="btn btn-xs btn-danger">Cancel</a>
                    </div>
@@ -425,7 +476,7 @@ AppellationCreator = {
                     occursIn: this.text.id,
                     createdBy: this.user.id,
                     project: this.project.id,
-                    interpretation: this.concept.uri
+                    interpretation: this.concept.uri || this.concept.interpretation.uri
                 }).then(function(response) {
                     self.reset();
                     self.$emit('createdappellation', response.body);
