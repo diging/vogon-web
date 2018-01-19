@@ -23,7 +23,7 @@
                     <td>{{ field.part_id }}: <label class="label label-info">{{ field.part_field.0 }}</label></td>
                     <td>{{ field.label}}</td>
                     <td>{{ field.description }}</td>
-                    <td><label class="label label-primary">{{ field.type }}<label></td>
+                    <td><label class="label label-primary">{{ field.type }}</label></td>
                     <td><span class="glyphicon glyphicon-{% if field.evidence_required %}ok{% else %}remove{% endif %}" aria-hidden="true" style="color: {% if field.evidence_required %}green{% else %}red{% endif %};"></span></td>
                 </tr>
             {% endfor %}

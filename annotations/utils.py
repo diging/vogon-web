@@ -7,7 +7,6 @@ from django.conf import settings
 from itertools import chain, combinations, groupby
 import re
 
-
 def help_text(text):
     """
     Remove excess whitespace from a string. Intended for use in model and form

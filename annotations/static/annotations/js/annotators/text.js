@@ -15,7 +15,8 @@ var ConceptListItem = {
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept);
-        }
+        },
+
     }
 }
 
@@ -100,8 +101,10 @@ var ConceptSearch = {
                 self.error = true;
                 self.searching = false;
             });
-        }
-    },
+
+          }
+        },
+
     components: {
         'concept-list-item': ConceptListItem
     }
@@ -433,11 +436,10 @@ AppellationCreator = {
             }
         },
         ready: function() {
-            return (this.position.startOffset && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
+            return (this.position.startOffset >= 0 && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
         }
     }
 }
-
 
 RelationField = {
     props: ["field", "listener"],

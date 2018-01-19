@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
 
 
+
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
 class SwappableSerializerMixin(object):
     def get_serializer_class(self):
@@ -483,14 +484,15 @@ class ConceptViewSet(viewsets.ModelViewSet):
         if not q:
             return Response({'results': []})
         pos = request.GET.get('pos', None)
-
         concepts = goat.Concept.search(q=q, pos=pos, limit=50)
+
         def _relabel(datum):
             _fields = {
                 'name': 'label',
                 'id': 'alt_id',
                 'identifier': 'uri'
             }
+
             return {_fields.get(k, k): v for k, v in datum.iteritems()}
         return Response({'results': map(_relabel, [c.data for c in concepts])})
 

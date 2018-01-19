@@ -12,6 +12,7 @@ from concepts.authorities import ConceptpowerAuthority, update_instance
 from django.contrib.auth.decorators import login_required
 import re, urllib, string
 from unidecode import unidecode
+from urllib import urlencode
 
 
 
@@ -103,6 +104,16 @@ def concepts(request):
 
     paginator = Paginator(qs, 20)
     page = request.GET.get('page')
+
+    data = filtered.form.cleaned_data
+    params_data = {}
+    for key, value in data.items():
+        if key in ('typed'):
+           if value is not None and hasattr(value, 'id'):
+               params_data[key] = value.id
+        elif value is not None:
+            params_data[key] = value
+
     try:
         concepts = paginator.page(page)
     except PageNotAnInteger:
@@ -117,6 +128,7 @@ def concepts(request):
         'concepts': concepts,
         'filter': filtered,
         'path': urllib.quote_plus(request.path + '?' + request.GET.urlencode()),
+        'params_data': urlencode(params_data),
     }
 
     return render(request, 'annotations/concepts.html', context)
@@ -142,9 +154,11 @@ def add_concept(request, concept_id):
     concept = get_object_or_404(Concept, pk=concept_id)
     manager = ConceptLifecycle(concept)
     next_page = request.GET.get('next', reverse('concepts'))
+    back_to_page = request.GET.get('next')
     context = {
         'concept': concept,
         'next_page': urllib.quote_plus(next_page),
+        'back_to_page': back_to_page
     }
     if concept.concept_state != Concept.APPROVED:
         return HttpResponseRedirect(next_page)

@@ -81,7 +81,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if concepts.has_previous  %}
             <div class="pull-left">
-                <a href="?page={{ concepts.previous_page_number }}" class="btn btn-xs">&laquo; Previous</a>
+                <a href="?page={{ concepts.previous_page_number }}&{{ params_data }}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
@@ -94,7 +94,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if concepts.has_next %}
             <div class="pull-right">
-                <a href="?page={{ concepts.next_page_number }}">Next &raquo;</a>
+                <a href="?page={{ concepts.next_page_number }}&{{ params_data }}">Next &raquo;</a>
             </div>
             {% endif %}
         </div>
@@ -151,7 +151,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if concepts.has_previous  %}
             <div class="pull-left">
-                <a href="?page={{ concepts.previous_page_number }}" class="btn btn-xs">&laquo; Previous</a>
+                <a href="?page={{ concepts.previous_page_number }}&{{ params_data }}" class="btn btn-xs">&laquo; Previous</a>
             </div>
             {% endif %}
         </div>
@@ -164,7 +164,7 @@
         <div class="col-xs-4  clearfix text-center">
             {% if concepts.has_next %}
             <div class="pull-right">
-                <a href="?page={{ concepts.next_page_number }}">Next &raquo;</a>
+                <a href="?page={{ concepts.next_page_number }}&{{ params_data }}">Next &raquo;</a>
             </div>
             {% endif %}
         </div>
