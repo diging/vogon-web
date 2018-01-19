@@ -332,11 +332,11 @@ ConceptPickerItem = {
     components: {
     },
     template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.interpretation.uri }}">
-    <div>
-        <a v-on:click="select" style="cursor: pointer;">{{ concept.interpretation_label }} ({{ concept.interpretation.authority }})</a>
-    </div>
-    <div class="text text-muted">{{ concept.interpretation.description }}</div>
-    </div>`,
+                <div>
+                    <a v-on:click="select" style="cursor: pointer;">{{ concept.interpretation_label }} ({{ concept.interpretation.authority }}){{ concept.created }}</a>
+                </div>
+                <div class="text text-muted">{{ concept.interpretation.description }}</div>
+            </div>`,
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept);
@@ -352,7 +352,9 @@ ConceptPicker = {
     },
     data: function() {
         return {
-            concepts: []
+            concepts: [],
+            appellationsCopy: [],
+            counts: []
 
         }
     },
@@ -369,9 +371,32 @@ ConceptPicker = {
             this.concepts = [];
             this.$emit('selectconcept', concept);
         },
+        merge: function (appellations) {
+            
+            var appellationsLength =  this.appellations.length;
+            // sort duplicates and record count of each. Makes and new array with uri, index, count
+            for (i = 0; i < appellationsLength; i++) {
+                if (this.concepts.includes(this.appellations[i].interpretation.uri)) {
+                    idx = this.concepts.indexOf(this.appellations[i].interpretation.uri);
+                    var toFind = idx + 2;
+                    this.concepts[toFind] = this.concepts[toFind] + 1;
+                } else{
+                    this.concepts.push(this.appellations[i].interpretation.uri, i, 1);
+                    }
+                }
+            var conceptsLength =  this.concepts.length;
+            // adds objects back into an array using their indexes from the array made above
+            for (i = 1; i < conceptsLength; i = i + 3) {
+                this.appellationsCopy.push(this.appellations[this.concepts[i]]);
+            }
+
+            console.log(this.concepts);
+            return this.appellationsCopy;
+            
+        },
     },
     created: function () {
-        console.log(this.appellations);
+        console.log(this.merge(this.appellations));
     }
 }
 
