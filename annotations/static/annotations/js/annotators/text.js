@@ -409,13 +409,10 @@ ConceptPicker = {
                     this.conceptsFinal.push(this.appellationsCopy[i]);
                 }
             }
-
-            
             // sort appellations copy by count
             this.appellationsCopy.sort(function (a, b) {
                 return b.count - a.count;
               });
-
               // filter out duplicates if concept count list and recent concept list contain the same concepts
               for(i = 0; i <= 3; i++) {
                 if (this.conceptsFinal.includes(this.appellationsCopy[i])){
@@ -493,6 +490,7 @@ AppellationCreator = {
                    </concept-creator>
                    <concept-picker
                         v-if="display"
+                        v-if="concept == null && !create"
                         v-bind:appellations=appellations
                         v-on:selectconcept="selectConcept">
                    </concept-picker>
