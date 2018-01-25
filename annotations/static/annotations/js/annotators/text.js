@@ -84,6 +84,8 @@ var ConceptSearch = {
         search: function() {
             this.searching = true;    // Instant feedback for the user.
 
+            this.$emit('search', this.searching); // emit search to remove concept picker
+
             // Asynchronous quries are beautiful.
             var self = this;    // Need a closure since Concept is global.
             var payload = {search: this.query};
@@ -333,7 +335,7 @@ ConceptPickerItem = {
     },
     template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.interpretation.uri }}">
                 <div>
-                    <a v-on:click="select" style="cursor: pointer;">{{ concept.interpretation_label }} ({{ concept.interpretation.authority }}){{ concept.created }}</a>
+                    <a v-on:click="select" style="cursor: pointer;">{{ concept.interpretation_label }} ({{ concept.interpretation.authority }})</a>
                 </div>
                 <div class="text text-muted">{{ concept.interpretation.description }}</div>
             </div>`,
@@ -354,7 +356,9 @@ ConceptPicker = {
         return {
             concepts: [],
             appellationsCopy: [],
-            counts: []
+            counts: [],
+            conceptsFinal: [],
+            appell: this.appellations
 
         }
     },
@@ -362,7 +366,7 @@ ConceptPicker = {
                 <concept-picker-item
                     v-on:selectconcept="selectConcept"
                     v-bind:concept=concept
-                    v-for="concept in appellations">
+                    v-for="concept in conceptsFinal">
                 </concept-picker-item>
                </div>`,
     methods: {
@@ -372,32 +376,59 @@ ConceptPicker = {
             this.$emit('selectconcept', concept);
         },
         merge: function (appellations) {
-            
+            this.conceptsFinal = [];
+            this.appell = appellations;
             var appellationsLength =  this.appellations.length;
-            // sort duplicates and record count of each. Makes and new array with uri, index, count
+            // remove duplicates and record count of each. Makes and new array with uri, index, count.
             for (i = 0; i < appellationsLength; i++) {
                 if (this.concepts.includes(this.appellations[i].interpretation.uri)) {
                     idx = this.concepts.indexOf(this.appellations[i].interpretation.uri);
                     var toFind = idx + 2;
                     this.concepts[toFind] = this.concepts[toFind] + 1;
+
                 } else{
                     this.concepts.push(this.appellations[i].interpretation.uri, i, 1);
                     }
                 }
-            var conceptsLength =  this.concepts.length;
+            var conceptsLength = this.concepts.length;
             // adds objects back into an array using their indexes from the array made above
             for (i = 1; i < conceptsLength; i = i + 3) {
                 this.appellationsCopy.push(this.appellations[this.concepts[i]]);
             }
+            var appellationsCopyLength = this.appellationsCopy.length;
+            // add count to filtered objects
+            for (i = 0; i < appellationsCopyLength; i++) {
+                // find index of count in array.
+                if (i === 0) {
+                    idx = 2;
+                } else { 
+                    idx = (idx + 3);
+                }
+                this.appellationsCopy[i]["count"] = this.concepts[idx];
+                if (i <= 3) { // add only the first 4 concepts to the list
+                    this.conceptsFinal.push(this.appellationsCopy[i]);
+                }
+            }
 
-            console.log(this.concepts);
-            return this.appellationsCopy;
             
+            // sort appellations copy by count
+            this.appellationsCopy.sort(function (a, b) {
+                return b.count - a.count;
+              });
+
+              // filter out duplicates if concept count list and recent concept list contain the same concepts
+              for(i = 0; i <= 3; i++) {
+                if (this.conceptsFinal.includes(this.appellationsCopy[i])){
+                } else {
+                    this.conceptsFinal.push(this.appellationsCopy[i]);
+                }
+              }
+            return this.conceptsFinal;
         },
     },
     created: function () {
-        console.log(this.merge(this.appellations));
-    }
+        this.merge(this.appellations);
+    },
 }
 
 AppellationCreator = {
@@ -412,7 +443,9 @@ AppellationCreator = {
             concept: null,
             create: false,
             submitted: false,
-            saving: false
+            saving: false,
+            search: false,
+            display: true
 
         }
     },
@@ -450,6 +483,7 @@ AppellationCreator = {
                        </div>
                    </div>
                    <concept-search
+                       @search="setSearch"
                        v-if="concept == null && !create"
                        v-on:selectconcept="selectConcept">
                    </concept-search>
@@ -457,7 +491,8 @@ AppellationCreator = {
                        v-if="create && concept == null"
                        v-on:createdconcept="createdConcept">
                    </concept-creator>
-                   <concept-picker 
+                   <concept-picker
+                        v-if="display"
                         v-bind:appellations=appellations
                         v-on:selectconcept="selectConcept">
                    </concept-picker>
@@ -471,6 +506,12 @@ AppellationCreator = {
             this.create = false;
             this.submitted = false;
             this.saving = false;
+        },
+        setSearch: function (search) { // removes concept picker if searching concept to keep it from looking messy
+            this.search = search;
+            if (this.search ==  true){
+                this.display = false;
+            }
         },
         cancel: function() {
             this.reset();
@@ -1091,6 +1132,7 @@ Appellator = new Vue({
             self.appellations.push(appellation);
             self.selectAppellation(appellation);
             this.selected_text = null;
+            this.updateAppellations(); // call update appellations when a new appelation is created to update list
         },
         createdDateAppellation: function(appellation) {
             self = this;
