@@ -154,9 +154,11 @@ def add_concept(request, concept_id):
     concept = get_object_or_404(Concept, pk=concept_id)
     manager = ConceptLifecycle(concept)
     next_page = request.GET.get('next', reverse('concepts'))
+    back_to_page = request.GET.get('next')
     context = {
         'concept': concept,
         'next_page': urllib.quote_plus(next_page),
+        'back_to_page': back_to_page
     }
     if concept.concept_state != Concept.APPROVED:
         return HttpResponseRedirect(next_page)
