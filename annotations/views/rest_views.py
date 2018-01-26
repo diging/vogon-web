@@ -504,30 +504,24 @@ class ConceptViewSet(viewsets.ModelViewSet):
         results = map(_relabel, [c.data for c in concepts])
 
         for result in results:
-            
-            identities = []
-            if result["identities"]:
+            identities = []  # list to hold duplicate identities
+            if result["identities"]: # if identities exist append the first identitiy to the list so that we can filter out other identities against it
                 identities.append(result["identities"][0]["concepts"])
-            
-            for ident in result["identities"]:
-                for identity in identities:
-                    if set(identity) != set(ident["concepts"]):
+            for ident in result["identities"]: # go through the identities in each result
+                for identity in identities: # go through the identities in the identities list
+                    if set(identity) != set(ident["concepts"]): # if the ideneities list does not contain the identity from the result then add it to the list
                         identities.append(ident)
-            
-           
-
-            result["identities"] = identities
+            result["identities"] = identities # replace the identities list
             if result["identities"]:
                 concepts = result["identities"]
-
                 uri = result["uri"]
-                if uri in concepts[0]: concepts[0].remove(uri)
+                if uri in concepts[0]: concepts[0].remove(uri) # remove original uri from the list if it exists. 
                 i = 0 # used to generate concept name
                 new_concepts = {}
-                for concept in concepts[0]:
-                     #go through all the concepts and parse xml data for each concept
-                        #then append info to list and then append list to dictionary so that
-                        #list can be referenced as con0, con1, etc
+                for concept in concepts[0]: # determine if the concept is a viaf or concept power uri
+                    #go through all the concepts and parse xml data for each concept
+                    #then append info to list and then append list to dictionary so that
+                    #list can be referenced as con0, con1, etc
                     hps = re.search( r'www.digitalhps.org', concept, re.M|re.I)
                     viaf = re.search( r'viaf.org', concept, re.M|re.I)
                     if hps:
@@ -576,7 +570,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                     else:
                        print "Nothing found!!"
 
-                result["identities"].append(new_concepts)
+                result["identities"].append(new_concepts) # add the concept data back to the identities list
         return Response({'results': results})
 
 
