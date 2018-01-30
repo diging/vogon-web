@@ -504,7 +504,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         results = map(_relabel, [c.data for c in concepts])
 
         for result in results:
-            identities = []  # list to hold duplicate identities
+            identities = []  # list to hold non-duplicate identities
             if result["identities"]: # if identities exist append the first identitiy to the list so that we can filter out other identities against it
                 identities.append(result["identities"][0]["concepts"])
             for ident in result["identities"]: # go through the identities in each result
