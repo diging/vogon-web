@@ -153,11 +153,12 @@ class Annotator(object):
     def get_context(self):
         resource = self.get_resource()
         request = self.context.get('request')
+        content = self.get_content(resource)
         return {
             'text': self.text,
             'textid': self.text.id,
             'title': 'Annotate Text',
-            'content': self.get_content(resource),
+            'content': unicode(content, errors='ignore'),
             'baselocation' : basepath(request),
             'userid': request.user.id,
             'title': self.text.title,
