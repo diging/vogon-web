@@ -6,84 +6,17 @@
 
 var ConceptListItem = {
     props: ['concept'],
-    template: `<div>
-                <div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
+    template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
                    <div>
                        <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ concept.authority.name }})</a>
                    </div>
                    <div class="text text-muted">{{ concept.description }}</div>
-                </div>
-
-                <div v-if="concept1" class="list-group-item concept-item clearfix" id="concept-{{ concept_uri }}">
-                    <div>
-                      <a v-on:click="select" style="cursor: pointer;">{{ concept_name}} ({{ concept_auth }})</a>
-                    </div>
-                    <div v-if="concept1" class="text text-muted">{{ concept_desc }}</div>
-                </div>
-
-              <div v-if="concept2" class="list-group-item concept-item clearfix" id="concept-{{ concept2_uri }}">
-                    <div>
-                        <a v-on:click="select" style="cursor: pointer;">{{ concept2_name }} ({{ concept2_auth }})</a>
-                    </div>
-                    <div v-if="concept2" class="text text-muted">{{ concept2_desc }}</div>
-                </div>
-
-            <div v-if="concept3" class="list-group-item concept-item clearfix" id="concept-{{ concept3_uri }}">
-                <div>
-                    <a v-on:click="select" style="cursor: pointer;">{{ concept3_name }} ({{ concept3_auth }})</a>
-                </div>
-                <div v-if="concept3" class="text text-muted">{{ concept3_desc }}</div>
-          </div>
-              </div>`,
-    data: function() {
-         return {
-             concept1: false,
-             concept2: false,
-             concept3: false,
-             ide: this.concept,
-         }
-     },
+               </div>`,
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept);
         },
-      filter: function(concept1, concept) {
-        if(this.concept.identities[1].concept0[0] !== undefined){
-          this.concept1 = true;
-          this.concept_name = this.concept.identities[1].concept0[0];
-          this.concept_desc = this.concept.identities[1].concept0[1];
-          this.concept_uri = this.concept.identities[1].concept0[2];
-          this.concept_auth = this.concept.identities[1].concept0[3];
 
-      }
-    },
-    filter2: function(concept2, concept)  {
-      if( this.concept.identities[1].concept1[0] !== undefined){
-        this.concept2 = true;
-        this.concept_name1 = this.concept.identities[1].concept1[0];
-        this.concept_desc1 = this.concept.identities[1].concept1[1];
-        this.concept_uri1 = this.concept.identities[1].concept1[2];
-        this.concept_auth1 = this.concept.identities[1].concept1[3];
-
-
-    }
-  },
-    filter3: function(concept3, concept)  {
-      if(this.concept.identities[1].concept2[0] !== undefined){
-        this.concept3 = true;
-        this.concept_name2 = this.concept.identities[1].concept2[0];
-        this.concept_desc2 = this.concept.identities[1].concept2[1];
-        this.concept_uri2 = this.concept.identities[1].concept2[2];
-        this.concept_auth2 = this.concept.identities[1].concept2[3];
-
-        }
-    }
-
-    },
-    created() {
-      this.filter(),
-      this.filter2(),
-      this.filter3()
     }
 }
 
@@ -411,7 +344,7 @@ AppellationCreator = {
 
         }
     },
-    template: `<div class="appellation-creator" style="max-height: 50vh; overflow-y: scroll;">
+    template: `<div class="appellation-creator" style="max-height: 300px; overflow-y: scroll;">
                     <div class="h4">
                         What is this?
                         <span class="glyphicon glyphicon-question-sign"
@@ -1180,7 +1113,6 @@ Appellator = new Vue({
             self.updateSwimRef();
             self.handleScroll();
         }
-
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);
