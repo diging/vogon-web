@@ -502,23 +502,23 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
             return {_fields.get(k, k): v for k, v in datum.iteritems() }
         results = map(_relabel, [c.data for c in concepts])
-
         for result in results:
-            identities = []  # list to hold non-duplicate identities
             if result["identities"]: # if identities exist append the first identitiy to the list so that we can filter out other identities against it
-                identities.append(result["identities"][0]["concepts"])
+                identities = result["identities"][0]["concepts"]
+            else:
+                identities = []  # list to hold non-duplicate identities
             for ident in result["identities"]: # go through the identities in each result
                 for identity in identities: # go through the identities in the identities list
                     if set(identity) != set(ident["concepts"]): # if the ideneities list does not contain the identity from the result then add it to the list
-                        identities.append(ident)
+                        identities.extend(ident["concepts"])
             result["identities"] = identities # replace the identities list
             if result["identities"]:
                 concepts = result["identities"]
                 uri = result["uri"]
-                if uri in concepts[0]: concepts[0].remove(uri) # remove original uri from the list if it exists. 
+                if uri in concepts: concepts.remove(uri) # remove original uri from the list if it exists. 
                 i = 0 # used to generate concept name
                 new_concepts = {}
-                for concept in concepts[0]: # determine if the concept is a viaf or concept power uri
+                for concept in concepts: # determine if the concept is a viaf or concept power uri
                     #go through all the concepts and parse xml data for each concept
                     #then append info to list and then append list to dictionary so that
                     #list can be referenced as con0, con1, etc
