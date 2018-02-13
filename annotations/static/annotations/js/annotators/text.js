@@ -358,15 +358,15 @@ ConceptPicker = {
             appellationsCopy: [],
             counts: [],
             conceptsFinal: [],
-            appell: this.appellations
-
+            appell: this.appellations,
+            appellationMap: []
         }
     },
     template: `<div class="appellation-creator" style="max-height: 50vh; overflow-y: scroll;">
                 <concept-picker-item
                     v-on:selectconcept="selectConcept"
-                    v-bind:concept=concept
-                    v-for="concept in conceptsFinal">
+                    v-for="concept in conceptsFinal"
+                    v-bind:concept=concept>
                 </concept-picker-item>
                </div>`,
     methods: {
@@ -378,53 +378,34 @@ ConceptPicker = {
         merge: function (appellations) {
             this.conceptsFinal = [];
             this.appell = appellations;
-            var appellationsLength =  this.appellations.length;
-            // remove duplicates and record count of each. Makes and new array with uri, index, count.
-            for (i = 0; i < appellationsLength; i++) {
-                if (this.concepts.includes(this.appellations[i].interpretation.uri)) {
-                    idx = this.concepts.indexOf(this.appellations[i].interpretation.uri);
-                    var toFind = idx + 2;
-                    this.concepts[toFind] = this.concepts[toFind] + 1;
+            this.conceptsFinal = this.appell.slice(0,4)
+            
+            this.appellationMap = this.appellations.map(function (concept, index, array) {
+                return concept.interpretation.uri; 
+                
+            });
+            var apellationCount = _.countBy(this.appellationMap); //lodash
 
-                } else{
-                    this.concepts.push(this.appellations[i].interpretation.uri, i, 1);
-                    }
-                }
-            var conceptsLength = this.concepts.length;
-            // adds objects back into an array using their indexes from the array made above
-            for (i = 1; i < conceptsLength; i = i + 3) {
-                this.appellationsCopy.push(this.appellations[this.concepts[i]]);
-            }
-            var appellationsCopyLength = this.appellationsCopy.length;
-            // add count to filtered objects
-            for (i = 0; i < appellationsCopyLength; i++) {
-                // find index of count in array.
-                if (i === 0) {
-                    idx = 2;
-                } else { 
-                    idx = (idx + 3);
-                }
-                this.appellationsCopy[i]["count"] = this.concepts[idx];
-                if (i <= 3) { // add only the first 4 concepts to the list
-                    this.conceptsFinal.push(this.appellationsCopy[i]);
-                }
-            }
-            // sort appellations copy by count
-            this.appellationsCopy.sort(function (a, b) {
+            Object.entries(apellationCount).forEach(([key, value]) => {
+                var search =  _.find(this.appell, _.matchesProperty('interpretation.uri', `${key}`));
+                search["count"] = parseInt(`${value}`)
+              });
+
+              this.appell.sort(function (a, b) {
                 return b.count - a.count;
               });
-              // filter out duplicates if concept count list and recent concept list contain the same concepts
-              for(i = 0; i <= 3; i++) {
-                if (this.conceptsFinal.includes(this.appellationsCopy[i])){
-                } else {
-                    this.conceptsFinal.push(this.appellationsCopy[i]);
-                }
+              
+              for(i = 0; i <= 4; i++) {
+                if (!this.conceptsFinal.includes(this.appell[i])){
+                    this.conceptsFinal.push(this.appell[i]);
+                } 
               }
-            return this.conceptsFinal;
+              return this.conceptsFinal;
         },
     },
     created: function () {
         this.merge(this.appellations);
+        
     },
 }
 
@@ -489,7 +470,7 @@ AppellationCreator = {
                        v-on:createdconcept="createdConcept">
                    </concept-creator>
                    <concept-picker
-                        v-if="display"
+                        v-show="display"
                         v-if="concept == null && !create"
                         v-bind:appellations=appellations
                         v-on:selectconcept="selectConcept">
@@ -498,6 +479,14 @@ AppellationCreator = {
                        <a v-on:click="cancel" class="btn btn-xs btn-danger">Cancel</a>
                    </div>
                </div>`,
+
+    watch: {
+        search: function () {
+            if (this.search ==  true){
+                this.display = false;
+            }
+        }
+    },
     methods: {
         reset: function() {
             this.concept = null;
@@ -507,9 +496,6 @@ AppellationCreator = {
         },
         setSearch: function (search) { // removes concept picker if searching concept to keep it from looking messy
             this.search = search;
-            if (this.search ==  true){
-                this.display = false;
-            }
         },
         cancel: function() {
             this.reset();
