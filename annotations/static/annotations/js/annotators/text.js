@@ -478,8 +478,6 @@ AppellationCreator = {
             }
         },
         ready: function() {
-            console.log("Ready");
-            
             return (this.position.startOffset >= 0 && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
         }
     }
