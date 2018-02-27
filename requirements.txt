@@ -25,7 +25,7 @@ kombu==3.0.37
 lxml==3.6.4
 networkx==1.11
 oauthlib==1.0.3
-psycopg2==2.6.1
+psycopg2==2.7.1
 PyJWT==1.4.2
 python-dateutil==2.4.2
 python-openid==2.2.5
