@@ -9,6 +9,8 @@ from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
 
 import requests, uuid, re
+from datetime import datetime
+from django.utils import timezone
 from itertools import groupby, chain
 from collections import defaultdict
 
@@ -235,16 +237,20 @@ def accession_ready_relationsets():
         relationsets = defaultdict(lambda: defaultdict(list))
 
         for relationset in qs:
-            relationsets[relationset.occursIn.id][relationset.createdBy.id].append(relationset)
-        for text_id, text_rsets in relationsets.iteritems():
-            for user_id, user_rsets in text_rsets.iteritems():
-
-                # Update state.
-                def _state(obj):
-                    obj.pending = True
-                    obj.save()
-                map(_state, user_rsets)
-                submit_relationsets_to_quadriga.delay(map(lambda o: o.id, user_rsets), text_id, user_id, **kwargs)
+            timeCreated = relationset.created
+            timeCheck = datetime.now(timezone.utc)
+            timeDifference = timeCheck - timeCreated
+            result = divmod(timeDifference.days * 86400 + timeDifference.seconds, 60)
+            if result[0] >= settings.SUBMIT_WAIT_TIME:
+                relationsets[relationset.occursIn.id][relationset.createdBy.id].append(relationset)
+                for text_id, text_rsets in relationsets.iteritems():
+                    for user_id, user_rsets in text_rsets.iteritems():
+                        # Update state.
+                        def _state(obj):
+                            obj.pending = True
+                            obj.save()
+                        map(_state, user_rsets)
+                        submit_relationsets_to_quadriga.delay(map(lambda o: o.id, user_rsets), text_id, user_id, **kwargs)
 
 
 # TODO: this should be retired.
