@@ -58,6 +58,7 @@ from annotations.tasks import tokenize
 from annotations.utils import basepath
 from annotations.models import TextCollection, VogonUserDefaultProject
 from urlparse import urlparse
+import chardet
 
 
 class Annotator(object):
@@ -154,11 +155,12 @@ class Annotator(object):
         resource = self.get_resource()
         request = self.context.get('request')
         content = self.get_content(resource)
+        detect  = chardet.detect(content)
         return {
             'text': self.text,
             'textid': self.text.id,
             'title': 'Annotate Text',
-            'content': unicode(content, errors='ignore'),
+            'content': content.decode(detect['encoding']).encode('utf-8'), 
             'baselocation' : basepath(request),
             'userid': request.user.id,
             'title': self.text.title,
