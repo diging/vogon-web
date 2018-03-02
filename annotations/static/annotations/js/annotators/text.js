@@ -380,13 +380,28 @@ ConceptPicker = {
             this.appell = appellations;
             this.conceptsFinal = this.appell.slice(0,4)
             
+
+            function compare(a,b) {
+                if (Date.parse(a.created) < Date.parse(b.created))
+                console.log(a.created, b.created);
+                
+                  return -1;
+                if (Date.parse(a.created) > Date.parse(b.created))
+                console.log(a.created, b.created);
+                  return 1;
+                return 0;
+              }
+              
+              this.appell.sort(compare);
+              console.log(this.appell);
+            
             this.appellationMap = this.appellations.map(function (concept, index, array) {
                 return concept.interpretation.uri; 
                 
             });
-            var apellationCount = _.countBy(this.appellationMap); //lodash
+            var appellationCount = _.countBy(this.appellationMap); //lodash
 
-            Object.entries(apellationCount).forEach(([key, value]) => {
+            Object.entries(appellationCount).forEach(([key, value]) => {
                 var search =  _.find(this.appell, _.matchesProperty('interpretation.uri', `${key}`));
                 search["count"] = parseInt(`${value}`)
               });
