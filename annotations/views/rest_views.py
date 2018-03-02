@@ -21,6 +21,7 @@ from annotations.serializers import *
 from annotations.models import *
 from concepts.models import Concept, Type
 from concepts.lifecycle import *
+from sets import Set
 
 import uuid
 
@@ -508,10 +509,14 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 identities = result["identities"][0]["concepts"]
             else:
                 identities = []
+            identitiesSet = Set(identities)
             for ident in result["identities"]: # go through the identities in each result
-                for identity in identities: # go through the identities in the identities list
-                    if identity not in ident["concepts"]: # if the ideneities list does not contain the identity from the result then add it to the list
-                        identities.extend(ident["concepts"])
+                ident['concepts'].append('http://viaf.org/viaf/31992319/#Bacon,_Francis,_1561-1626.')
+                identSet = Set(ident)
+                diff = identSet.difference(identitiesSet)
+                identitiesSet.update(diff)
+            print identitiesSet
+            print identitiesSet
             result["identities"] = identities # replace the identities list
             if result["identities"]:
                 concepts = result["identities"]
