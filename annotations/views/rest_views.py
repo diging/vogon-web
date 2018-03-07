@@ -505,19 +505,15 @@ class ConceptViewSet(viewsets.ModelViewSet):
         results = map(_relabel, [c.data for c in concepts])
         
         for result in results:
+            concepts = []
             if result["identities"]: # if identities exist append the first identitiy to the list so that we can filter out other identities against it
-                identities = result["identities"][0]["concepts"]
-            else:
-                identities = []
-            identitiesSet = Set(identities)
+                concepts = result["identities"][0]["concepts"]
+            conceptsSet = Set(concepts)
             for ident in result["identities"]: # go through the identities in each result
-                ident['concepts'].append('http://viaf.org/viaf/31992319/#Bacon,_Francis,_1561-1626.')
-                identSet = Set(ident)
-                diff = identSet.difference(identitiesSet)
-                identitiesSet.update(diff)
-            print identitiesSet
-            print identitiesSet
-            result["identities"] = identities # replace the identities list
+                identSet = Set(ident['concepts'])
+                diff = identSet.difference(conceptsSet)
+                conceptsSet.update(diff)
+            result["identities"] = list(conceptsSet) # replace the identities list
             if result["identities"]:
                 concepts = result["identities"]
                 uri = result["uri"]
