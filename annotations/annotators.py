@@ -160,7 +160,7 @@ class Annotator(object):
             'text': self.text,
             'textid': self.text.id,
             'title': 'Annotate Text',
-            'content': content.decode(detect['encoding']).encode('utf-8'), 
+            'content': content.decode(detect['encoding']).encode('utf-8'), # We are using chardet to guess the encoding becuase giles is returning everyting with a utf-8 header even if it is not utf-8
             'baselocation' : basepath(request),
             'userid': request.user.id,
             'title': self.text.title,
