@@ -9,7 +9,7 @@ from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
 
 import requests, uuid, re
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
 from itertools import groupby, chain
 from collections import defaultdict
@@ -238,10 +238,7 @@ def accession_ready_relationsets():
 
         for relationset in qs:
             timeCreated = relationset.created
-            timeCheck = datetime.now(timezone.utc)
-            timeDifference = timeCheck - timeCreated
-            result = divmod(timeDifference.days * 86400 + timeDifference.seconds, 60)
-            if result[0] >= settings.SUBMIT_WAIT_TIME:
+            if timeCreated + timedelta(days=settings.SUBMIT_WAIT_TIME['days'], hours=settings.SUBMIT_WAIT_TIME['hours'], minutes=settings.SUBMIT_WAIT_TIME['minutes']) < datetime.now(timezone.utc):
                 relationsets[relationset.occursIn.id][relationset.createdBy.id].append(relationset)
                 for text_id, text_rsets in relationsets.iteritems():
                     for user_id, user_rsets in text_rsets.iteritems():

@@ -215,7 +215,7 @@ djcelery.setup_loader()
 CELERYBEAT_SCHEDULE = {
     'accession_ready_relationsets': {
         'task': 'annotations.tasks.accession_ready_relationsets',
-        'schedule': timedelta(seconds=600),
+        'schedule': timedelta(minutes=10,seconds=0),
     },
 }
 
@@ -258,4 +258,8 @@ CONCEPT_TYPES = {
     'viaf:geographic': GEOGRAPHIC_CONCEPT_TYPE,    # E53 Place
 }
 
-SUBMIT_WAIT_TIME = 24 * 60 # time must be in minutes
+SUBMIT_WAIT_TIME = {
+        'days': 24,
+        'hours': 0,
+        'minutes': 0
+        }
