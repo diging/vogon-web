@@ -484,6 +484,12 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_201_CREATED,
                         headers=headers)
 
+
+
+
+
+        
+
     @list_route()
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
@@ -503,6 +509,43 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
             return {_fields.get(k, k): v for k, v in datum.iteritems() }
         results = map(_relabel, [c.data for c in concepts])
+
+        def _parseViaf(self, uri, new_concepts):
+            data = urllib2.urlopen(uri)
+            tree = e.parse(data)
+            root = tree.getroot()
+            namespace = {'foaf': 'http://xmlns.com/foaf/0.1/', 'ns1': 'http://viaf.org/viaf/terms#', 'owl': 'http://www.w3.org/2002/07/owl#', 'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 'void': 'http://rdfs.org/ns/void#'}
+            find = e.XPath("//ns1:text", namespaces = namespace)
+            concept_name = find(root)[0].text
+            concept_description = find(root)[0].text
+
+            dic = {
+                'label': concept_name,
+                'desc': concept_description,
+                'uri': uri,
+                'auth': "VIAF"}
+            new_concepts.append(dic)
+            return new_concepts
+
+        def _parseHps(self, uri, new_concepts):
+            data = urllib2.urlopen(uri)
+            tree = ET.parse(data)
+            root = tree.getroot()
+            namespace = {'hps': 'http://www.digitalhps.org/'}
+
+            for entry in root.findall('hps:conceptEntry', namespace):
+                description1 = entry.find('hps:description', namespace)
+                name1 = entry.find('hps:lemma', namespace)
+                concept_description = description1.text
+                concept_name = name1.text
+
+            dic = {
+                'label': concept_name,
+                'desc': concept_description,
+                'uri': uri,
+                'auth': "Concept Power"}
+            new_concepts.append(dic)
+            return new_concepts
         
         for result in results:
             concepts = []
@@ -513,11 +556,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 identSet = Set(ident['concepts'])
                 diff = identSet.difference(conceptsSet)
                 conceptsSet.update(diff)
-            result["identities"] = list(conceptsSet) # replace the identities list
-            if result["identities"]:
-                concepts = result["identities"]
-                uri = result["uri"]
-                if uri in concepts: concepts.remove(uri) # remove original uri from the list if it exists. 
+            concepts = result["identities"] = list(conceptsSet) # replace the identities list
+            if concepts:
+                if result["uri"] in concepts:
+                    concepts.remove(result["uri"]) # remove original uri from the list if it exists. 
                 new_concepts = []
                 for concept in concepts: # determine if the concept is a viaf or concept power uri
                     #go through all the concepts and parse xml data for each concept
@@ -526,43 +568,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
                     hps = re.search( r'www.digitalhps.org', concept, re.M|re.I)
                     viaf = re.search( r'viaf.org', concept, re.M|re.I)
                     if hps:
-                        url = concept
-                        data = urllib2.urlopen(url)
-                        tree = ET.parse(data)
-                        root = tree.getroot()
-                        namespace = {'hps': 'http://www.digitalhps.org/'}
-
-                        for entry in root.findall('hps:conceptEntry', namespace):
-                            description1 = entry.find('hps:description', namespace)
-                            name1 = entry.find('hps:lemma', namespace)
-                            concept_description = description1.text
-                            concept_name = name1.text
-
-                        dic = {
-                            'label': concept_name,
-                            'desc': concept_description,
-                            'uri': concept,
-                            'auth': "Concept Power"}
-                        new_concepts.append(dic)
+                        _parseHps(self, concept, new_concepts)
 
                     elif viaf:
-                        url = concept + '/viaf.xml' # have to append /viaf.xml to viaf url's in order to access xml
-                        data = urllib2.urlopen(url)
-                        tree = e.parse(data)
-                        root = tree.getroot()
-                        namespace = {'foaf': 'http://xmlns.com/foaf/0.1/', 'ns1': 'http://viaf.org/viaf/terms#', 'owl': 'http://www.w3.org/2002/07/owl#', 'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 'void': 'http://rdfs.org/ns/void#'}
-                        find = e.XPath("//ns1:text", namespaces = namespace)
-                        concept_name = find(root)[0].text
-                        concept_description = find(root)[0].text
-
-                        dic = {
-                            'label': concept_name,
-                            'desc': concept_description,
-                            'uri': concept,
-                            'auth': "VIAF"}
-                        new_concepts.append(dic)
-                    else:
-                       print "Nothing found!!"
+                        _parseViaf(self, concept, new_concepts)
                 result["identities"] = new_concepts # add the concept data back to the identities list
         return Response({'results': results})
 
