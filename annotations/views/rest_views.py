@@ -25,11 +25,6 @@ from sets import Set
 
 import uuid
 
-import xml.etree.ElementTree as ET
-import urllib2
-import re
-from lxml import etree as e
-
 import goat
 goat.GOAT = settings.GOAT
 goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
@@ -493,11 +488,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
     @list_route()
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
-
         if not q:
             return Response({'results': []})
         pos = request.GET.get('pos', None)
-
         concepts = goat.Concept.search(q=q, pos=pos, limit=50)
 
         def _relabel(datum):
@@ -574,6 +567,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         _parseViaf(self, concept, new_concepts)
                 result["identities"] = new_concepts # add the concept data back to the identities list
         return Response({'results': results})
+
+
 
 
 
