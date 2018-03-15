@@ -378,23 +378,29 @@ ConceptPicker = {
         merge: function (appellations) {
             this.conceptsFinal = [];
             this.appell = appellations;
-            this.conceptsFinal = this.appell.slice(0,4)
-            
+            //this.conceptsFinal = this.appell.slice(0,4)
+            //console.log(this.conceptsFinal)
 
+
+            
             function compare(a,b) {
-                if (Date.parse(a.created) < Date.parse(b.created))
-                console.log(a.created, b.created);
-                
-                  return -1;
+
                 if (Date.parse(a.created) > Date.parse(b.created))
-                console.log(a.created, b.created);
+                  return -1;
+                if (Date.parse(a.created) < Date.parse(b.created))
                   return 1;
                 return 0;
               }
               
               this.appell.sort(compare);
-              console.log(this.appell);
-            
+              this.appell.forEach(function(element) {
+                console.log(element.created);
+              });
+              console.log("*****************************************************");
+              this.conceptsFinal = this.appell.slice(0,4);
+              this.conceptsFinal.forEach(function(element) {
+                console.log(element.created);
+              });
             this.appellationMap = this.appellations.map(function (concept, index, array) {
                 return concept.interpretation.uri; 
                 
