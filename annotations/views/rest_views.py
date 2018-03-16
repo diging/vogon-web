@@ -549,8 +549,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
         
         for result in results:
             concepts = []
-            if result["identities"]: # if identities exist append the first identitiy to the list so that we can filter out other identities against it
-                concepts = result["identities"][0]["concepts"]
             conceptsSet = Set(concepts)
             for ident in result["identities"]: # go through the identities in each result
                 identSet = Set(ident['concepts'])
@@ -561,10 +559,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 if result["uri"] in concepts:
                     concepts.remove(result["uri"]) # remove original uri from the list if it exists. 
                 new_concepts = []
-                for concept in concepts: # determine if the concept is a viaf or concept power uri
-                    #go through all the concepts and parse xml data for each concept
-                    #then append info to list and then append list to dictionary so that
-                    # This will have to be updated if a new concept Authority is added
+                for concept in concepts:
                     hps = re.search( r'www.digitalhps.org', concept, re.M|re.I)
                     viaf = re.search( r'viaf.org', concept, re.M|re.I)
                     if hps:
