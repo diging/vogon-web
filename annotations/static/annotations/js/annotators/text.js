@@ -28,12 +28,12 @@
 
 var ConceptListItem = {
     props: ['concept'],
-    template: `<div>
-                <div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
+    template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
                    <div>
                        <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ concept.authority.name }})</a>
                    </div>
                    <div class="text text-muted">{{ concept.description }}</div>
+
                 </div>
                 <div v-if="this.concept.identities.length !== 0">
                     <ident-list-item
@@ -47,6 +47,7 @@ var ConceptListItem = {
          return {
          }
      },
+
     methods: {
         select: function() {
             this.$emit('selectconcept', this.concept); // selects concept from this component
@@ -56,11 +57,13 @@ var ConceptListItem = {
             this.concepts = [];
             this.$emit('selectconcept', concept);
         },
+
     },
     created() {
     },
     components: {
         'ident-list-item': IdentListItem
+
     }
 }
 
@@ -387,7 +390,7 @@ AppellationCreator = {
 
         }
     },
-    template: `<div class="appellation-creator" style="max-height: 50vh; overflow-y: scroll;">
+    template: `<div class="appellation-creator" style="max-height: 300px; overflow-y: scroll;">
                     <div class="h4">
                         What is this?
                         <span class="glyphicon glyphicon-question-sign"
@@ -1156,7 +1159,6 @@ Appellator = new Vue({
             self.updateSwimRef();
             self.handleScroll();
         }
-
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);
