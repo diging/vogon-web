@@ -58,6 +58,7 @@ from annotations.tasks import tokenize
 from annotations.utils import basepath
 from annotations.models import TextCollection, VogonUserDefaultProject
 from urlparse import urlparse
+import chardet
 
 
 class Annotator(object):
@@ -74,7 +75,6 @@ class Annotator(object):
         else:
             project = request.user.get_default_project()
 
-        project.texts.add(text)
         self.project = project;
         self.context = {
             'request': request,
@@ -154,11 +154,13 @@ class Annotator(object):
     def get_context(self):
         resource = self.get_resource()
         request = self.context.get('request')
+        content = self.get_content(resource)
+        detect  = chardet.detect(content)
         return {
             'text': self.text,
             'textid': self.text.id,
             'title': 'Annotate Text',
-            'content': self.get_content(resource),
+            'content': content.decode(detect['encoding']).encode('utf-8'), # We are using chardet to guess the encoding becuase giles is returning everyting with a utf-8 header even if it is not utf-8
             'baselocation' : basepath(request),
             'userid': request.user.id,
             'title': self.text.title,
