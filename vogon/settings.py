@@ -259,7 +259,7 @@ CONCEPT_TYPES = {
 }
 
 SUBMIT_WAIT_TIME = {
-        'days': 24,
+        'days': 3,
         'hours': 0,
         'minutes': 0
         }
