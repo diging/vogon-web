@@ -354,15 +354,12 @@ ConceptPicker = {
     },
     data: function() {
         return {
-            concepts: [],
-            appellationsCopy: [],
-            counts: [],
             conceptsFinal: [],
-            appell: this.appellations,
-            appellationMap: []
+            appell: [],
+            appellationCount: []
         }
     },
-    template: `<div class="appellation-creator" style="max-height: 50vh; overflow-y: scroll;">
+    template: `<div  class="concept-picker" style="max-height: 50vh; overflow-y: scroll;">
                 <concept-picker-item
                     v-on:selectconcept="selectConcept"
                     v-for="concept in conceptsFinal"
@@ -378,50 +375,46 @@ ConceptPicker = {
         merge: function (appellations) {
             this.conceptsFinal = [];
             this.appell = appellations;
-            //this.conceptsFinal = this.appell.slice(0,4)
-            //console.log(this.conceptsFinal)
 
-
-            
+            // Sort by date
             function compare(a,b) {
-
                 if (Date.parse(a.created) > Date.parse(b.created))
                   return -1;
                 if (Date.parse(a.created) < Date.parse(b.created))
                   return 1;
                 return 0;
-              }
+            }
               
-              this.appell.sort(compare);
-              this.appell.forEach(function(element) {
-                console.log(element.created);
-              });
-              console.log("*****************************************************");
-              this.conceptsFinal = this.appell.slice(0,4);
-              this.conceptsFinal.forEach(function(element) {
-                console.log(element.created);
-              });
-            this.appellationMap = this.appellations.map(function (concept, index, array) {
-                return concept.interpretation.uri; 
-                
+            this.appell.sort(compare);
+            this.conceptsFinal = this.appell.slice(0,4);
+            this.appellationUri = this.appellations.map(function (concept, index, array) {
+                return concept.interpretation.uri;
             });
-            var appellationCount = _.countBy(this.appellationMap); //lodash
-
+            
+            var appellationCount = _.countBy(this.appellationUri); //lodash
+            
             Object.entries(appellationCount).forEach(([key, value]) => {
                 var search =  _.find(this.appell, _.matchesProperty('interpretation.uri', `${key}`));
                 search["count"] = parseInt(`${value}`)
-              });
-
-              this.appell.sort(function (a, b) {
+            });
+            // Sort by occurrences
+            this.appell.sort(function (a, b) {
                 return b.count - a.count;
-              });
-              
-              for(i = 0; i <= 4; i++) {
+            });
+            var count = 0;
+            var i = 0;
+            var apellLen = this.appell.length
+            
+           while(count <= 3 && i <= apellLen && apellLen != 0) {
                 if (!this.conceptsFinal.includes(this.appell[i])){
                     this.conceptsFinal.push(this.appell[i]);
-                } 
-              }
-              return this.conceptsFinal;
+                    i++;
+                    count++;
+                } else {
+                    i++;
+                }
+            }
+            return this.conceptsFinal;
         },
     },
     created: function () {
