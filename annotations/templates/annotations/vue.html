@@ -233,7 +233,7 @@
             var USER_NAME = '{{ user.username }}';
             var PROJECT_ID = '{{ project.id }}';
             var PROJECT_NAME = '{{ project.name }}';
-            var TEXT_CONTENT = `{{ content|safe }}`;
+            var TEXT_CONTENT = `{{ content|safe }}`;  // the safe tag suppresses unicode errors
             var BASE_URL = '{{ base_url }}';
 
         // Appellator is the text annotation application. Even though we load
