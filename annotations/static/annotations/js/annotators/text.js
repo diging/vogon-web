@@ -375,7 +375,6 @@ ConceptPicker = {
         merge: function (appellations) {
             this.conceptsFinal = [];
             this.appell = appellations;
-
             // Sort by date
             function compare(a,b) {
                 if (Date.parse(a.created) > Date.parse(b.created))
@@ -386,34 +385,45 @@ ConceptPicker = {
             }
               
             this.appell.sort(compare);
-            this.conceptsFinal = this.appell.slice(0,4);
-            this.appellationUri = this.appellations.map(function (concept, index, array) {
-                return concept.interpretation.uri;
-            });
-            
-            var appellationCount = _.countBy(this.appellationUri); //lodash
-            
-            Object.entries(appellationCount).forEach(([key, value]) => {
-                var search =  _.find(this.appell, _.matchesProperty('interpretation.uri', `${key}`));
-                search["count"] = parseInt(`${value}`)
-            });
-            // Sort by occurrences
-            this.appell.sort(function (a, b) {
-                return b.count - a.count;
-            });
+            var appellLength = this.appell.length
+            // set end slice length incase it is less than 4 slice the total length of array.
+            if (appellLength < 4) {
+                sliceAt = appellLength;
+            } else {
+                sliceAt = 4
+            }
+            this.conceptsFinal = this.appell.slice(0,sliceAt);
+            var appellationMap = new Map();
+            // group appellations to get total count
+            this.appell.forEach(function(item){ 
+                if (appellationMap.has(item.interpretation.uri)) {
+                   appellationMap.get(item.interpretation.uri).push(item);
+                    } else {
+                        appellationMap.set(item.interpretation.uri, [item]);
+                    }
+              });
+            // sort appellationMap by length
+            var sortedMap = new Map([...appellationMap.entries()].sort(function (a, b) {
+                return b[1].length - a[1].length
+            }));
+            // add none duplicate appellations to conceptsFinal, up to 4 total.
+            // If the iterator runs out of values before the count is filled break out of loop
+            var sortedMapItem = sortedMap.entries();
             var count = 0;
-            var i = 0;
-            var apellLen = this.appell.length
-            
-           while(count <= 3 && i <= apellLen && apellLen != 0) {
-                if (!this.conceptsFinal.includes(this.appell[i])){
-                    this.conceptsFinal.push(this.appell[i]);
-                    i++;
-                    count++;
+            while(count <= 3) {
+                var appellation = sortedMapItem.next().value
+                if (appellation != null) {
+                    console.log(appellation[1][0]);
+                    if (!this.conceptsFinal.includes(appellation[1][0])){
+                        this.conceptsFinal.push(appellation[1][0]);
+                        count++;
+                    }
                 } else {
-                    i++;
+                    break
                 }
             }
+
+              
             return this.conceptsFinal;
         },
     },
