@@ -22,7 +22,10 @@ from annotations.models import *
 from concepts.models import Concept, Type
 from concepts.lifecycle import *
 from sets import Set
-
+import xml.etree.ElementTree as ET
+import urllib2
+import re
+from lxml import etree as e
 import uuid
 
 import goat
@@ -518,19 +521,19 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 'uri': uri,
                 'auth': "VIAF"}
             new_concepts.append(dic)
-            return new_concepts
+
 
         def _parseHps(self, uri, new_concepts):
             data = urllib2.urlopen(uri)
             tree = ET.parse(data)
             root = tree.getroot()
-            namespace = {'hps': 'http://www.digitalhps.org/'}
+            namespace = {'hps': 'http://www.digitalhps.org/'} 
 
             for entry in root.findall('hps:conceptEntry', namespace):
-                description1 = entry.find('hps:description', namespace)
-                name1 = entry.find('hps:lemma', namespace)
-                concept_description = description1.text
-                concept_name = name1.text
+                description = entry.find('hps:description', namespace)
+                name = entry.find('hps:lemma', namespace)
+                concept_description = description.text
+                concept_name = name.text
 
             dic = {
                 'label': concept_name,
@@ -538,8 +541,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 'uri': uri,
                 'auth': "Concept Power"}
             new_concepts.append(dic)
-            return new_concepts
-        
+
         for result in results:
             concepts = []
             conceptsSet = Set(concepts)
@@ -557,10 +559,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
                     viaf = re.search( r'viaf.org', concept, re.M|re.I)
                     if hps:
                         _parseHps(self, concept, new_concepts)
-
                     elif viaf:
                         _parseViaf(self, concept, new_concepts)
                 result["identities"] = new_concepts # add the concept data back to the identities list
+
         return Response({'results': results})
 
 
