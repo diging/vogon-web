@@ -16,14 +16,13 @@
                 `,
     data: function() {
          return {
+             concept: this.ident
          }
      },
     methods: {
         select: function() {
-            this.$emit('selectconcept', this.ident);
+            this.$emit('selectconcept', this.concept);
         }
-    },
-    created() {
     }
 }
 
