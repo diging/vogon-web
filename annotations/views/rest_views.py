@@ -481,13 +481,6 @@ class ConceptViewSet(viewsets.ModelViewSet):
         return Response(serializer.data,
                         status=status.HTTP_201_CREATED,
                         headers=headers)
-
-
-
-
-
-        
-
     @list_route()
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
