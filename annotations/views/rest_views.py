@@ -536,18 +536,17 @@ class ConceptViewSet(viewsets.ModelViewSet):
             new_concepts.append(dic)
 
         for result in results:
-            concepts = []
-            conceptsSet = Set(concepts)
+            conceptsSet = Set()
             for ident in result["identities"]: # go through the identities in each result
                 identSet = Set(ident['concepts'])
                 diff = identSet.difference(conceptsSet)
                 conceptsSet.update(diff)
-            concepts = result["identities"] = list(conceptsSet) # replace the identities list
-            if concepts:
-                if result["uri"] in concepts:
-                    concepts.remove(result["uri"]) # remove original uri from the list if it exists. 
+            result["identities"] = list(conceptsSet) # replace the identities list
+            if result["identities"]:
+                if result["uri"] in result["identities"]:
+                    result["identities"].remove(result["uri"]) # remove original uri from the list if it exists. 
                 new_concepts = []
-                for concept in concepts:
+                for concept in result["identities"]:
                     hps = re.search( r'www.digitalhps.org', concept, re.M|re.I)
                     viaf = re.search( r'viaf.org', concept, re.M|re.I)
                     if hps:
