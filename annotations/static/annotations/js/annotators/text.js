@@ -260,6 +260,7 @@ DateAppellationCreator = {
             day: null,
             submitted: false,
             saving: false
+            
         }
     },
     template: `<div class="appellation-creator">
@@ -356,7 +357,8 @@ ConceptPicker = {
         return {
             conceptsFinal: [],
             appell: [],
-            appellationCount: []
+            appellationCount: [],
+            count: 0
         }
     },
     template: `<div  class="concept-picker" style="max-height: 50vh; overflow-y: scroll;">
@@ -372,6 +374,20 @@ ConceptPicker = {
             this.concepts = [];
             this.$emit('selectconcept', concept);
         },
+        addConcepts: function (appellationMapEntires) {
+            while(this.count <= 3) {
+                var appellation = appellationMapEntires.next().value;
+                if (appellation == null) {
+                    break
+                } 
+                if (!this.conceptsFinal.includes(appellation[1][0])){
+                    this.conceptsFinal.push(appellation[1][0]);
+                    this.count++;
+                }
+            }
+            // reset count
+            this.count = 0;
+        },
         merge: function (appellations) {
             this.conceptsFinal = [];
             this.appell = appellations;
@@ -383,47 +399,26 @@ ConceptPicker = {
                   return 1;
                 return 0;
             }
-              
             this.appell.sort(compare);
-            var appellLength = this.appell.length
-            // set end slice length incase it is less than 4 slice the total length of array.
-            if (appellLength < 4) {
-                sliceAt = appellLength;
-            } else {
-                sliceAt = 4
-            }
-            this.conceptsFinal = this.appell.slice(0,sliceAt);
             var appellationMap = new Map();
-            // group appellations to get total count
+            // set map items from appell array
             this.appell.forEach(function(item){ 
                 if (appellationMap.has(item.interpretation.uri)) {
-                   appellationMap.get(item.interpretation.uri).push(item);
+                        appellationMap.get(item.interpretation.uri).push(item);
                     } else {
                         appellationMap.set(item.interpretation.uri, [item]);
                     }
-              });
+            });
+            var appellationMapEntires = appellationMap.entries();
+            // add non-duplicate objects to conceptsFinal sorted by most recent
+            this.addConcepts(appellationMapEntires);
             // sort appellationMap by length
             var sortedMap = new Map([...appellationMap.entries()].sort(function (a, b) {
                 return b[1].length - a[1].length
             }));
-            // add none duplicate appellations to conceptsFinal, up to 4 total.
-            // If the iterator runs out of values before the count is filled break out of loop
-            var sortedMapItem = sortedMap.entries();
-            var count = 0;
-            while(count <= 3) {
-                var appellation = sortedMapItem.next().value
-                if (appellation != null) {
-                    console.log(appellation[1][0]);
-                    if (!this.conceptsFinal.includes(appellation[1][0])){
-                        this.conceptsFinal.push(appellation[1][0]);
-                        count++;
-                    }
-                } else {
-                    break
-                }
-            }
-
-              
+            var sortedMapItems = sortedMap.entries();
+            // add non-duplicate objects to conceptsFinal sorted by most occuring
+            this.addConcepts(sortedMapItems);
             return this.conceptsFinal;
         },
     },
