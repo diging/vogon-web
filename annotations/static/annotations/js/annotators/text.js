@@ -6,9 +6,10 @@
  var IdentListItem = {
     props: ['concept'],
     template: ` <div v-if="concept.identities.length != 0">
-                    <div v-for="ident in concept.identities" class="list-group-item concept-item clearfix" id="concept-{{ ident.uri }}">
+                    <span>&#8712;</span>
+                    <div v-for="ident in concept.identities" id="concept-{{ ident.uri }}">
                         <div>
-                        <a v-on:click="select" style="cursor: pointer;">{{ ident.label }} ({{ ident.auth }})</a>
+                        {{ ident.label }} ({{ ident.auth }})
                         </div>
                         <div class="text text-muted">{{ ident.desc }}</div>
                     </div>
@@ -29,10 +30,16 @@
 var ConceptListItem = {
     props: ['concept'],
     template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
-                   <div>
-                       <a v-on:click="select" style="cursor: pointer;">{{ concept.label }} ({{ concept.authority.name }})</a>
-                   </div>
-                   <div class="text text-muted">{{ concept.description }}</div>
+                    <a v-on:click="select" style="cursor: pointer;">
+                    <div>
+                       {{ concept.label }} ({{ concept.authority.name }})
+                    </div>
+                    <div class="text text-muted">{{ concept.description }}</div>
+                    <ident-list-item
+                        v-on:selectconcept="selectConcept"
+                        v-bind:concept=concept>
+                    </ident-list-item>
+                    </a>
                 </div>
 `,
     data: function() {
@@ -50,6 +57,9 @@ var ConceptListItem = {
             this.$emit('selectconcept', concept);
         },
 
+    },
+    components: {
+        'ident-list-item': IdentListItem
     }
 }
 
@@ -93,11 +103,6 @@ var ConceptSearch = {
                             v-bind:concept=concept
                             v-for="concept in concepts">
                        </concept-list-item>
-                       <ident-list-item
-                            v-on:selectconcept="selectConcept"
-                            v-bind:concept=concept
-                            v-for="concept in concepts">
-                       </ident-list-item>
                   </div>
               </div>`,
     data: function() {
@@ -143,8 +148,7 @@ var ConceptSearch = {
           }
         },
     components: {
-        'concept-list-item': ConceptListItem,
-        'ident-list-item': IdentListItem
+        'concept-list-item': ConceptListItem
     }
 }
 
