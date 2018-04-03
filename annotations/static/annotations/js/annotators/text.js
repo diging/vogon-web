@@ -6,7 +6,6 @@
  var IdentListItem = {
     props: ['concept'],
     template: ` <div v-if="concept.identities.length != 0">
-                    <span>&#8712;</span>
                     <div v-for="ident in concept.identities" id="concept-{{ ident.uri }}">
                         <div>
                         {{ ident.label }} ({{ ident.auth }})
@@ -30,16 +29,21 @@
 var ConceptListItem = {
     props: ['concept'],
     template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.uri }}">
-                    <a v-on:click="select" style="cursor: pointer;">
-                    <div>
-                       {{ concept.label }} ({{ concept.authority.name }})
+                    <div v-if="concept.identities.length != 0 " class="symbol">
+                        <span>&#8712;</span>
                     </div>
-                    <div class="text text-muted">{{ concept.description }}</div>
-                    <ident-list-item
-                        v-on:selectconcept="selectConcept"
-                        v-bind:concept=concept>
-                    </ident-list-item>
-                    </a>
+                    <div>
+                        <a v-on:click="select" style="cursor: pointer;">
+                        <div>
+                        {{ concept.label }} ({{ concept.authority.name }})
+                        </div>
+                        <div class="text text-muted">{{ concept.description }}</div>
+                        <ident-list-item
+                            v-on:selectconcept="selectConcept"
+                            v-bind:concept=concept>
+                        </ident-list-item>
+                        </a>
+                    </div>
                 </div>
 `,
     data: function() {

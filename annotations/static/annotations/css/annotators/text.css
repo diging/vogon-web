@@ -73,6 +73,11 @@
     margin: 0;
     padding: 0;
 }
+.symbol {
+    height: 60px;
+    float:left; 
+    margin-right: .5%;
+}
 
 .concept-item {
     padding: 5px;
