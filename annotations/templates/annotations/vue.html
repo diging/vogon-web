@@ -124,7 +124,8 @@
                                             v-bind:project=project
                                             v-bind:position=selected_text
                                             v-on:cancelappellation="cancelAppellation"
-                                            v-on:createdappellation="createdAppellation">
+                                            v-on:createdappellation="createdAppellation"
+                                            v-bind:appellations=appellations>
                                         </appellation-creator>
                                     </div>
                                     <div v-bind:class="{

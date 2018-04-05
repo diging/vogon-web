@@ -211,7 +211,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
         try:
             serializer.is_valid(raise_exception=True)
-            print 'asdfasdfasdf'
         except Exception as E:
             print serializer.errors
             raise E
