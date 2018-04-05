@@ -358,7 +358,6 @@ ConceptPicker = {
             conceptsFinal: [],
             appell: [],
             appellationCount: [],
-            count: 0
         }
     },
     template: `<div  class="concept-picker" style="max-height: 50vh; overflow-y: scroll;">
@@ -375,18 +374,17 @@ ConceptPicker = {
             this.$emit('selectconcept', concept);
         },
         addConcepts: function (appellationMapEntires) {
-            while(this.count <= 3) {
+            var count = 0
+            while(count <= 3) {
                 var appellation = appellationMapEntires.next().value;
                 if (appellation == null) {
                     break
                 } 
                 if (!this.conceptsFinal.includes(appellation[1][0])){
                     this.conceptsFinal.push(appellation[1][0]);
-                    this.count++;
+                    count++;
                 }
             }
-            // reset count
-            this.count = 0;
         },
         merge: function (appellations) {
             this.conceptsFinal = [];
