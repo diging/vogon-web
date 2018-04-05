@@ -484,9 +484,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
     @list_route()
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
-        if q.lower() == 'jean bacon' and cache.get('jean bacon') != None:
-            results = cache.get('jean bacon')
-            print "success"
+        if cache.get(q.lower()) != None:
+            results = cache.get(q.lower())
+            print('Yes')
         else:
             if not q:
                 return Response({'results': []})
@@ -558,8 +558,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         elif viaf:
                             _parseViaf(self, concept, new_concepts)
                     result["identities"] = new_concepts # add the concept data back to the identities list
-                    if q.lower() == 'jean bacon' and cache.get('jean bacon') == None:
-                        cache.set('jean bacon', results, 60*60*24*14) # two weeks in seconds
+            cache.set(q.lower(), results, 60*60*24*14) # two weeks in seconds
+            print('No')
 
         return Response({'results': results})
 
