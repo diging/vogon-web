@@ -11,9 +11,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
-
+from django.core.files.storage import FileSystemStorage
 from annotations.models import TextCollection, RelationSet
-from annotations.forms import ProjectForm
+from annotations.forms import ProjectForm, PathForm
+import csv
+import io
 
 
 def view_project(request, project_id):
@@ -179,3 +181,31 @@ def list_projects(request):
         'projects': qs,
     }
     return render(request, template, context)
+
+
+
+def upload(request):
+
+    context = {}
+    pathForm = PathForm()
+    
+    context = {}
+    if request.method == 'POST':
+        pathForm = PathForm(request.POST)
+        if pathForm.is_valid():
+            csv_file = request.FILES['csv_file']
+            decoded_file = csv_file.read().decode('utf-8')
+            io_string = io.StringIO(decoded_file)
+            for row in csv.reader(io_string, delimiter=',', quotechar='"'):
+                print(row)
+        else:
+            context ={
+                'form': pathForm
+            }
+    else:
+        context ={
+                'form': PathForm()
+            }
+
+    return render(request, 'annotations/appellation_upload.html', context)
+

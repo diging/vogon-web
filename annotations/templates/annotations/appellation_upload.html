@@ -1,0 +1,27 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+{% block extrahead %}
+<script src="{% static "annotations/js/spin.min.js" %}"></script>
+<script src="{% static "annotations/js/jquery.spin.js" %}"></script>
+<script src="{% static "annotations/js/cytoscape.min.js" %}"></script>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    <form action="{% url "upload" %}" method="POST" enctype="multipart/form-data" class="form-horizontal"> 
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="name" class="col-md-3 col-sm-3 col-xs-12 control-label">File: </label>
+            <div class="col-md-8">
+                <input type="file" name="csv_file" id="csv_file" required="True" class="form-control">
+            </div>                    
+        </div>
+        <div class="form-group">                    
+            <div class="col-md-3 col-sm-3 col-xs-12 col-md-offset-3" style="margin-bottom:10px;">
+                    <button class="btn btn-primary"> <span class="glyphicon glyphicon-upload" style="margin-right:5px;"></span>Upload </button>
+            </div> 
+        </div>
+    </form>
+</div>
+{% endblock %}
