@@ -1,6 +1,5 @@
-"""
-Models for the :mod:`annotations` app.
 
+"""
 Texts and projects
 ------------------
 

@@ -12,8 +12,9 @@ from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
 from django.core.files.storage import FileSystemStorage
-from annotations.models import TextCollection, RelationSet
+from annotations.models import TextCollection, RelationSet, Appellation, Text, DocumentPosition
 from annotations.forms import ProjectForm, PathForm
+from concepts.models import Concept
 import csv
 import io
 
@@ -34,6 +35,7 @@ def view_project(request, project_id):
 
     project = get_object_or_404(TextCollection, pk=project_id)
     template = "annotations/project_details.html"
+    request.session['project'] = project.id
 
     order_by = request.GET.get('order_by', 'title')
     texts = project.texts.all().order_by(order_by)\
@@ -196,8 +198,33 @@ def upload(request):
             csv_file = request.FILES['csv_file']
             decoded_file = csv_file.read().decode('utf-8')
             io_string = io.StringIO(decoded_file)
-            for row in csv.reader(io_string, delimiter=',', quotechar='"'):
-                print(row)
+            csvreader = csv.reader(io_string, delimiter=',', quotechar='"')
+            csvreader.next()
+            project = request.session.get('project', 'none')
+            print(project)
+            for row in csvreader:
+                url = 'https://amphora.asu.edu/amphora/resource/6799996'
+                text = Text.objects.get(uri=url)
+                if text.content_type:
+                    occur = text
+                else:
+                    occur = Text.objects.get(part_of_id=text.id)
+                pos = DocumentPosition.objects.create(
+                    position_type = 'CO',
+                    position_value = ",".join([row[1], row[2]]),
+                    occursIn = occur,
+                )
+
+                Appellation.objects.create(
+                stringRep = row[0],
+                startPos = row[1],
+                endPos = row[2],
+                createdBy = request.user,
+                occursIn = occur,
+                project_id = project,
+                interpretation = Concept.objects.get(id=row[4]),
+                position_id = pos.id
+            )
         else:
             context ={
                 'form': pathForm
