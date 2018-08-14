@@ -17,7 +17,8 @@ from annotations.forms import ProjectForm, PathForm
 from concepts.models import Concept
 import csv
 import io
-
+import requests
+from repository_views import repository_text_add_to_project
 
 def view_project(request, project_id):
     """
@@ -203,8 +204,19 @@ def upload(request):
             project = request.session.get('project', 'none')
             print(project)
             for row in csvreader:
-                url = 'https://amphora.asu.edu/amphora/resource/6799996'
-                text = Text.objects.get(uri=url)
+                print(row[3])
+                try:
+                    text = Text.objects.get(uri=row[3])
+                except:
+                    print(row[3])
+                    url = "https://amphora.asu.edu/amphora/resource/get?uri=" + row[3] + "&format=json"
+                    print(url)
+                    r = requests.get(url, headers={"Token":"974c011d01bd853da0007493c1ac509032eef907"})
+                    text_json = r.json()
+                    print(text_json['id'])
+                    t =  repository_text_add_to_project(request, 1, text_json['id'],project)
+                    print(t)
+                    text = Text.objects.get(uri=row[3])
                 if text.content_type:
                     occur = text
                 else:

@@ -368,13 +368,18 @@ def repository_text_content(request, repository_id, text_id, content_id):
 
 @login_required
 def repository_text_add_to_project(request, repository_id, text_id, project_id):
+    print("HIT______________++++++++++++++___________--------")
+    print(text_id)
+    print(repository_id)
     repository = get_object_or_404(Repository, pk=repository_id)
     project = get_object_or_404(TextCollection, pk=project_id)
 
     manager = RepositoryManager(repository.configuration, user=request.user)
-
+    print(manager)
     try:
         resource = manager.resource(id=int(text_id))
+        print("RESOURCE")
+        print(resource)
     except IOError:
         return render(request, 'annotations/repository_ioerror.html', {}, status=500)
     defaults = {
@@ -386,6 +391,8 @@ def repository_text_add_to_project(request, repository_id, text_id, project_id):
     }
     text, _ = Text.objects.get_or_create(uri=resource.get('uri'),
                                          defaults=defaults)
+    print(text)
+    print( _ )
     project.texts.add(text)
     return HttpResponseRedirect(reverse('view_project', args=(project_id,)))
 

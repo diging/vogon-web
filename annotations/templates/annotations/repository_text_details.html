@@ -19,7 +19,7 @@
     </div>
     {% else %}
     <a class="btn btn-xs btn-primary" href="{% url "repository_text_add_to_project" repository.id result.id project_id %}">
-        <span class="glyphicon glyphicon-plus"></span> Add to {{ project.name }}
+        <span class="glyphicon glyphicon-plus"></span> Add to {{ project.name }} {{ result.id }}
     </a>
     {% endif %}
     {% endif %}
