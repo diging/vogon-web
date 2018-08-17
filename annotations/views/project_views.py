@@ -18,7 +18,8 @@ from concepts.models import Concept
 import csv
 import io
 import requests
-from repository_views import repository_text_add_to_project
+from repository_views import repository_text_add_to_project, repository_text_content
+from repository import auth
 
 def view_project(request, project_id):
     """
@@ -204,28 +205,27 @@ def upload(request):
             project = request.session.get('project', 'none')
             print(project)
             for row in csvreader:
-                print(row[3])
                 try:
                     text = Text.objects.get(uri=row[3])
                 except:
-                    print(row[3])
                     url = "https://amphora.asu.edu/amphora/resource/get?uri=" + row[3] + "&format=json"
-                    print(url)
-                    r = requests.get(url, headers={"Token":"974c011d01bd853da0007493c1ac509032eef907"})
+                    r = requests.get(url, headers=auth.jars_github_auth(request.user))
                     text_json = r.json()
-                    print(text_json['id'])
+                    k = False
+                    while k == False:
+                        for content in text_json['content']:
+                            if content['content_resource']['content_type'] == 'text/plain':
+                                text_content = content['content_resource']['id']
+                                k = True
                     t =  repository_text_add_to_project(request, 1, text_json['id'],project)
-                    print(t)
                     text = Text.objects.get(uri=row[3])
-                if text.content_type:
-                    occur = text
-                else:
-                    occur = Text.objects.get(part_of_id=text.id)
+                    v = repository_text_content(request, 1, text_json['id'], text_content)
+                occur = Text.objects.get(part_of_id=text.id)
                 pos = DocumentPosition.objects.create(
                     position_type = 'CO',
                     position_value = ",".join([row[1], row[2]]),
                     occursIn = occur,
-                )
+                )   
 
                 Appellation.objects.create(
                 stringRep = row[0],
@@ -236,7 +236,7 @@ def upload(request):
                 project_id = project,
                 interpretation = Concept.objects.get(id=row[4]),
                 position_id = pos.id
-            )
+                )
         else:
             context ={
                 'form': pathForm
