@@ -384,8 +384,6 @@ def repository_text_add_to_project(request, repository_id, text_id, project_id):
     }
     text, _ = Text.objects.get_or_create(uri=resource.get('uri'),
                                          defaults=defaults)
-    print(text)
-    print( _ )
     project.texts.add(text)
     return HttpResponseRedirect(reverse('view_project', args=(project_id,)))
 
