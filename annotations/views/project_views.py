@@ -203,24 +203,25 @@ def upload(request):
             csvreader = csv.reader(io_string, delimiter=',', quotechar='"')
             csvreader.next()
             project = request.session.get('project', 'none')
-            print(project)
             for row in csvreader:
                 try:
-                    text = Text.objects.get(uri=row[3])
+                    parent = Text.objects.get(uri=row[3])
+                    text = Text.objects.get(part_of_id=parent.id)
+                    occur = text
                 except:
                     url = "https://amphora.asu.edu/amphora/resource/get?uri=" + row[3] + "&format=json"
                     r = requests.get(url, headers=auth.jars_github_auth(request.user))
                     text_json = r.json()
-                    k = False
-                    while k == False:
+                    found = False
+                    while found == False:
                         for content in text_json['content']:
                             if content['content_resource']['content_type'] == 'text/plain':
                                 text_content = content['content_resource']['id']
-                                k = True
-                    t =  repository_text_add_to_project(request, 1, text_json['id'],project)
+                                found = True
+                    repository_text_add_to_project(request, 1, text_json['id'],project)
                     text = Text.objects.get(uri=row[3])
-                    v = repository_text_content(request, 1, text_json['id'], text_content)
-                occur = Text.objects.get(part_of_id=text.id)
+                    repository_text_content(request, 1, text_json['id'], text_content)
+                    occur = Text.objects.get(part_of_id=text.id)
                 pos = DocumentPosition.objects.create(
                     position_type = 'CO',
                     position_value = ",".join([row[1], row[2]]),
