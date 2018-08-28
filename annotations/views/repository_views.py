@@ -97,13 +97,12 @@ def repository_collection(request, repository_id, collection_id):
         collection = manager.collection(id=collection_id, **params)
     except IOError:
         return render(request, 'annotations/repository_ioerror.html', {}, status=500)
-
     project_id = request.GET.get('project_id')
     base_url = reverse('repository_collection', args=(repository_id, collection_id))
     base_params = {}
     if project_id:
         base_params.update({'project_id': project_id})
-
+    resources = collection.get('resources', [])
     context = {
         'user': request.user,
         'repository': repository,
@@ -111,7 +110,7 @@ def repository_collection(request, repository_id, collection_id):
         'collection_id': collection_id,
         'title': 'Browse collections in %s' % repository.name,
         'project_id': project_id,
-        'resources': collection.get('resources', []),
+        'resources': [resource for resource in resources if resource['url'] is not None],
         'subcollections': collection.get('subcollections', [])
     }
     previous_page, next_page = _get_pagination(collection, base_url, base_params)
