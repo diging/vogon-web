@@ -90,7 +90,8 @@ def repository_collections(request, repository_id):
 @login_required
 def repository_collection(request, repository_id, collection_id):
     params = _get_params(request)
-
+    print(repository_id)
+    print(collection_id)
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     try:
@@ -242,7 +243,7 @@ def repository_list(request):
 @login_required
 def repository_text(request, repository_id, text_id):
     from collections import defaultdict
-
+    print("THIS WORKS")
     project_id = request.GET.get('project_id')
     if project_id:
         project = TextCollection.objects.get(pk=project_id)

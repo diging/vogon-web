@@ -24,8 +24,8 @@
                     href="{% url "edit_project" project.id %}">
                     <span class="gylphicon glyphicon-pencil"></span> Edit Project
                 </a>
-                <a class="btn btn-sm btn-info" href="{% url 'upload' %}">
-                <span class="gylphicon glyphicon-pencil"></span> Upload
+                <a class="btn btn-sm btn-info" href="{% url 'import' project_id=project.id %}">
+                <span class="gylphicon glyphicon-pencil"></span> Import Appellations
                 </a>
             </span>
             {% endif %}

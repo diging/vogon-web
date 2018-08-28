@@ -91,7 +91,7 @@ urlpatterns = [
     url(r'^project/(?P<project_id>[0-9]+)/edit/$', views.project_views.edit_project, name='edit_project'),
     url(r'^project/create/$', views.project_views.create_project, name='create_project'),
     url(r'^project/$', views.project_views.list_projects, name='list_projects'),
-    url(r'^project/upload/$', views.project_views.upload, name='upload'),
+    url(r'^project/(?P<project_id>[0-9]+)/import/$', views.project_views.import_appellation, name='import'),
 
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^autocomplete/', include('autocomplete_light.urls')),    # TODO: are we still using this?

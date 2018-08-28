@@ -15,11 +15,14 @@ from django.core.files.storage import FileSystemStorage
 from annotations.models import TextCollection, RelationSet, Appellation, Text, DocumentPosition
 from annotations.forms import ProjectForm, PathForm
 from concepts.models import Concept
-import csv
+import unicodecsv as csv
 import io
 import requests
-from repository_views import repository_text_add_to_project, repository_text_content
+from repository_views import repository_text_content
 from repository import auth
+from repository.models import Repository
+from repository.managers import RepositoryManager
+import tempfile
 
 def view_project(request, project_id):
     """
@@ -187,65 +190,66 @@ def list_projects(request):
     return render(request, template, context)
 
 
+@login_required
+def import_appellation(request, project_id):
+    print("TEST")
+    def add_text_to_project(request, repository_id, text_id, project_id):
+        repository = get_object_or_404(Repository, pk=repository_id)
+        project = get_object_or_404(TextCollection, pk=project_id)
 
-def upload(request):
+        manager = RepositoryManager(repository.configuration, user=request.user)
+        try:
+            resource = manager.resource(id=int(text_id))
+        except IOError:
+            return render(request, 'annotations/repository_ioerror.html', {}, status=500)
+        defaults = {
+            'title': resource.get('title'),
+            'created': resource.get('created'),
+            'repository': repository,
+            'repository_source_id': text_id,
+            'addedBy': request.user,
+        }
+        text, _ = Text.objects.get_or_create(uri=resource.get('uri'),  defaults=defaults)
+        project.texts.add(text)
 
     context = {}
-    pathForm = PathForm()
-    
-    context = {}
-    if request.method == 'POST':
-        pathForm = PathForm(request.POST)
-        if pathForm.is_valid():
-            csv_file = request.FILES['csv_file']
-            decoded_file = csv_file.read().decode('utf-8')
-            io_string = io.StringIO(decoded_file)
-            csvreader = csv.reader(io_string, delimiter=',', quotechar='"')
-            csvreader.next()
-            project = request.session.get('project', 'none')
-            for row in csvreader:
-                try:
-                    parent = Text.objects.get(uri=row[3])
-                    text = Text.objects.get(part_of_id=parent.id)
-                    occur = text
-                except:
-                    url = "https://amphora.asu.edu/amphora/resource/get?uri=" + row[3] + "&format=json"
-                    r = requests.get(url, headers=auth.jars_github_auth(request.user))
-                    text_json = r.json()
-                    found = False
-                    while found == False:
-                        for content in text_json['content']:
-                            if content['content_resource']['content_type'] == 'text/plain':
-                                text_content = content['content_resource']['id']
-                                found = True
-                    repository_text_add_to_project(request, 1, text_json['id'],project)
-                    text = Text.objects.get(uri=row[3])
-                    repository_text_content(request, 1, text_json['id'], text_content)
-                    occur = Text.objects.get(part_of_id=text.id)
-                pos = DocumentPosition.objects.create(
-                    position_type = 'CO',
-                    position_value = ",".join([row[1], row[2]]),
-                    occursIn = occur,
-                )   
 
-                Appellation.objects.create(
-                stringRep = row[0],
-                startPos = row[1],
-                endPos = row[2],
-                createdBy = request.user,
-                occursIn = occur,
-                project_id = project,
-                interpretation = Concept.objects.get(id=row[4]),
-                position_id = pos.id
-                )
-        else:
-            context ={
-                'form': pathForm
-            }
-    else:
-        context ={
-                'form': PathForm()
-            }
+    text_collection = TextCollection.objects.get(id = project_id)
+    if request.method == 'POST' and request.user == text_collection.ownedBy:
+        csv_file = request.FILES['csv_file']
+        csv_reader = csv.DictReader(csv_file, encoding='utf-8')
+        csv_reader.next()
+
+        handle, fn = tempfile.mkstemp(suffix='.csv')
+        csv_file_path = '/Users/taylorquinn/Desktop/1522.csv'
+        with open(csv_file_path, 'rt') as csvfile:
+            annotations = csv.reader(csvfile, delimiter=' ', quotechar='|')
+            with os.fdopen(handle,"w", encoding='utf8',errors='surrogateescape', newline='') as f:
+                writer=csv.writer(f)
+                for row in annotations:
+                    try:
+                        writer.writerow(row)
+                    except Exception as e:
+                        print ('Error in writing row:',e)
+        for row in csv_reader:
+            try:
+                parent = Text.objects.get(uri=row[3])
+                text = Text.objects.get(part_of_id=parent.id)
+                occur = text
+            except:
+                url = "https://amphora.asu.edu/amphora/resource/get?uri=" + row[3] + "&format=json"
+                text_request = requests.get(url, headers=auth.jars_github_auth(request.user))
+                text_json = text_request.json()
+                found = False
+                while found == False:
+                    for content in text_json['content']:
+                        if content['content_resource']['content_type'] == 'text/plain':
+                            text_content = content['content_resource']['id']
+                            found = True
+                add_text_to_project(request, 1, text_json['id'],project_id)
+                text = Text.objects.get(uri=row[3])
+                repository_text_content(request, 1, text_json['id'], text_content)
+                occur = Text.objects.get(part_of_id=text.id)
 
     return render(request, 'annotations/appellation_upload.html', context)
 

@@ -39,7 +39,7 @@
     <div class="list-group">
         {% for result in resources  %}
         <a class="list-group-item clearfix"
-            href="{% url "repository_text" repository.id result.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
+            href="{% url 'repository_text' repository.id result.id %}{% if project_id %}?project_id={{ project_id }}{% endif %}">
             <span class="text-warning pull-right">
             {% for ctype in result.content_types %}<span style="margin-right: 15px;">{{ ctype}}</span>{% endfor %}
             </span>

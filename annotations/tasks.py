@@ -278,3 +278,46 @@ def handle_file_upload(request, form):
     if file_content != None:
         tokenized_content = tokenize(file_content)
         return save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri)
+
+
+def import_appellation(request, project_id):
+    text_collection = TextCollection.objects.get(id = project_id)
+    if request.method == 'POST' and request.user == text_collection.ownedBy:
+        csv_file = request.FILES['csv_file']
+        csv_reader = csv.reader(csv_file, encoding='utf-8')
+        csv_reader.next()
+        for row in csv_reader:
+            try:
+                parent = Text.objects.get(uri=row[3])
+                text = Text.objects.get(part_of_id=parent.id)
+                occur = text
+            except:
+                url = "https://amphora.asu.edu/amphora/resource/get?uri=" + row[3] + "&format=json"
+                text_request = requests.get(url, headers=auth.jars_github_auth(request.user))
+                text_json = text_request.json()
+                found = False
+                while found == False:
+                    for content in text_json['content']:
+                        if content['content_resource']['content_type'] == 'text/plain':
+                            text_content = content['content_resource']['id']
+                            found = True
+                add_text_to_project(request, 1, text_json['id'],project_id)
+                text = Text.objects.get(uri=row[3])
+                repository_text_content(request, 1, text_json['id'], text_content)
+                occur = Text.objects.get(part_of_id=text.id)
+            pos = DocumentPosition.objects.create(
+                position_type = 'CO',
+                position_value = ",".join([row[1], row[2]]),
+                occursIn = occur,
+            )   
+
+            Appellation.objects.create( 
+                stringRep = row[0],
+                startPos = row[1],
+                endPos = row[2],
+                createdBy = request.user,
+                occursIn = occur,
+                project_id = project_id,
+                interpretation = Concept.objects.get(id=row[4]),
+                position_id = pos.id
+            )
