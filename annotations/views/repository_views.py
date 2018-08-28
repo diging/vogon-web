@@ -110,7 +110,7 @@ def repository_collection(request, repository_id, collection_id):
         'collection_id': collection_id,
         'title': 'Browse collections in %s' % repository.name,
         'project_id': project_id,
-        'resources': [resource for resource in resources if resource['url'] is not None],
+        'resources': [resource for resource in resources if resource['url']],
         'subcollections': collection.get('subcollections', [])
     }
     previous_page, next_page = _get_pagination(collection, base_url, base_params)
