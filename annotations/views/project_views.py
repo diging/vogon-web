@@ -15,19 +15,12 @@ from django.core.files.storage import FileSystemStorage
 from annotations.models import TextCollection, RelationSet, Appellation, Text, DocumentPosition
 from annotations.forms import ProjectForm, ImportForm
 from concepts.models import Concept
-import io
 import requests
 import unicodecsv as csv_unicode
-import csv
 from repository_views import repository_text_content
 from repository import auth
 from repository.models import Repository
 from repository.managers import RepositoryManager
-import tempfile
-import os
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-import datetime
 from annotations.tasks import process_import_task
 
 def view_project(request, project_id):
