@@ -138,7 +138,7 @@ var ConceptSearch = {
                 payload['pos'] = this.pos;
             }
             if (this.force) {
-                payload['force'] = 'force';
+                payload['force'] = this.force;
             }
             Concept.search(payload).then(function(response) {
                 self.concepts = response.body.results;

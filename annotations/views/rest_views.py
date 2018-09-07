@@ -106,7 +106,6 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
-        print request.data
         data = request.data.copy()
         position = data.pop('position', None)
         if 'month' in data and data['month'] is None:
@@ -215,7 +214,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
         try:
             serializer.is_valid(raise_exception=True)
-            print 'asdfasdfasdf'
         except Exception as E:
             print serializer.errors
             raise E
@@ -484,12 +482,13 @@ class ConceptViewSet(viewsets.ModelViewSet):
     @list_route()
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
-        if cache.get(q.lower()) != None:
-            results = cache.get(q.lower())
-            print('Yes')
-        else:
-            if not q:
+        if not q:
                 return Response({'results': []})
+        force = request.GET.get('force')
+
+        if cache.get(q.lower()) and q and force == None: # If force is true we want to run the query from scratch and not use the cached results
+            results = cache.get(q.lower())
+        else:
             pos = request.GET.get('pos', None)
             concepts = goat.Concept.search(q=q, pos=pos, limit=50)
 
@@ -558,8 +557,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         elif viaf:
                             _parseViaf(self, concept, new_concepts)
                     result["identities"] = new_concepts # add the concept data back to the identities list
-            cache.set(q.lower(), results, 60*60*24*14) # two weeks in seconds
-            print('No')
+            cache.set(q.lower(), results, settings.SET_CACHE_TIME) # two weeks in seconds
 
         return Response({'results': results})
 
