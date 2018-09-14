@@ -14,6 +14,9 @@ from django.utils import timezone
 from itertools import groupby, chain
 from collections import defaultdict
 
+import unicodecsv as csv_unicode
+import csv
+
 from annotations.models import *
 from annotations import quadriga
 
@@ -24,6 +27,9 @@ import logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
+
+
+
 
 
 
@@ -170,6 +176,28 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
         group = Group.objects.get_or_create(name='Public')[0]
     return text
 
+@shared_task
+def process_import_task(user, occur, project_id ,data):
+    csv_file = csv_unicode.reader(data)
+    csv_file.next()
+    for row in csv_file:
+        #TODO this part should go in a task
+        pos = DocumentPosition.objects.create(
+            position_type = 'CO',
+            position_value = ",".join([row[1], row[2]]),
+            occursIn = occur,
+        )
+
+        Appellation.objects.create(
+            stringRep = row[0],
+            startPos = row[1],
+            endPos = row[2],
+            createdBy = user,
+            occursIn = occur,
+            project_id = project_id,
+            interpretation = Concept.objects.get(id=row[4]),
+            position_id = pos.id
+        )
 
 @shared_task
 def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
@@ -278,3 +306,5 @@ def handle_file_upload(request, form):
     if file_content != None:
         tokenized_content = tokenize(file_content)
         return save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri)
+
+

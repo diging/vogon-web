@@ -90,7 +90,6 @@ def repository_collections(request, repository_id):
 @login_required
 def repository_collection(request, repository_id, collection_id):
     params = _get_params(request)
-
     repository = get_object_or_404(Repository, pk=repository_id)
     manager = RepositoryManager(repository.configuration, user=request.user)
     try:
@@ -241,7 +240,6 @@ def repository_list(request):
 @login_required
 def repository_text(request, repository_id, text_id):
     from collections import defaultdict
-
     project_id = request.GET.get('project_id')
     if project_id:
         project = TextCollection.objects.get(pk=project_id)
@@ -288,7 +286,6 @@ def repository_text(request, repository_id, text_id):
 
 @login_required
 def repository_text_content(request, repository_id, text_id, content_id):
-
     repository = get_object_or_404(Repository, pk=repository_id)
 
     manager = RepositoryManager(repository.configuration, user=request.user)
@@ -371,7 +368,6 @@ def repository_text_add_to_project(request, repository_id, text_id, project_id):
     project = get_object_or_404(TextCollection, pk=project_id)
 
     manager = RepositoryManager(repository.configuration, user=request.user)
-
     try:
         resource = manager.resource(id=int(text_id))
     except IOError:

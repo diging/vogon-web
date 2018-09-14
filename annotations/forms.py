@@ -493,3 +493,6 @@ class MySplitDateTimeWidget(forms.widgets.SplitDateTimeWidget):
 
 class RepositorySearchForm(forms.Form):
     query = forms.CharField(max_length=255, widget=widgets.TextInput(attrs={'class': 'form-control'}))
+
+class ImportForm(forms.Form):
+    path = forms.CharField(required=False)

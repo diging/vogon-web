@@ -24,6 +24,9 @@
                     href="{% url "edit_project" project.id %}">
                     <span class="gylphicon glyphicon-pencil"></span> Edit Project
                 </a>
+                <a class="btn btn-sm btn-info" href="{% url 'import' project_id=project.id %}">
+                <span class="gylphicon glyphicon-pencil"></span> Import Appellations
+                </a>
             </span>
             {% endif %}
         </div>
@@ -99,5 +102,4 @@
     {% include "annotations/relations_list_fragment.html" %}
     {% endif %}
 </div>
-
 {% endblock %}
