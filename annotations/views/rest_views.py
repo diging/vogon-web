@@ -524,9 +524,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 root = tree.getroot()
                 namespace = {'hps': 'http://www.digitalhps.org/'} 
 
-                for entry in root.findall('hps:conceptEntry', namespace):
-                    description = entry.find('hps:description', namespace)
-                    name = entry.find('hps:lemma', namespace)
+                entry = root.find('hps:conceptEntry', namespace)
+                description = entry.find('hps:description', namespace)
+                name = entry.find('hps:lemma', namespace)
 
                 dic = {
                     'label':  name.text,

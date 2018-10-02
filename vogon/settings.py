@@ -263,3 +263,5 @@ SUBMIT_WAIT_TIME = {
         'hours': 0,
         'minutes': 0
         }
+
+SET_CACHE_TIME =  60*60*24 # 1 day in seconds
