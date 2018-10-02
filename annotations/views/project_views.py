@@ -16,12 +16,19 @@ from annotations.models import TextCollection, RelationSet, Appellation, Text, D
 from annotations.forms import ProjectForm, ImportForm
 from concepts.models import Concept
 import requests
-import unicodecsv as csv_unicode
+
+import datetime
+import os
+import csv
 from repository_views import repository_text_content
 from repository import auth
 from repository.models import Repository
 from repository.managers import RepositoryManager
-from annotations.tasks import process_import_task
+#from annotations.tasks import process_import_task
+import tempfile
+import unicodecsv as csv_unicode
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 def view_project(request, project_id):
     """
@@ -214,36 +221,21 @@ def import_appellation(request, project_id):
     text_collection = TextCollection.objects.get(id = project_id)
     if request.method == 'POST' and request.user == text_collection.ownedBy:
         data = request.FILES['csv_file']
-        # Create Temp File.
+        # read csv file
         csv_file = csv_unicode.reader(data)
-        #Skip header
-        csv_file.next()
-        #Store url so we can skip making the request to fetch the json if the urls are the same
-        stored_url = ''
-        for row in csv_file:
-            try:
-                parent = Text.objects.get(uri=row[3])
-                text = Text.objects.get(part_of_id=parent.id)
-                occur = text
-            except:
-                # Only make the request and get the json if the url has changed.
-                url = settings.AMPHORA_RESOURCE_URL + row[3] + "&format=json"
-                if stored_url != url:
-                    stored_url = url
-                    text_request = requests.get(url, headers=auth.jars_github_auth(request.user))
-                    text_json = text_request.json()
-                    #find the first text in content
-                    for content in text_json['content']:
-                        if content['content_resource']['content_type'] == 'text/plain':
-                            text_content = content['content_resource']['id']
-                            # Save time and stop the iteration
-                            break
-                add_text_to_project(request, 1, text_json['id'],project_id)
-                repository_text_content(request, 1, text_json['id'], text_content)
-                text = Text.objects.get(uri=row[3])
-                occur = Text.objects.get(part_of_id=text.id)
-
+        # Create Temp File.
+        name = 'tmp/'+ request.user.username + '_' + str(datetime.datetime.now())+'.csv'
+        path = default_storage.save(name, ContentFile(data.read()))
+        tmp_file = os.path.join(settings.MEDIA_ROOT, path)
+        # write csv contents to temp file
+        with open(tmp_file, 'w') as f:
+            writer = csv.writer(f)
+            for row in csv_file:
+                try:
+                    writer.writerow(row)
+                except Exception as e:
+                    print ('Error in writing row:',e)
         user = request.user
-        import_task = process_import_task.delay(user, occur, project_id, data)
+        #import_task = process_import_task.delay(request, user, project_id, tmp_file)
     return render(request, 'annotations/appellation_upload.html', context)
 

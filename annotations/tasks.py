@@ -8,6 +8,7 @@ from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
 
+from repository import auth
 import requests, uuid, re
 from datetime import datetime, timedelta
 from django.utils import timezone
@@ -20,14 +21,14 @@ import csv
 from annotations.models import *
 from annotations import quadriga
 
-from celery import shared_task
+from celery import shared_task 
 
 from django.conf import settings
 import logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
-
+from annotations.views.repository_views import repository_text_content
 
 
 
@@ -176,28 +177,7 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
         group = Group.objects.get_or_create(name='Public')[0]
     return text
 
-@shared_task
-def process_import_task(user, occur, project_id ,data):
-    csv_file = csv_unicode.reader(data)
-    csv_file.next()
-    for row in csv_file:
-        #TODO this part should go in a task
-        pos = DocumentPosition.objects.create(
-            position_type = 'CO',
-            position_value = ",".join([row[1], row[2]]),
-            occursIn = occur,
-        )
 
-        Appellation.objects.create(
-            stringRep = row[0],
-            startPos = row[1],
-            endPos = row[2],
-            createdBy = user,
-            occursIn = occur,
-            project_id = project_id,
-            interpretation = Concept.objects.get(id=row[4]),
-            position_id = pos.id
-        )
 
 @shared_task
 def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
@@ -308,3 +288,51 @@ def handle_file_upload(request, form):
         return save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri)
 
 
+
+
+
+
+@shared_task
+def process_import_task(request, user, project_id ,data):
+    csv_file = csv_unicode.reader(data)
+    csv_file.next()
+    for row in csv_file:
+        # Store url so we can skip making the request to fetch the json if the urls are the same
+        stored_url = ''
+        try:
+            parent = Text.objects.get(uri=row[3])
+            text = Text.objects.get(part_of_id=parent.id)
+            occur = text
+        except:
+            # Only make the request and get the json if the url has changed.
+            url = settings.AMPHORA_RESOURCE_URL + row[3] + "&format=json"
+            if stored_url != url:
+                stored_url = url
+                text_request = requests.get(url, headers=auth.jars_github_auth(request.user))
+                text_json = text_request.json()
+                #find the first text in content
+                for content in text_json['content']:
+                    if content['content_resource']['content_type'] == 'text/plain':
+                        text_content = content['content_resource']['id']
+                        # Save time and stop the iteration
+                        break
+            add_text_to_project(request, 1, text_json['id'],project_id)
+            repository_text_content(request, 1, text_json['id'], text_content)
+            text = Text.objects.get(uri=row[3])
+            occur = Text.objects.get(part_of_id=text.id)
+        pos = DocumentPosition.objects.create(
+            position_type = 'CO',
+            position_value = ",".join([row[1], row[2]]),
+            occursIn = occur,
+        )
+
+        Appellation.objects.create(
+            stringRep = row[0],
+            startPos = row[1],
+            endPos = row[2],
+            createdBy = user,
+            occursIn = occur,
+            project_id = project_id,
+            interpretation = Concept.objects.get(id=row[4]),
+            position_id = pos.id
+        )
