@@ -483,10 +483,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
         if not q:
-                return Response({'results': []})
-        force = request.GET.get('force')
+            return Response({'results': []})
+        force = request.GET.get('force', False)
 
-        if cache.get(q.lower()) and q and force == None: # If force is true we want to run the query from scratch and not use the cached results
+        if cache.get(q and q.lower()) and not force: # If force is true we want to run the query from scratch and not use the cached results
             results = cache.get(q.lower())
         else:
             pos = request.GET.get('pos', None)
@@ -499,7 +499,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                     'identifier': 'uri'
                 }
 
-                return {_fields.get(k, k): v for k, v in datum.iteritems() }
+                return { _fields.get(k, k): v for k, v in datum.iteritems() }
             results = map(_relabel, [c.data for c in concepts])
 
             def _parseViaf(self, uri, new_concepts):
@@ -508,12 +508,11 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 root = tree.getroot()
                 namespace = {'foaf': 'http://xmlns.com/foaf/0.1/', 'ns1': 'http://viaf.org/viaf/terms#', 'owl': 'http://www.w3.org/2002/07/owl#', 'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#', 'void': 'http://rdfs.org/ns/void#'}
                 find = e.XPath("//ns1:text", namespaces = namespace)
-                concept_name = find(root)[0].text
-                concept_description = find(root)[0].text
+
 
                 dic = {
-                    'label': concept_name,
-                    'desc': concept_description,
+                    'label': find(root)[0].text,
+                    'desc':  find(root)[0].text,
                     'uri': uri,
                     'auth': "VIAF"}
                 new_concepts.append(dic)
@@ -528,12 +527,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 for entry in root.findall('hps:conceptEntry', namespace):
                     description = entry.find('hps:description', namespace)
                     name = entry.find('hps:lemma', namespace)
-                    concept_description = description.text
-                    concept_name = name.text
 
                 dic = {
-                    'label': concept_name,
-                    'desc': concept_description,
+                    'label':  name.text,
+                    'desc': description.text,
                     'uri': uri,
                     'auth': "Concept Power"}
                 new_concepts.append(dic)
@@ -557,7 +554,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         elif viaf:
                             _parseViaf(self, concept, new_concepts)
                     result["identities"] = new_concepts # add the concept data back to the identities list
-            cache.set(q.lower(), results, settings.SET_CACHE_TIME) # two weeks in seconds
+            cache.set(q.lower(), results, settings.SET_CACHE_TIME)
 
         return Response({'results': results})
 
