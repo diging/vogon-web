@@ -9,7 +9,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
-from django.conf import settings
+from django.conf import settings 
 from django.db.models import Q, Count
 from django.core.files.storage import FileSystemStorage
 from annotations.models import TextCollection, RelationSet, Appellation, Text, DocumentPosition
@@ -24,11 +24,12 @@ from repository_views import repository_text_content
 from repository import auth
 from repository.models import Repository
 from repository.managers import RepositoryManager
-#from annotations.tasks import process_import_task
 import tempfile
 import unicodecsv as csv_unicode
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from annotations.tasks import process_import_task
+
 
 def view_project(request, project_id):
     """
@@ -195,25 +196,6 @@ def list_projects(request):
     }
     return render(request, template, context)
 
-def add_text_to_project(request, repository_id, text_id, project_id):
-        repository = get_object_or_404(Repository, pk=repository_id)
-        project = get_object_or_404(TextCollection, pk=project_id)
-
-        manager = RepositoryManager(repository.configuration, user=request.user)
-        try:
-            resource = manager.resource(id=int(text_id))
-        except IOError:
-            return render(request, 'annotations/repository_ioerror.html', {}, status=500)
-        defaults = {
-            'title': resource.get('title'),
-            'created': resource.get('created'),
-            'repository': repository,
-            'repository_source_id': text_id,
-            'addedBy': request.user,
-        }
-        text, _ = Text.objects.get_or_create(uri=resource.get('uri'),  defaults=defaults)
-        project.texts.add(text)
-
 
 @login_required
 def import_appellation(request, project_id):
@@ -225,17 +207,25 @@ def import_appellation(request, project_id):
         csv_file = csv_unicode.reader(data)
         # Create Temp File.
         name = 'tmp/'+ request.user.username + '_' + str(datetime.datetime.now())+'.csv'
-        path = default_storage.save(name, ContentFile(data.read()))
-        tmp_file = os.path.join(settings.MEDIA_ROOT, path)
+        
+        
+        #path = os.path.join(settings.MEDIA_ROOT, name)
+        #path = default_storage.save(path, ContentFile('new content'))
+        tmp_file = default_storage.save(name, ContentFile(data.read()))
         # write csv contents to temp file
         with open(tmp_file, 'w') as f:
             writer = csv.writer(f)
             for row in csv_file:
+                print(row)
                 try:
                     writer.writerow(row)
                 except Exception as e:
                     print ('Error in writing row:',e)
         user = request.user
-        #import_task = process_import_task.delay(request, user, project_id, tmp_file)
+        part_of_id = request.GET.get('part_of')
+        action = request.GET.get('action', 'annotate')
+        import_task = process_import_task.delay(user, project_id, tmp_file, part_of_id, action)
+        return render(request, 'annotations/upload_status.html', context)
+        #os.remove(tmp_file)
     return render(request, 'annotations/appellation_upload.html', context)
 

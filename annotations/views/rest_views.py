@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
+from celery.task.control import inspect
 
 from annotations.serializers import *
 from annotations.models import *
@@ -541,3 +542,14 @@ def concept_search(request):
     q = request.get('search', None)
     pos = self.request.query_params.get('pos', None)
     return goat.Concept.search(q=q, pos=pos)
+
+
+def upload_status(request):
+    i = inspect()
+    scheduled = i.scheduled()
+    active = i.active()
+    data = {
+        'scheduled': scheduled,
+        'active': active
+    }
+    return Response({'data': data})

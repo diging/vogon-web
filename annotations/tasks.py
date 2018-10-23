@@ -7,6 +7,9 @@ from __future__ import absolute_import
 from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
 from django.contrib.contenttypes.models import ContentType
+from django.core.files.storage import default_storage
+
+
 
 from repository import auth
 import requests, uuid, re
@@ -21,6 +24,8 @@ import csv
 from annotations.models import *
 from annotations import quadriga
 
+from annotations.text_upload import repository_text_content, add_text_to_project
+
 from celery import shared_task 
 
 from django.conf import settings
@@ -28,7 +33,6 @@ import logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
-from annotations.views.repository_views import repository_text_content
 
 
 
@@ -293,46 +297,51 @@ def handle_file_upload(request, form):
 
 
 @shared_task
-def process_import_task(request, user, project_id ,data):
-    csv_file = csv_unicode.reader(data)
-    csv_file.next()
-    for row in csv_file:
-        # Store url so we can skip making the request to fetch the json if the urls are the same
-        stored_url = ''
-        try:
-            parent = Text.objects.get(uri=row[3])
-            text = Text.objects.get(part_of_id=parent.id)
-            occur = text
-        except:
-            # Only make the request and get the json if the url has changed.
-            url = settings.AMPHORA_RESOURCE_URL + row[3] + "&format=json"
-            if stored_url != url:
-                stored_url = url
-                text_request = requests.get(url, headers=auth.jars_github_auth(request.user))
-                text_json = text_request.json()
-                #find the first text in content
-                for content in text_json['content']:
-                    if content['content_resource']['content_type'] == 'text/plain':
-                        text_content = content['content_resource']['id']
-                        # Save time and stop the iteration
-                        break
-            add_text_to_project(request, 1, text_json['id'],project_id)
-            repository_text_content(request, 1, text_json['id'], text_content)
-            text = Text.objects.get(uri=row[3])
-            occur = Text.objects.get(part_of_id=text.id)
-        pos = DocumentPosition.objects.create(
-            position_type = 'CO',
-            position_value = ",".join([row[1], row[2]]),
-            occursIn = occur,
-        )
+def process_import_task(user, project_id ,file, part_of_id, action):
+    with open(file, 'r') as f:
+        csv_file = csv.reader(f)
+        logger.debug("CSV: %s", csv_file)
+        csv_file.next()
+        for row in csv_file:
+            logger.debug("row: %s", row)
+            # Store url so we can skip making the request to fetch the json if the urls are the same
+            stored_url = ''
+            try:
+                parent = Text.objects.get(uri=row[3])
+                text = Text.objects.get(part_of_id=parent.id)
+                occur = text
+            except:
+                # Only make the request and get the json if the url has changed.
+                url = settings.AMPHORA_RESOURCE_URL + row[3] + "&format=json"
+                if stored_url != url:
+                    stored_url = url
+                    text_request = requests.get(url, headers=auth.jars_github_auth(user))
+                    text_json = text_request.json()
+                    logger.debug("id: %s", text_json['id'])
+                    #find the first text in content
+                    for content in text_json['content']:
+                        if content['content_resource']['content_type'] == 'text/plain':
+                            text_content = content['content_resource']['id']
+                            # Save time and stop the iteration
+                            break
+                add_text_to_project(user, 1, text_json['id'],project_id)
+                repository_text_content(user, 1, text_json['id'], text_content, part_of_id, action, project_id)
+                text = Text.objects.get(uri=row[3])
+                occur = Text.objects.get(part_of_id=text.id)
+            pos = DocumentPosition.objects.create(
+                position_type = 'CO',
+                position_value = ",".join([row[1], row[2]]),
+                occursIn = occur,
+            )
 
-        Appellation.objects.create(
-            stringRep = row[0],
-            startPos = row[1],
-            endPos = row[2],
-            createdBy = user,
-            occursIn = occur,
-            project_id = project_id,
-            interpretation = Concept.objects.get(id=row[4]),
-            position_id = pos.id
-        )
+            Appellation.objects.create(
+                stringRep = row[0],
+                startPos = row[1],
+                endPos = row[2],
+                createdBy = user,
+                occursIn = occur,
+                project_id = project_id,
+                interpretation = Concept.objects.get(id=row[4]),
+                position_id = pos.id
+            )
+    default_storage.delete(file)

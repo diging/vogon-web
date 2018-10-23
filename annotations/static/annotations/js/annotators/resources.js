@@ -14,3 +14,4 @@ var RelationTemplateResource = Vue.resource(BASE_URL + '/relationtemplate{/id}/'
     create: {method: 'POST', url: BASE_URL + '/relationtemplate{/id}/create/'}
 });
 var ConceptType = Vue.resource(BASE_URL + '/rest/type{/id}');
+var UploadStatus = Vue.resource(BASE_URL + '/upload/status/');

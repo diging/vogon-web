@@ -1,0 +1,47 @@
+{% extends "annotations/base.html" %}
+{% load staticfiles %}
+
+<!-- <html>
+    <head> -->
+        {% block extrahead %}
+
+        <script src="{% static "annotations/js/vue.min.js" %}"></script>
+        <script src="{% static "annotations/js/tiny-cookie.min.js" %}"></script>
+
+        <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
+        <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
+        <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
+        <link rel="stylesheet" href="{% static "annotations/css/annotators/text.css" %}">
+        {% endblock %}
+    <!-- </head> -->
+    {% block main %}
+    <body>
+            <div id="app">
+               <h1>${ message }</h1>
+            </div>
+
+          <script src="https://unpkg.com/tether"></script>
+          <script src="https://unpkg.com/tether-drop"></script>
+          <script src="https://unpkg.com/tether-tooltip"></script>
+          <script src="{% static "annotations/js/v-tooltip.browser.js" %}"></script>
+          <script>
+          var app = new Vue({
+            el: '#app',
+            delimiters: ['${', '}'],
+            data: {
+              message: 'Hello Vue!'
+            },
+            created() {
+                UploadStatus.get().then(function(response) {
+                    console.log(repsonse)
+                }).catch(function(error) {
+                    console.log('Failed to get relationtemplates', error);
+                    self.searching = false;
+                });
+            }
+          })
+        </script>
+        <script src="{% static "annotations/js/annotators/resources.js" %}"></script>
+    </body>
+    {% endblock %}
+<!-- </html> -->
