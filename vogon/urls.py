@@ -136,5 +136,9 @@ urlpatterns = [
 
 
     url(r'^sandbox/(?P<text_id>[0-9]+)/$', conceptViews.sandbox, name='sandbox'),
+    
+    url(r'^upload/status/$', views.project_views.upload_status, name='status'),
+    url(r'^ajax/upload/status/$', views.rest_views.upload_status, name='ajax_upload_status'),
+
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

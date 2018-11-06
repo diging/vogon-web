@@ -7,6 +7,7 @@ from django.conf import settings
 
 from rest_framework import status
 from rest_framework.settings import api_settings
+from rest_framework.decorators import api_view
 
 from rest_framework import viewsets, exceptions, status
 from rest_framework.authentication import SessionAuthentication
@@ -23,7 +24,11 @@ from annotations.models import *
 from concepts.models import Concept, Type
 from concepts.lifecycle import *
 
+from celery.result import AsyncResult
+
 import uuid
+
+
 
 import goat
 goat.GOAT = settings.GOAT
@@ -543,13 +548,11 @@ def concept_search(request):
     pos = self.request.query_params.get('pos', None)
     return goat.Concept.search(q=q, pos=pos)
 
-
+@api_view(('GET',))
 def upload_status(request):
-    i = inspect()
-    scheduled = i.scheduled()
-    active = i.active()
-    data = {
-        'scheduled': scheduled,
-        'active': active
-    }
-    return Response({'data': data})
+    context = {}
+    tasks = ImportTasks.objects.filter(user=request.user).order_by('-created')
+    for task in tasks:
+        res = AsyncResult(task.task_id)
+        context[task.file_name] = res.status
+    return Response({'data': context})

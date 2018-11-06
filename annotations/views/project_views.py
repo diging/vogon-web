@@ -2,7 +2,7 @@
 Provides project (:class:`.TextCollection`) -related views.
 """
 
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -12,7 +12,7 @@ from django.contrib.auth import login, authenticate
 from django.conf import settings 
 from django.db.models import Q, Count
 from django.core.files.storage import FileSystemStorage
-from annotations.models import TextCollection, RelationSet, Appellation, Text, DocumentPosition
+from annotations.models import TextCollection, RelationSet, Appellation, Text, DocumentPosition, ImportTasks
 from annotations.forms import ProjectForm, ImportForm
 from concepts.models import Concept
 import requests
@@ -207,16 +207,11 @@ def import_appellation(request, project_id):
         csv_file = csv_unicode.reader(data)
         # Create Temp File.
         name = 'tmp/'+ request.user.username + '_' + str(datetime.datetime.now())+'.csv'
-        
-        
-        #path = os.path.join(settings.MEDIA_ROOT, name)
-        #path = default_storage.save(path, ContentFile('new content'))
         tmp_file = default_storage.save(name, ContentFile(data.read()))
         # write csv contents to temp file
         with open(tmp_file, 'w') as f:
             writer = csv.writer(f)
             for row in csv_file:
-                print(row)
                 try:
                     writer.writerow(row)
                 except Exception as e:
@@ -224,8 +219,16 @@ def import_appellation(request, project_id):
         user = request.user
         part_of_id = request.GET.get('part_of')
         action = request.GET.get('action', 'annotate')
+       
         import_task = process_import_task.delay(user, project_id, tmp_file, part_of_id, action)
-        return render(request, 'annotations/upload_status.html', context)
-        #os.remove(tmp_file)
+        ImportTasks.objects.create(
+            user = request.user,
+            task_id = import_task.id,
+            file_name = data._name
+        )
+        return redirect('status')
     return render(request, 'annotations/appellation_upload.html', context)
 
+@login_required
+def upload_status(request):
+    return render(request, 'annotations/upload_status.html')

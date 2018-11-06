@@ -1142,3 +1142,13 @@ class DocumentPosition(models.Model):
     If :attr:`.position_type` is :attr:`.WHOLE_DOCUMENT`\, then this can be
     blank.
     """
+
+class ImportTasks(models.Model):
+    """
+    Records the event that a set of :class:`.RelationSet`\s are accessioned to
+    Quadriga.
+    """
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey('VogonUser')
+    task_id = models.CharField(max_length=255, blank=False, null=False)
+    file_name = models.CharField(max_length=255, blank=False, null=False)

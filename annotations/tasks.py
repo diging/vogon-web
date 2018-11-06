@@ -300,10 +300,8 @@ def handle_file_upload(request, form):
 def process_import_task(user, project_id ,file, part_of_id, action):
     with open(file, 'r') as f:
         csv_file = csv.reader(f)
-        logger.debug("CSV: %s", csv_file)
         csv_file.next()
         for row in csv_file:
-            logger.debug("row: %s", row)
             # Store url so we can skip making the request to fetch the json if the urls are the same
             stored_url = ''
             try:
@@ -317,7 +315,6 @@ def process_import_task(user, project_id ,file, part_of_id, action):
                     stored_url = url
                     text_request = requests.get(url, headers=auth.jars_github_auth(user))
                     text_json = text_request.json()
-                    logger.debug("id: %s", text_json['id'])
                     #find the first text in content
                     for content in text_json['content']:
                         if content['content_resource']['content_type'] == 'text/plain':
