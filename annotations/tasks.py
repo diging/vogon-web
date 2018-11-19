@@ -29,7 +29,10 @@ from annotations.text_upload import repository_text_content, add_text_to_project
 from celery import shared_task 
 
 from django.conf import settings
+
 import logging
+from itertools import tee
+
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
@@ -297,11 +300,21 @@ def handle_file_upload(request, form):
 
 
 @shared_task
-def process_import_task(user, project_id ,file, part_of_id, action):
+def process_import_task(user, project_id ,file, part_of_id, action, name):
     with open(file, 'r') as f:
         csv_file = csv.reader(f)
-        csv_file.next()
-        for row in csv_file:
+        reader1, reader2 = tee(csv_file)
+        reader1.next()
+        reader2.next()
+        total_count = len(list(reader2))
+        count = 0
+        task = ImportTasks.objects.create(
+            user = user,
+            file_name = name,
+            total_rows = int(total_count)
+        )
+        for row in reader1:
+            #print("{} out of {}".format(count, total_count))
             # Store url so we can skip making the request to fetch the json if the urls are the same
             stored_url = ''
             try:
@@ -314,6 +327,7 @@ def process_import_task(user, project_id ,file, part_of_id, action):
                 if stored_url != url:
                     stored_url = url
                     text_request = requests.get(url, headers=auth.jars_github_auth(user))
+                    print(auth.jars_github_auth(user))
                     text_json = text_request.json()
                     #find the first text in content
                     for content in text_json['content']:
@@ -341,4 +355,7 @@ def process_import_task(user, project_id ,file, part_of_id, action):
                 interpretation = Concept.objects.get(id=row[4]),
                 position_id = pos.id
             )
+            count = count + 1
+            task.c_row = c_row = int(count)
+            task.save()
     default_storage.delete(file)

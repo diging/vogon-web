@@ -552,7 +552,8 @@ def concept_search(request):
 def upload_status(request):
     context = {}
     tasks = ImportTasks.objects.filter(user=request.user).order_by('-created')
-    for task in tasks:
-        res = AsyncResult(task.task_id)
-        context[task.file_name] = res.status
-    return Response({'data': context})
+    serializer = TasksSerializer(tasks, many=True)
+    # for task in tasks:
+    #     res = AsyncResult(task.task_id)
+    #     context[task.file_name] = res.status
+    return Response(serializer.data)

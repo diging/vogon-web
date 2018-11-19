@@ -1150,5 +1150,7 @@ class ImportTasks(models.Model):
     """
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey('VogonUser')
-    task_id = models.CharField(max_length=255, blank=False, null=False)
+    task_id = models.CharField(max_length=255, blank=True, null=True)
     file_name = models.CharField(max_length=255, blank=False, null=False)
+    total_rows = models.IntegerField(blank=True, null=True)
+    c_row = models.IntegerField(blank=True, null=True)

@@ -136,3 +136,8 @@ class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextCollection
         fields = '__all__'
+
+class TasksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImportTasks
+        fields = '__all__'

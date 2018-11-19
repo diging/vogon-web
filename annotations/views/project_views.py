@@ -219,13 +219,8 @@ def import_appellation(request, project_id):
         user = request.user
         part_of_id = request.GET.get('part_of')
         action = request.GET.get('action', 'annotate')
-       
-        import_task = process_import_task.delay(user, project_id, tmp_file, part_of_id, action)
-        ImportTasks.objects.create(
-            user = request.user,
-            task_id = import_task.id,
-            file_name = data._name
-        )
+        f_name = data._name
+        import_task = process_import_task.delay(user, project_id, tmp_file, part_of_id, action, f_name)
         return redirect('status')
     return render(request, 'annotations/appellation_upload.html', context)
 

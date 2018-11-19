@@ -28,7 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('SECRET_KEY', 'secretsecret')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = eval(os.environ.get('DEBUG', 'True'))
+DEBUG = eval(os.environ.get('DEBUG', 'False'))
 
 ALLOWED_HOSTS = ['*']
 
@@ -264,4 +264,4 @@ SUBMIT_WAIT_TIME = {
         'minutes': 0
         }
 
-AMPHORA_RESOURCE_URL = "https://amphora.asu.edu/amphora/resource/get?uri="
+AMPHORA_RESOURCE_URL = "https://amphora.asu.edu/amphora/resource/get/?uri="
