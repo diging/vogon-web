@@ -303,6 +303,7 @@ def handle_file_upload(request, form):
 def process_import_task(user, project_id ,file, part_of_id, action, name):
     with open(file, 'r') as f:
         csv_file = csv.reader(f)
+        # there isn't a good way to reset the iterator so we tee them up
         reader1, reader2 = tee(csv_file)
         reader1.next()
         reader2.next()
@@ -314,7 +315,6 @@ def process_import_task(user, project_id ,file, part_of_id, action, name):
             total_rows = int(total_count)
         )
         for row in reader1:
-            #print("{} out of {}".format(count, total_count))
             # Store url so we can skip making the request to fetch the json if the urls are the same
             stored_url = ''
             try:
@@ -356,6 +356,6 @@ def process_import_task(user, project_id ,file, part_of_id, action, name):
                 position_id = pos.id
             )
             count = count + 1
-            task.c_row = c_row = int(count)
+            task.c_row = int(count)
             task.save()
     default_storage.delete(file)
