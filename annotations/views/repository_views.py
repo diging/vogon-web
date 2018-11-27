@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, render
 from django.db.models import Q
 
 from annotations.forms import RepositorySearchForm
-from annotations.tasks import tokenize
+from annotations.utils import tokenize
 from repository.models import Repository
 from repository.auth import *
 from repository.managers import *

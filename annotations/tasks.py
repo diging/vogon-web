@@ -23,7 +23,7 @@ import csv
 
 from annotations.models import *
 from annotations import quadriga
-
+from annotations.amphora_utils import retrieve_amphora_text
 from annotations.text_upload import repository_text_content, add_text_to_project
 
 from celery import shared_task 
@@ -37,25 +37,6 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
 
-
-def tokenize(content, delimiter=u' '):
-    """
-    In order to annotate a text, we must first wrap "annotatable" tokens
-    in <word></word> tags, with arbitrary IDs.
-
-    Parameters
-    ----------
-    content : unicode
-    delimiter : unicode
-        Character or sequence by which to split and join tokens.
-
-    Returns
-    -------
-    tokenizedContent : unicode
-    """
-    chunks = content.split(delimiter)
-    pattern = u'<word id="{0}">{1}</word>'
-    return delimiter.join([pattern.format(i, c) for i, c in enumerate(chunks)])
 
 
 def retrieve(repository, resource):
@@ -246,7 +227,6 @@ def accession_ready_relationsets():
         #  involve concepts that are not resolved.
         qs = filter(lambda o: o.ready(), qs)
         relationsets = defaultdict(lambda: defaultdict(list))
-
         for relationset in qs:
             timeCreated = relationset.created
             if timeCreated + timedelta(days=settings.SUBMIT_WAIT_TIME['days'], hours=settings.SUBMIT_WAIT_TIME['hours'], minutes=settings.SUBMIT_WAIT_TIME['minutes']) < datetime.now(timezone.utc):
@@ -321,16 +301,17 @@ def process_import_task(user, project_id ,file, part_of_id, name):
                     url = settings.AMPHORA_RESOURCE_URL + row["Occurs"] + "&format=json"
                     if stored_url != url:
                         stored_url = url
-                        text_request = requests.get(url, headers=auth.jars_github_auth(user))
-                        text_json = text_request.json()
-                        #find the first text in content
-                        for content in text_json['content']:
-                            if content['content_resource']['content_type'] == 'text/plain':
-                                text_content = content['content_resource']['id']
-                                # Save time and stop the iteration
-                                break
-                    add_text_to_project(user, 1, text_json['id'],project_id)
-                    repository_text_content(user, 1, text_json['id'], text_content, part_of_id, project_id)
+                        text_json, text_content = retrieve_amphora_text(url, user)
+                    add_text = add_text_to_project(user, 1, text_json['id'],project_id)
+                    repo_text_content = repository_text_content(user, 1, text_json['id'], text_content, part_of_id, project_id)
+                    if add_text or repo_text_content is False:
+                        task = ImportTasks.objects.create(
+                                user = user,
+                                file_name = name,
+                                failed = True
+                            )
+                        task.save()
+                        break
                     text = Text.objects.get(uri=row["Occurs"])
                     occur = Text.objects.get(part_of_id=text.id)
                 pos = DocumentPosition.objects.create(
@@ -338,7 +319,6 @@ def process_import_task(user, project_id ,file, part_of_id, name):
                     position_value = ",".join([row["Start"], row["End"]]),
                     occursIn = occur,
                 )
-
                 Appellation.objects.create(
                     stringRep = row["Segment"],
                     startPos = row["Start"],

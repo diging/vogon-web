@@ -5,6 +5,7 @@ from repository.managers import RepositoryManager
 from django.shortcuts import get_object_or_404, render
 from rest_framework import status
 from rest_framework.response import Response
+from annotations import annotators
 
 '''
 This files contains helper functions to add text from uploaded documents to a users repository and project
@@ -31,12 +32,11 @@ def repository_text_content(user, repository_id, text_id, content_id, part_of_id
         content = manager.content(id=int(content_id))
         resource = manager.resource(id=int(text_id))
     except IOError:
-        return Response({"IO error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return False
 
     content_type = content.get('content_type', None)
-    from annotations import annotators
     if not annotators.annotator_exists(content_type):
-        return HttpResponse("Annotation does not exsist", content_type="text/plain")
+        return False
     resource_text_defaults = {
         'title': resource.get('title'),
         'created': resource.get('created'),
@@ -49,7 +49,7 @@ def repository_text_content(user, repository_id, text_id, content_id, part_of_id
         try:
             master = manager.resource(id=int(part_of_id))
         except IOError:
-            return Response({"IO error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return False
         master_resource, _ = Text.objects.get_or_create(uri=master['uri'],
                                                         defaults={
             'title': master.get('title'),
@@ -60,8 +60,7 @@ def repository_text_content(user, repository_id, text_id, content_id, part_of_id
         })
         resource_text_defaults.update({'part_of': master_resource})
 
-    resource_text, _ = Text.objects.get_or_create(uri=resource['uri'],
-                                                  defaults=resource_text_defaults)
+    resource_text, _ = Text.objects.get_or_create(uri=resource['uri'], defaults=resource_text_defaults)
 
     
     if project_id:
@@ -84,7 +83,7 @@ def repository_text_content(user, repository_id, text_id, content_id, part_of_id
     text, _ = Text.objects.get_or_create(uri=content['uri'], defaults=defaults)
     if project_id:
         project.texts.add(text.top_level_text)
-
+    return True
 
 def add_text_to_project(user, repository_id, text_id, project_id):
 
@@ -104,7 +103,7 @@ def add_text_to_project(user, repository_id, text_id, project_id):
     try:
         resource = manager.resource(id=int(text_id))
     except IOError:
-        return render('annotations/repository_ioerror.html', {}, status=500)
+        return False
     defaults = {
         'title': resource.get('title'),
         'created': resource.get('created'),
@@ -114,3 +113,4 @@ def add_text_to_project(user, repository_id, text_id, project_id):
     }
     text, _ = Text.objects.get_or_create(uri=resource.get('uri'),  defaults=defaults)
     project.texts.add(text)
+    return False
