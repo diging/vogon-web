@@ -1149,7 +1149,8 @@ class ImportTasks(models.Model):
     Quadriga.
     """
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey('VogonUser')
-    file_name = models.CharField(max_length=255, blank=False, null=False)
+    user = models.ForeignKey(VogonUser)
+    file_name = models.CharField(max_length=1000, blank=False, null=False)
     total_rows = models.IntegerField(blank=True, null=True)
-    c_row = models.IntegerField(blank=True, null=True)
+    current_row = models.IntegerField(blank=True, null=True, default=0)
+    failed = models.BooleanField(default=False)

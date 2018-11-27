@@ -3,23 +3,35 @@ from annotations.models import Text, TextCollection, RelationSet
 from repository.models import Repository
 from repository.managers import RepositoryManager
 from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponse
+from rest_framework import status
+from rest_framework.response import Response
+
+'''
+This files contains helper functions to add text from uploaded documents to a users repository and project
+'''
 
 
 
-
-
-def repository_text_content(user, repository_id, text_id, content_id, part_of_id, action, project_id):
+def repository_text_content(user, repository_id, text_id, content_id, part_of_id, project_id):
+    '''
+    Takes a text from amphora and adds it to a users repository.
+    
+    Parameters
+    ----------
+    user : vogon user
+    repository_id : defaults to 1
+    text_id : the text id from amphora
+    content_id : content id from amphora
+    part_of_id : id of project the text is to be apart of
+    '''
     repository = get_object_or_404(Repository, pk=repository_id)
 
     manager = RepositoryManager(repository.configuration, user=user)
-    # content_resources = {o['id']: o for o in resource['content']}
-    # content = content_resources.get(int(content_id))    # Not a dict.
     try:
         content = manager.content(id=int(content_id))
         resource = manager.resource(id=int(text_id))
     except IOError:
-        return HttpResponse("IO Error", content_type="text/plain")
+        return Response({"IO error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     content_type = content.get('content_type', None)
     from annotations import annotators
@@ -37,7 +49,7 @@ def repository_text_content(user, repository_id, text_id, content_id, part_of_id
         try:
             master = manager.resource(id=int(part_of_id))
         except IOError:
-            return HttpResponse("IO Error", content_type="text/plain")
+            return Response({"IO error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         master_resource, _ = Text.objects.get_or_create(uri=master['uri'],
                                                         defaults={
             'title': master.get('title'),
@@ -75,20 +87,30 @@ def repository_text_content(user, repository_id, text_id, content_id, part_of_id
 
 
 def add_text_to_project(user, repository_id, text_id, project_id):
-        repository = get_object_or_404(Repository, pk=repository_id)
-        project = get_object_or_404(TextCollection, pk=project_id)
 
-        manager = RepositoryManager(repository.configuration, user=user)
-        try:
-            resource = manager.resource(id=int(text_id))
-        except IOError:
-            return render('annotations/repository_ioerror.html', {}, status=500)
-        defaults = {
-            'title': resource.get('title'),
-            'created': resource.get('created'),
-            'repository': repository,
-            'repository_source_id': text_id,
-            'addedBy': user,
-        }
-        text, _ = Text.objects.get_or_create(uri=resource.get('uri'),  defaults=defaults)
-        project.texts.add(text)
+    '''
+    adds a text from a repository to a project
+
+    Parameters
+    ----------
+    user : vogon user
+    repository_id : defaults to 1
+    text_id : the text id from amphora
+    '''
+    repository = get_object_or_404(Repository, pk=repository_id)
+    project = get_object_or_404(TextCollection, pk=project_id)
+
+    manager = RepositoryManager(repository.configuration, user=user)
+    try:
+        resource = manager.resource(id=int(text_id))
+    except IOError:
+        return render('annotations/repository_ioerror.html', {}, status=500)
+    defaults = {
+        'title': resource.get('title'),
+        'created': resource.get('created'),
+        'repository': repository,
+        'repository_source_id': text_id,
+        'addedBy': user,
+    }
+    text, _ = Text.objects.get_or_create(uri=resource.get('uri'),  defaults=defaults)
+    project.texts.add(text)

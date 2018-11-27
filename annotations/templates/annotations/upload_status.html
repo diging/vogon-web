@@ -29,19 +29,24 @@
                         </thead>
                         <tbody>
                             <tr v-for="task in tasks">
-                                <td>${ task.file_name }</td>
-                                <td>
-                                    <div v-if="task.percent == 100" class="progress">
-                                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" :style="`width: ${task.percent}%`">
-                                            <span class="sr-only">Complete (success)</span>
+                                <td style="padding: 10px 0px 0px 0px;">${ task.file_name }</td>
+                                <td style="padding: 10px 0px 0px 0px;">
+                                    <div v-if="task.failed == false" class="">
+                                        <div v-if="task.percent == 100" class="progress">
+                                            <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" :style="`width: ${task.percent}%`">
+                                                <span class="sr-only">Complete (success)</span>
+                                            </div>
+                                        </div>
+                                        <div v-else>
+                                            <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" :style="`width: ${task.percent}%`">
+                                                <span class="sr-only">Complete (success)</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div v-else>
-                                        <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" :style="`width: ${task.percent}%`">
-                                            <span class="sr-only">Complete (success)</span>
-                                        </div>
+                                        <h3 style="color:red;">Failed</h3>
                                     </div>
-                                  </td>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -67,14 +72,14 @@
                     UploadStatus.get().then(function(data) {
                         self.tasks = data.body;
                         self.computePercentage(data.body)
-                        setTimeout(self.getStatus,5000);
+                        setTimeout(self.getStatus,500);
                     }).catch(function(error) {
                         console.log('Failed to get tasks', error);
                     });
                 },
                 computePercentage: function(tasks) {
                     for (task in tasks){
-                        var percent = (Number(tasks[task].c_row) / Number(tasks[task].total_rows))*100;
+                        var percent = (Number(tasks[task].current_row) / Number(tasks[task].total_rows))*100;
                         tasks[task].percent = percent
                     }
                 }

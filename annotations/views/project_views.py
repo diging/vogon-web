@@ -208,19 +208,11 @@ def import_appellation(request, project_id):
         # Create Temp File.
         name = 'tmp/'+ request.user.username + '_' + str(datetime.datetime.now())+'.csv'
         tmp_file = default_storage.save(name, ContentFile(data.read()))
-        # write csv contents to temp file
-        with open(tmp_file, 'w') as f:
-            writer = csv.writer(f)
-            for row in csv_file:
-                try:
-                    writer.writerow(row)
-                except Exception as e:
-                    print ('Error in writing row:',e)
         user = request.user
         part_of_id = request.GET.get('part_of')
         action = request.GET.get('action', 'annotate')
         f_name = data._name
-        import_task = process_import_task.delay(user, project_id, tmp_file, part_of_id, action, f_name)
+        import_task = process_import_task.delay(user, project_id, tmp_file, part_of_id, f_name)
         return redirect('status')
     return render(request, 'annotations/appellation_upload.html', context)
 

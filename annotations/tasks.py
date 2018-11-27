@@ -38,10 +38,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
 
 
-
-
-
-
 def tokenize(content, delimiter=u' '):
     """
     In order to annotate a text, we must first wrap "annotatable" tokens
@@ -295,67 +291,76 @@ def handle_file_upload(request, form):
         return save_text_instance(tokenized_content, text_title, date_created, is_public, user, uri)
 
 
-
-
-
-
 @shared_task
-def process_import_task(user, project_id ,file, part_of_id, action, name):
-    with open(file, 'r') as f:
-        csv_file = csv.reader(f)
-        # there isn't a good way to reset the iterator so we tee them up
-        reader1, reader2 = tee(csv_file)
-        reader1.next()
-        reader2.next()
-        total_count = len(list(reader2))
-        count = 0
-        task = ImportTasks.objects.create(
-            user = user,
-            file_name = name,
-            total_rows = int(total_count)
-        )
-        for row in reader1:
-            # Store url so we can skip making the request to fetch the json if the urls are the same
-            stored_url = ''
-            try:
-                parent = Text.objects.get(uri=row[3])
-                text = Text.objects.get(part_of_id=parent.id)
-                occur = text
-            except:
-                # Only make the request and get the json if the url has changed.
-                url = settings.AMPHORA_RESOURCE_URL + row[3] + "&format=json"
-                if stored_url != url:
-                    stored_url = url
-                    text_request = requests.get(url, headers=auth.jars_github_auth(user))
-                    print(auth.jars_github_auth(user))
-                    text_json = text_request.json()
-                    #find the first text in content
-                    for content in text_json['content']:
-                        if content['content_resource']['content_type'] == 'text/plain':
-                            text_content = content['content_resource']['id']
-                            # Save time and stop the iteration
-                            break
-                add_text_to_project(user, 1, text_json['id'],project_id)
-                repository_text_content(user, 1, text_json['id'], text_content, part_of_id, action, project_id)
-                text = Text.objects.get(uri=row[3])
-                occur = Text.objects.get(part_of_id=text.id)
-            pos = DocumentPosition.objects.create(
-                position_type = 'CO',
-                position_value = ",".join([row[1], row[2]]),
-                occursIn = occur,
+def process_import_task(user, project_id ,file, part_of_id, name):
+    try:
+        with open(file, 'r') as f:
+            csv_file = csv.DictReader(f)
+            # there isn't a good way to reset the iterator so we tee them up
+            creation_reader, total_count_reader = tee(csv_file)
+            creation_reader.next()
+            total_count_reader.next()
+            total_count = 0
+            for row in total_count_reader:
+                total_count += 1
+            count = 0
+            task = ImportTasks.objects.create(
+                user = user,
+                file_name = name,
+                total_rows = int(total_count)
             )
+            for row in creation_reader:
+                # Store url so we can skip making the request to fetch the json if the urls are the same
+                stored_url = ''
+                try:
+                    parent = Text.objects.get(uri=row["Occurs"])
+                    text = Text.objects.get(part_of_id=parent.id)
+                    occur = text
+                except:
+                    # Only make the request and get the json if the url has changed.
+                    url = settings.AMPHORA_RESOURCE_URL + row["Occurs"] + "&format=json"
+                    if stored_url != url:
+                        stored_url = url
+                        text_request = requests.get(url, headers=auth.jars_github_auth(user))
+                        text_json = text_request.json()
+                        #find the first text in content
+                        for content in text_json['content']:
+                            if content['content_resource']['content_type'] == 'text/plain':
+                                text_content = content['content_resource']['id']
+                                # Save time and stop the iteration
+                                break
+                    add_text_to_project(user, 1, text_json['id'],project_id)
+                    repository_text_content(user, 1, text_json['id'], text_content, part_of_id, project_id)
+                    text = Text.objects.get(uri=row["Occurs"])
+                    occur = Text.objects.get(part_of_id=text.id)
+                pos = DocumentPosition.objects.create(
+                    position_type = 'CO',
+                    position_value = ",".join([row["Start"], row["End"]]),
+                    occursIn = occur,
+                )
 
-            Appellation.objects.create(
-                stringRep = row[0],
-                startPos = row[1],
-                endPos = row[2],
-                createdBy = user,
-                occursIn = occur,
-                project_id = project_id,
-                interpretation = Concept.objects.get(id=row[4]),
-                position_id = pos.id
-            )
-            count = count + 1
-            task.c_row = int(count)
+                Appellation.objects.create(
+                    stringRep = row["Segment"],
+                    startPos = row["Start"],
+                    endPos = row["End"],
+                    createdBy = user,
+                    occursIn = occur,
+                    project_id = project_id,
+                    interpretation = Concept.objects.get(id=row["Concept"]),
+                    position_id = pos.id
+                )
+                count = count + 1
+                task.current_row = int(count)
+                task.save()
+    except:
+        if task:
+            task.failed = True
+            task.save()
+        else:
+            task = ImportTasks.objects.create(
+                    user = user,
+                    file_name = name,
+                    failed = True
+                )
             task.save()
     default_storage.delete(file)

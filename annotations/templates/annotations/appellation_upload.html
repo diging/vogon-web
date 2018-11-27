@@ -8,20 +8,26 @@
 {% endblock %}
 
 {% block main %}
-<div class="form-group">
-    <form action="." method="POST" enctype="multipart/form-data" class="form-horizontal">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="name" class="col-md-3 col-sm-3 col-xs-12 control-label">File: </label>
-            <div class="col-xs-4">
-                <input type="file" name="csv_file" id="csv_file" required="True" class="form-control">
+<div class="container-fluid">
+    <div class="col-md-6 col-md-offset-3">
+        <h3>Upload File</h3>
+        <p>Upload a csv file of appellations to Vogon</p>
+    </div>
+    <div class="form-group">
+        <form action="." method="POST" enctype="multipart/form-data" class="form-horizontal">
+            {% csrf_token %}
+            <div class=" col-md-12 form-group">
+                <label for="name" class="col-md-3 col-sm-3 col-xs-12 control-label">File: </label>
+                <div class="col-xs-4">
+                    <input type="file" name="csv_file" id="csv_file" required="True" class="form-control">
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <div class="col-md-3 col-sm-3 col-xs-12 col-md-offset-3" style="margin-bottom:10px;">
-                    <button class="btn btn-primary"> <span class="glyphicon glyphicon-upload" style="margin-right:5px;"></span>Upload </button>
-            </div> 
+            <div class="form-group">
+                <div class="col-md-3 col-sm-3 col-xs-12 col-md-offset-3" style="margin-bottom:10px;">
+                        <button class="btn btn-primary"> <span class="glyphicon glyphicon-upload" style="margin-right:5px;"></span>Upload </button>
+                </div> 
+            </form>
         </form>
-    </form>
+    </div>
 </div>
 {% endblock %}
