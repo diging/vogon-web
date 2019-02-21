@@ -139,39 +139,43 @@
                                          <a v-else class="btn" v-on:click="showSidebar" style="padding: 2px;">
                                              <span class="glyphicon glyphicon-chevron-left"></span>
                                          </a>
-
-
                                                 <div v-if="sidebarIsShown()" style="padding: 0px;">
                                                     <div class="clearfix sidebar-buttons">
-
-                                                        <div class="pull-right btn-group">
-                                                            <a  v-tooltip="'Appellations'"
-                                                                v-bind:class="{
-                                                                        btn: true,
-                                                                        'btn-success': sidebar == 'appellations',
-                                                                        'btn-default': sidebar != 'appellations'
-                                                                    }"
-                                                                v-on:click="showAppellationsSidebar">
-                                                                <span class="glyphicon glyphicon-tag"></span>
+                                                        <div>
+                                                            <a v-tooltip="'Submit All Appellations'"
+                                                                    v-bind:class="{btn: true, 'btn-primary':'btn-primary'}"
+                                                                    v-on:click="">
+                                                                <span class="glyphicon glyphicon-cloud-upload"></span>
                                                             </a>
-                                                            <a  v-tooltip="'Date Appellations'"
-                                                                v-bind:class="{
-                                                                        btn: true,
-                                                                        'btn-success': sidebar == 'dateappellations',
-                                                                        'btn-default': sidebar != 'dateappellations'
-                                                                    }"
-                                                                v-on:click="showDateAppellationsSidebar">
-                                                                <span class="glyphicon glyphicon-calendar"></span>
-                                                            </a>
-                                                            <a v-tooltip="'Relations'"
-                                                                v-bind:class="{
-                                                                        btn: true,
-                                                                        'btn-success': sidebar == 'relations',
-                                                                        'btn-default': sidebar != 'relations'
-                                                                    }"
-                                                                v-on:click="showRelationsSidebar">
-                                                                <span class="glyphicon glyphicon-th-list"></span>
-                                                            </a>
+                                                            <div class="pull-right btn-group">
+                                                                <a  id="appellation-submit"v-tooltip="'Appellations'"
+                                                                    v-bind:class="{
+                                                                            btn: true,
+                                                                            'btn-success': sidebar == 'appellations',
+                                                                            'btn-default': sidebar != 'appellations'
+                                                                        }"
+                                                                    v-on:click="showAppellationsSidebar">
+                                                                    <span class="glyphicon glyphicon-tag"></span>
+                                                                </a>
+                                                                <a  v-tooltip="'Date Appellations'"
+                                                                    v-bind:class="{
+                                                                            btn: true,
+                                                                            'btn-success': sidebar == 'dateappellations',
+                                                                            'btn-default': sidebar != 'dateappellations'
+                                                                        }"
+                                                                    v-on:click="showDateAppellationsSidebar">
+                                                                    <span class="glyphicon glyphicon-calendar"></span>
+                                                                </a>
+                                                                <a v-tooltip="'Relations'"
+                                                                    v-bind:class="{
+                                                                            btn: true,
+                                                                            'btn-success': sidebar == 'relations',
+                                                                            'btn-default': sidebar != 'relations'
+                                                                        }"
+                                                                    v-on:click="showRelationsSidebar">
+                                                                    <span class="glyphicon glyphicon-th-list"></span>
+                                                                </a>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <relation-list
