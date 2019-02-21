@@ -1,10 +1,11 @@
 var AppellationListItem = {
-    props: ['appellation'],
+    props: ['appellation', 'sidebar'],
     template: `<li v-bind:class="{
                         'list-group-item': true,
                         'appellation-list-item': true,
                         'appellation-selected': isSelected()
                     }">
+                    
                 <span class="pull-right text-muted btn-group">
                     <a class="btn btn-xs" v-on:click="select">
                         <span class="glyphicon glyphicon-hand-down"></span>
@@ -14,9 +15,18 @@ var AppellationListItem = {
                         <span v-else class="glyphicon glyphicon glyphicon-eye-close"></span>
                     </a>
                 </span>
+                
                 {{ label() }}
-                <div class="text-warning">Created by <strong>{{ getCreatorName(appellation.createdBy) }}</strong> on {{ getFormattedDate(appellation.created) }}</div>
-               </li>`,
+                <div class="text-warning">
+                    <input v-if="sidebar == 'submitAllAppellations'" type="checkbox" v-model="checked" aria-label="...">
+                    Created by <strong>{{ getCreatorName(appellation.createdBy) }}</strong> on {{ getFormattedDate(appellation.created) }}
+                </div>
+                </li>`,
+    data: function() {
+        return {
+            checked: true
+        }
+    },
     methods: {
         hide: function() { this.$emit("hideappellation", this.appellation); },
         show: function() { this.$emit("showappellation", this.appellation); },
@@ -41,7 +51,7 @@ var AppellationListItem = {
 
 
 AppellationList = {
-    props: ['appellations'],
+    props: ['appellations', 'sidebar'],
     template: `<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
                    <div class="text-right">
                        <a v-if="allHidden()" v-on:click="showAll" class="btn">
@@ -52,6 +62,7 @@ AppellationList = {
                         </a>
                    </div>
                    <appellation-list-item
+                       v-bind:sidebar="sidebar"
                        v-on:hideappellation="hideAppellation"
                        v-on:showappellation="showAppellation"
                        v-on:selectappellation="selectAppellation"

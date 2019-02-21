@@ -1031,7 +1031,8 @@ Appellator = new Vue({
             swimmerTop: 0,
             swimmerRef: 0,
             swimmerLeft: -2,
-            swimmerWidth: 0
+            swimmerWidth: 0,
+            submitAppellationClicked: false
         }
     },
     mounted: function() {
@@ -1220,7 +1221,9 @@ Appellator = new Vue({
             }
         },
         showRelationsSidebar: function() { this.sidebar = 'relations'; },
-        showAppellationsSidebar: function() { this.sidebar = 'appellations'; },
+        showAppellationsSidebar: function() { this.sidebar = 'appellations';},
+        //TODO: Change function to SubmitAllAppellations
+        showSubmitAllAppellationsSidebar: function() { this.sidebar = 'submitAllAppellations'; this.submitAppellationClicked = true;},
         showDateAppellationsSidebar: function() { this.sidebar = 'dateappellations'; }
 
     },

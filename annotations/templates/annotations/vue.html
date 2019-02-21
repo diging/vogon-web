@@ -144,7 +144,7 @@
                                                         <div>
                                                             <a v-tooltip="'Submit All Appellations'"
                                                                     v-bind:class="{btn: true, 'btn-primary':'btn-primary'}"
-                                                                    v-on:click="">
+                                                                    v-on:click="showSubmitAllAppellationsSidebar">
                                                                 <span class="glyphicon glyphicon-cloud-upload"></span>
                                                             </a>
                                                             <div class="pull-right btn-group">
@@ -184,6 +184,16 @@
                                                         v-on:selectrelation="selectRelation">
                                                     </relation-list>
                                                     <appellation-list
+                                                        v-if="sidebar == 'submitAllAppellations'"
+                                                        v-bind:appellations=appellations
+                                                        v-bind:sidebar="sidebar"
+                                                        v-on:hideallappellations="hideAllAppellations"
+                                                        v-on:showallappellations="showAllAppellations"
+                                                        v-on:showappellation="showAppellation"
+                                                        v-on:hideappellation="hideAppellation"
+                                                        v-on:selectappellation="selectAppellation">
+                                                    </appellation-list>
+                                                    <appellation-list
                                                         v-if="sidebar == 'appellations'"
                                                         v-bind:appellations=appellations
                                                         v-on:hideallappellations="hideAllAppellations"
@@ -202,9 +212,6 @@
                                                         v-on:selectappellation="selectDateAppellation">
                                                     </appellation-list>
                                                 </div>
-
-
-
                                     </div>
                                 </div>
                             </div>
