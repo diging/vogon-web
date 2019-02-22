@@ -142,10 +142,15 @@
                                                 <div v-if="sidebarIsShown()" style="padding: 0px;">
                                                     <div class="clearfix sidebar-buttons">
                                                         <div>
-                                                            <a v-tooltip="'Submit All Appellations'"
+                                                            <a v-if="submitAppellationClicked == false" v-tooltip="'Submit All Appellations'"
                                                                     v-bind:class="{btn: true, 'btn-primary':'btn-primary'}"
                                                                     v-on:click="showSubmitAllAppellationsSidebar">
                                                                 <span class="glyphicon glyphicon-cloud-upload"></span>
+                                                            </a>
+                                                            <a v-if="submitAppellationClicked" v-tooltip="'Submit All Appellations'"
+                                                                    v-bind:class="{btn: true, 'btn-primary':'btn-primary'}"
+                                                                    v-on:click="showSubmitAllAppellationsSidebar">
+                                                                    <span>Submit</span>
                                                             </a>
                                                             <div class="pull-right btn-group">
                                                                 <a  id="appellation-submit"v-tooltip="'Appellations'"

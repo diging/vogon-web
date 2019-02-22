@@ -1239,5 +1239,13 @@ Appellator = new Vue({
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);
       window.removeEventListener('resize', this.handleScroll);
+    },
+    watch: {
+        sidebar: function() {
+            // remove submit button if sidebar is not showing submitAllAppellations 
+            if(!(this.sidebar == 'submitAllAppellations')) {
+                this.submitAppellationClicked = false;
+            }
+        }
     }
 });
