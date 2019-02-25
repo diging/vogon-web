@@ -1,5 +1,5 @@
 var AppellationListItem = {
-    props: ['appellation', 'sidebar'],
+    props: ['appellation', 'sidebar', 'index'],
     template: `<li v-bind:class="{
                         'list-group-item': true,
                         'appellation-list-item': true,
@@ -25,6 +25,15 @@ var AppellationListItem = {
     data: function() {
         return {
             checked: true
+        }
+    },
+    watch: {
+        checked: function () {
+            if(this.checked == false) {
+                this.$emit('removeAppellation', this.index);
+            } else {
+                this.$emit('addAppellation', this.appellation);
+            }
         }
     },
     methods: {
@@ -66,9 +75,12 @@ AppellationList = {
                        v-on:hideappellation="hideAppellation"
                        v-on:showappellation="showAppellation"
                        v-on:selectappellation="selectAppellation"
+                       v-on:removeAppellation="removeAppellation($event)"
+                       v-on:addAppellation="addAppellation($event)"
+                       v-for="(appellation, index) in current_appellations"
                        v-bind:appellation=appellation
-                       v-for="appellation in current_appellations"
-                       v-if="appellation != null">
+                       v-if="appellation != null"
+                       v-bind:index="index">
                    </appellation-list-item>
                </ul>`,
     components: {
@@ -96,6 +108,18 @@ AppellationList = {
         }
     },
     methods: {
+        removeAppellation: function (index) {
+            console.log(this.current_appellations.length)
+            if (index > -1) {
+                this.current_appellations.splice(index, 1);
+              }
+              console.log("This is what you wanted " + this.current_appellations.length);
+        },
+        addAppellation: function (appellation) {
+            console.log(this.current_appellations.length)
+            this.current_appellations.push(appellation);
+              console.log("This is what you wanted " + this.current_appellations.length);
+        },
         allHidden: function() {
             var ah = true;
             this.appellations.forEach(function(appellation) {
