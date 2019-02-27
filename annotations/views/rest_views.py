@@ -17,6 +17,8 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 
+#from rest_framework.decorators import action
+
 from annotations.serializers import *
 from annotations.models import *
 from concepts.models import Concept, Type
@@ -541,3 +543,11 @@ def concept_search(request):
     q = request.get('search', None)
     pos = self.request.query_params.get('pos', None)
     return goat.Concept.search(q=q, pos=pos)
+
+
+# class RelationTemplateViewSet(viewsets.ModelViewSet):
+#     #@action(detail=False, methods=['get'])
+#     def get_single_relation(self, request):
+#         templates = RelationTemplate.objects.order_by("part_of_id", "name").distinct("part_of_id", "name")
+#         serializer = TemplateSerializer(tempaltes, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)

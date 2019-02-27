@@ -1032,7 +1032,8 @@ Appellator = new Vue({
             swimmerRef: 0,
             swimmerLeft: -2,
             swimmerWidth: 0,
-            submitAppellationClicked: false
+            submitAppellationClicked: false,
+            submit_text_appellations: []
         }
     },
     mounted: function() {
@@ -1043,6 +1044,30 @@ Appellator = new Vue({
         this.handleScroll();
     },
     methods: {
+        create_relations_from_text: function() {
+            console.log("runs");
+            self = this;
+            RelationTemplateResource.text({id: 4}, {
+                appellations: this.submit_text_appellations,
+                start: this.start,
+                end: this.end,
+                occur: this.occur,
+                occursIn: this.text.id,
+                createdBy: this.user.id,
+                project: this.project.id
+            }).then(function(response) {
+                this.ready = false;
+                console.log("test");
+            }).catch(function(error) {
+                console.log('RelationTemplateResource:: failed miserably', error);
+                self.error = true;
+                self.ready = false;
+            });     // TODO: implement callback and exception handling!!
+        },
+        setCurrentAppellations: function (current_appellations) {
+            //FIXME: this is not ideal but is the only options until vuex is used
+            this.submit_text_appellations = current_appellations;
+        },
         getSwimmerWidth: function() {
             var shadow_elem = document.getElementById('shadow-swimlane');
             if (shadow_elem == null) {
@@ -1235,6 +1260,8 @@ Appellator = new Vue({
             self.updateSwimRef();
             self.handleScroll();
         }
+        //FIXME: Need this incase no appellations are deselected. Without it a empty array is submitted
+        this.submit_text_appellations = this.appellations
     },
     destroyed () {
       window.removeEventListener('scroll', this.handleScroll);

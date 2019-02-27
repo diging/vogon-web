@@ -65,8 +65,8 @@ AppellationList = {
 					<div class="text-right">
 						<select  v-if="sidebar == 'submitAllAppellations'" v-model="relationship" style="float: left;">
 							<option disabled value="">Please select Relationship</option>
-							<option>Contains</option>
-							<option>Part of</option>
+							<option value=3>Contains</option>
+							<option value=4>Part of</option>
 						</select>
 						<a v-if="allHidden()" v-on:click="showAll" class="btn">
 							Show all
@@ -94,7 +94,7 @@ AppellationList = {
 	data: function() {
 		return {
 			current_appellations: this.appellations,
-			relationship: ''
+			relationship: 0
 		}
 	},
 	watch: {
@@ -115,16 +115,14 @@ AppellationList = {
 	},
 	methods: {
 		removeAppellation: function (index) {
-			console.log(this.current_appellations.length)
-			if (index > -1) {
-				this.current_appellations.splice(index, 1);
-			  }
-			  console.log("This is what you wanted " + this.current_appellations.length);
+			this.current_appellations.splice(index, 1);
+			data = [this.current_appellations, this.relationship];
+			this.$emit('currentAppellations', data);
 		},
 		addAppellation: function (appellation) {
-			console.log(this.current_appellations.length)
 			this.current_appellations.push(appellation);
-			  console.log("This is what you wanted " + this.current_appellations.length);
+			data = [this.current_appellations, this.relationship];
+			this.$emit('currentAppellations', data);
 		},
 		allHidden: function() {
 			var ah = true;
@@ -133,6 +131,14 @@ AppellationList = {
 			});
 			return ah;
 		},
+		getTemplates: function() {
+			RelationTemplateResource.get_single_relation().then(function(response) {
+				console.log(response)
+            }).catch(function(error) {
+                console.log('Failed to get relationtemplates', error);
+            });
+		},
+		
 		hideAll: function() { this.$emit("hideallappellations"); },
 		showAll: function() { this.$emit("showallappellations"); },
 		hideAppellation: function(appellation) { this.$emit("hideappellation", appellation); },

@@ -136,3 +136,8 @@ class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextCollection
         fields = '__all__'
+
+class TemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RelationTemplate
+        fields = ('id', 'name', 'description') 
