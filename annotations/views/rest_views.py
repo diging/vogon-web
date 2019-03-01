@@ -2,8 +2,9 @@
 Provides all of the class-based views for the REST API.
 """
 
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.conf import settings
+
 
 from rest_framework import status
 from rest_framework.settings import api_settings
@@ -17,7 +18,7 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 
-#from rest_framework.decorators import action
+
 
 from annotations.serializers import *
 from annotations.models import *
@@ -35,6 +36,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
 
+import pdb
 
 
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
@@ -545,9 +547,13 @@ def concept_search(request):
     return goat.Concept.search(q=q, pos=pos)
 
 
-# class RelationTemplateViewSet(viewsets.ModelViewSet):
-#     #@action(detail=False, methods=['get'])
-#     def get_single_relation(self, request):
-#         templates = RelationTemplate.objects.order_by("part_of_id", "name").distinct("part_of_id", "name")
-#         serializer = TemplateSerializer(tempaltes, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+class RelationTemplateViewSet(viewsets.ViewSet):
+    @list_route(methods=['get'])
+    def get_single_relation(self, request):
+        template_parts = RelationTemplatePart.objects.values('part_of_id').annotate(type_count=models.Count("part_of_id")).filter(type_count__lte=1)
+        templates = []
+        for part in template_parts:
+            template = RelationTemplate.objects.get(id=part["part_of_id"])
+            templates.append(template)
+        serializer = TemplateSerializer(templates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

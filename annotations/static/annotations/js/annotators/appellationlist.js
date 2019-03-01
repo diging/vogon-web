@@ -62,11 +62,10 @@ var AppellationListItem = {
 AppellationList = {
 	props: ['appellations', 'sidebar'],
 	template: `<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
-					<div class="text-right">
+					<div class="text-right ">
 						<select  v-if="sidebar == 'submitAllAppellations'" v-model="relationship" style="float: left;">
-							<option disabled value="">Please select Relationship</option>
-							<option value=3>Contains</option>
-							<option value=4>Part of</option>
+							<option selected="selected" value=0>Please select Relationship</option>
+							<option v-for="template in templates" :value=template.id>{{ template.name }} - <span style="color: lightgrey;">{{ template.description }}</span></option>
 						</select>
 						<a v-if="allHidden()" v-on:click="showAll" class="btn">
 							Show all
@@ -94,8 +93,13 @@ AppellationList = {
 	data: function() {
 		return {
 			current_appellations: this.appellations,
-			relationship: 0
+			relationship: 0,
+			templates: null
 		}
+	},
+	created: function () {
+		console.log("Templates")
+		this.getTemplates();
 	},
 	watch: {
 		appellations: function(value) {
@@ -132,12 +136,39 @@ AppellationList = {
 			return ah;
 		},
 		getTemplates: function() {
-			RelationTemplateResource.get_single_relation().then(function(response) {
-				console.log(response)
+			console.log("Runs");
+
+			RelationTemplateResource.get_single_relation().then(response => {
+				this.templates = response.body; 
+				console.log(this.templates);
             }).catch(function(error) {
                 console.log('Failed to get relationtemplates', error);
             });
 		},
+		searchConcepts: function() {
+            this.searching = true;    // Instant feedback for the user.
+
+            this.$emit('search', this.searching); // emit search to remove concept picker
+
+            // Asynchronous quries are beautiful.
+            var self = this;    // Need a closure since Concept is global.
+            var payload = {search: this.query};
+            if (this.pos != "") {
+                payload['pos'] = this.pos;
+            }
+            if (this.force) {
+                payload['force'] = 'force';
+            }
+            Concept.search(payload).then(function(response) {
+                self.concepts = response.body.results;
+                self.searching = false;
+            }).catch(function(error) {
+                console.log("ConceptSearch:: search failed with", error);
+                self.error = true;
+                self.searching = false;
+            });
+
+          }
 		
 		hideAll: function() { this.$emit("hideallappellations"); },
 		showAll: function() { this.$emit("showallappellations"); },

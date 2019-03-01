@@ -210,9 +210,7 @@ def create_from_relationtemplate(request, template_id):
     return JsonResponse(response_data)
 
 def create_from_text(request, template_id):
-    print("HIts")
     data = json.loads(request.body)
-    print(data)
     return JsonResponse({})
 
 

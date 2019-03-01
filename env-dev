@@ -1,2 +1,0 @@
-export DJANGO_SETTINGS_MODULE='vogon.local_settings'
-export REDIS_URL='redis://'
