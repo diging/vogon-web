@@ -4,13 +4,13 @@
 <!-- <html>
     <head> -->
         {% block extrahead %}
-
-        <script src="{% static "annotations/js/vue.min.js" %}"></script>
-        <script src="{% static "annotations/js/tiny-cookie.min.js" %}"></script>
-
+        {% comment %} <script src="{% static "annotations/js/vue.js" %}"></script> {% endcomment %}
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.2.0/dist/vue.js"></script>
         <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
+       <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"></script>
+        <script src="https://unpkg.com/vuex@2.0.0"></script>
+        <script src="{% static "annotations/js/tiny-cookie.min.js" %}"></script>
         <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
-        <!-- <script src="https://unpkg.com/vue/dist/vue.js"></script> -->
         <link rel="stylesheet" href="{% static "annotations/css/annotators/text.css" %}">
         {% endblock %}
     <!-- </head> -->
@@ -198,6 +198,7 @@
                                                         v-on:showappellation="showAppellation"
                                                         v-on:hideappellation="hideAppellation"
                                                         v-on:selectappellation="selectAppellation"
+                                                        v-on:selectConcept="selectConcept($event)"
                                                         v-on:currentAppellations="setCurrentAppellations($event)">
                                                     </appellation-list>
                                                     <appellation-list
@@ -435,9 +436,9 @@
         $('body').ready(reloadGraph);
 
         </script>
-
-        <script src="{% static "annotations/js/annotators/buses.js" %}"></script>
-        <script src="{% static "annotations/js/annotators/util.js" %}"></script>
+        <script src="{% static 'annotations/js/annotators/util.js' %}"></script>
+        <script src="{% static 'annotations/js/annotators/buses.js' %}"></script>
+        <script src="{% static 'annotations/js/annotators/store.js' %}"></script>
         <script src="{% static "annotations/js/annotators/resources.js" %}"></script>
         <script src="{% static "annotations/js/annotators/relationlist.js" %}"></script>
         <script src="{% static "annotations/js/annotators/appellationlist.js" %}"></script>

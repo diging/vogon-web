@@ -54,17 +54,45 @@ var AppellationListItem = {
 			} else if (this.appellation.dateRepresentation) {
 				return this.appellation.dateRepresentation;
 			}
+		},
+		getCreatorName: function (creator) {
+			if (creator.id == USER_ID) {
+				return 'you';
+			} else {
+				return creator.username;
+			}
+		},
+		getFormattedDate: function (isodate) {
+			var date = new Date(isodate);
+			var monthNames = [
+				"January", "February", "March",
+				"April", "May", "June", "July",
+				"August", "September", "October",
+				"November", "December"
+			];
+			var minutes = String(date.getMinutes());
+			if (minutes.length == 1) {
+				minutes = '0' + minutes;
+			}
+
+			var day = date.getDate();
+			var monthIndex = date.getMonth();
+			var year = date.getFullYear();
+
+			return day + ' ' + monthNames[monthIndex] + ', ' + year + ' at ' + date.getHours() + ':' + minutes;
 		}
+
 	}
 }
 
 
 AppellationList = {
 	props: ['appellations', 'sidebar'],
-	template: `<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
+	template: `
+				<div>
 					<div class="text-right ">
 						<select  v-if="sidebar == 'submitAllAppellations'" v-model="relationship" style="float: left;">
-							<option selected="selected" value=0>Please select Relationship</option>
+							<option value=0>Please select Relationship</option>
 							<option v-for="template in templates" :value=template.id>{{ template.name }} - <span style="color: lightgrey;">{{ template.description }}</span></option>
 						</select>
 						<a v-if="allHidden()" v-on:click="showAll" class="btn">
@@ -73,22 +101,28 @@ AppellationList = {
 						<a v-on:click="hideAll" class="btn">
 							Hide all
 						</a>
-					</div>					 
-				   <appellation-list-item
-					   v-bind:sidebar="sidebar"
-					   v-on:hideappellation="hideAppellation"
-					   v-on:showappellation="showAppellation"
-					   v-on:selectappellation="selectAppellation"
-					   v-on:removeAppellation="removeAppellation($event)"
-					   v-on:addAppellation="addAppellation($event)"
-					   v-for="(appellation, index) in current_appellations"
-					   v-bind:appellation=appellation
-					   v-if="appellation != null"
-					   v-bind:index="index">
-				   </appellation-list-item>
-			   </ul>`,
+					</div>
+					<div>
+						<button v-if="sidebar == 'submitAllAppellations'"  @click="selectConcept()" class="btn btn-primary" >Select Concept</button>
+					</div>
+					<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
+						<appellation-list-item
+							v-bind:sidebar="sidebar"
+							v-on:hideappellation="hideAppellation"
+							v-on:showappellation="showAppellation"
+							v-on:selectappellation="selectAppellation"
+							v-on:removeAppellation="removeAppellation($event)"
+							v-on:addAppellation="addAppellation($event)"
+							v-for="(appellation, index) in current_appellations"
+							v-bind:appellation=appellation
+							v-if="appellation != null"
+							v-bind:index="index">
+						</appellation-list-item>
+					</ul>
+				</div>
+			   `,
 	components: {
-		'appellation-list-item': AppellationListItem
+		'appellation-list-item': AppellationListItem,
 	},
 	data: function() {
 		return {
@@ -98,7 +132,6 @@ AppellationList = {
 		}
 	},
 	created: function () {
-		console.log("Templates")
 		this.getTemplates();
 	},
 	watch: {
@@ -118,6 +151,9 @@ AppellationList = {
 		}
 	},
 	methods: {
+		selectConcept: function () {
+			store.commit('triggerConcepts')
+		},
 		removeAppellation: function (index) {
 			this.current_appellations.splice(index, 1);
 			data = [this.current_appellations, this.relationship];
@@ -136,39 +172,12 @@ AppellationList = {
 			return ah;
 		},
 		getTemplates: function() {
-			console.log("Runs");
-
 			RelationTemplateResource.get_single_relation().then(response => {
 				this.templates = response.body; 
-				console.log(this.templates);
             }).catch(function(error) {
                 console.log('Failed to get relationtemplates', error);
             });
 		},
-		searchConcepts: function() {
-            this.searching = true;    // Instant feedback for the user.
-
-            this.$emit('search', this.searching); // emit search to remove concept picker
-
-            // Asynchronous quries are beautiful.
-            var self = this;    // Need a closure since Concept is global.
-            var payload = {search: this.query};
-            if (this.pos != "") {
-                payload['pos'] = this.pos;
-            }
-            if (this.force) {
-                payload['force'] = 'force';
-            }
-            Concept.search(payload).then(function(response) {
-                self.concepts = response.body.results;
-                self.searching = false;
-            }).catch(function(error) {
-                console.log("ConceptSearch:: search failed with", error);
-                self.error = true;
-                self.searching = false;
-            });
-
-          }
 		
 		hideAll: function() { this.$emit("hideallappellations"); },
 		showAll: function() { this.$emit("showallappellations"); },
@@ -177,3 +186,4 @@ AppellationList = {
 		selectAppellation: function(appellation) { this.$emit('selectappellation', appellation); }
 	}
 }
+

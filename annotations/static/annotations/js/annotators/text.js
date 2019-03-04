@@ -989,9 +989,10 @@ RelationTemplateSelector = {
 }
 
 
+
 Appellator = new Vue({
     el: '#appellator',
-
+    store,
     components: {
         'appellation-list': AppellationList,
         'relation-list': RelationList,
@@ -1033,7 +1034,7 @@ Appellator = new Vue({
             swimmerLeft: -2,
             swimmerWidth: 0,
             submitAppellationClicked: false,
-            submit_text_appellations: []
+            submit_text_appellations: [],
         }
     },
     mounted: function() {
@@ -1042,6 +1043,24 @@ Appellator = new Vue({
         this.updateDateAppellations();
         this.updateSwimRef();
         this.handleScroll();
+        //needs to be called in mounted.
+        store.watch(
+            (state) => {
+                return store.getters.show_concepts
+            },
+            (val) => {
+                if(val) {
+                    //FIXME: This should set selected text to the actual text id
+                    this.selected_text = 'Selected'
+                    this.text_listener == null;
+                } else {
+                    this.unselectText()
+                }
+
+            }, {
+                deep: true
+            }
+        );
     },
     methods: {
         create_relations_from_text: function() {
