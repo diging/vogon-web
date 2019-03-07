@@ -91,7 +91,7 @@ AppellationList = {
 	template: `
 				<div>
 					<div class="text-right ">
-						<select  v-if="sidebar == 'submitAllAppellations'" v-model="relationship" style="float: left;">
+						<select  v-if="sidebar == 'submitAllAppellations'" v-model="selected_template" style="float: left;">
 							<option value=0>Please select Relationship</option>
 							<option v-for="template in templates" :value=template.id>{{ template.name }} - <span style="color: lightgrey;">{{ template.description }}</span></option>
 						</select>
@@ -102,7 +102,10 @@ AppellationList = {
 							Hide all
 						</a>
 					</div>
-					<div>
+					<div v-if="conceptLabel">
+						<h5>Concept: {{ conceptLabel }}</h5>
+					</div>
+					<div v-else>
 						<button v-if="sidebar == 'submitAllAppellations'"  @click="selectConcept()" class="btn btn-primary" >Select Concept</button>
 					</div>
 					<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
@@ -127,9 +130,14 @@ AppellationList = {
 	data: function() {
 		return {
 			current_appellations: this.appellations,
-			relationship: 0,
+			selected_template: null,
 			templates: null
 		}
+	},
+	computed: {
+		conceptLabel: function () {
+			return store.getters.conceptLabel
+		},
 	},
 	created: function () {
 		this.getTemplates();
@@ -148,7 +156,10 @@ AppellationList = {
 					self.current_appellations.push(elem);
 				}
 			});
-		}
+		},
+		selected_template: function () {
+			this.getTemplateFields();
+		},
 	},
 	methods: {
 		selectConcept: function () {
@@ -172,18 +183,30 @@ AppellationList = {
 			return ah;
 		},
 		getTemplates: function() {
-			RelationTemplateResource.get_single_relation().then(response => {
-				this.templates = response.body; 
+			RelationTemplateResource.get_single_relation().then(response => { 
+				this.templates = response.body;
             }).catch(function(error) {
                 console.log('Failed to get relationtemplates', error);
             });
 		},
-		
+		getTemplateFields: function() {
+			console.log("Fires")
+			RelationTemplateResource.query({
+				search: this.selected_template,
+				format: "json",
+				all: false
+			}).then(function (response) {
+				store.commit("setTemplate", response.body.templates[0]);
+			}).catch(function (error) {
+				console.log('Failed to get relationtemplates', error);
+				self.searching = false;
+			});
+		},
 		hideAll: function() { this.$emit("hideallappellations"); },
 		showAll: function() { this.$emit("showallappellations"); },
 		hideAppellation: function(appellation) { this.$emit("hideappellation", appellation); },
 		showAppellation: function(appellation) { this.$emit("showappellation", appellation); },
-		selectAppellation: function(appellation) { this.$emit('selectappellation', appellation); }
+		selectAppellation: function(appellation) { this.$emit('selectappellation', appellation); },
 	}
 }
 
