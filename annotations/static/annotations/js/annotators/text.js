@@ -84,6 +84,8 @@ var ConceptSearch = {
         search: function() {
             this.searching = true;    // Instant feedback for the user.
 
+            this.$emit('search', this.searching); // emit search to remove concept picker
+
             // Asynchronous quries are beautiful.
             var self = this;    // Need a closure since Concept is global.
             var payload = {search: this.query};
@@ -178,7 +180,7 @@ ConceptCreator = {
             name: "",
             description: "",
             concept_type: "",
-            pos: "noun",
+            pos: "",
             concept_types: [],
             error: false,
             submitted: false
@@ -258,6 +260,7 @@ DateAppellationCreator = {
             day: null,
             submitted: false,
             saving: false
+            
         }
     },
     template: `<div class="appellation-creator">
@@ -327,24 +330,121 @@ DateAppellationCreator = {
         }
     }
 }
+ConceptPickerItem = {
+    props: ['concept'],
+    components: {
+    },
+    template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.interpretation.uri }}">
+                <div>
+                    <a v-on:click="select" style="cursor: pointer;">{{ concept.interpretation_label }} ({{ concept.interpretation.authority }})</a>
+                </div>
+                <div class="text text-muted">{{ concept.interpretation.description }}</div>
+            </div>`,
+    methods: {
+        select: function() {
+            this.$emit('selectconcept', this.concept);
+            },
 
+        }
+    }
+
+ConceptPicker = {
+    props: ['appellations'],
+    components: {
+        'concept-picker-item': ConceptPickerItem
+    },
+    data: function() {
+        return {
+            conceptsFinal: [],
+            appell: [],
+            appellationCount: [],
+        }
+    },
+    template: `<div  class="concept-picker" style="max-height: 50vh; overflow-y: scroll;">
+                <concept-picker-item
+                    v-on:selectconcept="selectConcept"
+                    v-for="concept in conceptsFinal"
+                    v-bind:concept=concept>
+                </concept-picker-item>
+               </div>`,
+    methods: {
+        selectConcept: function(concept) {
+            // Clear the concept search results.
+            this.concepts = [];
+            this.$emit('selectconcept', concept);
+        },
+        addConcepts: function (appellationMapEntires) {
+            var count = 0
+            while(count <= 3) {
+                var appellation = appellationMapEntires.next().value;
+                if (appellation == null) {
+                    break
+                } 
+                if (!this.conceptsFinal.includes(appellation[1][0])){
+                    this.conceptsFinal.push(appellation[1][0]);
+                    count++;
+                }
+            }
+        },
+        merge: function (appellations) {
+            this.conceptsFinal = [];
+            this.appell = appellations;
+            // Sort by date
+            function compare(a,b) {
+                if (Date.parse(a.created) > Date.parse(b.created))
+                  return -1;
+                if (Date.parse(a.created) < Date.parse(b.created))
+                  return 1;
+                return 0;
+            }
+            this.appell.sort(compare);
+            var appellationMap = new Map();
+            // set map items from appell array
+            this.appell.forEach(function(item){ 
+                if (appellationMap.has(item.interpretation.uri)) {
+                        appellationMap.get(item.interpretation.uri).push(item);
+                    } else {
+                        appellationMap.set(item.interpretation.uri, [item]);
+                    }
+            });
+            var appellationMapEntires = appellationMap.entries();
+            // add non-duplicate objects to conceptsFinal sorted by most recent
+            this.addConcepts(appellationMapEntires);
+            // sort appellationMap by length
+            var sortedMap = new Map([...appellationMap.entries()].sort(function (a, b) {
+                return b[1].length - a[1].length
+            }));
+            var sortedMapItems = sortedMap.entries();
+            // add non-duplicate objects to conceptsFinal sorted by most occuring
+            this.addConcepts(sortedMapItems);
+            return this.conceptsFinal;
+        },
+    },
+    created: function () {
+        this.merge(this.appellations);
+        
+    },
+}
 
 AppellationCreator = {
-    props: ["position", "user", "text", "project"],
+    props: ["position", "user", "text", "project", 'appellations'],
     components: {
         'concept-search': ConceptSearch,
-        'concept-creator': ConceptCreator
+        'concept-creator': ConceptCreator,
+        'concept-picker': ConceptPicker
     },
     data: function() {
         return {
             concept: null,
             create: false,
             submitted: false,
-            saving: false
+            saving: false,
+            search: false,
+            display: true
 
         }
     },
-    template: `<div class="appellation-creator" style="max-height: 300px; overflow-y: scroll;">
+    template: `<div class="appellation-creator" style="max-height: 80vh; overflow-y: scroll;">
                     <div class="h4">
                         What is this?
                         <span class="glyphicon glyphicon-question-sign"
@@ -378,6 +478,7 @@ AppellationCreator = {
                        </div>
                    </div>
                    <concept-search
+                       @search="setSearch"
                        v-if="concept == null && !create"
                        v-on:selectconcept="selectConcept">
                    </concept-search>
@@ -385,16 +486,33 @@ AppellationCreator = {
                        v-if="create && concept == null"
                        v-on:createdconcept="createdConcept">
                    </concept-creator>
+                   <concept-picker
+                        v-show="display"
+                        v-if="concept == null && !create"
+                        v-bind:appellations=appellations
+                        v-on:selectconcept="selectConcept">
+                   </concept-picker>
                    <div>
                        <a v-on:click="cancel" class="btn btn-xs btn-danger">Cancel</a>
                    </div>
                </div>`,
+
+    watch: {
+        search: function () {
+            if (this.search ==  true){
+                this.display = false;
+            }
+        }
+    },
     methods: {
         reset: function() {
             this.concept = null;
             this.create = false;
             this.submitted = false;
             this.saving = false;
+        },
+        setSearch: function (search) { // removes concept picker if searching concept to keep it from looking messy
+            this.search = search;
         },
         cancel: function() {
             this.reset();
@@ -425,7 +543,7 @@ AppellationCreator = {
                     occursIn: this.text.id,
                     createdBy: this.user.id,
                     project: this.project.id,
-                    interpretation: this.concept.uri
+                    interpretation: this.concept.uri || this.concept.interpretation.uri
                 }).then(function(response) {
                     self.reset();
                     self.$emit('createdappellation', response.body);
@@ -1015,6 +1133,7 @@ Appellator = new Vue({
             self.appellations.push(appellation);
             self.selectAppellation(appellation);
             this.selected_text = null;
+            this.updateAppellations(); // call update appellations when a new appelation is created to update list
         },
         createdDateAppellation: function(appellation) {
             self = this;

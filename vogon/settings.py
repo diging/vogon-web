@@ -215,7 +215,7 @@ djcelery.setup_loader()
 CELERYBEAT_SCHEDULE = {
     'accession_ready_relationsets': {
         'task': 'annotations.tasks.accession_ready_relationsets',
-        'schedule': timedelta(seconds=600),
+        'schedule': timedelta(minutes=10,seconds=0),
     },
 }
 
@@ -258,3 +258,9 @@ CONCEPT_TYPES = {
     'viaf:corporate': CORPORATE_CONCEPT_TYPE,   # E40 Legal Body
     'viaf:geographic': GEOGRAPHIC_CONCEPT_TYPE,    # E53 Place
 }
+
+SUBMIT_WAIT_TIME = {
+        'days': 3,
+        'hours': 0,
+        'minutes': 0
+        }
