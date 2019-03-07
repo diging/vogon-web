@@ -197,9 +197,11 @@ def create_from_relationtemplate(request, template_id):
 
     # TODO: this could also use quite a bit of attention in terms of
     #  modularization.
+    data = json.loads(request.body)
+    print(data)
     template = get_object_or_404(RelationTemplate, pk=template_id)
     if request.method == 'POST':
-        data = json.loads(request.body)
+        #data = json.loads(request.body)
         text = get_object_or_404(Text, pk=data['occursIn'])
         project_id = data.get('project')
         if project_id is None:
@@ -215,8 +217,25 @@ def create_from_relationtemplate(request, template_id):
 
 
 def create_from_text(request, template_id):
+    # data = json.loads(request.body)
+    # return JsonResponse({})
     data = json.loads(request.body)
-    return JsonResponse({})
+    print(data)
+    template = get_object_or_404(RelationTemplate, pk=template_id)
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        text = get_object_or_404(Text, pk=data['occursIn'])
+        project_id = data.get('project')
+        if project_id is None:
+            project_id = VogonUserDefaultProject.objects.get(
+                for_user=request.user).project.id
+        relationset = relations.create_relationset(
+            template, data, request.user, text, project_id)
+        response_data = {'relationset': relationset.id}
+    else:  # Not sure if we want to do anything for GET requests at this point.
+        response_data = {}
+
+    return JsonResponse(response_data)
 
 
 @staff_member_required

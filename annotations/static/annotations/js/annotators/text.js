@@ -601,7 +601,7 @@ RelationField = {
                         <input type="text"
                             v-model="value_label"
                             class="form-control input-sm"
-                            id="relation-part-{{ field.part_id }}"
+                            :id="'relation-part-' + field.part_id"
                             v-bind:placeholder="inputPlaceholder()" />
                         <span class="input-group-btn">
                             <button v-if="selection == null"
@@ -1153,12 +1153,9 @@ Appellator = new Vue({
             });
         },
         createRelationsFromText: function () {
-            let template = store.getters.getTemplate
-            let fields = store.getters.getTemplate.fields
-            console.log("runs");
             self = this;
             RelationTemplateResource.text({
-                id: 4
+                id: store.getters.getTemplate.id
             }, {
                 appellations: this.submit_text_appellations,
                 start: this.start,
