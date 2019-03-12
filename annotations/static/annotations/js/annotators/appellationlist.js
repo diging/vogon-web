@@ -22,14 +22,14 @@ var AppellationListItem = {
 					Created by <strong>{{ getCreatorName(appellation.createdBy) }}</strong> on {{ getFormattedDate(appellation.created) }}
 				</div>
 				</li>`,
-	data: function() {
+	data: function () {
 		return {
 			checked: true
 		}
 	},
 	watch: {
 		checked: function () {
-			if(this.checked == false) {
+			if (this.checked == false) {
 				this.$emit('removeAppellation', this.index);
 			} else {
 				this.$emit('addAppellation', this.appellation);
@@ -37,18 +37,26 @@ var AppellationListItem = {
 		}
 	},
 	methods: {
-		hide: function() { this.$emit("hideappellation", this.appellation); },
-		show: function() { this.$emit("showappellation", this.appellation); },
-		toggle: function() {
-			if(this.appellation.visible) {
+		hide: function () {
+			this.$emit("hideappellation", this.appellation);
+		},
+		show: function () {
+			this.$emit("showappellation", this.appellation);
+		},
+		toggle: function () {
+			if (this.appellation.visible) {
 				this.hide();
 			} else {
 				this.show();
 			}
 		},
-		isSelected: function() { return this.appellation.selected; },
-		select: function() { this.$emit('selectappellation', this.appellation); },
-		label: function() {
+		isSelected: function () {
+			return this.appellation.selected;
+		},
+		select: function () {
+			this.$emit('selectappellation', this.appellation);
+		},
+		label: function () {
 			if (this.appellation.interpretation) {
 				return this.appellation.interpretation.label;
 			} else if (this.appellation.dateRepresentation) {
@@ -93,7 +101,7 @@ AppellationList = {
 					<div class="text-right ">
 						<select  v-if="sidebar == 'submitAllAppellations'" v-model="selected_template" style="float: left;">
 							<option value=0>Please select Relationship</option>
-							<option v-for="template in templates" :value=template.id>{{ template.name }} - <span style="color: lightgrey;">{{ template.description }}</span></option>
+							<option v-for="template in templates" :value=template>{{ template.name }} - <span style="color: lightgrey;">{{ template.description }}</span></option>
 						</select>
 						<a v-if="allHidden()" v-on:click="showAll" class="btn">
 							Show all
@@ -127,11 +135,12 @@ AppellationList = {
 	components: {
 		'appellation-list-item': AppellationListItem,
 	},
-	data: function() {
+	data: function () {
 		return {
 			current_appellations: this.appellations,
 			selected_template: null,
-			templates: null
+			templates: null,
+			appellations_to_submit: []
 		}
 	},
 	computed: {
@@ -143,70 +152,84 @@ AppellationList = {
 		this.getTemplates();
 	},
 	watch: {
-		appellations: function(value) {
+		appellations: function (value) {
 			// Replace an array prop wholesale doesn't seem to trigger a
 			//  DOM update in the v-for binding, but a push() does; so we'll
 			//  just push the appellations that aren't already in the array.
-			var current_ids = this.current_appellations.map(function(elem) {
+			var current_ids = this.current_appellations.map(function (elem) {
 				return elem.id;
 			});
 			var self = this;
-			this.appellations.forEach(function(elem) {
+			this.appellations.forEach(function (elem) {
 				if (current_ids.indexOf(elem.id) < 0) {
 					self.current_appellations.push(elem);
 				}
 			});
 		},
 		selected_template: function () {
-			this.getTemplateFields();
+			store.commit("setTemplate", this.selected_template);
 		},
 	},
 	methods: {
+		/*************************************************
+		 * Start Methods to create relationships to text *
+		 *************************************************/
 		selectConcept: function () {
 			store.commit('triggerConcepts')
 		},
 		removeAppellation: function (index) {
-			this.current_appellations.splice(index, 1);
-			data = [this.current_appellations, this.relationship];
-			this.$emit('currentAppellations', data);
+			this.appellations_to_submit.splice(index, 1);
+			store.commit('setAppellationsToSubmit', this.appellations_to_submit)
 		},
 		addAppellation: function (appellation) {
-			this.current_appellations.push(appellation);
-			data = [this.current_appellations, this.relationship];
-			this.$emit('currentAppellations', data);
+			this.appellations_to_submit.push(appellation);
+			store.commit('setAppellationsToSubmit', this.appellations_to_submit)
 		},
-		allHidden: function() {
-			var ah = true;
-			this.appellations.forEach(function(appellation) {
-				if (appellation.visible) ah = false;
-			});
-			return ah;
-		},
-		getTemplates: function() {
-			RelationTemplateResource.get_single_relation().then(response => { 
+		getTemplates: function () {
+			RelationTemplateResource.get_single_relation().then(response => {
 				this.templates = response.body;
-            }).catch(function(error) {
-                console.log('Failed to get relationtemplates', error);
-            });
+			}).catch(function (error) {
+				console.log('Failed to get relationtemplates', error);
+			});
 		},
-		getTemplateFields: function() {
+		getTemplateFields: function () {
 			console.log("Fires")
 			RelationTemplateResource.query({
 				search: this.selected_template,
 				format: "json",
 				all: false
 			}).then(function (response) {
+				console.log(response);
 				store.commit("setTemplate", response.body.templates[0]);
 			}).catch(function (error) {
 				console.log('Failed to get relationtemplates', error);
 				self.searching = false;
 			});
 		},
-		hideAll: function() { this.$emit("hideallappellations"); },
-		showAll: function() { this.$emit("showallappellations"); },
-		hideAppellation: function(appellation) { this.$emit("hideappellation", appellation); },
-		showAppellation: function(appellation) { this.$emit("showappellation", appellation); },
-		selectAppellation: function(appellation) { this.$emit('selectappellation', appellation); },
+		/***********************************************
+		 * End Methods to create relationships to text *
+		 ***********************************************/
+		allHidden: function () {
+			var ah = true;
+			this.appellations.forEach(function (appellation) {
+				if (appellation.visible) ah = false;
+			});
+			return ah;
+		},
+		hideAll: function () {
+			this.$emit("hideallappellations");
+		},
+		showAll: function () {
+			this.$emit("showallappellations");
+		},
+		hideAppellation: function (appellation) {
+			this.$emit("hideappellation", appellation);
+		},
+		showAppellation: function (appellation) {
+			this.$emit("showappellation", appellation);
+		},
+		selectAppellation: function (appellation) {
+			this.$emit('selectappellation', appellation);
+		},
 	}
 }
-

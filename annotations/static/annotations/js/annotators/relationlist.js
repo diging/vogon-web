@@ -15,13 +15,17 @@ RelationListItem = {
                 </li>`,
 
     methods: {
-        select: function() { this.$emit('selectrelation', this.relation); },
-        isSelected: function() { return this.relation.selected; },
-        getRepresentation: function(relation) {
+        select: function () {
+            this.$emit('selectrelation', this.relation);
+        },
+        isSelected: function () {
+            return this.relation.selected;
+        },
+        getRepresentation: function (relation) {
             if (relation.representation) {
                 return relation.representation;
             } else {
-                return relation.appellations.map(function(appellation) {
+                return relation.appellations.map(function (appellation) {
                     return appellation.interpretation.label;
                 }).join('; ');
             }
@@ -69,6 +73,8 @@ RelationList = {
         'relation-list-item': RelationListItem
     },
     methods: {
-        selectRelation: function(relation) { this.$emit('selectrelation', relation); }
+        selectRelation: function (relation) {
+            this.$emit('selectrelation', relation);
+        }
     }
 }

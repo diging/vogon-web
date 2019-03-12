@@ -149,4 +149,5 @@ class TemplatePartSerializer(serializers.ModelSerializer):
 class TemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RelationTemplate
-        fields = ('id', 'name', 'description')
+        fields = ('id', 'name', 'description', 'template_parts')
+        depth = 1

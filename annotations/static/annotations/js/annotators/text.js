@@ -1,8 +1,6 @@
-
-
 /******************************************************************************
-  *         Components!
-  *****************************************************************************/
+ *         Components!
+ *****************************************************************************/
 
 var ConceptListItem = {
     props: ['concept'],
@@ -13,7 +11,7 @@ var ConceptListItem = {
                    <div class="text text-muted">{{ concept.description }}</div>
                </div>`,
     methods: {
-        select: function() {
+        select: function () {
             this.$emit('selectconcept', this.concept);
         },
 
@@ -62,7 +60,7 @@ var ConceptSearch = {
                        </concept-list-item>
                   </div>
               </div>`,
-    data: function() {
+    data: function () {
         return {
             query: '',
             concepts: [],
@@ -73,39 +71,41 @@ var ConceptSearch = {
         }
     },
     methods: {
-        selectConcept: function(concept) {
+        selectConcept: function (concept) {
             // Clear the concept search results.
             this.concepts = [];
             this.$emit('selectconcept', concept);
         },
-        ready: function() {     // TODO: should be able to recover from errors.
+        ready: function () { // TODO: should be able to recover from errors.
             return !(this.searching || this.error);
         },
-        search: function() {
-            this.searching = true;    // Instant feedback for the user.
+        search: function () {
+            this.searching = true; // Instant feedback for the user.
 
             this.$emit('search', this.searching); // emit search to remove concept picker
 
             // Asynchronous quries are beautiful.
-            var self = this;    // Need a closure since Concept is global.
-            var payload = {search: this.query};
+            var self = this; // Need a closure since Concept is global.
+            var payload = {
+                search: this.query
+            };
             if (this.pos != "") {
                 payload['pos'] = this.pos;
             }
             if (this.force) {
                 payload['force'] = 'force';
             }
-            Concept.search(payload).then(function(response) {
+            Concept.search(payload).then(function (response) {
                 self.concepts = response.body.results;
                 self.searching = false;
-            }).catch(function(error) {
+            }).catch(function (error) {
                 console.log("ConceptSearch:: search failed with", error);
                 self.error = true;
                 self.searching = false;
             });
 
-          }
-        },
+        }
+    },
 
     components: {
         'concept-list-item': ConceptListItem
@@ -174,7 +174,7 @@ ConceptCreator = {
                        </div>
                    </div>
                </div>`,
-    data: function() {
+    data: function () {
         return {
             oath: false,
             name: "",
@@ -186,22 +186,32 @@ ConceptCreator = {
             submitted: false
         }
     },
-    mounted: function() {
+    mounted: function () {
         this.updateTypes();
     },
     watch: {
-        name: function() { this.tryAgain(); },
-        description: function() { this.tryAgain(); },
-        pos: function() { this.tryAgain(); },
-        concept_type: function() { this.tryAgain(); }
+        name: function () {
+            this.tryAgain();
+        },
+        description: function () {
+            this.tryAgain();
+        },
+        pos: function () {
+            this.tryAgain();
+        },
+        concept_type: function () {
+            this.tryAgain();
+        }
     },
     methods: {
-        ready: function() { return (this.oath && this.name.length > 1 && this.description.length > 10 && this.concept_type != "" && !this.submitted); },
-        tryAgain: function() {
+        ready: function () {
+            return (this.oath && this.name.length > 1 && this.description.length > 10 && this.concept_type != "" && !this.submitted);
+        },
+        tryAgain: function () {
             this.submitted = false;
             this.error = false;
         },
-        clear: function() {
+        clear: function () {
             this.oath = false;
             this.name = "";
             this.description = "";
@@ -210,9 +220,9 @@ ConceptCreator = {
             this.error = false;
             this.submitted = false;
         },
-        createConcept: function() {
+        createConcept: function () {
             if (this.ready) {
-                this.submitted = true;    // Immediately prevent further submissions.
+                this.submitted = true; // Immediately prevent further submissions.
                 self = this;
                 Concept.save({
                     uri: 'generate',
@@ -220,22 +230,22 @@ ConceptCreator = {
                     description: this.description,
                     pos: this.pos,
                     typed: this.concept_type
-                }).then(function(response) {
+                }).then(function (response) {
                     self.clear();
                     self.$emit("createdconcept", response.body);
-                }).catch(function(error){
+                }).catch(function (error) {
                     console.log('ConceptCreator:: failed to create concept', error);
                     self.error = true;
                 });
             }
         },
-        updateTypes: function() {
-            self = this;    // Closure!
-            ConceptType.query().then(function(response) {
+        updateTypes: function () {
+            self = this; // Closure!
+            ConceptType.query().then(function (response) {
                 self.concept_types = response.body.results;
             });
         },
-        labelType: function(ctype) {
+        labelType: function (ctype) {
             if (ctype.label) {
                 return ctype.label;
             } else {
@@ -251,14 +261,14 @@ ConceptCreator = {
 
 DateAppellationCreator = {
     props: ["position", "user", "text", "project"],
-    data: function() {
+    data: function () {
         return {
             year: null,
             month: null,
             day: null,
             submitted: false,
             saving: false
-            
+
         }
     },
     template: `<div class="appellation-creator">
@@ -287,18 +297,20 @@ DateAppellationCreator = {
                     </div>
                </div>`,
     methods: {
-        ready: function() { return (this.year && !(this.day && !this.month)); },
-        reset: function() {
+        ready: function () {
+            return (this.year && !(this.day && !this.month));
+        },
+        reset: function () {
             this.concept = null;
             this.create = false;
             this.submitted = false;
             this.saving = false;
         },
-        cancel: function() {
+        cancel: function () {
             this.reset();
             this.$emit('cancelappellation');
         },
-        createAppellation: function() {
+        createAppellation: function () {
             if (!(this.submitted || this.saving)) {
                 // this.submitted = true;      // Prevent multiple submissions.
                 // this.saving = true;
@@ -308,7 +320,8 @@ DateAppellationCreator = {
                         occursIn: this.text.id,
                         position_type: "CO",
                         position_value: [this.position.startOffset,
-                                         this.position.endOffset].join(",")
+                            this.position.endOffset
+                        ].join(",")
                     },
                     stringRep: this.position.representation,
                     occursIn: this.text.id,
@@ -317,10 +330,10 @@ DateAppellationCreator = {
                     year: this.year,
                     month: this.month,
                     day: this.day
-                }).then(function(response) {
+                }).then(function (response) {
                     self.reset();
                     self.$emit('createddateappellation', response.body);
-                }).catch(function(error){
+                }).catch(function (error) {
                     this.saving = false;
                     console.log('DateAppellationCreator:: failed to create appellation', error);
                 });
@@ -330,28 +343,27 @@ DateAppellationCreator = {
 }
 ConceptPickerItem = {
     props: ['concept'],
-    components: {
-    },
-    template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.interpretation.uri }}">
+    components: {},
+    template: `<div class="list-group-item concept-item clearfix" :id="'concept-' + concept.interpretation.uri">
                 <div>
                     <a v-on:click="select" style="cursor: pointer;">{{ concept.interpretation_label }} ({{ concept.interpretation.authority }})</a>
                 </div>
                 <div class="text text-muted">{{ concept.interpretation.description }}</div>
             </div>`,
     methods: {
-        select: function() {
+        select: function () {
             this.$emit('selectconcept', this.concept);
-            },
+        },
 
-        }
     }
+}
 
 ConceptPicker = {
     props: ['appellations'],
     components: {
         'concept-picker-item': ConceptPickerItem
     },
-    data: function() {
+    data: function () {
         return {
             conceptsFinal: [],
             appell: [],
@@ -366,19 +378,19 @@ ConceptPicker = {
                 </concept-picker-item>
                </div>`,
     methods: {
-        selectConcept: function(concept) {
+        selectConcept: function (concept) {
             // Clear the concept search results.
             this.concepts = [];
             this.$emit('selectconcept', concept);
         },
         addConcepts: function (appellationMapEntires) {
             var count = 0
-            while(count <= 3) {
+            while (count <= 3) {
                 var appellation = appellationMapEntires.next().value;
                 if (appellation == null) {
                     break
-                } 
-                if (!this.conceptsFinal.includes(appellation[1][0])){
+                }
+                if (!this.conceptsFinal.includes(appellation[1][0])) {
                     this.conceptsFinal.push(appellation[1][0]);
                     count++;
                 }
@@ -388,22 +400,22 @@ ConceptPicker = {
             this.conceptsFinal = [];
             this.appell = appellations;
             // Sort by date
-            function compare(a,b) {
+            function compare(a, b) {
                 if (Date.parse(a.created) > Date.parse(b.created))
-                  return -1;
+                    return -1;
                 if (Date.parse(a.created) < Date.parse(b.created))
-                  return 1;
+                    return 1;
                 return 0;
             }
             this.appell.sort(compare);
             var appellationMap = new Map();
             // set map items from appell array
-            this.appell.forEach(function(item){ 
+            this.appell.forEach(function (item) {
                 if (appellationMap.has(item.interpretation.uri)) {
-                        appellationMap.get(item.interpretation.uri).push(item);
-                    } else {
-                        appellationMap.set(item.interpretation.uri, [item]);
-                    }
+                    appellationMap.get(item.interpretation.uri).push(item);
+                } else {
+                    appellationMap.set(item.interpretation.uri, [item]);
+                }
             });
             var appellationMapEntires = appellationMap.entries();
             // add non-duplicate objects to conceptsFinal sorted by most recent
@@ -420,7 +432,7 @@ ConceptPicker = {
     },
     created: function () {
         this.merge(this.appellations);
-        
+
     },
 }
 
@@ -431,7 +443,7 @@ AppellationCreator = {
         'concept-creator': ConceptCreator,
         'concept-picker': ConceptPicker
     },
-    data: function() {
+    data: function () {
         return {
             concept: null,
             create: false,
@@ -503,7 +515,7 @@ AppellationCreator = {
 
     watch: {
         search: function () {
-            if (this.search ==  true){
+            if (this.search == true) {
                 this.display = false;
             }
         },
@@ -514,7 +526,7 @@ AppellationCreator = {
         }
     },
     methods: {
-        reset: function() {
+        reset: function () {
             this.concept = null;
             this.create = false;
             this.submitted = false;
@@ -523,23 +535,29 @@ AppellationCreator = {
         setSearch: function (search) { // removes concept picker if searching concept to keep it from looking messy
             this.search = search;
         },
-        cancel: function() {
+        cancel: function () {
             this.reset();
             this.$emit('cancelappellation');
             store.commit("triggerConcepts", false);
         },
-        isSaving: function() { return this.saving; },
-        awaitingConcept: function() { return (this.concept == null); },
-        selectConcept: function(concept) { this.concept = concept; },
-        createdConcept: function(concept) {
+        isSaving: function () {
+            return this.saving;
+        },
+        awaitingConcept: function () {
+            return (this.concept == null);
+        },
+        selectConcept: function (concept) {
+            this.concept = concept;
+        },
+        createdConcept: function (concept) {
             this.concept = concept;
             this.create = false;
         },
-        createAppellation: function() {
+        createAppellation: function () {
             let stringRep
             /* 
-            * may want to change this at somepoint. If this is a concept for a text we set the position values to null
-            */
+             * may want to change this at somepoint. If this is a concept for a text we set the position values to null
+             */
             if (store.getters.showConcepts) {
                 this.position.startOffset = null
                 this.position.endOffset = null
@@ -548,7 +566,7 @@ AppellationCreator = {
                 stringRep = this.position.representation
             }
             if (!(this.submitted || this.saving)) {
-                this.submitted = true;      // Prevent multiple submissions.
+                this.submitted = true; // Prevent multiple submissions.
                 this.saving = true;
                 self = this;
                 Appellation.save({
@@ -556,7 +574,8 @@ AppellationCreator = {
                         occursIn: this.text.id,
                         position_type: "CO",
                         position_value: [this.position.startOffset,
-                                         this.position.endOffset].join(",")
+                            this.position.endOffset
+                        ].join(",")
                     },
                     stringRep: stringRep,
                     startPos: this.position.startOffset,
@@ -565,18 +584,21 @@ AppellationCreator = {
                     createdBy: this.user.id,
                     project: this.project.id,
                     interpretation: this.concept.uri || this.concept.interpretation.uri
-                }).then(function(response) {
+                }).then(function (response) {
                     self.reset();
+                    if (store.getters.showConcepts) {
+                        store.commit('setTextAppellation', response.body);
+                    }
                     store.commit("triggerConcepts");
                     store.commit("conceptLabel", response.body.interpretation_label);
                     self.$emit('createdappellation', response.body);
-                }).catch(function(error){
+                }).catch(function (error) {
                     this.saving = false;
                     console.log('AppellationCreator:: failed to create appellation', error);
                 });
             }
         },
-        ready: function() {
+        ready: function () {
             if (this.triggered && this.concept) {
                 return true
             } else {
@@ -588,7 +610,7 @@ AppellationCreator = {
 
 RelationField = {
     props: ["field", "listener"],
-    data: function() {
+    data: function () {
         return {
             selection: null,
             value_label: null,
@@ -627,7 +649,7 @@ RelationField = {
                     </div>
                </div>`,
     methods: {
-        inputPlaceholder: function() {
+        inputPlaceholder: function () {
             if (this.selection == null && this.listening) {
                 if (this.field.type == 'TP') {
                     return 'Select text or existing appellation. Press ESC to cancel.';
@@ -638,8 +660,8 @@ RelationField = {
                 }
             }
         },
-        listen: function() {
-            if (!this.listening && !this.isBlocked()) {    // Don't bind more than one listener.
+        listen: function () {
+            if (!this.listening && !this.isBlocked()) { // Don't bind more than one listener.
                 this.listening = true;
                 this.$emit('listening', this.field);
                 if (this.field.type == 'TP') {
@@ -651,19 +673,19 @@ RelationField = {
                 }
             }
         },
-        handleSelection: function(selection) {
+        handleSelection: function (selection) {
             this.stopListening();
             this.selection = selection;
-            if (this.field.type == 'TP') {    // Assume this is an appellation.
+            if (this.field.type == 'TP') { // Assume this is an appellation.
                 this.value_label = selection.interpretation.label;
-            } else if (this.field.type == 'CO') {    // Assume it's a position.
+            } else if (this.field.type == 'CO') { // Assume it's a position.
                 this.value_label = selection.representation;
             } else if (this.field.type == 'DT') {
                 this.value_label = selection.dateRepresentation;
             }
             this.$emit('registerdata', this.field, this.selection);
         },
-        stopListening: function() {
+        stopListening: function () {
             if (this.field.type == 'TP') {
                 AppellationBus.$off('selectedappellation', this.handleSelection);
             } else if (this.field.type == 'CO') {
@@ -674,14 +696,16 @@ RelationField = {
             this.listening = false;
             this.$emit('donelistening', this.field);
         },
-        clear: function() {
+        clear: function () {
             this.selection = null;
             this.value_label = null;
             this.$emit('unregisterdata', this.field);
         },
         // We don't want to interfere with other fields, so we respect the
         //  priority of the current listener, if there is one.
-        isBlocked: function() { return (this.listener !== undefined && this.listener != null && this.listener != this.field); }
+        isBlocked: function () {
+            return (this.listener !== undefined && this.listener != null && this.listener != this.field);
+        }
     }
 
 }
@@ -689,7 +713,7 @@ RelationField = {
 
 RelationTemplate = {
     props: ["fields", "name", "description"],
-    data: function() {
+    data: function () {
         return {
             listener: null,
         };
@@ -715,27 +739,58 @@ RelationTemplate = {
         //  listening. All other RelationField instances are expected to respect
         //  that listener, and not start listening until the current field is
         //  done.
-        fieldIsListening: function(listeningField) {
+        fieldIsListening: function (listeningField) {
             this.listener = listeningField;
             if (listeningField.type == 'CO') this.$emit('fieldislisteningfortext');
         },
-        fieldIsDoneListening: function(listeningField) {
+        fieldIsDoneListening: function (listeningField) {
             this.listener = null;
             if (listeningField.type == 'CO') this.$emit('fieldisdonelisteningfortext');
         },
-        registerData: function(field, data) { this.$emit('registerdata', field, data); },
-        unregisterData: function(field) { this.$emit('unregisterdata', field); }
+        registerData: function (field, data) {
+            this.$emit('registerdata', field, data);
+        },
+        unregisterData: function (field) {
+            this.$emit('unregisterdata', field);
+        }
     }
 }
 
 
 RelationDateAssignment = {
     props: ["listener"],
-    data: function() {
+    data: function () {
         return {
-            startTemplate: {"part_field": "start", "part_id": -1, "concept_label": null, "evidence_required": true, "description": "Please indicate the date when this relation began.", "type": "DT", "concept_id": null, "label": "Started"},
-            endTemplate: {"part_field": "end", "part_id": -1, "concept_label": null, "evidence_required": true, "description": "Please indicate the date when this relation ended.", "type": "DT", "concept_id": null, "label": "Ended"},
-            occurTemplate: {"part_field": "occur", "part_id": -1, "concept_label": null, "evidence_required": true, "description": "Please indicate the date when this relation occurred or was true.", "type": "DT", "concept_id": null, "label": "Occurred"},
+            startTemplate: {
+                "part_field": "start",
+                "part_id": -1,
+                "concept_label": null,
+                "evidence_required": true,
+                "description": "Please indicate the date when this relation began.",
+                "type": "DT",
+                "concept_id": null,
+                "label": "Started"
+            },
+            endTemplate: {
+                "part_field": "end",
+                "part_id": -1,
+                "concept_label": null,
+                "evidence_required": true,
+                "description": "Please indicate the date when this relation ended.",
+                "type": "DT",
+                "concept_id": null,
+                "label": "Ended"
+            },
+            occurTemplate: {
+                "part_field": "occur",
+                "part_id": -1,
+                "concept_label": null,
+                "evidence_required": true,
+                "description": "Please indicate the date when this relation occurred or was true.",
+                "type": "DT",
+                "concept_id": null,
+                "label": "Occurred"
+            },
             collectStarted: false,
             collectOccurred: false,
             collectEnded: false
@@ -808,21 +863,27 @@ RelationDateAssignment = {
                                 }"></span> Ended</a>
                </div>`,
     methods: {
-        toggleCollectStarted: function() { this.collectStarted = !this.collectStarted; },
-        toggleCollectOccurred: function() {  this.collectOccurred = !this.collectOccurred; },
-        toggleCollectEnded: function() { this.collectEnded = !this.collectEnded; },
-        fieldIsListening: function(listeningField) {
+        toggleCollectStarted: function () {
+            this.collectStarted = !this.collectStarted;
+        },
+        toggleCollectOccurred: function () {
+            this.collectOccurred = !this.collectOccurred;
+        },
+        toggleCollectEnded: function () {
+            this.collectEnded = !this.collectEnded;
+        },
+        fieldIsListening: function (listeningField) {
             this.listener = listeningField;
             if (listeningField.type == 'CO') this.$emit('fieldislisteningfortext');
         },
-        fieldIsDoneListening: function(listeningField) {
+        fieldIsDoneListening: function (listeningField) {
             this.listener = null;
             if (listeningField.type == 'CO') this.$emit('fieldisdonelisteningfortext');
         },
-        registerData: function(field, data) {
+        registerData: function (field, data) {
             this.$emit('registerdata', field, data);
         },
-        unregisterData: function(field) {
+        unregisterData: function (field) {
             this.$emit('unregisterdata', field);
         }
     }
@@ -831,7 +892,7 @@ RelationDateAssignment = {
 
 RelationCreator = {
     props: ["text", "project", "user", "template"],
-    data: function() {
+    data: function () {
         return {
             field_data: {},
             ready: false,
@@ -842,10 +903,18 @@ RelationCreator = {
         }
     },
     computed: {
-        fields: function() { return this.template.fields; },
-        description: function() { return this.template.description; },
-        name: function() { return this.template.name; },
-        id: function() { return this.template.id; }
+        fields: function () {
+            return this.template.fields;
+        },
+        description: function () {
+            return this.template.description;
+        },
+        name: function () {
+            return this.template.name;
+        },
+        id: function () {
+            return this.template.id;
+        }
     },
     components: {
         'relation-template': RelationTemplate,
@@ -883,20 +952,24 @@ RelationCreator = {
 
                </div>`,
     methods: {
-        fieldIsListeningForText: function() { this.$emit('fieldislisteningfortext'); },
-        fieldIsDoneListeningForText: function() { this.$emit('fieldisdonelisteningfortext'); },
-        registerData: function(field, data) {
+        fieldIsListeningForText: function () {
+            this.$emit('fieldislisteningfortext');
+        },
+        fieldIsDoneListeningForText: function () {
+            this.$emit('fieldisdonelisteningfortext');
+        },
+        registerData: function (field, data) {
             this.field_data[this.fieldHash(field)] = data;
             this.ready = this.readyToCreate();
         },
-        unregisterData: function(field, data) {
+        unregisterData: function (field, data) {
             delete(this.field_data[this.fieldHash(field)]);
             this.ready = this.readyToCreate();
         },
-        readyToCreate: function() {
+        readyToCreate: function () {
             var ready = true;
             self = this;
-            this.fields.forEach(function(field) {
+            this.fields.forEach(function (field) {
                 if (self.field_data[self.fieldHash(field)] == undefined) {
                     ready = false;
                 }
@@ -904,20 +977,23 @@ RelationCreator = {
             return ready;
         },
         // Relation fields don't have unique identifiers, so we create them.
-        fieldHash: function(field) { return [field.part_id, field.part_field].join('.'); },
-        prepareSubmission: function() {
+        fieldHash: function (field) {
+            return [field.part_id, field.part_field].join('.');
+        },
+        prepareSubmission: function () {
             self = this;
-            this.fields.forEach(function(field) {
-                if (field.type == "TP" || field.type == 'DT') {   // Open concept; expects appellation.
+            this.fields.forEach(function (field) {
+                if (field.type == "TP" || field.type == 'DT') { // Open concept; expects appellation.
                     field.appellation = self.field_data[self.fieldHash(field)];
 
-                } else if (field.type == "CO") {    // Expects text only.
+                } else if (field.type == "CO") { // Expects text only.
                     var position = self.field_data[self.fieldHash(field)]
                     field.position = {
                         occursIn_id: self.text.id,
                         position_type: "CO",
                         position_value: [position.startOffset,
-                                         position.endOffset].join(",")
+                            position.endOffset
+                        ].join(",")
                     };
                     field.data = {
                         tokenIds: null,
@@ -925,18 +1001,22 @@ RelationCreator = {
                     };
                 }
             });
-            ['start', 'end', 'occur'].forEach(function(temporal_part) {
+            ['start', 'end', 'occur'].forEach(function (temporal_part) {
                 var key = '-1.' + temporal_part;
                 if (key in self.field_data) {
                     self[temporal_part] = self.field_data[key];
                 }
             });
         },
-        cancel: function() { this.$emit('cancelrelation'); },
-        create: function() {
+        cancel: function () {
+            this.$emit('cancelrelation');
+        },
+        create: function () {
             this.prepareSubmission();
             self = this;
-            RelationTemplateResource.create({id: this.id}, {
+            RelationTemplateResource.create({
+                id: this.id
+            }, {
                 fields: this.fields,
                 start: this.start,
                 end: this.end,
@@ -944,20 +1024,20 @@ RelationCreator = {
                 occursIn: this.text.id,
                 createdBy: this.user.id,
                 project: this.project.id
-            }).then(function(response) {
+            }).then(function (response) {
                 this.ready = false;
                 self.$emit('createdrelation', response.body);
-            }).catch(function(error) {
+            }).catch(function (error) {
                 console.log('RelationTemplateResource:: failed miserably', error);
                 self.error = true;
                 self.ready = false;
-            });     // TODO: implement callback and exception handling!!
+            }); // TODO: implement callback and exception handling!!
         }
     }
 }
 
 RelationTemplateSelector = {
-    data: function() {
+    data: function () {
         return {
             templates: [],
             query: "",
@@ -998,20 +1078,30 @@ RelationTemplateSelector = {
                     </div>
                </div>`,
     methods: {
-        search: function() {
+        search: function () {
             this.searching = true;
             self = this;
-            RelationTemplateResource.query({search: this.query, format: "json", all: true}).then(function(response) {
+            RelationTemplateResource.query({
+                search: this.query,
+                format: "json",
+                all: true
+            }).then(function (response) {
                 self.templates = response.body.templates;
                 self.searching = false;
-            }).catch(function(error) {
+            }).catch(function (error) {
                 console.log('Failed to get relationtemplates', error);
                 self.searching = false;
             });
         },
-        selectTemplate: function(template) { this.$emit('selectedtemplate', template); },
-        clear: function() { this.templates = []; },
-        showingTemplates: function() { return this.templates.length > 0; }
+        selectTemplate: function (template) {
+            this.$emit('selectedtemplate', template);
+        },
+        clear: function () {
+            this.templates = [];
+        },
+        showingTemplates: function () {
+            return this.templates.length > 0;
+        }
     }
 }
 
@@ -1030,7 +1120,7 @@ Appellator = new Vue({
         'date-appellation-creator': DateAppellationCreator
     },
     template: `#annotation-template`,
-    data: function() {
+    data: function () {
         return {
             appellations: [],
             dateappellations: [],
@@ -1064,7 +1154,7 @@ Appellator = new Vue({
             submit_text_appellations: [],
         }
     },
-    mounted: function() {
+    mounted: function () {
         this.updateAppellations();
         this.updateRelations();
         this.updateDateAppellations();
@@ -1081,8 +1171,7 @@ Appellator = new Vue({
             self.updateSwimRef();
             self.handleScroll();
         }
-        //FIXME: Need this incase no appellations are deselected. Without it a empty array is submitted
-        this.submit_text_appellations = this.appellations
+        this.submit_text_appellations.push.apply(this.submit_text_appellations, this.appellations);
     },
     destroyed() {
         window.removeEventListener('scroll', this.handleScroll);
@@ -1123,8 +1212,11 @@ Appellator = new Vue({
                 }
             );
         },
+        registerData: function (field, data) {
+            this.field_data[this.fieldHash(field)] = data;
+            this.ready = this.readyToCreate();
+        },
         prepareSubmission: function (fields) {
-            console.log(fields);
             self = this;
             fields.forEach(function (field) {
                 if (field.type == "TP" || field.type == 'DT') { // Open concept; expects appellation.
@@ -1152,12 +1244,34 @@ Appellator = new Vue({
                 }
             });
         },
+        filterTextAppellationFromAppellationList: function () {
+            this.submit_text_appellations = store.getters.getAppellationsToSubmit
+            let i = this.submit_text_appellations.length
+            /* 
+             * Remove appellations that have the string represenation that matches the text title
+             * this assumes the appellation is that of the text and we remove it as to not make a
+             * relation to itself. You must iterate backwards when removing items from an array to
+             * prevent indexing errors
+             */
+            while (i) {
+                try {
+                    if (this.submit_text_appellations[i].stringRep == this.text.title) {
+                        this.submit_text_appellations.splice(i, 1);
+                    }
+                } catch (error) {
+
+                }
+                i--;
+            }
+        },
         createRelationsFromText: function () {
             self = this;
+            this.filterTextAppellationFromAppellationList()
             RelationTemplateResource.text({
                 id: store.getters.getTemplate.id
             }, {
                 appellations: this.submit_text_appellations,
+                textAppellation: store.getters.getTextAppellation,
                 start: this.start,
                 end: this.end,
                 occur: this.occur,
@@ -1166,16 +1280,11 @@ Appellator = new Vue({
                 project: this.project.id
             }).then(function (response) {
                 this.ready = false;
-                console.log("test");
             }).catch(function (error) {
                 console.log('RelationTemplateResource:: failed miserably', error);
                 self.error = true;
                 self.ready = false;
             }); // TODO: implement callback and exception handling!!
-        },
-        setCurrentAppellations: function (current_appellations) {
-            //FIXME: this is not ideal but is the only options until vuex is used
-            this.submit_text_appellations = current_appellations;
         },
         //TODO: Change function to SubmitAllAppellations
         showSubmitAllAppellationsSidebar: function () {
@@ -1185,7 +1294,7 @@ Appellator = new Vue({
         /***********************************************
          * End Methods to create relationships to text *
          ***********************************************/
-        getSwimmerWidth: function() {
+        getSwimmerWidth: function () {
             var shadow_elem = document.getElementById('shadow-swimlane');
             if (shadow_elem == null) {
                 return 0;
@@ -1193,7 +1302,7 @@ Appellator = new Vue({
                 return shadow_elem.clientWidth + 2;
             }
         },
-        handleScroll: function() {
+        handleScroll: function () {
             var shadow_elem = document.getElementById('shadow-swimlane');
             var swimmer = document.getElementById('sticky-swimlane');
             var scrolled = this.swimmerRef - window.scrollY;
@@ -1204,69 +1313,137 @@ Appellator = new Vue({
                 this.swimmerTop = this.swimmerRef - window.scrollY;
             }
         },
-        updateSwimRef: function() {
+        updateSwimRef: function () {
             var shadow_elem = document.getElementById('shadow-swimlane');
             this.swimmerRef = getOffsetTop(shadow_elem);
         },
-        toggleDateAppellation: function() { this.create_date_appellation = !this.create_date_appellation; },
-        fieldIsListeningForText: function() { this.text_listener = true; },
-        fieldIsDoneListeningForText: function() { this.text_listener = null; },
-        selectedTemplate: function(template) { this.template = template; },
-        createdRelation: function(relation) {
+        toggleDateAppellation: function () {
+            this.create_date_appellation = !this.create_date_appellation;
+        },
+        fieldIsListeningForText: function () {
+            this.text_listener = true;
+        },
+        fieldIsDoneListeningForText: function () {
+            this.text_listener = null;
+        },
+        selectedTemplate: function (template) {
+            this.template = template;
+        },
+        createdRelation: function (relation) {
             this.template = null;
             this.updateRelations();
             this.updateAppellations();
         },
-        cancelRelation: function() { this.template = null; },
-        sidebarIsShown: function() { return this.sidebarShown; },
-        showSidebar: function() {
+        cancelRelation: function () {
+            this.template = null;
+        },
+        sidebarIsShown: function () {
+            return this.sidebarShown;
+        },
+        showSidebar: function () {
             this.sidebarShown = true;
         },
-        hideSidebar: function() {
+        hideSidebar: function () {
             this.sidebarShown = false;
         },
-        selectConcept: function(concept) { this.selected_concept = concept; },
-        hideAllAppellations: function() { this.appellations.forEach(function(a) { a.visible = false; }); },
-        showAllAppellations: function() { this.appellations.forEach(function(a) { a.visible = true; }); },
-        showAppellation: function(appellation) { this.appellations.forEach(function(a) { if (a.id == appellation.id) a.visible = true; }); },
-        hideAppellation: function(appellation) { this.appellations.forEach(function(a) { if (a.id == appellation.id) a.visible = false; }); },
-        hideAllDateAppellations: function() { this.dateappellations.forEach(function(a) { a.visible = false; }); },
-        showAllDateAppellations: function() { this.dateappellations.forEach(function(a) { a.visible = true; }); },
-        showDateAppellation: function(appellation) { this.dateappellations.forEach(function(a) { if (a.id == appellation.id) a.visible = true; }); },
-        hideDateAppellation: function(appellation) { this.dateappellations.forEach(function(a) { if (a.id == appellation.id) a.visible = false; }); },
-        scrollToAppellation: function(appellation) { window.scrollTo(0, getTextPosition(appellation.position).top); },
-        selectAppellation: function(appellation) {
-            this.appellations.forEach(function(a) { a.selected = (a.id == appellation.id); });
+        selectConcept: function (concept) {
+            this.selected_concept = concept;
+        },
+        hideAllAppellations: function () {
+            this.appellations.forEach(function (a) {
+                a.visible = false;
+            });
+        },
+        showAllAppellations: function () {
+            this.appellations.forEach(function (a) {
+                a.visible = true;
+            });
+        },
+        showAppellation: function (appellation) {
+            this.appellations.forEach(function (a) {
+                if (a.id == appellation.id) a.visible = true;
+            });
+        },
+        hideAppellation: function (appellation) {
+            this.appellations.forEach(function (a) {
+                if (a.id == appellation.id) a.visible = false;
+            });
+        },
+        hideAllDateAppellations: function () {
+            this.dateappellations.forEach(function (a) {
+                a.visible = false;
+            });
+        },
+        showAllDateAppellations: function () {
+            this.dateappellations.forEach(function (a) {
+                a.visible = true;
+            });
+        },
+        showDateAppellation: function (appellation) {
+            this.dateappellations.forEach(function (a) {
+                if (a.id == appellation.id) a.visible = true;
+            });
+        },
+        hideDateAppellation: function (appellation) {
+            this.dateappellations.forEach(function (a) {
+                if (a.id == appellation.id) a.visible = false;
+            });
+        },
+        scrollToAppellation: function (appellation) {
+            window.scrollTo(0, getTextPosition(appellation.position).top);
+        },
+        selectAppellation: function (appellation) {
+            this.appellations.forEach(function (a) {
+                a.selected = (a.id == appellation.id);
+            });
             AppellationBus.$emit('selectedappellation', appellation);
             EventBus.$emit('cleartextselection');
             this.unselectText();
             this.unselectDateAppellation();
             this.scrollToAppellation(appellation);
         },
-        selectDateAppellation: function(appellation) {
-            this.dateappellations.forEach(function(a) { a.selected = (a.id == appellation.id); });
+        selectDateAppellation: function (appellation) {
+            this.dateappellations.forEach(function (a) {
+                a.selected = (a.id == appellation.id);
+            });
             AppellationBus.$emit('selecteddateappellation', appellation);
             EventBus.$emit('cleartextselection');
             this.unselectText();
             this.unselectAppellation();
             this.scrollToAppellation(appellation);
         },
-        selectAppellationsById: function(appellation_ids) {
-            this.appellations.forEach(function(appellation) {
+        selectAppellationsById: function (appellation_ids) {
+            this.appellations.forEach(function (appellation) {
                 appellation.selected = (appellation_ids.indexOf(appellation.id) > -1);
             });
         },
-        unselectAppellation: function() { this.appellations.forEach(function(a) { a.selected = false; }); },
-        unselectDateAppellation: function() { this.dateappellations.forEach(function(a) { a.selected = false; }); },
-        selectText: function(position) {
+        unselectAppellation: function () {
+            this.appellations.forEach(function (a) {
+                a.selected = false;
+            });
+        },
+        unselectDateAppellation: function () {
+            this.dateappellations.forEach(function (a) {
+                a.selected = false;
+            });
+        },
+        selectText: function (position) {
             this.unselectAppellation();
-            if (!this.text_listener) { this.selected_text = position; }
+            if (!this.text_listener) {
+                this.selected_text = position;
+            }
             TextBus.$emit('selectedtext', position);
         },
-        unselectText: function() { this.selected_text = null; },
-        textIsSelected: function() { return this.selected_text != null && this.text_listener == null; },
-        cancelAppellation: function() { this.selected_text = null; },
-        createdAppellation: function(appellation) {
+        unselectText: function () {
+            this.selected_text = null;
+        },
+        textIsSelected: function () {
+            return this.selected_text != null && this.text_listener == null;
+        },
+        cancelAppellation: function () {
+            this.selected_text = null;
+        },
+        createdAppellation: function (appellation) {
             self = this;
             var offsets = appellation.position.position_value.split(',');
             appellation.position.startOffset = offsets[0];
@@ -1278,7 +1455,7 @@ Appellator = new Vue({
             this.selected_text = null;
             this.updateAppellations(); // call update appellations when a new appelation is created to update list
         },
-        createdDateAppellation: function(appellation) {
+        createdDateAppellation: function (appellation) {
             self = this;
             var offsets = appellation.position.position_value.split(',');
             appellation.position.startOffset = offsets[0];
@@ -1289,44 +1466,50 @@ Appellator = new Vue({
             self.selectDateAppellation(appellation);
             this.selected_text = null;
         },
-        updateAppellations: function(callback) {
+        updateAppellations: function (callback) {
             // "CO" is the "character offset" DocumentPosition type. For image
             //  annotation this should be changed to "BB".
             var self = this;
             Appellation.query({
-                    position_type: "CO",
-                    text: this.text.id,
-                    limit: 500,
-                    project: this.project.id
-            }).then(function(response) {
+                position_type: "CO",
+                text: this.text.id,
+                limit: 500,
+                project: this.project.id
+            }).then(function (response) {
                 // DocumentPosition.position_value is represented with a
                 //  TextField, so serialized as a string. Start and end offsets
                 //  should be comma-delimited.
-                self.appellations = response.body.results.map(function(appellation) {
+                self.appellations = response.body.results.map(function (appellation) {
                     var offsets = appellation.position.position_value.split(',');
                     appellation.position.startOffset = offsets[0];
                     appellation.position.endOffset = offsets[1];
                     appellation.visible = true;
                     appellation.selected = false;
                     return appellation;
+
                 });
+                //Both of the following must be done here otherwise submit_text_appellations inconsistantly fails to populate
+                //create a unreferenced copy of appellations
+                self.submit_text_appellations.push(...self.appellations);
+                // set store in case no appellations of deselected
+                store.commit('setAppellationsToSubmit', self.submit_text_appellations);
                 if (callback) callback(response);
             });
         },
-        updateDateAppellations: function(callback) {
+        updateDateAppellations: function (callback) {
             // "CO" is the "character offset" DocumentPosition type. For image
             //  annotation this should be changed to "BB".
             var self = this;
             DateAppellation.query({
-                    position_type: "CO",
-                    text: this.text.id,
-                    limit: 500,
-                    project: this.project.id
-            }).then(function(response) {
+                position_type: "CO",
+                text: this.text.id,
+                limit: 500,
+                project: this.project.id
+            }).then(function (response) {
                 // DocumentPosition.position_value is represented with a
                 //  TextField, so serialized as a string. Start and end offsets
                 //  should be comma-delimited.
-                self.dateappellations = response.body.results.map(function(appellation) {
+                self.dateappellations = response.body.results.map(function (appellation) {
                     var offsets = appellation.position.position_value.split(',');
                     appellation.position.startOffset = offsets[0];
                     appellation.position.endOffset = offsets[1];
@@ -1337,34 +1520,52 @@ Appellator = new Vue({
                 if (callback) callback(response);
             });
         },
-        selectRelation: function(relation) {
+        selectRelation: function (relation) {
             this.selected_relation = relation;
             this.selected = null;
-            this.relations.forEach(function(r) { r.selected = (r.id == relation.id); });
-            var appellation_ids = relation.appellations.map(function(appellation) { return appellation.id; });
-            this.appellations.forEach(function(appellation) { appellation.selected = (appellation_ids.indexOf(appellation.id) > -1); });
-            var dateappellation_ids = relation.date_appellations.map(function(appellation) { return appellation.id; });
-            this.dateappellations.forEach(function(appellation) { appellation.selected = (dateappellation_ids.indexOf(appellation.id) > -1); });
+            this.relations.forEach(function (r) {
+                r.selected = (r.id == relation.id);
+            });
+            var appellation_ids = relation.appellations.map(function (appellation) {
+                return appellation.id;
+            });
+            this.appellations.forEach(function (appellation) {
+                appellation.selected = (appellation_ids.indexOf(appellation.id) > -1);
+            });
+            var dateappellation_ids = relation.date_appellations.map(function (appellation) {
+                return appellation.id;
+            });
+            this.dateappellations.forEach(function (appellation) {
+                appellation.selected = (dateappellation_ids.indexOf(appellation.id) > -1);
+            });
         },
-        updateRelations: function(callback) {
+        updateRelations: function (callback) {
             self = this;
             Relation.query({
                 text: this.text.id,
                 limit: 500,
                 project: this.project.id
-            }).then(function(response) {
+            }).then(function (response) {
                 self.relations = response.body.results;
-                if (callback) { callback(response); }
-            }).catch(function(error) {
+                if (callback) {
+                    callback(response);
+                }
+            }).catch(function (error) {
                 console.log('failed to get relations', error);
             });
             if (reloadGraph) {
                 reloadGraph();
             }
         },
-        showRelationsSidebar: function() { this.sidebar = 'relations'; },
-        showAppellationsSidebar: function() { this.sidebar = 'appellations';},
-        showDateAppellationsSidebar: function() { this.sidebar = 'dateappellations'; }
+        showRelationsSidebar: function () {
+            this.sidebar = 'relations';
+        },
+        showAppellationsSidebar: function () {
+            this.sidebar = 'appellations';
+        },
+        showDateAppellationsSidebar: function () {
+            this.sidebar = 'dateappellations';
+        }
 
     }
 });

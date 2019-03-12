@@ -3,7 +3,9 @@ const store = new Vuex.Store({
     state: {
         show_concepts: false,
         concept_label: "",
-        template: null
+        template: null,
+        appellations_to_submit: [],
+        text_appellation: []
     },
     mutations: {
         triggerConcepts(state, payload) {
@@ -11,23 +13,31 @@ const store = new Vuex.Store({
              * Need if in order for cancel button to work when 
              * conecpt picker is triggered by highlighting a word
              */
-            if(payload == false){
+            if (payload == false) {
                 state.show_concepts = payload
             } else {
                 state.show_concepts = !state.show_concepts;
             }
-            
+
         },
         conceptLabel(state, payload) {
-            state.concept_label = payload
+            state.concept_label = payload;
         },
         setTemplate(state, payload) {
-            state.template = payload
+            state.template = payload;
+        },
+        setAppellationsToSubmit(state, payload) {
+            state.appellations_to_submit = payload;
+        },
+        setTextAppellation(state, payload) {
+            state.text_appellation = payload;
         }
     },
     getters: {
         showConcepts: state => state.show_concepts,
         conceptLabel: state => state.concept_label,
         getTemplate: state => state.template,
+        getAppellationsToSubmit: state => state.appellations_to_submit,
+        getTextAppellation: state => state.text_appellation
     }
 })
