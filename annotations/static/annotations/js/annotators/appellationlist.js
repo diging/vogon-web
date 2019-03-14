@@ -146,7 +146,7 @@ AppellationList = {
 	computed: {
 		conceptLabel: function () {
 			return store.getters.conceptLabel
-		},
+		}
 	},
 	created: function () {
 		this.getTemplates();
@@ -193,13 +193,11 @@ AppellationList = {
 			});
 		},
 		getTemplateFields: function () {
-			console.log("Fires")
 			RelationTemplateResource.query({
 				search: this.selected_template,
 				format: "json",
 				all: false
 			}).then(function (response) {
-				console.log(response);
 				store.commit("setTemplate", response.body.templates[0]);
 			}).catch(function (error) {
 				console.log('Failed to get relationtemplates', error);

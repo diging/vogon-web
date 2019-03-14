@@ -10,7 +10,7 @@ const store = new Vuex.Store({
     mutations: {
         triggerConcepts(state, payload) {
             /*
-             * Need if in order for cancel button to work when 
+             * Needed if in order for cancel button to work when 
              * conecpt picker is triggered by highlighting a word
              */
             if (payload == false) {
