@@ -1151,12 +1151,12 @@ Appellator = new Vue({
             swimmerLeft: -2,
             swimmerWidth: 0,
             submitAppellationClicked: false,
-            submit_text_appellations: [],
         }
     },
     mounted: function () {
         this.updateAppellations();
         this.updateRelations();
+        store.commit('setAppellations', this.appellations)
         this.updateDateAppellations();
         this.updateSwimRef();
         this.handleScroll();
@@ -1171,7 +1171,6 @@ Appellator = new Vue({
             self.updateSwimRef();
             self.handleScroll();
         }
-        this.submit_text_appellations.push.apply(this.submit_text_appellations, this.appellations);
     },
     destroyed() {
         window.removeEventListener('scroll', this.handleScroll);
@@ -1216,47 +1215,18 @@ Appellator = new Vue({
             this.field_data[this.fieldHash(field)] = data;
             this.ready = this.readyToCreate();
         },
-        prepareSubmission: function (fields) {
-            self = this;
-            fields.forEach(function (field) {
-                if (field.type == "TP" || field.type == 'DT') { // Open concept; expects appellation.
-                    field.appellation = self.field_data[self.fieldHash(field)];
-
-                } else if (field.type == "CO") { // Expects text only.
-                    var position = self.field_data[self.fieldHash(field)]
-                    field.position = {
-                        occursIn_id: self.text.id,
-                        position_type: "CO",
-                        position_value: [position.startOffset,
-                            position.endOffset
-                        ].join(",")
-                    };
-                    field.data = {
-                        tokenIds: null,
-                        stringRep: position.representation
-                    };
-                }
-            });
-            ['start', 'end', 'occur'].forEach(function (temporal_part) {
-                var key = '-1.' + temporal_part;
-                if (key in self.field_data) {
-                    self[temporal_part] = self.field_data[key];
-                }
-            });
-        },
         filterTextAppellationFromAppellationList: function () {
-            this.submit_text_appellations = store.getters.getAppellationsToSubmit
-            let i = this.submit_text_appellations.length
+            let i = store.getters.getAppellationsToSubmit.length
             /* 
              * Remove appellations that have the string represenation that matches the text title
              * this assumes the appellation is that of the text and we remove it as to not make a
              * relation to itself. You must iterate backwards when removing items from an array to
-             * prevent indexing errors
+             * prevent indexing errors.
              */
             while (i) {
                 try {
-                    if (this.submit_text_appellations[i].stringRep == this.text.title) {
-                        this.submit_text_appellations.splice(i, 1);
+                    if (store.getters.getAppellationsToSubmit[i].stringRep == this.text.title) {
+                        store.commit('removeAppellation', i);
                     }
                 } catch (error) {
 
@@ -1270,7 +1240,7 @@ Appellator = new Vue({
             RelationTemplateResource.text({
                 id: store.getters.getTemplate.id
             }, {
-                appellations: this.submit_text_appellations,
+                appellations: store.getters.getAppellationsToSubmit,
                 textAppellation: store.getters.getTextAppellation,
                 start: this.start,
                 end: this.end,
@@ -1279,11 +1249,15 @@ Appellator = new Vue({
                 createdBy: this.user.id,
                 project: this.project.id
             }).then(function (response) {
-                this.ready = false;
+                self.ready = false;
+                self.sidebarShown = false;
+                self.sidebar = 'relations';
+                store.commit('resetCreateAppelltionsToText');
             }).catch(function (error) {
                 console.log('RelationTemplateResource:: failed miserably', error);
                 self.error = true;
                 self.ready = false;
+                store.commit('massAppellationAssignmentFailed');
             }); // TODO: implement callback and exception handling!!
         },
         //TODO: Change function to SubmitAllAppellations
@@ -1488,11 +1462,7 @@ Appellator = new Vue({
                     return appellation;
 
                 });
-                //Both of the following must be done here otherwise submit_text_appellations inconsistantly fails to populate
-                //create a unreferenced copy of appellations
-                self.submit_text_appellations.push(...self.appellations);
-                // set store in case no appellations of deselected
-                store.commit('setAppellationsToSubmit', self.submit_text_appellations);
+
                 if (callback) callback(response);
             });
         },

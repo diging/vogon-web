@@ -53,7 +53,6 @@ def add_relationtemplate(request):
 
     if request.POST:
         logger.debug('add_relationtemplate: post request')
-
         # Instatiate both form(set)s with data.
         relationtemplatepart_formset = formset(request.POST, prefix='parts')
         relationtemplate_form = form_class(request.POST)

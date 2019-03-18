@@ -24,19 +24,62 @@ var AppellationListItem = {
 				</li>`,
 	data: function () {
 		return {
-			checked: true
+			checked: true,
+			canUncheckAll: false,
+			canCheckAll: false
 		}
+	},
+	mounted: function () {
+		this.uncheck()
+		this.check()
 	},
 	watch: {
 		checked: function () {
 			if (this.checked == false) {
-				this.$emit('removeAppellation', this.index);
+				store.commit('removeAppellation', this.index);
+				store.commit('setSelectFalse')
 			} else {
-				this.$emit('addAppellation', this.appellation);
+				store.commit('addAppellation', this.appellation)
+				store.commit('setDeselectFalse')
 			}
-		}
+		},
+
 	},
 	methods: {
+		uncheck: function () {
+			store.watch(
+				(state) => {
+					return store.getters.getDeselect
+				},
+				(val) => {
+					if (val) {
+						this.uncheckAll()
+						this.canCheckAll = true;
+					} else {
+						console.log('else');
+					}
+				},
+			);
+		},
+		check: function () {
+			store.watch(
+				(state) => {
+					return store.getters.getSelect
+				},
+				(val) => {
+					if (val) {
+						this.checkAll()
+					}
+				},
+			);
+		},
+
+		uncheckAll: function () {
+			this.checked = false;
+		},
+		checkAll: function () {
+			this.checked = true;
+		},
 		hide: function () {
 			this.$emit("hideappellation", this.appellation);
 		},
@@ -99,7 +142,7 @@ AppellationList = {
 	template: `
 				<div>
 					<div class="text-right ">
-						<select  v-if="sidebar == 'submitAllAppellations'" v-model="selected_template" style="float: left;">
+						<select  v-if="sidebar == 'submitAllAppellations'" v-model="selected_template" style="float: left; margin-left: 2.5%;">
 							<option value=0>Please select Relationship</option>
 							<option v-for="template in templates" :value=template>{{ template.name }} - <span style="color: lightgrey;">{{ template.description }}</span></option>
 						</select>
@@ -110,26 +153,34 @@ AppellationList = {
 							Hide all
 						</a>
 					</div>
-					<div v-if="conceptLabel">
-						<h5>Concept: {{ conceptLabel }}</h5>
+					<div>
+						<div style="margin-bottom: 2%;" v-if="sidebar == 'submitAllAppellations'" >
+							<div class="col-md-6">
+								<h5 v-if="conceptLabel">Concept: {{ conceptLabel }}</h5>
+								<button v-else  @click="selectConcept()" class="btn btn-info btn-sm" >Select Concept</button>
+							</div>
+							<div class="col-md-6">
+								<button style="float:right;"  @click="deselectAllTemplatesRef()" class="btn btn-default btn-xs" >Deselect All</button>
+								<button style="float:right; margin-right:2%;"  @click="checkAll()" class="btn btn-default btn-xs" >Select All</button>
+							</div>
+						</div>
+						<div class="col-md-12">
+							<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll; margin-top: 2%;">
+								<appellation-list-item
+									v-bind:sidebar="sidebar"
+									v-on:hideappellation="hideAppellation"
+									v-on:showappellation="showAppellation"
+									v-on:selectappellation="selectAppellation"
+									v-on:removeAppellation="removeAppellation($event)"
+									v-on:addAppellation="addAppellation($event)"
+									v-for="(appellation, index) in current_appellations"
+									v-bind:appellation=appellation
+									v-if="appellation != null"
+									v-bind:index="index">
+								</appellation-list-item>
+							</ul>
+						</div>
 					</div>
-					<div v-else>
-						<button v-if="sidebar == 'submitAllAppellations'"  @click="selectConcept()" class="btn btn-primary" >Select Concept</button>
-					</div>
-					<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
-						<appellation-list-item
-							v-bind:sidebar="sidebar"
-							v-on:hideappellation="hideAppellation"
-							v-on:showappellation="showAppellation"
-							v-on:selectappellation="selectAppellation"
-							v-on:removeAppellation="removeAppellation($event)"
-							v-on:addAppellation="addAppellation($event)"
-							v-for="(appellation, index) in current_appellations"
-							v-bind:appellation=appellation
-							v-if="appellation != null"
-							v-bind:index="index">
-						</appellation-list-item>
-					</ul>
 				</div>
 			   `,
 	components: {
@@ -150,6 +201,7 @@ AppellationList = {
 	},
 	created: function () {
 		this.getTemplates();
+		store.commit('setAppellations', this.appellations)
 	},
 	watch: {
 		appellations: function (value) {
@@ -177,14 +229,6 @@ AppellationList = {
 		selectConcept: function () {
 			store.commit('triggerConcepts')
 		},
-		removeAppellation: function (index) {
-			this.appellations_to_submit.splice(index, 1);
-			store.commit('setAppellationsToSubmit', this.appellations_to_submit)
-		},
-		addAppellation: function (appellation) {
-			this.appellations_to_submit.push(appellation);
-			store.commit('setAppellationsToSubmit', this.appellations_to_submit)
-		},
 		getTemplates: function () {
 			RelationTemplateResource.get_single_relation().then(response => {
 				this.templates = response.body;
@@ -203,6 +247,12 @@ AppellationList = {
 				console.log('Failed to get relationtemplates', error);
 				self.searching = false;
 			});
+		},
+		deselectAllTemplatesRef: function () {
+			store.commit('deselect');
+		},
+		checkAll: function () {
+			store.commit('selectAll');
 		},
 		/***********************************************
 		 * End Methods to create relationships to text *

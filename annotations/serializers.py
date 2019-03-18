@@ -94,7 +94,6 @@ class AppellationSerializer(serializers.ModelSerializer):
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label', 'position', 'project')
 
-
 class AppellationPOSTSerializer(serializers.ModelSerializer):
     position = DocumentPositionSerializer(required=False)
     tokenIds = serializers.CharField(required=False)
@@ -107,13 +106,11 @@ class AppellationPOSTSerializer(serializers.ModelSerializer):
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label', 'position', 'project')
 
-
 class TypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Type
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
                   'description')
-
 
 class RelationSetSerializer(serializers.ModelSerializer):
     appellations = AppellationSerializer(many=True)

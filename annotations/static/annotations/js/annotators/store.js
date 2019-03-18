@@ -5,7 +5,11 @@ const store = new Vuex.Store({
         concept_label: "",
         template: null,
         appellations_to_submit: [],
-        text_appellation: []
+        text_appellation: [],
+        deselect_all: false,
+        select_all: false,
+        assignment_failed: false
+
     },
     mutations: {
         triggerConcepts(state, payload) {
@@ -20,17 +24,46 @@ const store = new Vuex.Store({
             }
 
         },
+        setTextAppellation(state, appellation) {
+            state.text_appellation = appellation;
+        },
         conceptLabel(state, payload) {
             state.concept_label = payload;
         },
         setTemplate(state, payload) {
             state.template = payload;
         },
-        setAppellationsToSubmit(state, payload) {
+        removeAppellation: function (state, index) {
+            state.appellations_to_submit.splice(index, 1);
+        },
+        addAppellation: function (state, appellation) {
+            state.appellations_to_submit.push(appellation);
+        },
+        setAppellations(state, payload) {
             state.appellations_to_submit = payload;
         },
-        setTextAppellation(state, payload) {
-            state.text_appellation = payload;
+        deselect(state) {
+            state.deselect_all = !state.deselect_all;
+            state.select_all = false;
+            state.appellations_to_submit = [];
+        },
+        selectAll(state) {
+            state.select_all = !state.select_all;
+            state.deselect_all = false;
+        },
+        setDeselectFalse(state) {
+            state.deselect_all = false;
+        },
+        setSelectFalse(state) {
+            state.select_all = false;
+        },
+        resetCreateAppelltionsToText(state) {
+            state.concept_label = '';
+            state.appellations_to_submit = [];
+            state.text_appellation = [];
+        },
+        massAppellationAssignmentFailed(state) {
+            state.assignment_failed = true;
         }
     },
     getters: {
@@ -38,6 +71,9 @@ const store = new Vuex.Store({
         conceptLabel: state => state.concept_label,
         getTemplate: state => state.template,
         getAppellationsToSubmit: state => state.appellations_to_submit,
-        getTextAppellation: state => state.text_appellation
+        getTextAppellation: state => state.text_appellation,
+        getDeselect: state => state.deselect_all,
+        getSelect: state => state.select_all,
+        getAssignmentFailed: state => state.assignment_failed
     }
 })
