@@ -1156,7 +1156,7 @@ Appellator = new Vue({
     mounted: function () {
         this.updateAppellations();
         this.updateRelations();
-        store.commit('setAppellations', this.appellations)
+        store.commit('setAppellations', this.appellations);
         this.updateDateAppellations();
         this.updateSwimRef();
         this.handleScroll();
@@ -1196,18 +1196,18 @@ Appellator = new Vue({
         watchStoreForConcepts: function () {
             store.watch(
                 (state) => {
-                    return store.getters.showConcepts
+                    return store.getters.showConcepts;
                 },
                 (val) => {
                     if (val) {
                         //FIXME: This should set selected text to the actual text id
-                        this.selected_text = this.text.title
+                        this.selected_text = this.text.title;
                         this.text_listener == null;
                     } else {
-                        this.unselectText()
+                        this.unselectText();
                     }
                 }, {
-                    deep: true
+                    deep: true;
                 }
             );
         },
@@ -1216,7 +1216,7 @@ Appellator = new Vue({
             this.ready = this.readyToCreate();
         },
         filterTextAppellationFromAppellationList: function () {
-            let i = store.getters.getAppellationsToSubmit.length
+            let i = store.getters.getAppellationsToSubmit.length;
             /* 
              * Remove appellations that have the string represenation that matches the text title
              * this assumes the appellation is that of the text and we remove it as to not make a
@@ -1236,7 +1236,7 @@ Appellator = new Vue({
         },
         createRelationsFromText: function () {
             self = this;
-            this.filterTextAppellationFromAppellationList()
+            this.filterTextAppellationFromAppellationList();
             RelationTemplateResource.text({
                 id: store.getters.getTemplate.id
             }, {

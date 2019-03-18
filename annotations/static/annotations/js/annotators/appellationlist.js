@@ -30,8 +30,8 @@ var AppellationListItem = {
 		}
 	},
 	mounted: function () {
-		this.uncheck()
-		this.check()
+		this.watchUncheckStore();
+		this.watchCheckStore();
 	},
 	watch: {
 		checked: function () {
@@ -46,7 +46,7 @@ var AppellationListItem = {
 
 	},
 	methods: {
-		uncheck: function () {
+		watchUncheckStore: function () {
 			store.watch(
 				(state) => {
 					return store.getters.getDeselect
@@ -61,7 +61,7 @@ var AppellationListItem = {
 				},
 			);
 		},
-		check: function () {
+		watchCheckStore: function () {
 			store.watch(
 				(state) => {
 					return store.getters.getSelect

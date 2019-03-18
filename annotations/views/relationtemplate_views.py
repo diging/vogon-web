@@ -225,6 +225,8 @@ def create_from_text(request, template_id):
             project_id = VogonUserDefaultProject.objects.get(
                 for_user=request.user).project.id
         for appellation in appellations:
+            #FIXME: Hardcoding this data object is not good practice
+            # but will work for the time being
             appellation_object = {
                 'end':
                 None,
