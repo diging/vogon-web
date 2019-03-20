@@ -1018,9 +1018,6 @@ RelationCreator = {
                 id: this.id
             }, {
                 fields: this.fields,
-                start: this.start,
-                end: this.end,
-                occur: this.occur,
                 occursIn: this.text.id,
                 createdBy: this.user.id,
                 project: this.project.id
@@ -1207,7 +1204,7 @@ Appellator = new Vue({
                         this.unselectText();
                     }
                 }, {
-                    deep: true;
+                    deep: true
                 }
             );
         },
@@ -1245,6 +1242,7 @@ Appellator = new Vue({
                 start: this.start,
                 end: this.end,
                 occur: this.occur,
+                part_id: store.getters.getTemplate.template_parts[0].id,
                 occursIn: this.text.id,
                 createdBy: this.user.id,
                 project: this.project.id

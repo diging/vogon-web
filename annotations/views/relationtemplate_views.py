@@ -237,7 +237,7 @@ def create_from_text(request, template_id):
                     'concept_label': None,
                     'evidence_reqired': False,
                     'label': 'Text',
-                    'part_id': 4,
+                    'part_id': data['part_id'],
                     'type': 'TP',
                     'concept_id': None
                 },
@@ -248,18 +248,18 @@ def create_from_text(request, template_id):
                                'concept_label': None,
                                'evidence_reqired': True,
                                'label': 'Concept',
-                               'part_id': 4,
+                               'part_id': data['part_id'],
                                'type': 'TP',
                                'concept_id': None
                            }],
                 'occrsIn':
-                '3',
+                data['occursIn'],
                 'project':
-                '1',
+                data['project'],
                 'start':
                 None,
                 'createdBy':
-                '2',
+                str(request.user.id),
                 'occur':
                 None
             }

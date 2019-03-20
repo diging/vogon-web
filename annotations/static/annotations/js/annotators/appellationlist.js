@@ -55,8 +55,6 @@ var AppellationListItem = {
 					if (val) {
 						this.uncheckAll()
 						this.canCheckAll = true;
-					} else {
-						console.log('else');
 					}
 				},
 			);
