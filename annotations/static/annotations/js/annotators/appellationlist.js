@@ -6,6 +6,9 @@ var AppellationListItem = {
                         'appellation-selected': isSelected()
                     }">
                 <span class="pull-right text-muted btn-group">
+                    <a class="btn btn-xs" v-on:click="">
+                        <span class="glyphicon glyphicon-trash"></span>
+                    </a>
                     <a class="btn btn-xs" v-on:click="select">
                         <span class="glyphicon glyphicon-hand-down"></span>
                     </a>
@@ -18,22 +21,56 @@ var AppellationListItem = {
                 <div class="text-warning">Created by <strong>{{ getCreatorName(appellation.createdBy) }}</strong> on {{ getFormattedDate(appellation.created) }}</div>
                </li>`,
     methods: {
-        hide: function() { this.$emit("hideappellation", this.appellation); },
-        show: function() { this.$emit("showappellation", this.appellation); },
-        toggle: function() {
-            if(this.appellation.visible) {
+        hide: function () {
+            this.$emit("hideappellation", this.appellation);
+        },
+        show: function () {
+            this.$emit("showappellation", this.appellation);
+        },
+        toggle: function () {
+            if (this.appellation.visible) {
                 this.hide();
             } else {
                 this.show();
             }
         },
-        isSelected: function() { return this.appellation.selected; },
-        select: function() { this.$emit('selectappellation', this.appellation); },
-        label: function() {
+        isSelected: function () {
+            return this.appellation.selected;
+        },
+        select: function () {
+            this.$emit('selectappellation', this.appellation);
+        },
+        label: function () {
             if (this.appellation.interpretation) {
                 return this.appellation.interpretation.label;
             } else if (this.appellation.dateRepresentation) {
                 return this.appellation.dateRepresentation;
+            }
+        },
+        getFormattedDate: function (isodate) {
+            var date = new Date(isodate);
+            var monthNames = [
+                "January", "February", "March",
+                "April", "May", "June", "July",
+                "August", "September", "October",
+                "November", "December"
+            ];
+            var minutes = String(date.getMinutes());
+            if (minutes.length == 1) {
+                minutes = '0' + minutes;
+            }
+
+            var day = date.getDate();
+            var monthIndex = date.getMonth();
+            var year = date.getFullYear();
+
+            return day + ' ' + monthNames[monthIndex] + ', ' + year + ' at ' + date.getHours() + ':' + minutes;
+        },
+        getCreatorName: function (creator) {
+            if (creator.id == USER_ID) {
+                return 'you';
+            } else {
+                return creator.username;
             }
         }
     }
@@ -63,21 +100,21 @@ AppellationList = {
     components: {
         'appellation-list-item': AppellationListItem
     },
-    data: function() {
+    data: function () {
         return {
             current_appellations: this.appellations
         }
     },
     watch: {
-        appellations: function(value) {
+        appellations: function (value) {
             // Replace an array prop wholesale doesn't seem to trigger a
             //  DOM update in the v-for binding, but a push() does; so we'll
             //  just push the appellations that aren't already in the array.
-            var current_ids = this.current_appellations.map(function(elem) {
+            var current_ids = this.current_appellations.map(function (elem) {
                 return elem.id;
             });
             var self = this;
-            this.appellations.forEach(function(elem) {
+            this.appellations.forEach(function (elem) {
                 if (current_ids.indexOf(elem.id) < 0) {
                     self.current_appellations.push(elem);
                 }
@@ -85,17 +122,27 @@ AppellationList = {
         }
     },
     methods: {
-        allHidden: function() {
+        allHidden: function () {
             var ah = true;
-            this.appellations.forEach(function(appellation) {
+            this.appellations.forEach(function (appellation) {
                 if (appellation.visible) ah = false;
             });
             return ah;
         },
-        hideAll: function() { this.$emit("hideallappellations"); },
-        showAll: function() { this.$emit("showallappellations"); },
-        hideAppellation: function(appellation) { this.$emit("hideappellation", appellation); },
-        showAppellation: function(appellation) { this.$emit("showappellation", appellation); },
-        selectAppellation: function(appellation) { this.$emit('selectappellation', appellation); }
+        hideAll: function () {
+            this.$emit("hideallappellations");
+        },
+        showAll: function () {
+            this.$emit("showallappellations");
+        },
+        hideAppellation: function (appellation) {
+            this.$emit("hideappellation", appellation);
+        },
+        showAppellation: function (appellation) {
+            this.$emit("showappellation", appellation);
+        },
+        selectAppellation: function (appellation) {
+            this.$emit('selectappellation', appellation);
+        }
     }
 }

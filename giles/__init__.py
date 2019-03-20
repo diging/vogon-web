@@ -83,8 +83,6 @@ def get_user_auth_token(user, **kwargs):
         user.save()
         return user.giles_token.token
     except Exception as E:
-        print str(E)
-        print status_code, data
         template = "Failed to retrieve access token for user {u}"
         msg = template.format(u=user.username)
         if kwargs.get('raise_exception', False):

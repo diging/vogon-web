@@ -283,6 +283,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             queryset = queryset.filter(project_id=project_id)
         if position_type and position_type in DocumentPosition.TYPES:
             queryset = queryset.filter(position__position_type=position_type)
+        print("Hit")
         return queryset.order_by('-created')
 
 

@@ -14,5 +14,4 @@ class RepositoryManager(RESTManager):
         headers = {}
         if self.user:
             headers = auth.jars_github_auth(self.user)
-        print headers
         return requests.get(target, headers=headers, params=params).content

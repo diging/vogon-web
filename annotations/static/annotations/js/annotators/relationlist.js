@@ -15,15 +15,45 @@ RelationListItem = {
                 </li>`,
 
     methods: {
-        select: function() { this.$emit('selectrelation', this.relation); },
-        isSelected: function() { return this.relation.selected; },
-        getRepresentation: function(relation) {
+        select: function () {
+            this.$emit('selectrelation', this.relation);
+        },
+        isSelected: function () {
+            return this.relation.selected;
+        },
+        getRepresentation: function (relation) {
             if (relation.representation) {
                 return relation.representation;
             } else {
-                return relation.appellations.map(function(appellation) {
+                return relation.appellations.map(function (appellation) {
                     return appellation.interpretation.label;
                 }).join('; ');
+            }
+        },
+        getFormattedDate: function (isodate) {
+            var date = new Date(isodate);
+            var monthNames = [
+                "January", "February", "March",
+                "April", "May", "June", "July",
+                "August", "September", "October",
+                "November", "December"
+            ];
+            var minutes = String(date.getMinutes());
+            if (minutes.length == 1) {
+                minutes = '0' + minutes;
+            }
+
+            var day = date.getDate();
+            var monthIndex = date.getMonth();
+            var year = date.getFullYear();
+
+            return day + ' ' + monthNames[monthIndex] + ', ' + year + ' at ' + date.getHours() + ':' + minutes;
+        },
+        getCreatorName: function (creator) {
+            if (creator.id == USER_ID) {
+                return 'you';
+            } else {
+                return creator.username;
             }
         }
     }
@@ -42,6 +72,8 @@ RelationList = {
         'relation-list-item': RelationListItem
     },
     methods: {
-        selectRelation: function(relation) { this.$emit('selectrelation', relation); }
+        selectRelation: function (relation) {
+            this.$emit('selectrelation', relation);
+        }
     }
 }
