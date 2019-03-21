@@ -1148,6 +1148,7 @@ Appellator = new Vue({
             swimmerLeft: -2,
             swimmerWidth: 0,
             submitAppellationClicked: false,
+            massAssignmentFailed: false
         }
     },
     mounted: function () {
@@ -1159,6 +1160,7 @@ Appellator = new Vue({
         this.handleScroll();
         //needs to be called in mounted.
         this.watchStoreForConcepts();
+        this.watchStoreForAssignmentFailed();
     },
     created() {
         window.addEventListener('scroll', this.handleScroll);
@@ -1206,6 +1208,21 @@ Appellator = new Vue({
                 }, {
                     deep: true
                 }
+            );
+        },
+        watchStoreForAssignmentFailed: function () {
+
+            store.watch(
+                (state) => {
+                    console.log(store.getters.getAssignmentFailed);
+                    return store.getters.getAssignmentFailed;
+                },
+                (val) => {
+                    if (val == true) {
+                        console.log(val);
+                        this.massAssignmentFailed = true
+                    }
+                },
             );
         },
         registerData: function (field, data) {

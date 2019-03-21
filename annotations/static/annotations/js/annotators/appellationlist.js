@@ -112,23 +112,7 @@ var AppellationListItem = {
 			}
 		},
 		getFormattedDate: function (isodate) {
-			var date = new Date(isodate);
-			var monthNames = [
-				"January", "February", "March",
-				"April", "May", "June", "July",
-				"August", "September", "October",
-				"November", "December"
-			];
-			var minutes = String(date.getMinutes());
-			if (minutes.length == 1) {
-				minutes = '0' + minutes;
-			}
-
-			var day = date.getDate();
-			var monthIndex = date.getMonth();
-			var year = date.getFullYear();
-
-			return day + ' ' + monthNames[monthIndex] + ', ' + year + ' at ' + date.getHours() + ':' + minutes;
+			return moment(isodate).format('dddd') + ' ' + moment(isodate).format('LL') + ' at ' + moment(isodate).format("LT");
 		}
 
 	}

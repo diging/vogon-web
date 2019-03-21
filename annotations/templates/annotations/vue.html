@@ -8,6 +8,7 @@
         <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
        <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"></script>
         <script src="https://unpkg.com/vuex@2.0.0"></script>
+        <script src="{% static "annotations/js/moment.js" %}"></script>
         <script src="{% static "annotations/js/tiny-cookie.min.js" %}"></script>
         <script src="{% static 'annotations/js/cytoscape.min.js' %}"></script>
         <link rel="stylesheet" href="{% static "annotations/css/annotators/text.css" %}">
@@ -152,7 +153,7 @@
                                                                     <span>Submit</span>
                                                                 
                                                             </a>
-                                                            <h6 v-if="store.getters.getAssignmentFailed" style="color=red;">Assignment Failed!</h6>
+                                                            <h6  v-if="massAssignmentFailed" style="color: red;">Assignment Failed!</h6>
                                                             <div class="pull-right btn-group">
                                                                 <a  id="appellation-submit"v-tooltip="'Appellations'"
                                                                     v-bind:class="{
