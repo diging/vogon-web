@@ -8,7 +8,8 @@ const store = new Vuex.Store({
         text_appellation: [],
         deselect_all: false,
         select_all: false,
-        assignment_failed: false
+        assignment_failed: false,
+        validator: 0
 
     },
     mutations: {
@@ -64,6 +65,9 @@ const store = new Vuex.Store({
         },
         massAppellationAssignmentFailed(state) {
             state.assignment_failed = true;
+        },
+        setValidator(state, validator) {
+            state.validator = validator;
         }
     },
     getters: {
@@ -74,6 +78,7 @@ const store = new Vuex.Store({
         getTextAppellation: state => state.text_appellation,
         getDeselect: state => state.deselect_all,
         getSelect: state => state.select_all,
-        getAssignmentFailed: state => state.assignment_failed
+        getAssignmentFailed: state => state.assignment_failed,
+        getValidator: state => state.validator
     }
 })

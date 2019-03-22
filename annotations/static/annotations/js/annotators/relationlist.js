@@ -38,7 +38,7 @@ RelationListItem = {
             }
         },
         getFormattedDate: function (isodate) {
-            return moment(isodate).format('dddd') + ' ' + moment(isodate).format('LL') + ' at ' + moment(isodate).format("LT");
+            return moment(isodate).format('dddd LL [at] LT');
         }
 
     }

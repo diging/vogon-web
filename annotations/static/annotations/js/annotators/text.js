@@ -1214,12 +1214,10 @@ Appellator = new Vue({
 
             store.watch(
                 (state) => {
-                    console.log(store.getters.getAssignmentFailed);
                     return store.getters.getAssignmentFailed;
                 },
                 (val) => {
                     if (val == true) {
-                        console.log(val);
                         this.massAssignmentFailed = true
                     }
                 },
@@ -1248,8 +1246,24 @@ Appellator = new Vue({
                 i--;
             }
         },
+        validateCreateRelationsToTextData: function () {
+            if (store.getters.getTemplate == null) {
+                return 1;
+            } else if (store.getters.getTextAppellation.length == 0) {
+                return 2;
+            } else if (store.getters.getAppellationsToSubmit.length == 0) {
+                return 3;
+            } else {
+                return 0
+            }
+        },
         createRelationsFromText: function () {
             self = this;
+            let validator = this.validateCreateRelationsToTextData();
+            if (validator > 0) {
+                store.commit('setValidator', validator)
+                return
+            }
             this.filterTextAppellationFromAppellationList();
             RelationTemplateResource.text({
                 id: store.getters.getTemplate.id

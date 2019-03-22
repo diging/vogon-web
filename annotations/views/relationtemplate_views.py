@@ -230,28 +230,30 @@ def create_from_text(request, template_id):
             appellation_object = {
                 'end':
                 None,
-                'fields': [{
-                    'appellation': text_appellation,
-                    'part_field': 'source',
-                    'description': '',
-                    'concept_label': None,
-                    'evidence_reqired': False,
-                    'label': 'Text',
-                    'part_id': data['part_id'],
-                    'type': 'TP',
-                    'concept_id': None
-                },
-                           {
-                               'appellation': appellation,
-                               'part_field': 'object',
-                               'description': '',
-                               'concept_label': None,
-                               'evidence_reqired': True,
-                               'label': 'Concept',
-                               'part_id': data['part_id'],
-                               'type': 'TP',
-                               'concept_id': None
-                           }],
+                'fields': [
+                    {
+                        'appellation': text_appellation,
+                        'part_field': 'source',
+                        'description': '',
+                        'concept_label': None,
+                        'evidence_reqired': False,
+                        'label': 'Text',
+                        'part_id': data['part_id'],
+                        'type': 'TP',
+                        'concept_id': None
+                    },
+                    {
+                        'appellation': appellation,
+                        'part_field': 'object',
+                        'description': '',
+                        'concept_label': None,
+                        'evidence_reqired': True,
+                        'label': 'Concept',
+                        'part_id': data['part_id'],
+                        'type': 'TP',
+                        'concept_id': None
+                    }
+                ],
                 'occrsIn':
                 data['occursIn'],
                 'project':
