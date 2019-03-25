@@ -127,10 +127,10 @@ AppellationList = {
 						<h4  v-if="error_message" style="color: red;">{{ error_message }}</h4>
 					</div>
 					<div class="row">
-						<div class="col-md-8">
+						<div class="col-lg-8 col-xl-8">
 							<h5 style="padding-left: 5%;" v-if="conceptLabel">Concept: {{ conceptLabel }}</h5>
 						</div>
-						<div class="text-right col-md-4">
+						<div class="text-right col-lg-4 col-xl-4">
 							<a v-if="allHidden()" v-on:click="showAll" class="btn">
 								Show all
 							</a>
@@ -140,22 +140,22 @@ AppellationList = {
 						</div>
 					</div>
 					<div>
-						<div style="padding: 0%;" class="col-md-2">
-							<button style="float:right; margin-right:3%;"  @click="deselectAllTemplatesRef()" class="btn btn-default btn-sm" v-tooltip="'Deselect All'"><span class="glyphicon glyphicon-remove-sign"></span></button>
-							<button style="float:right; margin-right:2%;"  @click="checkAll()" class="btn btn-default btn-sm" v-tooltip="'Select All'"><span class="glyphicon glyphicon-ok-sign"></span></button>
+						<div style="padding: 0%;" class="col-lg-12 col-xl-2" v-if="sidebar == 'submitAllAppellations'">
+							<button v-bind:style="[calcSizeOfPage ? {float: 'right', 'margin-right': 3 + '%'} : {float: 'left', 'margin-left': 3 + '%'}]"   @click="deselectAllTemplatesRef()" class="btn btn-default btn-sm" v-tooltip="'Deselect All'"><span class="glyphicon glyphicon-remove-sign"></span></button>
+							<button v-bind:style="[calcSizeOfPage ? {float: 'right', 'margin-right': 3 + '%'} : {float: 'left', 'margin-left': 3 + '%', 'margin-bottom': 3 + '%'}]"  @click="checkAll()" class="btn btn-default btn-sm" v-tooltip="'Select All'"><span class="glyphicon glyphicon-ok-sign"></span></button>
 						</div>
 						<div style="margin-bottom: 2%;" v-if="sidebar == 'submitAllAppellations'" >
-							<div style="padding-right: 0%; padding-left: 0%; margin-left: 1%;" class="col-md-6">
-								<select class="btn btn-default dropdown-toggle"  v-if="sidebar == 'submitAllAppellations'" v-model="selected_template" style="float: left; margin-left: 2.5%;">
+							<div style="padding-right: 0%; padding-left: 0%; margin-left: 1%;" class="col-xl-6">
+								<select class="btn btn-default dropdown-toggle"  v-if="sidebar == 'submitAllAppellations'" v-model="selected_template" style="float: left; margin-left: 2.5%; width: 100%;">
 									<option value=0>Please select Relationship</option>
 									<option v-for="template in templates" :value=template>{{ template.name }} - <span style="color: lightgrey;">{{ template.description }}</span></option>
 								</select>
 							</div>
-							<div class="col-md-3">
-								<button v-if="!conceptLabel" style="margin-top: 1%;" @click="selectConcept()" class="btn btn-info btn-xs" >Select Text Concept</button>
+							<div class="col-lg-12 col-xl-3" v-bind:style="[calcSizeOfPage ? {} : {'padding-left': 3.25 + '%'}]">
+								<button v-if="!conceptLabel" v-bind:style="[calcSizeOfPage ? {'margin-top': 1 + '%'} : {'margin-top': 2 + '%', 'margin-bottom': 3 + '%'}]" @click="selectConcept()" class="btn btn-info btn-xs" >Select Text Concept</button>
 							</div>
 						</div>
-						<div class="col-md-12">
+						<div class="col-lg-12 col-xl-12" style="padding-left: 2.5%; padding-right: 1%">
 							<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll; margin-top: 2%;">
 								<appellation-list-item
 									v-bind:sidebar="sidebar"
@@ -183,12 +183,20 @@ AppellationList = {
 			selected_template: null,
 			templates: null,
 			appellations_to_submit: [],
-			error_message: ""
+			error_message: "",
 		}
 	},
 	computed: {
 		conceptLabel: function () {
 			return store.getters.conceptLabel
+		},
+		calcSizeOfPage: function () {
+			let width = $(document).width();
+			if(width >= 2000) {
+				return true
+			} else {
+				return false
+			}
 		}
 	},
 	created: function () {
