@@ -53,19 +53,21 @@ class DateAppellationSerializer(serializers.ModelSerializer):
 class TextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Text
-        fields = ('id', 'uri', 'title', 'created', 'added',
-                  'addedBy', 'source', 'annotators', 'annotation_count')
+        fields = ('id', 'uri', 'title', 'created', 'added', 'addedBy',
+                  'source', 'annotators', 'annotation_count')
 
     def create(self, validated_data):
         repository = Repository.objects.get(pk=validated_data['source'])
         # TODO: Make retrieval/tokenization/other processing asynchronous.
-        tokenizedContent = tokenize(retrieve(repository, validated_data['uri']))
+        tokenizedContent = tokenize(
+            retrieve(repository, validated_data['uri']))
 
-        text = Text(uri=validated_data['uri'],
-                    title=validated_data['title'],
-                    source=repository,
-                    addedBy=self.context['request'].user,
-                    tokenizedContent=tokenizedContent)
+        text = Text(
+            uri=validated_data['uri'],
+            title=validated_data['title'],
+            source=repository,
+            addedBy=self.context['request'].user,
+            tokenizedContent=tokenizedContent)
         text.save()
         return HttpResponse(text.id)
 
@@ -91,6 +93,23 @@ class AppellationSerializer(serializers.ModelSerializer):
                   'interpretation', 'interpretation_type', 'occursIn',
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label', 'position', 'project')
+
+
+class AppellationFlagSerializer(serializers.ModelSerializer):
+    position = DocumentPositionSerializer(required=False)
+    tokenIds = serializers.CharField(required=False)
+    stringRep = serializers.CharField(required=False)
+    occursIn = TextSerializer(required=False)
+    interpretation = ConceptSerializer(required=False)
+    is_used = serializers.BooleanField()
+
+    class Meta:
+        model = Appellation
+        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
+                  'interpretation', 'interpretation_type', 'occursIn',
+                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
+                  'interpretation_type_label', 'position', 'project',
+                  'is_used')
 
 
 class AppellationPOSTSerializer(serializers.ModelSerializer):
@@ -121,15 +140,15 @@ class RelationSetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RelationSet
-        fields = ('id', 'label', 'created', 'template', 'createdBy', 'occursIn',
-                  'appellations', 'concepts', 'project', 'representation', 'date_appellations' )    #
+        fields = ('id', 'label', 'created', 'template', 'createdBy',
+                  'occursIn', 'appellations', 'concepts', 'project',
+                  'representation', 'date_appellations')  #
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TemporalBounds
         fields = '__all__'
-
 
 
 class TextCollectionSerializer(serializers.ModelSerializer):

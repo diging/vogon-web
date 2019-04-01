@@ -756,6 +756,12 @@ class Appellation(Annotation, Interpreted):
        relevant.
     """
 
+    def is_used_flag(self):
+        self.is_used = True
+
+    def is_not_used_flag(self):
+        self.is_used = False
+
 
 class RelationSet(models.Model):
     """

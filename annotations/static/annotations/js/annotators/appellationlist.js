@@ -6,7 +6,7 @@ var AppellationListItem = {
                         'appellation-selected': isSelected()
                     }">
                 <span class="pull-right text-muted btn-group">
-                    <a class="btn btn-xs" v-on:click="">
+                    <a v-if="!appellation.is_used" class="btn btn-xs" v-on:click="">
                         <span class="glyphicon glyphicon-trash"></span>
                     </a>
                     <a class="btn btn-xs" v-on:click="select">
@@ -79,30 +79,40 @@ var AppellationListItem = {
 
 AppellationList = {
     props: ['appellations'],
-    template: `<ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
-                   <div class="text-right">
-                       <a v-if="allHidden()" v-on:click="showAll" class="btn">
-                           Show all
-                       </a>
-                        <a v-on:click="hideAll" class="btn">
-                            Hide all
+    template: `
+            <div>
+                <div v-if="loading">
+                        <svg width="50" height="50" viewBox="0 0 100 100">
+                            <polyline class="line-cornered stroke-animation" points="0,0 100,0 100,100" stroke-width="15" fill="none"></polyline>
+                            <polyline class="line-cornered stroke-animation" points="0,0 0,100 100,100" stroke-width="15" fill="none"></polyline>
+                        </svg>
+                </div>
+                <ul v-else class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
+                    <div class="text-right">
+                        <a v-if="allHidden()" v-on:click="showAll" class="btn">
+                            Show all
                         </a>
-                   </div>
-                   <appellation-list-item
-                       v-on:hideappellation="hideAppellation"
-                       v-on:showappellation="showAppellation"
-                       v-on:selectappellation="selectAppellation"
-                       v-bind:appellation=appellation
-                       v-for="appellation in current_appellations"
-                       v-if="appellation != null">
-                   </appellation-list-item>
-               </ul>`,
+                            <a v-on:click="hideAll" class="btn">
+                                Hide all
+                            </a>
+                    </div>
+                    <appellation-list-item
+                        v-on:hideappellation="hideAppellation"
+                        v-on:showappellation="showAppellation"
+                        v-on:selectappellation="selectAppellation"
+                        v-bind:appellation=appellation
+                        v-for="appellation in current_appellations"
+                        v-if="appellation != null">
+                    </appellation-list-item>
+                </ul>
+            </div>`,
     components: {
         'appellation-list-item': AppellationListItem
     },
     data: function () {
         return {
-            current_appellations: this.appellations
+            current_appellations: this.appellations,
+            loading: true
         }
     },
     watch: {
