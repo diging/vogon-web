@@ -60,7 +60,6 @@ const store = new Vuex.Store({
             state.select_all = false;
         },
         resetCreateAppelltionsToText(state) {
-            state.concept_label = '';
             state.appellations_to_submit = [];
             state.text_appellation = [];
         },

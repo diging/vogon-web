@@ -588,6 +588,9 @@ AppellationCreator = {
                     self.reset();
                     if (store.getters.showConcepts) {
                         store.commit('setTextAppellation', response.body);
+                        if (store.getters.getValidator == 2) {
+                            store.commit('setValidator', 0)
+                        }
                     }
                     store.commit("triggerConcepts");
                     store.commit("conceptLabel", response.body.interpretation_label);
@@ -1181,6 +1184,9 @@ Appellator = new Vue({
             if (!(this.sidebar == 'submitAllAppellations')) {
                 this.submitAppellationClicked = false;
             }
+        },
+        appellations: function () {
+            this.filterTextAppellationFromAppellationList();
         }
     },
     computed: {
@@ -1228,20 +1234,23 @@ Appellator = new Vue({
             this.ready = this.readyToCreate();
         },
         filterTextAppellationFromAppellationList: function () {
-            let i = store.getters.getAppellationsToSubmit.length;
+            let i = this.appellations.length - 1;
             /* 
              * Remove appellations that have the string represenation that matches the text title
              * this assumes the appellation is that of the text and we remove it as to not make a
              * relation to itself. You must iterate backwards when removing items from an array to
              * prevent indexing errors.
              */
-            while (i) {
+            while (i >= 0) {
                 try {
-                    if (store.getters.getAppellationsToSubmit[i].stringRep == this.text.title) {
+                    if (this.appellations[i].stringRep == this.text.title) {
+                        store.commit('setTextAppellation', this.appellations[i])
+                        store.commit("conceptLabel", this.appellations[i].interpretation_label);
+                        this.appellations.splice(i, 1)
                         store.commit('removeAppellation', i);
                     }
                 } catch (error) {
-
+                    console.log(error);
                 }
                 i--;
             }
@@ -1482,6 +1491,7 @@ Appellator = new Vue({
                 // DocumentPosition.position_value is represented with a
                 //  TextField, so serialized as a string. Start and end offsets
                 //  should be comma-delimited.
+
                 self.appellations = response.body.results.map(function (appellation) {
                     var offsets = appellation.position.position_value.split(',');
                     appellation.position.startOffset = offsets[0];
@@ -1491,7 +1501,6 @@ Appellator = new Vue({
                     return appellation;
 
                 });
-
                 if (callback) callback(response);
             });
         },
