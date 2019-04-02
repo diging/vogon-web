@@ -6,7 +6,7 @@ var AppellationListItem = {
                         'appellation-selected': isSelected()
                     }">
                 <span class="pull-right text-muted btn-group">
-                    <a v-if="!appellation.is_used" class="btn btn-xs" v-on:click="">
+                    <a v-if="!appellation.is_used" class="btn btn-xs" v-on:click="deleteAppellation()">
                         <span class="glyphicon glyphicon-trash"></span>
                     </a>
                     <a class="btn btn-xs" v-on:click="select">
@@ -72,6 +72,32 @@ var AppellationListItem = {
             } else {
                 return creator.username;
             }
+        },
+        deleteAppellation() {
+            Appellation.delete({
+                id: this.appellation.id
+            }).then(response => {
+                let i = store.getters.getAppellationsToSubmit.length;
+                /* 
+                * Remove appellations that have the string represenation that matches the text title
+                * this assumes the appellation is that of the text and we remove it as to not make a
+                * relation to itself. You must iterate backwards when removing items from an array to
+                * prevent indexing errors.
+                */
+                while (i) {
+                    try {
+                        if (store.getters.getAppellationsToSubmit[i].stringRep == this.text.title) {
+                            store.commit('removeAppellation', i);
+                        }
+                    } catch (error) {
+
+                    }
+                    i--;
+                }
+                    console.log(response);
+            }, response => {
+                // error callback
+            });
         }
     }
 }
@@ -81,13 +107,7 @@ AppellationList = {
     props: ['appellations'],
     template: `
             <div>
-                <div v-if="loading">
-                        <svg width="50" height="50" viewBox="0 0 100 100">
-                            <polyline class="line-cornered stroke-animation" points="0,0 100,0 100,100" stroke-width="15" fill="none"></polyline>
-                            <polyline class="line-cornered stroke-animation" points="0,0 0,100 100,100" stroke-width="15" fill="none"></polyline>
-                        </svg>
-                </div>
-                <ul v-else class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
+                <ul class="list-group appellation-list" style="max-height: 400px; overflow-y: scroll;">
                     <div class="text-right">
                         <a v-if="allHidden()" v-on:click="showAll" class="btn">
                             Show all
