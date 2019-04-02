@@ -41,7 +41,8 @@ const store = new Vuex.Store({
             state.appellations_to_submit.push(appellation);
         },
         setAppellations(state, payload) {
-            state.appellations_to_submit = payload;
+            // Use payload.slice() to clone the array without a reference
+            state.appellations_to_submit = payload.slice();
         },
         deselect(state) {
             state.deselect_all = !state.deselect_all;
