@@ -32,6 +32,11 @@ var AppellationListItem = {
     mounted: function () {
         this.watchUncheckStore();
         this.watchCheckStore();
+        this.$root.$on('appellationClicked', data => {
+            if (data === this.appellation) {
+                this.checked = !this.checked;
+            }
+        });
     },
     watch: {
         checked: function () {
