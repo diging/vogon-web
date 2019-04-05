@@ -204,7 +204,7 @@ def upload_file(request):
         if form.is_valid():
 
             text = handle_file_upload(request, form)
-            return HttpResponseRedirect(reverse('text', args=[text.id]) + u'?mode=annotate')
+            return HttpResponseRedirect(reverse('text', args=[text.id]) + '?mode=annotate')
     else:
         form = UploadFileForm()
 

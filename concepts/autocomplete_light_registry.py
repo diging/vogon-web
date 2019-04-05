@@ -1,6 +1,6 @@
 import autocomplete_light
 import autocomplete_light.shortcuts as al
-from models import Concept
+from .models import Concept
 
 
 class ConceptAutocomplete(autocomplete_light.AutocompleteModelTemplate):
@@ -30,7 +30,7 @@ class ConceptAutocomplete(autocomplete_light.AutocompleteModelTemplate):
         pos = self.request.GET.get('pos', None)
         queryset = self.choices.filter(conditions).exclude(pk__in=exclude)
         if pos:
-            print pos
+            print(pos)
             queryset = queryset.filter(pos=pos)
 
         return self.order_choices(queryset)[0:self.limit_choices]

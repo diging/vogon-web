@@ -62,11 +62,11 @@ class ConceptIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_label(self, instance):
         if instance.label:
             return instance.label.replace('_', ' ').strip().lower()
-        return u'No label'
+        return 'No label'
 
     def prepare_typed(self, instance):
         if hasattr(instance, 'typed') and getattr(instance, 'typed'):
-            return unicode(instance.typed.label)
+            return str(instance.typed.label)
         return 'None'
 
     def prepare_description(self, instance):

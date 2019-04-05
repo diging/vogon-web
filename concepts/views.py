@@ -10,9 +10,9 @@ from annotations.models import RelationSet, Appellation, TextCollection, VogonUs
 from django.shortcuts import render, get_object_or_404
 from concepts.authorities import ConceptpowerAuthority, update_instance
 from django.contrib.auth.decorators import login_required
-import re, urllib, string
+import re, urllib.request, urllib.parse, urllib.error, string
 from unidecode import unidecode
-from urllib import urlencode
+from urllib.parse import urlencode
 
 
 
@@ -60,7 +60,7 @@ def approve_concept(request, concept_id):
 
     context = {
         'concept': concept,
-        'next_page': urllib.quote_plus(next_page),
+        'next_page': urllib.parse.quote_plus(next_page),
     }
 
     # TODO: say something more informative.
@@ -107,7 +107,7 @@ def concepts(request):
 
     data = filtered.form.cleaned_data
     params_data = {}
-    for key, value in data.items():
+    for key, value in list(data.items()):
         if key in ('typed'):
            if value is not None and hasattr(value, 'id'):
                params_data[key] = value.id
@@ -127,7 +127,7 @@ def concepts(request):
         'paginator': paginator,
         'concepts': concepts,
         'filter': filtered,
-        'path': urllib.quote_plus(request.path + '?' + request.GET.urlencode()),
+        'path': urllib.parse.quote_plus(request.path + '?' + request.GET.urlencode()),
         'params_data': urlencode(params_data),
     }
 
@@ -157,7 +157,7 @@ def add_concept(request, concept_id):
     back_to_page = request.GET.get('next')
     context = {
         'concept': concept,
-        'next_page': urllib.quote_plus(next_page),
+        'next_page': urllib.parse.quote_plus(next_page),
         'back_to_page': back_to_page
     }
     if concept.concept_state != Concept.APPROVED:
@@ -200,7 +200,7 @@ def edit_concept(request, concept_id):
     context = {
         'form': form,
         'concept': concept,
-        'next_page': urllib.quote_plus(next_page),
+        'next_page': urllib.parse.quote_plus(next_page),
     }
     return render(request, "annotations/concept_edit.html", context)
 

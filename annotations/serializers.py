@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from annotations.models import VogonUser
-from models import *
+from .models import *
 from concepts.models import Concept, Type
 
 

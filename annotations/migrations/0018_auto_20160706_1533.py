@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
 
 def populate_document_type(apps, schema_editor):
     Text = apps.get_model("annotations", "Text")
-    Text.objects.exclude(tokenizedContent=u'').update(document_type='PT')
+    Text.objects.exclude(tokenizedContent='').update(document_type='PT')
 
 
 def populate_document_type_reverse(apps, schema_editor):

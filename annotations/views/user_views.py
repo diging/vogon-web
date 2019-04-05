@@ -209,13 +209,12 @@ def dashboard(request):
                                            .distinct('occursIn_id')[:20]
     _annotated_texts = Text.objects.filter(pk__in=_recently_annotated)
     _key = lambda t: t.id
-    _recent_grouper = groupby(sorted(map(lambda t: t.top_level_text,
-                                         _annotated_texts),
+    _recent_grouper = groupby(sorted([t.top_level_text for t in _annotated_texts],
                                      key=_key),
                               key=_key)
     recent_texts = []
     for t_id, group in _recent_grouper:
-        recent_texts.append(group.next())    # Take the first item only.
+        recent_texts.append(next(group))    # Take the first item only.
 
     added_texts = Text.objects.filter(addedBy_id=request.user.id, part_of__isnull=True)\
                                 .order_by('-added')
@@ -296,7 +295,7 @@ def user_details(request, userid, *args, **kwargs):
 
         # Count annotations for each week.
         for count_per_day in annotation_by_user:
-            if(isinstance(count_per_day['date'], unicode)):
+            if(isinstance(count_per_day['date'], str)):
                 date = datetime.datetime.strptime(count_per_day['date'], time_format)
             else:
                 date = count_per_day['date']
@@ -304,7 +303,7 @@ def user_details(request, userid, *args, **kwargs):
         annotation_per_week = list()
 
         # Sort the date and format the data in the format required by d3.js.
-        keys = (result.keys())
+        keys = (list(result.keys()))
         keys.sort()
         for key in keys:
             new_format = dict()

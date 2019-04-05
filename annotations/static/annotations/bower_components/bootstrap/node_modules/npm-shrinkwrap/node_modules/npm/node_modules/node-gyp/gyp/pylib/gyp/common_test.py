@@ -23,7 +23,7 @@ class TestTopologicallySorted(unittest.TestCase):
     def GetEdge(node):
       return tuple(graph[node])
     self.assertEqual(
-      gyp.common.TopologicallySorted(graph.keys(), GetEdge),
+      gyp.common.TopologicallySorted(list(graph.keys()), GetEdge),
       ['a', 'c', 'd', 'b'])
 
   def test_Cycle(self):
@@ -38,7 +38,7 @@ class TestTopologicallySorted(unittest.TestCase):
       return tuple(graph[node])
     self.assertRaises(
       gyp.common.CycleError, gyp.common.TopologicallySorted,
-      graph.keys(), GetEdge)
+      list(graph.keys()), GetEdge)
 
 
 class TestGetFlavor(unittest.TestCase):

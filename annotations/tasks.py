@@ -2,7 +2,7 @@
 We should probably write some documentation.
 """
 
-from __future__ import absolute_import
+
 
 from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
@@ -28,7 +28,7 @@ logger.setLevel(settings.LOGLEVEL)
 
 
 
-def tokenize(content, delimiter=u' '):
+def tokenize(content, delimiter=' '):
     """
     In order to annotate a text, we must first wrap "annotatable" tokens
     in <word></word> tags, with arbitrary IDs.
@@ -44,7 +44,7 @@ def tokenize(content, delimiter=u' '):
     tokenizedContent : unicode
     """
     chunks = content.split(delimiter)
-    pattern = u'<word id="{0}">{1}</word>'
+    pattern = '<word id="{0}">{1}</word>'
     return delimiter.join([pattern.format(i, c) for i, c in enumerate(chunks)])
 
 
@@ -233,21 +233,21 @@ def accession_ready_relationsets():
 
         # Do not submit a relationset to Quadriga if the constituent interpretations
         #  involve concepts that are not resolved.
-        qs = filter(lambda o: o.ready(), qs)
+        qs = [o for o in qs if o.ready()]
         relationsets = defaultdict(lambda: defaultdict(list))
 
         for relationset in qs:
             timeCreated = relationset.created
             if timeCreated + timedelta(days=settings.SUBMIT_WAIT_TIME['days'], hours=settings.SUBMIT_WAIT_TIME['hours'], minutes=settings.SUBMIT_WAIT_TIME['minutes']) < datetime.now(timezone.utc):
                 relationsets[relationset.occursIn.id][relationset.createdBy.id].append(relationset)
-                for text_id, text_rsets in relationsets.iteritems():
-                    for user_id, user_rsets in text_rsets.iteritems():
+                for text_id, text_rsets in list(relationsets.items()):
+                    for user_id, user_rsets in list(text_rsets.items()):
                         # Update state.
                         def _state(obj):
                             obj.pending = True
                             obj.save()
-                        map(_state, user_rsets)
-                        submit_relationsets_to_quadriga.delay(map(lambda o: o.id, user_rsets), text_id, user_id, **kwargs)
+                        list(map(_state, user_rsets))
+                        submit_relationsets_to_quadriga.delay([o.id for o in user_rsets], text_id, user_id, **kwargs)
 
 
 # TODO: this should be retired.

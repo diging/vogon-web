@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import SafeText
 
 import json, datetime, requests, copy, xmltodict
-from urlparse import urljoin
+from urllib.parse import urljoin
 from string import Formatter
 from uuid import uuid4
 
@@ -19,8 +19,8 @@ class FieldValue(object):
 
     def _render_bool(self):
         if self.value:
-            return SafeText(u'<span class="glyphicon glyphicon-ok"></span>')
-        return SafeText(u'<span class="glyphicon glyphicon-remove"></span>')
+            return SafeText('<span class="glyphicon glyphicon-ok"></span>')
+        return SafeText('<span class="glyphicon glyphicon-remove"></span>')
 
     def _render_text(self):
         return self.value
@@ -32,14 +32,14 @@ class FieldValue(object):
         return self.value
 
     def _render_url(self):
-        return SafeText(u'<span class="text-warning">%s</span>' % self.value)
+        return SafeText('<span class="text-warning">%s</span>' % self.value)
 
     def _render_datetime(self):
         # TODO: this should actually implement datetime formatting.
         return self.value
 
     def render(self):
-        return SafeText(u'<dt>%s</dt><dd>%s</dd>' % (self.name, self.render_value()))
+        return SafeText('<dt>%s</dt><dd>%s</dd>' % (self.name, self.render_value()))
 
     def __str__(self):
         return self.render()
@@ -65,7 +65,7 @@ class ContentContainer(object):
         return self.contents.get(key, None)
 
     def items(self):
-        return self.contents.items()
+        return list(self.contents.items())
 
     @property
     def count(self):
@@ -80,7 +80,7 @@ class Result(object):
     def __init__(self, **kwargs):
         content = kwargs.pop('content', None)
         self.data = kwargs
-        for field, value in self.data.iteritems():
+        for field, value in list(self.data.items()):
             setattr(self, field, value)
 
         if content:
@@ -90,7 +90,7 @@ class Result(object):
             self.content = ContentContainer(content)
 
     def iteritems(self):
-        return self.data.iteritems()
+        return iter(list(self.data.items()))
 
     def get(self, key, default=None):
         return self.data.get(key, default)
@@ -98,7 +98,7 @@ class Result(object):
 
 class ResultSet(object):
     def __init__(self, results, **kwargs):
-        for key, value in kwargs.iteritems():
+        for key, value in list(kwargs.items()):
             setattr(self, key, value)
         self.results = results
 
@@ -135,7 +135,7 @@ class Repository(models.Model):
         return RepositoryManager(self.configuration, user=user)
 
     def can(self, method_name):
-        return method_name in self._get_configuration()['methods'].keys()
+        return method_name in list(self._get_configuration()['methods'].keys())
 
     def __getattr__(self, key):
         if key.startswith('can_'):
@@ -148,7 +148,7 @@ class Repository(models.Model):
 
     @property
     def configured_methods(self):
-        return self._get_configuration()['methods'].keys()
+        return list(self._get_configuration()['methods'].keys())
 
     @staticmethod
     def _list_handler(results):
@@ -182,7 +182,7 @@ class Repository(models.Model):
             return True
         try:
             if field['type'] == 'text':
-                assert type(value) in [str, unicode]
+                assert type(value) in [str, str]
             elif field['type'] == 'bool':
                 assert type(value) is bool
             elif field['type'] == 'date':
@@ -233,12 +233,12 @@ class Repository(models.Model):
         # The `path` of each field specifies where in the data to find data for
         #  that field.
 
-        field_map = {f.get('path'): k for k, f in fields.iteritems() if 'path' in f}
+        field_map = {f.get('path'): k for k, f in list(fields.items()) if 'path' in f}
         config = self._get_configuration()
 
         def map_data(result):
             mapped_data = {}
-            for path, field in field_map.iteritems():
+            for path, field in list(field_map.items()):
                 mapped_data[fields[field]['name']] = FieldValue(
                     fields[field]['display'],
                     self._get_data_by_path(result, path),
@@ -249,7 +249,7 @@ class Repository(models.Model):
             #  may be a composite of values from other fields, or the
             #  repository configuration itself. Composite fields are described
             #  using the 'template' parameter in the field description.
-            for field in fields.values():
+            for field in list(fields.values()):
                 if 'template' in field:
                     template = field['template']
                     template_keys = [o[1] for o in Formatter().parse(template)]
@@ -363,7 +363,7 @@ class Repository(models.Model):
         config = self._get_configuration()
 
         payload = {}
-        for key, value in kwargs.iteritems():
+        for key, value in list(kwargs.items()):
             if key not in fields:
                 continue
             self._validate_field_value(fields[key], value)

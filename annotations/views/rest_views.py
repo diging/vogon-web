@@ -102,7 +102,7 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
-        print request.data
+        print((request.data))
         data = request.data.copy()
         position = data.pop('position', None)
         if 'month' in data and data['month'] is None:
@@ -114,20 +114,20 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         try:
             serializer = serializer_class(data=data)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         # raise AttributeError('asdf')
         try:
             instance = serializer.save()
         except Exception as E:
-            print ":::", E
+            print((":::", E))
             raise E
 
         text_id = serializer.data.get('occursIn')
@@ -138,7 +138,7 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
                 try:
                     position_serializer.is_valid(raise_exception=True)
                 except Exception as E:
-                    print "DocumentPosition::", position_serializer.errors
+                    print(("DocumentPosition::", position_serializer.errors))
                     raise E
                 position = position_serializer.save()
 
@@ -171,7 +171,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
         # A concept URI may have been passed directly, in which case we need to
         #  get (or create) the local Concept instance.
-        if type(interpretation) in [str, unicode] and interpretation.startswith('http'):
+        if type(interpretation) in [str, str] and interpretation.startswith('http'):
             try:
                 concept = Concept.objects.get(uri=interpretation)
             except Concept.DoesNotExist:
@@ -183,7 +183,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
                     try:
                         type_instance = Type.objects.get(uri=type_data.get('identifier'))
                     except Type.DoesNotExist:
-                        print type_data
+                        print(type_data)
                         type_instance = Type.objects.create(
                             uri = type_data.get('identifier'),
                             label = type_data.get('name'),
@@ -206,20 +206,20 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         try:
             serializer = serializer_class(data=data)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         # raise AttributeError('asdf')
         try:
             instance = serializer.save()
         except Exception as E:
-            print ":::", E
+            print((":::", E))
             raise E
 
         # Prior to 0.5, the selected tokens were stored directly in Appellation,
@@ -249,7 +249,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
                 try:
                     position_serializer.is_valid(raise_exception=True)
                 except Exception as E:
-                    print "DocumentPosition::", position_serializer.errors
+                    print(("DocumentPosition::", position_serializer.errors))
                     raise E
                 position = position_serializer.save()
 
@@ -450,7 +450,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
-        print "ConceptViewSet:: create::", request.data
+        print(("ConceptViewSet:: create::", request.data))
         data = request.data
         if data['uri'] == 'generate':
             data['uri'] = 'http://vogonweb.net/{0}'.format(uuid.uuid4())
@@ -468,7 +468,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         self.perform_create(serializer)
@@ -492,8 +492,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 'identifier': 'uri'
             }
 
-            return {_fields.get(k, k): v for k, v in datum.iteritems()}
-        return Response({'results': map(_relabel, [c.data for c in concepts])})
+            return {_fields.get(k, k): v for k, v in list(datum.items())}
+        return Response({'results': list(map(_relabel, [c.data for c in concepts]))})
 
 
     def get_queryset(self, *args, **kwargs):

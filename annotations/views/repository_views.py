@@ -17,8 +17,8 @@ from annotations.models import Text, TextCollection, RelationSet
 from annotations.annotators import supported_content_types
 
 import requests
-from urlparse import urlparse, parse_qs
-from urllib import urlencode
+from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlencode
 
 
 def _get_params(request):
@@ -27,7 +27,7 @@ def _get_params(request):
     # TODO: restable should be taking care of this.
     params = request.GET.get('params', {})
     if params:
-        params = dict(map(lambda p: p.split(':'), params.split('|')))
+        params = dict([p.split(':') for p in params.split('|')])
 
     # Filter resources by the annotators available in this application.
     params.update({'content_type': supported_content_types()})
@@ -42,8 +42,8 @@ def _get_pagination(response, base_url, base_params):
     _next_raw = response.get('next', None)
     if _next_raw:
         _params = {k: v[0] if isinstance(v, list) and len(v) > 0 else v
-                   for k, v in parse_qs(urlparse(_next_raw).query).iteritems()}
-        _next = '|'.join(map(lambda o: ':'.join(o), _params.items()))
+                   for k, v in list(parse_qs(urlparse(_next_raw).query).items())}
+        _next = '|'.join([':'.join(o) for o in list(_params.items())])
         _nparams = {'params': _next}
         _nparams.update(base_params)
         next_page = base_url + '?' + urlencode(_nparams)
@@ -53,8 +53,8 @@ def _get_pagination(response, base_url, base_params):
     _prev_raw = response.get('previous', None)
     if _prev_raw:
         _params = {k: v[0] if isinstance(v, list) and len(v) > 0 else v
-                   for k, v in parse_qs(urlparse(_prev_raw).query).iteritems()}
-        _prev = '|'.join(map(lambda o: ':'.join(o), _params.items()))
+                   for k, v in list(parse_qs(urlparse(_prev_raw).query).items())}
+        _prev = '|'.join([':'.join(o) for o in list(_params.items())])
         _nparams = {'params': _prev}
         _nparams.update(base_params)
         previous_page = base_url + '?' + urlencode(_nparams)

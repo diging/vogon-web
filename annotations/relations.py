@@ -173,7 +173,7 @@ def validate_expression(template_data, part_data, **kwargs):
     N_parts = len(part_data)
 
     try:
-        keys = zip(*list(Formatter().parse(template_data.get('expression'))))[1]
+        keys = list(zip(*list(Formatter().parse(template_data.get('expression')))))[1]
         for part_id, pred_flag in map(tuple, keys):
             if not int(part_id) <= N_parts:
                 raise InvalidTemplate("Part ID in expression is invalid.")
@@ -244,7 +244,7 @@ def create_template(template_data, part_data):
     dependencies = dict(build_dependency_graph(template_data, part_data).edges())
     part_ids = {}    # Internal IDs to PK ids for RelationTemplatePart.
 
-    creation_data = map(parse_template_part_data, part_data)
+    creation_data = list(map(parse_template_part_data, part_data))
 
     with transaction.atomic():
         template = RelationTemplate.objects.create(**template_data)
@@ -255,7 +255,7 @@ def create_template(template_data, part_data):
             datum['internal_id']: RelationTemplatePart.objects.create(**datum)
             for datum in creation_data
         }
-        for part in parts.values():
+        for part in list(parts.values()):
             for pred in ['source', 'object']:
                 internal = getattr(part, '%s_relationtemplate_internal_id' % pred)
                 if internal > -1:
@@ -326,8 +326,8 @@ def generate_expression(template, relations):
     expression_keys = [k[1].replace('_', '') for k in Formatter().parse(template.expression)
                        if k[1] is not None]
     expression_data = {}
-    print expression_keys
-    print relations
+    print(expression_keys)
+    print(relations)
     for key in expression_keys:
         try:
             relation = relations[int(key[0])]

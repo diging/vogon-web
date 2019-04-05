@@ -148,7 +148,7 @@ class MacTool(object):
     # Insert synthesized key/value pairs (e.g. BuildMachineOSBuild).
     plist = plistlib.readPlistFromString(lines)
     if keys:
-      plist = dict(plist.items() + json.loads(keys[0]).items())
+      plist = dict(list(plist.items()) + list(json.loads(keys[0]).items()))
     lines = plistlib.writePlistToString(plist)
 
     # Go through all the environment variables and replace them as variables in
@@ -181,7 +181,7 @@ class MacTool(object):
       if lines[i].strip().startswith("<string>${"):
         lines[i] = None
         lines[i - 1] = None
-    lines = '\n'.join(filter(lambda x: x is not None, lines))
+    lines = '\n'.join([x for x in lines if x is not None])
 
     # Write out the file with variables replaced.
     fd = open(dest, 'w')
@@ -243,7 +243,7 @@ class MacTool(object):
     _, err = libtoolout.communicate()
     for line in err.splitlines():
       if not libtool_re.match(line) and not libtool_re5.match(line):
-        print >>sys.stderr, line
+        print(line, file=sys.stderr)
     # Unconditionally touch the output .a file on the command line if present
     # and the command succeeded. A bit hacky.
     if not libtoolout.returncode:
@@ -324,7 +324,7 @@ class MacTool(object):
       ])
     if keys:
       keys = json.loads(keys)
-      for key, value in keys.iteritems():
+      for key, value in keys.items():
         arg_name = '--' + key
         if isinstance(value, bool):
           if value:
@@ -338,7 +338,7 @@ class MacTool(object):
           command_line.append(str(value))
     # Note: actool crashes if inputs path are relative, so use os.path.abspath
     # to get absolute path name for inputs.
-    command_line.extend(map(os.path.abspath, inputs))
+    command_line.extend(list(map(os.path.abspath, inputs)))
     subprocess.check_call(command_line)
 
   def ExecMergeInfoPlist(self, output, *inputs):
@@ -440,8 +440,8 @@ class MacTool(object):
     profiles_dir = os.path.join(
         os.environ['HOME'], 'Library', 'MobileDevice', 'Provisioning Profiles')
     if not os.path.isdir(profiles_dir):
-      print >>sys.stderr, (
-          'cannot find mobile provisioning for %s' % bundle_identifier)
+      print((
+          'cannot find mobile provisioning for %s' % bundle_identifier), file=sys.stderr)
       sys.exit(1)
     provisioning_profiles = None
     if profile:
@@ -462,8 +462,8 @@ class MacTool(object):
           valid_provisioning_profiles[app_id_pattern] = (
               profile_path, profile_data, team_identifier)
     if not valid_provisioning_profiles:
-      print >>sys.stderr, (
-          'cannot find mobile provisioning for %s' % bundle_identifier)
+      print((
+          'cannot find mobile provisioning for %s' % bundle_identifier), file=sys.stderr)
       sys.exit(1)
     # If the user has multiple provisioning profiles installed that can be
     # used for ${bundle_identifier}, pick the most specific one (ie. the
@@ -487,7 +487,7 @@ class MacTool(object):
 
   def _MergePlist(self, merged_plist, plist):
     """Merge |plist| into |merged_plist|."""
-    for key, value in plist.iteritems():
+    for key, value in plist.items():
       if isinstance(value, dict):
         merged_value = merged_plist.get(key, {})
         if isinstance(merged_value, dict):
@@ -597,7 +597,7 @@ class MacTool(object):
       the key was not found.
     """
     if isinstance(data, str):
-      for key, value in substitutions.iteritems():
+      for key, value in substitutions.items():
         data = data.replace('$(%s)' % key, value)
       return data
     if isinstance(data, list):

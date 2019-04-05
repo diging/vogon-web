@@ -268,7 +268,7 @@ class TupleField(models.TextField):
         if value is None:
             return value
 
-        return unicode(value)
+        return str(value)
 
     def value_to_string(self, obj):
         value = self._get_val_from_obj(obj)
@@ -443,7 +443,7 @@ class Text(models.Model):
         def _re(text):
             children.append(text.id)
             if text.parts.count() > 0:
-                map(_re, text.parts.all())
+                list(map(_re, text.parts.all()))
         _re(self)
         return children
 
@@ -487,7 +487,7 @@ class Repository(models.Model):
     """
 
     def __unicode__(self):
-        return unicode(self.name)
+        return str(self.name)
 
 
 
@@ -644,7 +644,7 @@ class DateAppellation(Annotation):
         """
         Returns an ISO-8601 compliant unicode representation of the date.
         """
-        return unicode(self.dateRepresentation)
+        return str(self.dateRepresentation)
 
     @property
     def precision(self):
@@ -885,7 +885,7 @@ class RelationSet(models.Model):
         """
         if self.template:
             return self.template.name
-        label = u'Untemplated relation created by %s at %s' % (self.createdBy,
+        label = 'Untemplated relation created by %s at %s' % (self.createdBy,
                                                                self.created)
         return label
 
@@ -1004,7 +1004,7 @@ class RelationTemplate(models.Model):
 
     def _set_terminal_nodes(self, value):
         if value:
-            self._terminal_nodes = ','.join(map(lambda s: s.strip(), value.split(',')))
+            self._terminal_nodes = ','.join([s.strip() for s in value.split(',')])
         else:
             self._terminal_nodes = ''
 

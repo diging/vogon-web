@@ -4,7 +4,7 @@
 from .models import Concept, Type
 
 from conceptpower import Conceptpower
-from urlparse import urlparse
+from urllib.parse import urlparse
 from django.conf import settings
 
 import logging
@@ -223,5 +223,5 @@ def add(instance):
     #  return the full URI of the new Concept -- just its ID. We can remove this
     #  when the new version of Conceptpower is released.
     if 'uri' not in response:
-        response['uri'] = u'http://www.digitalhps.org/concepts/%s' % response['id']
+        response['uri'] = 'http://www.digitalhps.org/concepts/%s' % response['id']
     return response

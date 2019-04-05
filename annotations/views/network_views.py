@@ -58,10 +58,10 @@ def network_for_text(request, text_id):
     if project_id:
         relationsets = relationsets.filter(project_id=project_id)
         appellations = appellations.filter(project_id=project_id)
-    print relationsets.count()
+    print((relationsets.count()))
     nodes, edges = generate_network_data_fast(relationsets, text_id=text_id, appellation_queryset=appellations)
-    print len(edges)
-    return JsonResponse({'elements': nodes.values() + edges.values()})
+    print((len(edges)))
+    return JsonResponse({'elements': list(nodes.values()) + list(edges.values())})
 
 
 def generate_network_data_fast(relationsets, text_id=None, user_id=None, appellation_queryset=None):
@@ -84,7 +84,7 @@ def generate_network_data_fast(relationsets, text_id=None, user_id=None, appella
 
     for rset_id, data in groupby(relationsets.values(*fields), key=lambda r: r['id']):
         for source, target in combinations(data, 2):
-            print rset_id, source, target
+            print((rset_id, source, target))
             edges[tuple(sorted([source['terminal_nodes__id'], target['terminal_nodes__id']]))] += 1.
 
             for datum in [source, target]:
@@ -105,7 +105,7 @@ def generate_network_data_fast(relationsets, text_id=None, user_id=None, appella
                         }
                     }
 
-    edges = {k: {'data': {'weight': v, 'source': k[0], 'target': k[1]}} for k, v in edges.iteritems()}
+    edges = {k: {'data': {'weight': v, 'source': k[0], 'target': k[1]}} for k, v in list(edges.items())}
 
     return nodes, edges
 
@@ -372,24 +372,24 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
         if source_id:
             if not source_asPredicate:
                 relationset_nodes[relationset_id].add(source_id)
-            elif source_uri not in settings.PREDICATES.values():
+            elif source_uri not in list(settings.PREDICATES.values()):
                 concept_descriptions[source_id] = obj.get('constituents__source_appellations__interpretation__%sdescription' % source_mw)
                 relationset_predicates[relationset_id][(source_id, source_label)] += 1.
 
         if object_id:
             if not object_asPredicate:
                 relationset_nodes[relationset_id].add(object_id)
-            elif object_uri not in settings.PREDICATES.values():
+            elif object_uri not in list(settings.PREDICATES.values()):
                 concept_descriptions[object_id] = obj.get('constituents__object_appellations__interpretation__%sdescription' % object_mw)
                 relationset_predicates[relationset_id][(object_id, object_label)] += 1.
 
-        if predicate_id and predicate_uri not in settings.PREDICATES.values():
+        if predicate_id and predicate_uri not in list(settings.PREDICATES.values()):
             concept_descriptions[predicate_id] = obj.get('constituents__predicate__interpretation__%sdescription' % predicate_mw)
             relationset_predicates[relationset_id][(predicate_id, predicate_label)] += 1
 
         relationset_texts[relationset_id] = (text_id, text_title)
 
-    for relationset_id, relation_nodes in relationset_nodes.iteritems():
+    for relationset_id, relation_nodes in list(relationset_nodes.items()):
         for source_id, object_id in combinations(relation_nodes, 2):
             edge_key = tuple(sorted((source_id, object_id)))
             if edge_key not in edges:
@@ -404,16 +404,16 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
                     }
                 }
             edges[edge_key]['data']['texts'].add(relationset_texts[relationset_id])
-            for key, value in relationset_predicates[relationset_id].items():
+            for key, value in list(relationset_predicates[relationset_id].items()):
                 edges[edge_key]['data']['relations'][key] += value
             edges[edge_key]['data']['weight'] += 1.
 
-    for node in nodes.values():
+    for node in list(nodes.values()):
         node['data']['texts'] = [{'id': text[0], 'title': text[1]}
                                   for text in list(node['data']['texts'])]
         node['data']['appellations'] = list(node['data']['appellations'])
 
-    for edge in edges.values():
+    for edge in list(edges.values()):
         edge['data']['texts'] = [{'id': text[0], 'title': text[1]}
                                   for text in list(edge['data']['texts'])]
         edge['data']['relations'] = [{
@@ -421,7 +421,7 @@ def generate_network_data(relationset_queryset, text_id=None, user_id=None,
             'concept_label': relkey[1],
             'count': count,
             'description': concept_descriptions[relkey[0]],
-        } for relkey, count in edge['data']['relations'].items()]
+        } for relkey, count in list(edge['data']['relations'].items())]
 
     return nodes, edges
 
@@ -476,25 +476,25 @@ def network_data(request):
             if edge['data']['weight'] > max_edge:
                 max_edge = edge['data']['weight']
 
-        for edge in edges_rebased.values():
+        for edge in list(edges_rebased.values()):
             edge['data']['weight'] = edge['data']['weight']/max_edge
-        for node in nodes_rebased.values():
+        for node in list(nodes_rebased.values()):
             node['data']['weight'] = (50 + (2 * node['data']['weight']))/max_node
 
         graph = igraph.Graph()
         graph.add_vertices(len(nodes_rebased))
 
         graph.add_edges([(relation['data']['source'], relation['data']['target'])
-                         for relation in edges_rebased.values()])
+                         for relation in list(edges_rebased.values())])
         layout = graph.layout_graphopt()
         # layout = graph.layout_fruchterman_reingold(maxiter=500)
 
-        for coords, node in zip(layout._coords, nodes_rebased.values()):
+        for coords, node in zip(layout._coords, list(nodes_rebased.values())):
             node['data']['pos'] = {
                 'x': coords[0] * 5,
                 'y': coords[1] * 5
             }
 
-        response_data = {'elements': nodes_rebased.values() + edges_rebased.values()}
+        response_data = {'elements': list(nodes_rebased.values()) + list(edges_rebased.values())}
         cache.set(cache_key, response_data, 300)
     return JsonResponse(response_data)

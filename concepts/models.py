@@ -30,7 +30,7 @@ class HeritableObject(models.Model):
         return self.real_type.get_object_for_this_type(pk=self.pk)
 
     def __unicode__(self):
-        return unicode(self.label)
+        return str(self.label)
 
     class Meta:
         abstract = True

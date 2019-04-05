@@ -57,7 +57,7 @@ from django.http import Http404
 from annotations.tasks import tokenize
 from annotations.utils import basepath
 from annotations.models import TextCollection, VogonUserDefaultProject
-from urlparse import urlparse
+from urllib.parse import urlparse
 import chardet
 
 

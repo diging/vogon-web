@@ -92,7 +92,7 @@ def edit_project(request, project_id):
             redirect_target = reverse('view_project', args=(project.id,))
             return HttpResponseRedirect(redirect_target)
         else:
-            print form.errors
+            print((form.errors))
     else:
         form = ProjectForm(instance=project)
 
@@ -130,7 +130,7 @@ def create_project(request):
             redirect_target = reverse('view_project', args=(project.id,))
             return HttpResponseRedirect(redirect_target)
         else:
-            print form.errors
+            print((form.errors))
     else:
         form = ProjectForm()
 

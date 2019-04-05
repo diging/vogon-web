@@ -388,7 +388,7 @@ class RelationTemplatePartForm(forms.ModelForm):
         self.ident = self.prefix.split('-')[-1]
         self.fields['internal_id'].initial = self.ident
 
-        for fname, field in self.fields.iteritems():
+        for fname, field in list(self.fields.items()):
             if 'prompt_text' in fname:
                 continue
             if 'class' not in field.widget.attrs:

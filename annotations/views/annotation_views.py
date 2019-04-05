@@ -8,7 +8,7 @@ from annotations.models import Relation, Appellation, VogonUser, Text, RelationS
 from annotations.annotators import annotator_factory
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from urllib import urlencode
+from urllib.parse import urlencode
 @login_required
 @ensure_csrf_cookie
 def annotate(request, text_id):
@@ -38,14 +38,14 @@ def relations(request):
     filtered = RelationSetFilter(request.GET, queryset=RelationSet.objects.all())
     qs = filtered.qs
     for r in qs:
-        print r.__dict__
+        print((r.__dict__))
 
     paginator = Paginator(qs, 40)
     page = request.GET.get('page')
 
     data = filtered.form.cleaned_data
     params_data = {}
-    for key, value in data.items():
+    for key, value in list(data.items()):
         if key in ('createdBy', 'project'):
             if value is not None and hasattr(value, 'id'):
                 params_data[key] = value.id
@@ -86,7 +86,7 @@ def relations_graph(request):
     if request.GET.get('mode', None) == 'data':
 
         nodes, edges = generate_network_data_fast(qs)
-        return JsonResponse({'elements': nodes.values() + edges.values()})
+        return JsonResponse({'elements': list(nodes.values()) + list(edges.values())})
 
     context = {
         'relations': relations,

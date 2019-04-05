@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 from conceptpower import Conceptpower
 
 from concepts.models import *
@@ -82,7 +82,7 @@ class ConceptLifecycle(object):
 
     @property
     def is_external(self):
-        print self._get_namespace(), self.is_native, self.is_created
+        print((self._get_namespace(), self.is_native, self.is_created))
         return not (self.is_native or self.is_created)
 
     @property
@@ -312,7 +312,7 @@ class ConceptLifecycle(object):
             data = self.conceptpower.search(q)
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
-        return map(self._reform, data)
+        return list(map(self._reform, data))
 
     def get_matching(self):
         """
@@ -328,4 +328,4 @@ class ConceptLifecycle(object):
             data = self.conceptpower.search(equal_to=self.instance.uri)
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
-        return map(self._reform, data)
+        return list(map(self._reform, data))

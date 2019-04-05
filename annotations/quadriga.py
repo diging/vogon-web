@@ -132,7 +132,7 @@ def to_relationevent(relation, toString=False):
 
 def _generate_network_label(occursIn, createdBy):
     now = datetime.datetime.now()
-    return u'Graph for text %s, submitted by %s on %s from VogonWeb' % (occursIn.title, createdBy.username, now.isoformat())
+    return 'Graph for text %s, submitted by %s on %s from VogonWeb' % (occursIn.title, createdBy.username, now.isoformat())
 
 
 def _generate_workspace_label(createdBy):
@@ -168,7 +168,7 @@ def to_quadruples(relationsets, text, user, network_label=None,
     #  : .../externalId+client
     # then all exising paths could continue to work
     if not project_id:
-        project_id = u'%s+%s' % (settings.QUADRIGA_PROJECT, settings.QUADRIGA_CLIENTID)
+        project_id = '%s+%s' % (settings.QUADRIGA_PROJECT, settings.QUADRIGA_CLIENTID)
 
     # If project_id is provided, we assume that it is a -native- Quadriga
     #  project id and use it without deliberation.
@@ -211,7 +211,7 @@ def to_quadruples(relationsets, text, user, network_label=None,
     #  : .../externalId+client
     # then all exisint path could continue to work
     if not workspace_id.endswith('+%s' % settings.QUADRIGA_CLIENTID):
-        workspace_id += u'+%s' % settings.QUADRIGA_CLIENTID
+        workspace_id += '+%s' % settings.QUADRIGA_CLIENTID
     if not workspace_label:
         workspace_label = _generate_workspace_label(user)
     workspace = ET.SubElement(details, "workspace", id=workspace_id)
