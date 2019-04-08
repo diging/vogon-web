@@ -54,7 +54,7 @@ AppellationDisplayItem = {
                      }">
                 </li>
                 </div>`,
-    data: function() {
+    data: function () {
         return {
             position: {
                 top: 0,
@@ -69,32 +69,38 @@ AppellationDisplayItem = {
             end_position: {}
         }
     },
-    mounted: function() {
+    mounted: function () {
         this.updatePosition();
         window.addEventListener('resize', this.updatePosition);
     },
     methods: {
-        getLabel: function() {
+        getLabel: function () {
             if (this.appellation.interpretation) {
                 return this.appellation.interpretation.label;
             } else {
                 return this.appellation.dateRepresentation;
             }
         },
-        multipleLinesAreSelected: function() { return this.end_position.top !== undefined; },
-        manyLinesAreSelected: function() { return this.mid_lines.length > 0; },
-        selectAppellation: function() { this.$emit('selectappellation', this.appellation); },
-        updatePosition: function() {
+        multipleLinesAreSelected: function () {
+            return this.end_position.top !== undefined;
+        },
+        manyLinesAreSelected: function () {
+            return this.mid_lines.length > 0;
+        },
+        selectAppellation: function () {
+            this.$emit('selectappellation', this.appellation);
+        },
+        updatePosition: function () {
             this.mid_lines = [];
             var lineHeight = parseInt(getStyle('text-content', 'line-height'));
             this.position = getTextPosition(this.appellation.position);
             this.line_height = lineHeight - 1;
             var endPoint = getPointPosition(this.appellation.position.endOffset);
-            var nLines = 1 + (endPoint.bottom - this.position.bottom)/lineHeight;
-            if (nLines > 1) {    // The selection may span several lines.
+            var nLines = 1 + (endPoint.bottom - this.position.bottom) / lineHeight;
+            if (nLines > 1) { // The selection may span several lines.
                 // clientLeft/clientWidth don't account for inner padding.
                 var _padding = parseInt(getStyle('text-content', 'padding'));
-                if (!_padding) {    // Firefox.
+                if (!_padding) { // Firefox.
                     _padding = parseInt(getStyle('text-content', 'paddingLeft'));
                 }
                 var _left = parseInt(document.getElementById('text-content').clientLeft);
@@ -102,9 +108,9 @@ AppellationDisplayItem = {
                 var left = _left + _padding;
                 var width = _width - (2 * _padding);
 
-                this.end_position = {    // This is the last line, running from
-                    top: endPoint.top,   //  far left to the end of the
-                    left: left,          //   selection.
+                this.end_position = { // This is the last line, running from
+                    top: endPoint.top, //  far left to the end of the
+                    left: left, //   selection.
                     width: endPoint.right - left
                 }
 
@@ -137,21 +143,21 @@ AppellationDisplay = {
     components: {
         'appellation-display-item': AppellationDisplayItem
     },
-    data: function() {
+    data: function () {
         return {
             current_appellations: this.appellations
         }
     },
     watch: {
-        appellations: function(value) {
+        appellations: function (value) {
             // Replace an array prop wholesale doesn't seem to trigger a
             //  DOM update in the v-for binding, but a push() does; so we'll
             //  just push the appellations that aren't already in the array.
-            var current_ids = this.current_appellations.map(function(elem) {
+            var current_ids = this.current_appellations.map(function (elem) {
                 return elem.id;
             });
             var self = this;
-            this.appellations.forEach(function(elem) {
+            this.appellations.forEach(function (elem) {
                 if (current_ids.indexOf(elem.id) < 0) {
                     self.current_appellations.push(elem);
                 }
@@ -159,7 +165,8 @@ AppellationDisplay = {
         }
     },
     methods: {
-        selectAppellation: function(appellation) {
+        selectAppellation: function (appellation) {
+            this.$root.$emit('appellationClicked', appellation);
             this.$emit('selectappellation', appellation);
         }
     }
