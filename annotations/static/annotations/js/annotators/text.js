@@ -259,8 +259,6 @@ ConceptCreator = {
     }
 }
 
-
-
 DateAppellationCreator = {
     props: ["position", "user", "text", "project"],
     data: function () {
@@ -346,7 +344,7 @@ DateAppellationCreator = {
 ConceptPickerItem = {
     props: ['concept'],
     components: {},
-    template: `<div class="list-group-item concept-item clearfix" id="concept-{{ concept.interpretation.uri }}">
+    template: `<div class="list-group-item concept-item clearfix" :id="'concept-' + concept.interpretation.uri">
                 <div>
                     <a v-on:click="select" style="cursor: pointer;">{{ concept.interpretation_label }} ({{ concept.interpretation.authority }})</a>
                 </div>
@@ -457,7 +455,10 @@ AppellationCreator = {
         }
     },
     template: `<div class="appellation-creator" style="max-height: 80vh; overflow-y: scroll;">
-                    <div class="h4">
+                    <div class = "h4" v-if="triggered">
+                        Select Concept for Text
+                     </div>
+                    <div class="h4" v-else>
                         What is this?
                         <span class="glyphicon glyphicon-question-sign"
                             v-tooltip="'Create an appellation by attaching a concept from a controlled vocabulary. An appellation is a statement (by you) that the selected text refers to a specific concept.'">
@@ -466,7 +467,10 @@ AppellationCreator = {
                     <p class="text-warning">
 
                     </p>
-                    <div>
+                    <div v-if="triggered">
+                        <span class="appellation-creator-offsets">{{ text.title }}</span>
+                    </div>
+                    <div v-else>
                         <span class="appellation-creator-offsets">{{ position.startOffset }}&ndash;{{ position.endOffset }}</span>:
                         <span class="appellation-creator-representation">{{ position.representation }}</span>
                     </div>
@@ -514,6 +518,11 @@ AppellationCreator = {
             if (this.search == true) {
                 this.display = false;
             }
+        },
+    },
+    computed: {
+        triggered: function () {
+            return store.getters.showConcepts
         }
     },
     methods: {
@@ -529,6 +538,13 @@ AppellationCreator = {
         cancel: function () {
             this.reset();
             this.$emit('cancelappellation');
+            store.commit("triggerConcepts", false);
+        },
+        isSaving: function () {
+            return this.saving;
+        },
+        awaitingConcept: function () {
+            return (this.concept == null);
         },
         isSaving: function () {
             return this.saving;
@@ -544,6 +560,17 @@ AppellationCreator = {
             this.create = false;
         },
         createAppellation: function () {
+            let stringRep
+            /* 
+             * may want to change this at somepoint. If this is a concept for a text we set the position values to null
+             */
+            if (store.getters.showConcepts) {
+                this.position.startOffset = null
+                this.position.endOffset = null
+                stringRep = this.text.title
+            } else {
+                stringRep = this.position.representation
+            }
             if (!(this.submitted || this.saving)) {
                 this.submitted = true; // Prevent multiple submissions.
                 this.saving = true;
@@ -556,7 +583,7 @@ AppellationCreator = {
                             this.position.endOffset
                         ].join(",")
                     },
-                    stringRep: this.position.representation,
+                    stringRep: stringRep,
                     startPos: this.position.startOffset,
                     endPos: this.position.endOffset,
                     occursIn: this.text.id,
@@ -565,6 +592,14 @@ AppellationCreator = {
                     interpretation: this.concept.uri || this.concept.interpretation.uri
                 }).then(function (response) {
                     self.reset();
+                    if (store.getters.showConcepts) {
+                        store.commit('setTextAppellation', response.body);
+                        if (store.getters.getValidator == 2) {
+                            store.commit('setValidator', 0)
+                        }
+                    }
+                    store.commit("triggerConcepts");
+                    store.commit("conceptLabel", response.body.interpretation_label);
                     self.$emit('createdappellation', response.body);
                 }).catch(function (error) {
                     this.saving = false;
@@ -573,7 +608,11 @@ AppellationCreator = {
             }
         },
         ready: function () {
-            return (this.position.startOffset >= 0 && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
+            if (this.triggered && this.concept) {
+                return true
+            } else {
+                return (this.position.startOffset >= 0 && this.position.endOffset && this.position.representation.trim().length > 0 && this.text.id && this.user.id && this.concept);
+            }
         }
     }
 }
@@ -593,7 +632,7 @@ RelationField = {
                         <input type="text"
                             v-model="value_label"
                             class="form-control input-sm"
-                            id="relation-part-{{ field.part_id }}"
+                            :id="'relation-part-' + field.part_id"
                             v-bind:placeholder="inputPlaceholder()" />
                         <span class="input-group-btn">
                             <button v-if="selection == null"
@@ -988,9 +1027,6 @@ RelationCreator = {
                 id: this.id
             }, {
                 fields: this.fields,
-                start: this.start,
-                end: this.end,
-                occur: this.occur,
                 occursIn: this.text.id,
                 createdBy: this.user.id,
                 project: this.project.id
@@ -1076,9 +1112,10 @@ RelationTemplateSelector = {
 }
 
 
+
 Appellator = new Vue({
     el: '#appellator',
-
+    store,
     components: {
         'appellation-list': AppellationList,
         'relation-list': RelationList,
@@ -1118,17 +1155,163 @@ Appellator = new Vue({
             swimmerTop: 0,
             swimmerRef: 0,
             swimmerLeft: -2,
-            swimmerWidth: 0
+            swimmerWidth: 0,
+            submitAppellationClicked: false,
+            massAssignmentFailed: false
         }
     },
     mounted: function () {
         this.updateAppellations();
         this.updateRelations();
+        store.commit('setAppellations', this.appellations);
         this.updateDateAppellations();
         this.updateSwimRef();
         this.handleScroll();
+        //needs to be called in mounted.
+        this.watchStoreForConcepts();
+        this.watchStoreForAssignmentFailed();
+    },
+    created() {
+        window.addEventListener('scroll', this.handleScroll);
+        window.addEventListener('resize', this.handleScroll);
+        var self = this;
+        document.getElementById('graphContainer').onmouseup = function () {
+            self.updateSwimRef();
+            self.handleScroll();
+        }
+    },
+    destroyed() {
+        window.removeEventListener('scroll', this.handleScroll);
+        window.removeEventListener('resize', this.handleScroll);
+    },
+    watch: {
+        sidebar: function () {
+            // remove submit button if sidebar is not showing submitAllAppellations 
+            if (!(this.sidebar == 'submitAllAppellations')) {
+                this.submitAppellationClicked = false;
+            }
+        },
+        appellations: function () {
+            this.filterTextAppellationFromAppellationList();
+        }
+    },
+    computed: {
+        fields: function () {
+            return this.template.fields;
+        },
     },
     methods: {
+        /*************************************************
+         * Start Methods to create relationships to text *
+         *************************************************/
+        watchStoreForConcepts: function () {
+            store.watch(
+                (state) => {
+                    return store.getters.showConcepts;
+                },
+                (val) => {
+                    if (val) {
+                        //FIXME: This should set selected text to the actual text id
+                        this.selected_text = this.text.title;
+                        this.text_listener == null;
+                    } else {
+                        this.unselectText();
+                    }
+                }, {
+                    deep: true
+                }
+            );
+        },
+        watchStoreForAssignmentFailed: function () {
+
+            store.watch(
+                (state) => {
+                    return store.getters.getAssignmentFailed;
+                },
+                (val) => {
+                    if (val == true) {
+                        this.massAssignmentFailed = true
+                    }
+                },
+            );
+        },
+        registerData: function (field, data) {
+            this.field_data[this.fieldHash(field)] = data;
+            this.ready = this.readyToCreate();
+        },
+        filterTextAppellationFromAppellationList: function () {
+            let i = this.appellations.length - 1;
+            /* 
+             * Remove appellations that have the string represenation that matches the text title
+             * this assumes the appellation is that of the text and we remove it as to not make a
+             * relation to itself. You must iterate backwards when removing items from an array to
+             * prevent indexing errors.
+             */
+            while (i >= 0) {
+                try {
+                    if (this.appellations[i].stringRep == this.text.title) {
+                        store.commit('setTextAppellation', this.appellations[i])
+                        store.commit("conceptLabel", this.appellations[i].interpretation_label);
+                        this.appellations.splice(i, 1)
+                        store.commit('removeAppellation', i);
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+                i--;
+            }
+        },
+        validateCreateRelationsToTextData: function () {
+            if (store.getters.getTemplate == null) {
+                return 1;
+            } else if (store.getters.getTextAppellation.length == 0) {
+                return 2;
+            } else if (store.getters.getAppellationsToSubmit.length == 0) {
+                return 3;
+            } else {
+                return 0
+            }
+        },
+        createRelationsFromText: function () {
+            self = this;
+            let validator = this.validateCreateRelationsToTextData();
+            if (validator > 0) {
+                store.commit('setValidator', validator)
+                return
+            }
+            this.filterTextAppellationFromAppellationList();
+            RelationTemplateResource.text({
+                id: store.getters.getTemplate.id
+            }, {
+                appellations: store.getters.getAppellationsToSubmit,
+                textAppellation: store.getters.getTextAppellation,
+                start: this.start,
+                end: this.end,
+                occur: this.occur,
+                part_id: store.getters.getTemplate.template_parts[0].id,
+                occursIn: this.text.id,
+                createdBy: this.user.id,
+                project: this.project.id
+            }).then(function (response) {
+                self.ready = false;
+                self.sidebarShown = false;
+                self.sidebar = 'relations';
+                store.commit('resetCreateAppelltionsToText');
+            }).catch(function (error) {
+                console.log('RelationTemplateResource:: failed miserably', error);
+                self.error = true;
+                self.ready = false;
+                store.commit('massAppellationAssignmentFailed');
+            }); // TODO: implement callback and exception handling!!
+        },
+        //TODO: Change function to SubmitAllAppellations
+        showSubmitAllAppellationsSidebar: function () {
+            this.sidebar = 'submitAllAppellations';
+            this.submitAppellationClicked = true;
+        },
+        /***********************************************
+         * End Methods to create relationships to text *
+         ***********************************************/
         getSwimmerWidth: function () {
             var shadow_elem = document.getElementById('shadow-swimlane');
             if (shadow_elem == null) {
@@ -1321,6 +1504,7 @@ Appellator = new Vue({
                     appellation.visible = true;
                     appellation.selected = false;
                     return appellation;
+
                 });
                 if (callback) callback(response);
             });

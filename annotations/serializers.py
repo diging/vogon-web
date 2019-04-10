@@ -94,24 +94,6 @@ class AppellationSerializer(serializers.ModelSerializer):
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label', 'position', 'project')
 
-
-class AppellationFlagSerializer(serializers.ModelSerializer):
-    position = DocumentPositionSerializer(required=False)
-    tokenIds = serializers.CharField(required=False)
-    stringRep = serializers.CharField(required=False)
-    occursIn = TextSerializer(required=False)
-    interpretation = ConceptSerializer(required=False)
-    is_used = serializers.BooleanField()
-
-    class Meta:
-        model = Appellation
-        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
-                  'interpretation', 'interpretation_type', 'occursIn',
-                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label', 'position', 'project',
-                  'is_used')
-
-
 class AppellationPOSTSerializer(serializers.ModelSerializer):
     position = DocumentPositionSerializer(required=False)
     tokenIds = serializers.CharField(required=False)
@@ -124,13 +106,11 @@ class AppellationPOSTSerializer(serializers.ModelSerializer):
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label', 'position', 'project')
 
-
 class TypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Type
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
                   'description')
-
 
 class RelationSetSerializer(serializers.ModelSerializer):
     appellations = AppellationSerializer(many=True)
@@ -155,3 +135,16 @@ class TextCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextCollection
         fields = '__all__'
+
+
+class TemplatePartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RelationTemplate
+        fields = ('id', 'name', 'description')
+
+
+class TemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RelationTemplate
+        fields = ('id', 'name', 'description', 'template_parts')
+        depth = 1

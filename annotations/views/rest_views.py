@@ -2,7 +2,7 @@
 Provides all of the class-based views for the REST API.
 """
 
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.conf import settings
 
 from rest_framework import status
@@ -596,3 +596,19 @@ def concept_search(request):
     q = request.get('search', None)
     pos = self.request.query_params.get('pos', None)
     return goat.Concept.search(q=q, pos=pos)
+
+
+class RelationTemplateViewSet(viewsets.ViewSet):
+    @list_route(methods=['get'])
+    def get_single_relation(self, request):
+        template_parts = RelationTemplatePart.objects.values(
+            'part_of_id').annotate(
+                type_count=models.Count("part_of_id")).filter(
+                    type_count__lte=1)
+        templates = []
+        for part in template_parts:
+            template = RelationTemplate.objects.get(id=part["part_of_id"])
+            if template.use_in_mass_assignment:
+                templates.append(template)
+        serializer = TemplateSerializer(templates, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

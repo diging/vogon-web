@@ -37,6 +37,7 @@ router.register(r'concept', views.rest_views.ConceptViewSet)
 router.register(r'type', views.rest_views.TypeViewSet)
 router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
+router.register(r'templates', views.rest_views.RelationTemplateViewSet, 'Templates')
 
 
 
@@ -75,6 +76,8 @@ urlpatterns = [
     # url(r'^network/$', views.network_views.network, name="network"),
     # url(r'^network/data/$', views.network_views.network_data, name="network-data"),
     url(r'^network/text/(?P<text_id>[0-9]+)/$', views.network_views.network_for_text, name="network_for_text"),
+
+    url(r'^relationtemplate/(?P<template_id>[0-9]+)/create/text/$', views.relationtemplate_views.create_from_text, name="create_from_text"),
 
     url(r'^relationtemplate/add/$', views.relationtemplate_views.add_relationtemplate, name="add_relationtemplate"),
     url(r'^relationtemplate/(?P<template_id>[0-9]+)/$', views.relationtemplate_views.get_relationtemplate, name="get_relationtemplate"),
