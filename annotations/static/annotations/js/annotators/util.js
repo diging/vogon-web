@@ -144,7 +144,6 @@ getFormattedDate = function(isodate) {
 
 
 getCreatorName = function(creator) {
-    console.log(creator);
     if (creator.id == USER_ID) {
         return 'you';
     } else {
