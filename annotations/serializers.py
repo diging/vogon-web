@@ -94,6 +94,24 @@ class AppellationSerializer(serializers.ModelSerializer):
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label', 'position', 'project')
 
+
+class AppellationFlagSerializer(serializers.ModelSerializer):
+    position = DocumentPositionSerializer(required=False)
+    tokenIds = serializers.CharField(required=False)
+    stringRep = serializers.CharField(required=False)
+    occursIn = TextSerializer(required=False)
+    interpretation = ConceptSerializer(required=False)
+    is_used = serializers.BooleanField()
+
+    class Meta:
+        model = Appellation
+        fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
+                  'interpretation', 'interpretation_type', 'occursIn',
+                  'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
+                  'interpretation_type_label', 'position', 'project',
+                  'is_used')
+
+
 class AppellationPOSTSerializer(serializers.ModelSerializer):
     position = DocumentPositionSerializer(required=False)
     tokenIds = serializers.CharField(required=False)

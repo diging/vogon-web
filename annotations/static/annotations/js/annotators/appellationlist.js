@@ -7,7 +7,8 @@ var AppellationListItem = {
                     }">
                 <span class="pull-right text-muted btn-group">
                     <a v-if="!appellation.is_used" class="btn btn-xs" v-on:click="deleteAppellation()">
-                        <span class="glyphicon glyphicon-trash"></span>
+                    <span v-if="deleteId == 0" class="glyphicon glyphicon-trash"></span>    
+                    <svg v-else width="19px"  height="19px"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="lds-wedges" style="background: none;"><g transform="translate(50,50)"><g ng-attr-transform="scale({{config.scale}})" transform="scale(0.7)"><g transform="translate(-50,-50)"><g transform="rotate(7.92768 50 50)"><animateTransform attributeName="transform" type="rotate" calcMode="linear" values="0 50 50;360 50 50" keyTimes="0;1" dur="0.75s" begin="0s" repeatCount="indefinite"></animateTransform><path ng-attr-fill-opacity="{{config.opacity}}" ng-attr-fill="{{config.c1}}" d="M50 50L50 0A50 50 0 0 1 100 50Z" fill-opacity="0.8" fill="#3be8b0"></path></g><g transform="rotate(275.946 50 50)"><animateTransform attributeName="transform" type="rotate" calcMode="linear" values="0 50 50;360 50 50" keyTimes="0;1" dur="1s" begin="0s" repeatCount="indefinite"></animateTransform><path ng-attr-fill-opacity="{{config.opacity}}" ng-attr-fill="{{config.c2}}" d="M50 50L50 0A50 50 0 0 1 100 50Z" transform="rotate(90 50 50)" fill-opacity="0.8" fill="#1aafd0"></path></g><g transform="rotate(183.964 50 50)"><animateTransform attributeName="transform" type="rotate" calcMode="linear" values="0 50 50;360 50 50" keyTimes="0;1" dur="1.5s" begin="0s" repeatCount="indefinite"></animateTransform><path ng-attr-fill-opacity="{{config.opacity}}" ng-attr-fill="{{config.c3}}" d="M50 50L50 0A50 50 0 0 1 100 50Z" transform="rotate(180 50 50)" fill-opacity="0.8" fill="#6a67ce"></path></g><g transform="rotate(91.9819 50 50)"><animateTransform attributeName="transform" type="rotate" calcMode="linear" values="0 50 50;360 50 50" keyTimes="0;1" dur="3s" begin="0s" repeatCount="indefinite"></animateTransform><path ng-attr-fill-opacity="{{config.opacity}}" ng-attr-fill="{{config.c4}}" d="M50 50L50 0A50 50 0 0 1 100 50Z" transform="rotate(270 50 50)" fill-opacity="0.8" fill="#ffb900"></path></g></g></g></g></svg>
                     </a>
                     <a class="btn btn-xs" v-on:click="select">
                         <span class="glyphicon glyphicon-hand-down"></span>
@@ -20,33 +21,12 @@ var AppellationListItem = {
                 {{ label() }}
                 <div class="text-warning">Created by <strong>{{ getCreatorName(appellation.createdBy) }}</strong> on {{ getFormattedDate(appellation.created) }}</div>
                </li>`,
-    methods: {
-						'list-group-item': true,
-						'appellation-list-item': true,
-						'appellation-selected': isSelected()
-					}">
-					
-				<span class="pull-right text-muted btn-group">
-					<a class="btn btn-xs" v-on:click="select">
-						<span class="glyphicon glyphicon-hand-down"></span>
-					</a>
-					<a class="btn btn-xs" v-on:click="toggle">
-						<span v-if="appellation.visible" class="glyphicon glyphicon glyphicon-eye-open"></span>
-						<span v-else class="glyphicon glyphicon glyphicon-eye-close"></span>
-					</a>
-				</span>
-				
-				{{ label() }}
-				<div class="text-warning">
-					<input v-if="sidebar == 'submitAllAppellations'" type="checkbox" v-model="checked" aria-label="...">
-					Created by <strong>{{ getCreatorName(appellation.createdBy) }}</strong> on {{ getFormattedDate(appellation.created) }}
-				</div>
-				</li>`,
     data: function () {
         return {
             checked: true,
             canUncheckAll: false,
-            canCheckAll: false
+            canCheckAll: false,
+            deleteId: 0
         }
     },
     mounted: function () {
@@ -57,6 +37,11 @@ var AppellationListItem = {
                 this.checked = !this.checked;
             }
         });
+    },
+    computed: {
+        deleteId: function () {
+            return store.getters.getAppellationToRemove;
+        }
     },
     watch: {
         checked: function () {
@@ -132,25 +117,6 @@ var AppellationListItem = {
                 return this.appellation.dateRepresentation;
             }
         },
-        getFormattedDate: function (isodate) {
-            var date = new Date(isodate);
-            var monthNames = [
-                "January", "February", "March",
-                "April", "May", "June", "July",
-                "August", "September", "October",
-                "November", "December"
-            ];
-            var minutes = String(date.getMinutes());
-            if (minutes.length == 1) {
-                minutes = '0' + minutes;
-            }
-
-            var day = date.getDate();
-            var monthIndex = date.getMonth();
-            var year = date.getFullYear();
-
-            return day + ' ' + monthNames[monthIndex] + ', ' + year + ' at ' + date.getHours() + ':' + minutes;
-        },
         getCreatorName: function (creator) {
             if (creator.id == USER_ID) {
                 return 'you';
@@ -159,34 +125,18 @@ var AppellationListItem = {
             }
         },
         deleteAppellation() {
+            this.deleteId = this.appellation.id;
             Appellation.delete({
                 id: this.appellation.id
             }).then(response => {
-                let i = store.getters.getAppellationsToSubmit.length;
-                /* 
-                * Remove appellations that have the string represenation that matches the text title
-                * this assumes the appellation is that of the text and we remove it as to not make a
-                * relation to itself. You must iterate backwards when removing items from an array to
-                * prevent indexing errors.
-                */
-                while (i) {
-                    try {
-                        if (store.getters.getAppellationsToSubmit[i].stringRep == this.text.title) {
-                            store.commit('removeAppellation', i);
-                        }
-                    } catch (error) {
-
-                    }
-                    i--;
-                }
-                    console.log(response);
+                store.commit('appellationToRemove', this.appellation.id)
             }, response => {
                 // error callback
-            });
+            })
+        },
         getFormattedDate: function (isodate) {
             return moment(isodate).format('dddd LL [at] LT');
         }
-
     }
 }
 
@@ -274,7 +224,7 @@ AppellationList = {
     data: function () {
         return {
             current_appellations: this.appellations,
-            loading: true
+            loading: true,
             selected_template: null,
             templates: null,
             appellations_to_submit: [],
@@ -298,6 +248,7 @@ AppellationList = {
         this.getTemplates();
         store.commit('setAppellations', this.appellations);
         this.watchStoreForValidator();
+        this.watchDeletedAppellation();
     },
     watch: {
         appellations: function (value) {
@@ -379,6 +330,48 @@ AppellationList = {
         /***********************************************
          * End Methods to create relationships to text *
          ***********************************************/
+
+        /****************************************
+         * Start methods to delete appellations *
+         ****************************************/
+        removeDeletedAppellationFromAppellationList: function () {
+            let i = this.appellations.length - 1;
+            /* 
+             * Remove deleted appellation from appellation list in UI
+             * You must iterate backwards when removing items from an array to
+             * prevent indexing errors.
+             */
+            while (i >= 0) {
+                try {
+                    if (this.appellations[i].id == store.getters.getAppellationToRemove) {
+                        this.appellations.splice(i, 1)
+                        this.current_appellations.splice(i, 1)
+                        store.commit('appellationToRemove', 0);
+                        break;
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+                i--;
+            }
+        },
+
+        watchDeletedAppellation: function () {
+            store.watch(
+                (state) => {
+                    return store.getters.getAppellationToRemove;
+                },
+                (val) => {
+                    if (val != 0) {
+                        this.removeDeletedAppellationFromAppellationList()
+                    }
+                },
+            );
+        },
+        /**************************************
+         * End Methods to delete appellations *
+         **************************************/
+
         allHidden: function () {
             var ah = true;
             this.appellations.forEach(function (appellation) {

@@ -9,7 +9,8 @@ const store = new Vuex.Store({
         deselect_all: false,
         select_all: false,
         assignment_failed: false,
-        validator: 0
+        validator: 0,
+        appellation_to_remove_id: 0
 
     },
     mutations: {
@@ -68,6 +69,9 @@ const store = new Vuex.Store({
         },
         setValidator(state, validator) {
             state.validator = validator;
+        },
+        appellationToRemove(state, id) {
+            state.appellation_to_remove_id = id;
         }
     },
     getters: {
@@ -79,6 +83,7 @@ const store = new Vuex.Store({
         getDeselect: state => state.deselect_all,
         getSelect: state => state.select_all,
         getAssignmentFailed: state => state.assignment_failed,
-        getValidator: state => state.validator
+        getValidator: state => state.validator,
+        getAppellationToRemove: state => state.appellation_to_remove_id
     }
 })

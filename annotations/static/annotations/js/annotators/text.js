@@ -320,7 +320,7 @@ DateAppellationCreator = {
                         occursIn: this.text.id,
                         position_type: "CO",
                         position_value: [this.position.startOffset,
-                            this.position.endOffset
+                        this.position.endOffset
                         ].join(",")
                     },
                     stringRep: this.position.representation,
@@ -580,7 +580,7 @@ AppellationCreator = {
                         occursIn: this.text.id,
                         position_type: "CO",
                         position_value: [this.position.startOffset,
-                            this.position.endOffset
+                        this.position.endOffset
                         ].join(",")
                     },
                     stringRep: stringRep,
@@ -972,7 +972,7 @@ RelationCreator = {
             this.ready = this.readyToCreate();
         },
         unregisterData: function (field, data) {
-            delete(this.field_data[this.fieldHash(field)]);
+            delete (this.field_data[this.fieldHash(field)]);
             this.ready = this.readyToCreate();
         },
         readyToCreate: function () {
@@ -1001,7 +1001,7 @@ RelationCreator = {
                         occursIn_id: self.text.id,
                         position_type: "CO",
                         position_value: [position.startOffset,
-                            position.endOffset
+                        position.endOffset
                         ].join(",")
                     };
                     field.data = {
@@ -1026,18 +1026,18 @@ RelationCreator = {
             RelationTemplateResource.create({
                 id: this.id
             }, {
-                fields: this.fields,
-                occursIn: this.text.id,
-                createdBy: this.user.id,
-                project: this.project.id
-            }).then(function (response) {
-                this.ready = false;
-                self.$emit('createdrelation', response.body);
-            }).catch(function (error) {
-                console.log('RelationTemplateResource:: failed miserably', error);
-                self.error = true;
-                self.ready = false;
-            }); // TODO: implement callback and exception handling!!
+                    fields: this.fields,
+                    occursIn: this.text.id,
+                    createdBy: this.user.id,
+                    project: this.project.id
+                }).then(function (response) {
+                    this.ready = false;
+                    self.$emit('createdrelation', response.body);
+                }).catch(function (error) {
+                    console.log('RelationTemplateResource:: failed miserably', error);
+                    self.error = true;
+                    self.ready = false;
+                }); // TODO: implement callback and exception handling!!
         }
     }
 }
@@ -1283,26 +1283,26 @@ Appellator = new Vue({
             RelationTemplateResource.text({
                 id: store.getters.getTemplate.id
             }, {
-                appellations: store.getters.getAppellationsToSubmit,
-                textAppellation: store.getters.getTextAppellation,
-                start: this.start,
-                end: this.end,
-                occur: this.occur,
-                part_id: store.getters.getTemplate.template_parts[0].id,
-                occursIn: this.text.id,
-                createdBy: this.user.id,
-                project: this.project.id
-            }).then(function (response) {
-                self.ready = false;
-                self.sidebarShown = false;
-                self.sidebar = 'relations';
-                store.commit('resetCreateAppelltionsToText');
-            }).catch(function (error) {
-                console.log('RelationTemplateResource:: failed miserably', error);
-                self.error = true;
-                self.ready = false;
-                store.commit('massAppellationAssignmentFailed');
-            }); // TODO: implement callback and exception handling!!
+                    appellations: store.getters.getAppellationsToSubmit,
+                    textAppellation: store.getters.getTextAppellation,
+                    start: this.start,
+                    end: this.end,
+                    occur: this.occur,
+                    part_id: store.getters.getTemplate.template_parts[0].id,
+                    occursIn: this.text.id,
+                    createdBy: this.user.id,
+                    project: this.project.id
+                }).then(function (response) {
+                    self.ready = false;
+                    self.sidebarShown = false;
+                    self.sidebar = 'relations';
+                    store.commit('resetCreateAppelltionsToText');
+                }).catch(function (error) {
+                    console.log('RelationTemplateResource:: failed miserably', error);
+                    self.error = true;
+                    self.ready = false;
+                    store.commit('massAppellationAssignmentFailed');
+                }); // TODO: implement callback and exception handling!!
         },
         //TODO: Change function to SubmitAllAppellations
         showSubmitAllAppellationsSidebar: function () {
@@ -1565,10 +1565,6 @@ Appellator = new Vue({
         checkForRelationsets: function (appellations, relations) {
             let appellations_ids = []
             let appellation_ids = self.gatherAppellationIdsInRelationset(relations);
-            console.log(appellation_ids);
-            for (let appellation of appellations) {
-                console.log(appellation);
-            }
         },
         updateRelations: function (callback) {
             self = this;

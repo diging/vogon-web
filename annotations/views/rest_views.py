@@ -314,9 +314,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
                 appellation.is_used_flag()
             else:
                 appellation.is_not_used_flag()
-
-        for appellation in queryset:
-            print(appellation.is_used)
         return queryset
 
 
