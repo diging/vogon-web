@@ -20,10 +20,6 @@ div#header nav {
     margin-bottom: 0px;
 }
 
-
-div#alerts {
-}
-
 div#actions {
 
     margin-left: auto;
@@ -31,97 +27,97 @@ div#actions {
     margin-top: 30px;
 }
 
-    #actions .action {
-        display: inline-block;
-        margin-left: 10px;
-        margin-right: 10px;
-        height: 20px;
+#actions .action {
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 10px;
+    height: 20px;
 
-    }
-
-    .action .glyphicon {
-
-    }
+}
 
 #main {
     margin-top: 25px;
 }
 
-#text {
+#textContent {
+    position: relative;
+    overflow: auto;
+    height: 500px;
+    line-height: 1.8em;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 
 }
-
-    #textContent {
-        position: relative;
-        overflow: auto;
-        height: 500px;
-        line-height: 1.8em;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-
-    }
 
 div#rightTools {
 
     height: 400px;
 
 }
-    div#networkVis {
-        height: 400px;
-    }
 
-    div#annotations {
+div#networkVis {
+    height: 400px;
+}
 
-        height: 400px;
+div#annotations {
 
-    }
-    div#relations {
+    height: 400px;
 
-        height: 400px;
-    }
-    div#network {
-        padding: 0px;
-    }
+}
+
+div#relations {
+
+    height: 400px;
+}
+
+div#network {
+    padding: 0px;
+}
 
 word {
     cursor: pointer;
 }
 
-    word.appellation {
-        color: orange;
-    }
+word.appellation {
+    color: orange;
+}
 
 
-    word.selected {
-        color: blue;
-        text-shadow: 0px 0px 20px orange;
-    }
+word.selected {
+    color: blue;
+    text-shadow: 0px 0px 20px orange;
+}
 
-    word.appellation.selected {
-        color: red;
-        text-shadow: 0px 0px 20px green;
-    }
+word.appellation.selected {
+    color: red;
+    text-shadow: 0px 0px 20px green;
+}
 
 .actionIcons {
     position: absolute;
 }
 
-    .actionIcons .btn {
-        margin-right: 2px;
-        padding: 5px;
+.actionIcons .btn {
+    margin-right: 2px;
+    padding: 5px;
 
-    }
+}
 
 .quotedText {
     color: orange;
     font-style: italic;
 }
-# AngularJS compatability.
-.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+# AngularJS compatability. .nav,
+.pagination,
+.carousel,
+.panel-title a {
+    cursor: pointer;
+}
 
 .angucomplete-dropdown {
     margin-top: 20px;
@@ -152,9 +148,7 @@ word {
 }
 
 
-.temporalInput {
-
-}
+.temporalInput {}
 
 .help-text {
     size: 9pt;
@@ -181,9 +175,7 @@ word.appellation.highlight {
     font-size: 7pt;
 }
 
-.edgeSelected {
-
-}
+.edgeSelected {}
 
 circle.node {
     fill: rgba(46, 109, 164, 1.0);
@@ -202,11 +194,16 @@ circle.node {
     font-size: 8pt;
 
     /* Prevent selecting text. */
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none;   /* Chrome/Safari/Opera */
-    -khtml-user-select: none;    /* Konqueror */
-    -moz-user-select: none;      /* Firefox */
-    -ms-user-select: none;       /* IE/Edge */
+    -webkit-touch-callout: none;
+    /* iOS Safari */
+    -webkit-user-select: none;
+    /* Chrome/Safari/Opera */
+    -khtml-user-select: none;
+    /* Konqueror */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE/Edge */
     user-select: none;
     display: none;
 }
@@ -220,9 +217,8 @@ circle.node {
     z-index: 5000;
 }
 
-.panel.narrow {
+.panel.narrow {}
 
-}
 .panel.center {
     margin-left: auto;
     margin-right: auto;
@@ -238,8 +234,8 @@ circle.node {
 }
 
 .accordion-panel .panel-body {
-   padding: 7px;
- }
+    padding: 7px;
+}
 
 
 
@@ -264,7 +260,7 @@ circle.node {
 
 
 .contributor {
-   margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .contributor div {
@@ -281,24 +277,28 @@ circle.node {
   height: 230px;
 }*/
 
-.div_padding{
+.div_padding {
     padding: 30px;
 }
 
 
 .btn-group {
-  white-space: nowrap;
-  .btn {
-    float: none;
-    display: inline-block;
-  }
+    white-space: nowrap;
+
+    .btn {
+        float: none;
+        display: inline-block;
+    }
 }
 
 
 word {
-    -webkit-user-select: none;  /* Chrome all / Safari all */
-    -moz-user-select: none;     /* Firefox all */
-    -ms-user-select: none;      /* IE 10+ */
+    -webkit-user-select: none;
+    /* Chrome all / Safari all */
+    -moz-user-select: none;
+    /* Firefox all */
+    -ms-user-select: none;
+    /* IE 10+ */
     user-select: none;
 }
 
@@ -325,7 +325,7 @@ word {
 
 }
 
-.concept-search-results > .list-group-item {
+.concept-search-results>.list-group-item {
     cursor: pointer;
 }
 
@@ -334,20 +334,18 @@ word {
     margin-top: 10px;
 }
 
-.relationtemplate-search-results > .list-group-item {
+.relationtemplate-search-results>.list-group-item {
     cursor: pointer;
 }
 
-.relationtemplate-field-search {
+.relationtemplate-field-search {}
 
-}
-.relationtemplate-field-search > .list-group-item {
+.relationtemplate-field-search>.list-group-item {
     cursor: pointer;
 }
 
 
-.appellation-list {
-}
+.appellation-list {}
 
 .appellation-list-item {
     cursor: pointer;
@@ -361,17 +359,19 @@ a.appellation-list-item.selected {
     color: green;
 }
 
-.relationtemplate-field-search > .list-group-item {
+.relationtemplate-field-search>.list-group-item {
     cursor: pointer;
 }
 
-.panel.with-nav-tabs .panel-heading{
+.panel.with-nav-tabs .panel-heading {
     padding: 5px 5px 0 5px;
 }
-.panel.with-nav-tabs .nav-tabs{
+
+.panel.with-nav-tabs .nav-tabs {
     border-bottom: none;
 }
-.panel.with-nav-tabs .nav-justified{
+
+.panel.with-nav-tabs .nav-justified {
     margin-bottom: -1px;
 }
 
@@ -379,15 +379,16 @@ a.appellation-list-item.selected {
  *  ride to the right, at the top of the window. If the screen is too small,
  *  it should ride at the bottom of the window on top of the text.
  */
- .action-body {
+.action-body {
 
-     overflow-y: scroll;
- }
+    overflow-y: scroll;
+}
 
 .fixed {
     top: 0px;
     position: fixed;
 }
+
 .fixed-bottom {
     bottom: -10px;
     position: fixed;
@@ -412,10 +413,11 @@ a.appellation-list-item.selected {
     cursor: pointer;
 }
 
-.equal, .equal > div[class*='col-'] {
+.equal,
+.equal>div[class*='col-'] {
     display: -webkit-flex;
     display: flex;
-    flex:1 1 auto;
+    flex: 1 1 auto;
 }
 
 
@@ -436,11 +438,17 @@ a.appellation-list-item.selected {
 .navbar-inverse-transparent {
     /*background-color: rgba(0, 0, 0, 0.8);*/
     background-image: none;
-    background: rgba(0, 0, 0, 0.8);; /* For browsers that do not support gradients */
-    background: -webkit-linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0)); /* For Safari 5.1 to 6.0 */
-    background: -o-linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0)); /* For Opera 11.1 to 12.0 */
-    background: -moz-linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0)); /* For Firefox 3.6 to 15 */
-    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0)); /* Standard syntax */
+    background: rgba(0, 0, 0, 0.8);
+    ;
+    /* For browsers that do not support gradients */
+    background: -webkit-linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+    /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+    /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+    /* For Firefox 3.6 to 15 */
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+    /* Standard syntax */
 
 
     border: 0;
@@ -464,7 +472,8 @@ a.appellation-list-item.selected {
     background-color: rgba(255, 255, 255, 0.3);
 }
 
-.navbar-inverse .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.open>a {
+.navbar-inverse .navbar-nav>.active>a,
+.navbar-inverse .navbar-nav>.open>a {
     background-color: rgba(255, 255, 255, 0.3) !important;
     background-image: none;
     border-color: none;
@@ -494,6 +503,7 @@ a.appellation-list-item.selected {
     padding-right: 8px;
 
 }
+
 .navbar-brand img {
     margin-top: 12px;
     height: 30px;
@@ -590,6 +600,7 @@ a.appellation-list-item.selected {
 .btn-pur {
     background-color: rgba(81, 94, 185, 1.0);
 }
+
 .btn-whi {
     background-color: rgba(255, 255, 255, 1.0);
 }
@@ -610,14 +621,20 @@ a.appellation-list-item.selected {
 
 .panel-heading .accordion-toggle:after {
     /* symbol for "opening" panels */
-    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
-    content: "\e114";    /* adjust as needed, taken from bootstrap.css */
-    float: right;        /* adjust as needed */
-    color: grey;         /* adjust as needed */
+    font-family: 'Glyphicons Halflings';
+    /* essential for enabling glyphicon */
+    content: "\e114";
+    /* adjust as needed, taken from bootstrap.css */
+    float: right;
+    /* adjust as needed */
+    color: grey;
+    /* adjust as needed */
 }
+
 .panel-heading .accordion-toggle.collapsed:after {
     /* symbol for "collapsed" panels */
-    content: "\e080";    /* adjust as needed, taken from bootstrap.css */
+    content: "\e080";
+    /* adjust as needed, taken from bootstrap.css */
 }
 
 
@@ -645,7 +662,7 @@ a.appellation-list-item.selected {
 }
 
 
-.multiselect-container.dropdown-menu  {
+.multiselect-container.dropdown-menu {
     max-width: 100%;
     overflow-x: hidden;
     max-height: 300px;
@@ -658,6 +675,7 @@ a.appellation-list-item.selected {
 .autocomplete-container {
     visibility: hidden;
 }
+
 .autocomplete-results {
     visibility: hidden;
 }
@@ -683,17 +701,21 @@ a.appellation-list-item.selected {
     min-height: 100%;
     height: auto !important;
     height: 100%;
-    margin: 0 auto -60px; /* the bottom margin is the negative value of the footer's height */
+    margin: 0 auto -60px;
+    /* the bottom margin is the negative value of the footer's height */
 }
 
 .push {
     opacity: 0;
 }
-.footer, .push {
+
+.footer,
+.push {
     margin-top: 60px;
     height: 60px;
     background: #e0e0e0;
 }
+
 .footer .container-fluid {
     padding-top: 20px;
 }
@@ -775,6 +797,11 @@ a.appellation-list-item.selected {
     background-color: #ddd;
     border-radius: 5px;
 }
+
 .splash .h2 {
     margin-top: 10px;
+}
+
+.download-checks label {
+    margin-left: 6%;
 }

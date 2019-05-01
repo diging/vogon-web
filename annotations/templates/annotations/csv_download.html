@@ -1,0 +1,31 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+{% load tz %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>
+{% endblock %}
+
+{% block main %}
+
+<script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
+<div class="container-fluid">
+	<div class="row">
+			<a href="{{request.META.HTTP_REFERER}}"><span class="glyphicon glyphicon-triangle-left"></span>Back</a>
+	</div>
+	<div class="col-md-2 col-md-offset-5">
+		<div class="h2">CSV Download</div>
+		<p class="text-muted">
+			Select which CSV you would like to download:
+		</p>
+		<ul>
+		{% for csv in csvs %}
+			<li><a href="{% url 'download_previous' csv.id %}">{{ csv.created|localtime }}</a></li>
+		{% endfor %}
+		</ul>
+	</div>
+</div>
+{% endblock %}
+

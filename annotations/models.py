@@ -47,7 +47,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-
+from django.utils import timezone
 from concepts.models import Concept
 from django.conf import settings
 import ast
@@ -62,7 +62,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from concepts.models import Concept, Type
 
-import ast
 import networkx as nx
 
 
@@ -1147,3 +1146,8 @@ class DocumentPosition(models.Model):
     If :attr:`.position_type` is :attr:`.WHOLE_DOCUMENT`\, then this can be
     blank.
     """
+
+class CsvDownloadList(models.Model):
+    user = models.ForeignKey(VogonUser)
+    file_field = models.FileField(null=True, upload_to='csv_export/')
+    created = models.DateTimeField(default=timezone.now)

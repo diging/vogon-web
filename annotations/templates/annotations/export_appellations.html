@@ -1,0 +1,41 @@
+{% extends "annotations/base.html" %}
+{% load app_filters %}
+{% load addcss %}
+{% load staticfiles %}
+
+{% block breadcrumbs %}
+<a href="{% url "home" %}" class="btn btn-xs">Home</a>&raquo;<a href="{% url "repository_list" %}{% if project_id %}?project_id={{ project_id }}{% endif %}" class="btn btn-xs">Repositories</a>
+{% endblock %}
+
+{% block main %}
+
+<script src="{% static "annotations/js/bootstrap-datepicker.min.js" %}"></script>
+<div class="container-fluid">
+	<div class="row">
+		<a href="{{request.META.HTTP_REFERER}}"><span class="glyphicon glyphicon-triangle-left"></span>Back</a>
+	</div>
+	<div class="col-md-2 col-md-offset-5">
+		<div class="row">
+			<div class="h2">Export Appellations</div>
+			<p class="text-muted">
+				Select which texts you would like to export appellations for:
+			</p>
+			<form action="{% url 'export_appellations' %}" method="post">
+				{% csrf_token %}
+				<div class="download-checks checkbox">
+					{% for text in texts %}
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" value="{{ text.id }}" name="texts"> {{ text.title }}
+							</label>
+						</div>
+					{% endfor %}
+				</div>
+				<div class="row text-center">
+					<button type="submit" class="btn btn-primary">Export</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}

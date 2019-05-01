@@ -252,3 +252,7 @@ CONCEPT_TYPES = {
 }
 
 SUBMIT_WAIT_TIME = {'days': 3, 'hours': 0, 'minutes': 0}
+
+ENV_PATH = os.path.abspath(os.path.dirname(__file__))
+MEDIA_ROOT = os.path.join(ENV_PATH, 'downloads/')
+MEDIA_URL = 'downloads/'

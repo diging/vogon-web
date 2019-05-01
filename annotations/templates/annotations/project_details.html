@@ -16,6 +16,10 @@
             {{ project.name }}
             {% if user.id == project.ownedBy.id %}
             <span class="btn-group pull-right">
+                <a class="btn btn-sm btn-warning"
+                    href="{% url "export_appellations_list" %}">
+                    <span class="glyphicon glyphicon-download-alt"></span> Export Appellations
+                </a>
                 <a class="btn btn-sm btn-success"
                     href="{% url "repository_list" %}?project_id={{ project.id }}">
                     <span class="gylphicon glyphicon-plus"></span> Add Text

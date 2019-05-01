@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from rest_framework import routers
 from rest_framework_nested import routers as nrouters
 from annotations import views
+from annotations.views import download_appellation_views
 from concepts import views as conceptViews
 
 
@@ -132,6 +133,11 @@ urlpatterns = [
 
     url(r'^repository/$', views.repository_views.repository_list, name='repository_list'),
 
+    url(r'^appellations/export/list/$', download_appellation_views.export_appellation_list, name='export_appellations_list'),
+    url(r'^appellations/export/$', download_appellation_views.export_appellation, name='export_appellations'),
+    url(r'^appellations/download/$', download_appellation_views.available_csvs, name='available_csvs'),
+    url(r'^appellations/download/previous/(?P<download_id>[0-9]+)/$', download_appellation_views.handle_csv_download, name='download_previous'),
+
     url(r'^text/(?P<text_id>[0-9]+)/public/$', views.text_views.text_public, name='text_public'),
 
     url(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
@@ -140,3 +146,6 @@ urlpatterns = [
     url(r'^sandbox/(?P<text_id>[0-9]+)/$', conceptViews.sandbox, name='sandbox'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.DEBUG is True:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
