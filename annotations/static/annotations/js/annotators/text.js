@@ -1553,7 +1553,6 @@ Appellator = new Vue({
             });
         },
         gatherAppellationIdsInRelationset: function (relations) {
-            console.log('runs');
             let appellation_ids = []
             for (let relation of relations) {
                 for (let appellation of relation.appellations) {

@@ -295,7 +295,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
         if position_type and position_type in DocumentPosition.TYPES:
             queryset = queryset.filter(position__position_type=position_type)
 
-        quesryset = queryset.order_by('-created')
+        queryset = queryset.order_by('-created')
         relations = Relation.objects.only('source_content_type',
                                           'object_content_type', 'predicate')
         used_ids = []
