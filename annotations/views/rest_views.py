@@ -297,9 +297,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
         queryset = queryset.order_by('-created')
         relations = Relation.objects.filter(occursIn=text).only('object_object_id',
                                           'source_object_id', 'predicate')
-        print(relations.count())
-        for relation in relations:
-            print("source: {}, object: {}, predicate: {}".format(relation.source_content_object.id, relation.object_content_type.id, relation.predicate.id))
        
         used_ids = []
         
