@@ -10,7 +10,8 @@ const store = new Vuex.Store({
         select_all: false,
         assignment_failed: false,
         validator: 0,
-        appellation_to_remove_id: 0
+        appellation_to_remove_id: 0,
+        appellations_master: []
 
     },
     mutations: {
@@ -44,6 +45,9 @@ const store = new Vuex.Store({
         setAppellations(state, payload) {
             // Use payload.slice() to clone the array without a reference
             state.appellations_to_submit = payload.slice();
+        },
+        setMasterAppellations(state, payload) {
+            state.appellations_master = payload;
         },
         deselect(state) {
             state.deselect_all = !state.deselect_all;
@@ -84,6 +88,7 @@ const store = new Vuex.Store({
         getSelect: state => state.select_all,
         getAssignmentFailed: state => state.assignment_failed,
         getValidator: state => state.validator,
-        getAppellationToRemove: state => state.appellation_to_remove_id
+        getAppellationToRemove: state => state.appellation_to_remove_id,
+        getAppellationsMaster: state => state.appellations_master
     }
 })

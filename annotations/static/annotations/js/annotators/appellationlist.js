@@ -113,7 +113,8 @@ var AppellationListItem = {
 		label: function () {
 			if (this.appellation.interpretation) {
 				return this.appellation.interpretation.label;
-			} else if (this.appellation.dateRepresentation) {
+			}
+			if (this.appellation.dateRepresentation) {
 				return this.appellation.dateRepresentation;
 			}
 		},
@@ -254,6 +255,7 @@ AppellationList = {
 		store.commit('setAppellations', this.appellations);
 		this.watchStoreForValidator();
 		this.watchDeletedAppellation();
+		this.watchStoreForAppellations();
 	},
 	watch: {
 		appellations: function (value) {
@@ -308,6 +310,17 @@ AppellationList = {
 		},
 		checkAll: function () {
 			store.commit('selectAll');
+		},
+		watchStoreForAppellations: function () {
+
+			store.watch(
+				(state) => {
+					return store.getters.getAppellationsMaster;
+				},
+				(val) => {
+					this.current_appellations = val;
+				},
+			);
 		},
 		watchStoreForValidator: function () {
 			store.watch(

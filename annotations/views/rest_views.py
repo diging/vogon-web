@@ -276,7 +276,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
 
     # TODO: implement some real filters!
     def get_queryset(self, *args, **kwargs):
-
         queryset = AnnotationFilterMixin.get_queryset(self, *args, **kwargs)
 
         concept = self.request.query_params.get('concept', None)
@@ -296,18 +295,22 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
             queryset = queryset.filter(position__position_type=position_type)
 
         queryset = queryset.order_by('-created')
-        relations = Relation.objects.only('source_content_type',
-                                          'object_content_type', 'predicate')
-        used_ids = []
+        relations = Relation.objects.filter(occursIn=text).only('object_object_id',
+                                          'source_object_id', 'predicate')
+        print(relations.count())
         for relation in relations:
-            if relation.source_content_object.id not in used_ids:
-                used_ids.append(relation.source_content_object.id)
-            if relation.object_content_type.id not in used_ids:
-                used_ids.append(relation.object_content_type.id)
+            print("source: {}, object: {}, predicate: {}".format(relation.source_content_object.id, relation.object_content_type.id, relation.predicate.id))
+       
+        used_ids = []
+        
+        for relation in relations:
+            if relation.source_object_id not in used_ids:
+                used_ids.append(relation.source_object_id)
+            if relation.object_object_id not in used_ids:
+                used_ids.append(relation.object_object_id)
             if relation.predicate.id not in used_ids:
                 used_ids.append(relation.predicate.id)
 
-        #quesryset_ids = [appellation.id for appellation in queryset]
         used_id_set = set(used_ids)
         for appellation in queryset:
             if appellation.id in used_id_set:

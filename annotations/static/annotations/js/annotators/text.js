@@ -1030,7 +1030,7 @@ RelationCreator = {
                     occursIn: this.text.id,
                     createdBy: this.user.id,
                     project: this.project.id
-                }).then(function (response) {
+                }).then(response => {
                     this.ready = false;
                     self.$emit('createdrelation', response.body);
                 }).catch(function (error) {
@@ -1160,18 +1160,7 @@ Appellator = new Vue({
             massAssignmentFailed: false
         }
     },
-    mounted: function () {
-        this.updateAppellations();
-        this.updateRelations();
-        store.commit('setAppellations', this.appellations);
-        this.updateDateAppellations();
-        this.updateSwimRef();
-        this.handleScroll();
-        //needs to be called in mounted.
-        this.watchStoreForConcepts();
-        this.watchStoreForAssignmentFailed();
-    },
-    created() {
+    created: function () {
         window.addEventListener('scroll', this.handleScroll);
         window.addEventListener('resize', this.handleScroll);
         var self = this;
@@ -1180,6 +1169,18 @@ Appellator = new Vue({
             self.handleScroll();
         }
     },
+    mounted: function () {
+        this.updateAppellations();
+        this.updateRelations();
+        this.updateDateAppellations();
+        this.updateSwimRef();
+        this.handleScroll();
+        //needs to be called in mounted.
+        this.watchStoreForConcepts();
+        this.watchStoreForAssignmentFailed();
+        store.commit('setMasterAppellations', this.appellations);
+    },
+
     destroyed() {
         window.removeEventListener('scroll', this.handleScroll);
         window.removeEventListener('resize', this.handleScroll);
@@ -1193,6 +1194,7 @@ Appellator = new Vue({
         },
         appellations: function () {
             this.filterTextAppellationFromAppellationList();
+            store.commit('setMasterAppellations', this.appellations);
         }
     },
     computed: {
