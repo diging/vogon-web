@@ -32,7 +32,7 @@ class ConceptActionForm(forms.Form):
 
 @html_safe
 @python_2_unicode_compatible
-class RadioChoiceInputWithDescription(forms.widgets.RadioChoiceInput):
+class RadioChoiceInputWithDescription(forms.widgets.RadioSelect):
     def __init__(self, name, value, attrs, choice, index, **kwargs):
         self.name = name
         self.value = force_text(value)
@@ -59,7 +59,7 @@ class RadioChoiceInputWithDescription(forms.widgets.RadioChoiceInput):
 
 @html_safe
 @python_2_unicode_compatible
-class RadioFieldRendererWithDescription(forms.widgets.RadioFieldRenderer):
+class RadioFieldRendererWithDescription(forms.widgets.Select):
     choice_input_class = RadioChoiceInputWithDescription
 
     def __str__(self):
