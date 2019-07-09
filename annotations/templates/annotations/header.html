@@ -90,7 +90,9 @@
 
 
     					{% else %}
-                            <a class="btn btn-lg" href="{% url 'social:begin' 'github' %}">
+                            {% comment %} <a class="btn btn-lg" href="{% url 'social:begin' 'github' %}"> {% endcomment %}
+                            {% load socialaccount %}
+                            <a class="btn btn-lg" href="{% provider_login_url 'github' %}">
                                 <i class="glyphicon fa fa-github" aria-hidden="true"></i>
                              </a>
 

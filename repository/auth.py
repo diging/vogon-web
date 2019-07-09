@@ -1,5 +1,6 @@
 from django.conf import settings
-from social.apps.django_app.default.models import UserSocialAuth
+# from social.apps.django_app.default.models import UserSocialAuth
+from allauth.socialaccount.models import SocialToken, SocialAccount
 
 
 def jars_github_auth(user):
@@ -7,7 +8,9 @@ def jars_github_auth(user):
     Build an auth header for Amphora using ``user``'s Github access token.
     """
     try:
-        token = user.social_auth.get(provider='github').extra_data.get('access_token')
+        user_account = SocialAccount.objects.filter(user=user, provider='github')
+        token = list(SocialToken.objects.filter(account=user_account))[0]
+        # print(token)
     except UserSocialAuth.DoesNotExist:
         return {}
 

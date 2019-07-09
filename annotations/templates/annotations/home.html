@@ -35,8 +35,9 @@
             {% if user.is_authenticated %}
             {% else %}
     		<span class="pull-right">
-
-                <a class="btn btn-sm" href="{% url 'social:begin' 'github' %}"><i class="fa fa-github" aria-hidden="true"></i> {% trans 'Log in' %}</a> to get started!
+				{% load socialaccount %}
+                {% comment %} <a class="btn btn-sm" href="{% url 'social:begin' 'github' %}"><i class="fa fa-github" aria-hidden="true"></i> {% trans 'Log in' %}</a> to get started! {% endcomment %}
+                <a class="btn btn-sm" href="{% provider_login_url 'github' %}"><i class="fa fa-github" aria-hidden="true"></i> {% trans 'Log in' %}</a> to get started!
                 <!-- with <a href="#" class="fa fa-github" aria-hidden="true"> GitHub</a> -->
     		</span>
             {% endif %}

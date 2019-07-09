@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import include, url, handler403
 from django.contrib import admin
+# from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -59,9 +60,11 @@ urlpatterns = [
     url(r'^accounts/projects/', views.user_views.user_projects, name='user_projects'),
     url(r'^accounts/settings/$', views.user_views.user_settings, name='settings'),
     # url(r'^accounts/register/$', views.user_views.register, name='register'),
-    url('', include('social.apps.django_app.urls', namespace='social')),
+    # url('', include('social.apps.django_app.urls', namespace='social')),
     # url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name="logout"),
     # url(r'^accounts/', include('django.contrib.auth.urls')),
+
+    url('', include('allauth.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
 

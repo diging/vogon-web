@@ -35,6 +35,7 @@ def logout_view(request):
     logout(request)
     next_page = request.GET.get('next', reverse('home'))
     return HttpResponseRedirect(next_page)
+    # return HttpResponseRedirect('/')
 
 
 @csrf_protect

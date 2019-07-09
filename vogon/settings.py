@@ -28,7 +28,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('SECRET_KEY', 'secretsecret')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = eval(os.environ.get('DEBUG', 'False'))
+# DEBUG = eval(os.environ.get('DEBUG', 'False'))
+DEBUG=True
 
 ALLOWED_HOSTS = ['*']
 
@@ -41,13 +42,20 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.github',
+    
     'concepts',
     'annotations',
     'rest_framework',
     'corsheaders',
     'djcelery',
     'repository',
-    'social.apps.django_app.default',
+    # 'social.apps.django_app.default',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -64,10 +72,12 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'vogon.urls'
 
+SITE_ID = 1
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "annotations/templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -107,8 +117,11 @@ DATABASES['default']['NAME'] = 'postgres'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # default
-    'social.backends.github.GithubOAuth2',
+    # 'social.backends.github.GithubOAuth2',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
+
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS =True
 ANONYMOUS_USER_ID = -1
 BASE_URL = os.environ.get('BASE_URL', '/')
 SOCIAL_AUTH_GITHUB_KEY = os.environ.get('SOCIAL_AUTH_GITHUB_KEY', None)
@@ -116,7 +129,13 @@ SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('SOCIAL_AUTH_GITHUB_SECRET', None)
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = BASE_URL
 SOCIAL_AUTH_GITHUB_SCOPE = ['user']
 
-
+SOCIALACCOUNT_PROVIDERS = {
+    'github': {
+        'SCOPE': [
+            'user',
+        ],
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -241,6 +260,7 @@ GOAT = os.environ.get('GOAT', 'http://127.0.0.1:8000')
 GOAT_APP_TOKEN = os.environ.get('GOAT_APP_TOKEN')
 
 LOGIN_URL = BASE_URL + 'login/github/'
+# LOGIN_REDIRECT_URL = 'home'
 # LOGOUT_REDIRECT_URL = 'home'
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'DEBUG')
