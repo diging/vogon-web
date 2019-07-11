@@ -94,7 +94,7 @@ TEMPLATES = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': (   
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
@@ -136,6 +136,8 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
     }
 }
+
+SOCIALACCOUNT_ADAPTER = 'annotations.adapter.SocialAccountAdapter'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

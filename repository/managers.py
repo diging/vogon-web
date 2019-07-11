@@ -1,4 +1,4 @@
-from restable import RESTManager
+from repository.restable import RESTManager
 from repository import auth
 
 

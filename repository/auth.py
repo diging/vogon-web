@@ -1,5 +1,4 @@
 from django.conf import settings
-# from social.apps.django_app.default.models import UserSocialAuth
 from allauth.socialaccount.models import SocialToken, SocialAccount
 
 
@@ -11,7 +10,7 @@ def jars_github_auth(user):
         user_account = SocialAccount.objects.filter(user=user, provider='github')
         token = list(SocialToken.objects.filter(account=user_account))[0]
         # print(token)
-    except UserSocialAuth.DoesNotExist:
+    except SocialAccount.DoesNotExist:
         return {}
 
     auth_token = token #':'.join([settings.SOCIAL_AUTH_GITHUB_KEY,
