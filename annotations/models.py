@@ -46,7 +46,7 @@ from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from concepts.models import Concept
 from django.conf import settings
@@ -96,8 +96,8 @@ class VogonUserManager(BaseUserManager):
 
 
 class VogonUserDefaultProject(models.Model):
-    for_user = models.OneToOneField('VogonUser', related_name='default_project')
-    project = models.ForeignKey('TextCollection', related_name='is_default_for')
+    for_user = models.OneToOneField('VogonUser', related_name='default_project', on_delete=models.CASCADE)
+    project = models.ForeignKey('TextCollection', related_name='is_default_for', on_delete=models.CASCADE)
 
 
 class VogonUser(AbstractBaseUser, PermissionsMixin):
@@ -281,7 +281,7 @@ class QuadrigaAccession(models.Model):
     Quadriga.
     """
     created = models.DateTimeField(auto_now_add=True)
-    createdBy = models.ForeignKey('VogonUser', related_name='accessions')
+    createdBy = models.ForeignKey('VogonUser', related_name='accessions', on_delete=models.CASCADE)
     project_id = models.CharField(max_length=255, blank=True, null=True)
     workspace_id = models.CharField(max_length=255, blank=True, null=True)
     network_id = models.CharField(max_length=255, blank=True, null=True)
@@ -294,7 +294,7 @@ class TextCollection(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
 
-    ownedBy = models.ForeignKey(VogonUser, related_name='collections')
+    ownedBy = models.ForeignKey(VogonUser, related_name='collections', on_delete=models.CASCADE)
     texts = models.ManyToManyField('Text', related_name='partOf',
                                    blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -332,7 +332,7 @@ class Text(models.Model):
     .. todo:: Add a field to store arbitrary metadata about the document.
     """
 
-    part_of = models.ForeignKey('Text', related_name='parts', null=True, blank=True)
+    part_of = models.ForeignKey('Text', related_name='parts', null=True, blank=True, on_delete=models.CASCADE)
 
     uri = models.CharField(max_length=255, unique=True,
                            help_text="Uniform Resource Identifier. This should"
@@ -373,11 +373,11 @@ class Text(models.Model):
     added = models.DateTimeField(auto_now_add=True)
     """The date and time when the text was added to VogonWeb."""
 
-    addedBy = models.ForeignKey(VogonUser, related_name="addedTexts")
+    addedBy = models.ForeignKey(VogonUser, related_name="addedTexts" , on_delete=models.CASCADE)
     """The user who added the text to VogonWeb."""
 
     source = models.ForeignKey("Repository", blank=True, null=True,
-                               related_name="loadedTexts")
+                               related_name="loadedTexts", on_delete=models.CASCADE)
     """
     The repository (if applicable) from which the text was retrieved.
 
@@ -386,7 +386,7 @@ class Text(models.Model):
     """
     # source_id = models.IntegerField(default=-1, blank=True, null=True)
 
-    repository = models.ForeignKey("repository.Repository", blank=True, null=True, related_name='texts')
+    repository = models.ForeignKey("repository.Repository", blank=True, null=True, related_name='texts', on_delete=models.CASCADE)
     repository_source_id = models.IntegerField(default=-1, blank=True, null=True)
     content_type = models.CharField(max_length=255)
     """MIME type"""
@@ -501,8 +501,8 @@ class Authorization(models.Model):
        Repository-related models and methods should be implemented in
        :mod:`repository`\.
     """
-    repository = models.ForeignKey('Repository')
-    user = models.ForeignKey(VogonUser, related_name='authorizations')
+    repository = models.ForeignKey('Repository', on_delete=models.CASCADE)
+    user = models.ForeignKey(VogonUser, related_name='authorizations', on_delete=models.CASCADE)
 
     access_token = models.CharField(max_length=255)
     token_type = models.CharField(max_length=255)
@@ -518,13 +518,13 @@ class Annotation(models.Model):
     Quadriga accession.
     """
 
-    occursIn = models.ForeignKey("Text")
+    occursIn = models.ForeignKey("Text" , on_delete=models.CASCADE)
     """The :class:`.Text` to which the :class:`.Annotation` refers."""
 
     created = models.DateTimeField(auto_now_add=True)
     """The date and time that the :class:`.Annotation` was created."""
 
-    createdBy = models.ForeignKey(VogonUser)
+    createdBy = models.ForeignKey(VogonUser, on_delete=models.CASCADE)
     """The :class:`.VogonUser` who created the :class:`.Annotation`\."""
 
     submitted = models.BooleanField(default=False)
@@ -539,7 +539,7 @@ class Annotation(models.Model):
     """
 
     submittedWith = models.ForeignKey('QuadrigaAccession', blank=True,
-                                      null=True)
+                                      null=True, on_delete=models.CASCADE)
     """
     If the :class:`.Annotation` has been added to Quadriga, this refers to the
     :class:`.QuadrigaAccession` with which it was submitted.
@@ -556,7 +556,7 @@ class Interpreted(models.Model):
     .. todo:: Should this subclass :class:`Annotation`\? Does it matter?
     """
 
-    interpretation = models.ForeignKey(Concept)
+    interpretation = models.ForeignKey(Concept, on_delete=models.CASCADE)
     """The :class:`.Concept` to which the :class:`.Annotation` refers."""
 
     @property
@@ -617,7 +617,7 @@ class DateAppellation(Annotation):
     """
 
     project = models.ForeignKey('TextCollection', related_name='date_appellations',
-                                null=True, blank=True)
+                                null=True, blank=True, on_delete=models.CASCADE)
     """
     Since a :class:`.Text` can belong to more than one :class:`.TextCollection`
     it follows not all :class:`.Appellation`\s for a text will belong to the
@@ -625,7 +625,7 @@ class DateAppellation(Annotation):
     """
 
     position = models.ForeignKey('DocumentPosition', blank=True, null=True,
-                                 related_name='date_appellations')
+                                 related_name='date_appellations', on_delete=models.CASCADE)
     """
     Represents the specific location (phrase or passage) for which the user
     has registered an interpretation.
@@ -676,7 +676,7 @@ class Appellation(Annotation, Interpreted):
     """
 
     project = models.ForeignKey('TextCollection', related_name='appellations',
-                                null=True, blank=True)
+                                null=True, blank=True, on_delete=models.CASCADE)
     """
     Since a :class:`.Text` can belong to more than one :class:`.TextCollection`
     it follows not all :class:`.Appellation`\s for a text will belong to the
@@ -684,7 +684,7 @@ class Appellation(Annotation, Interpreted):
     """
 
     position = models.ForeignKey('DocumentPosition', blank=True, null=True,
-                                 related_name='appellations')
+                                 related_name='appellations', on_delete=models.CASCADE)
     """
     Represents the specific location (phrase or passage) for which the user
     has registered an interpretation.
@@ -764,7 +764,7 @@ class RelationSet(models.Model):
     """
 
     project = models.ForeignKey('TextCollection', related_name='relationsets',
-                                null=True, blank=True)
+                                null=True, blank=True, on_delete=models.CASCADE)
     """
     Since a :class:`.Text` can belong to more than one :class:`.TextCollection`
     it follows not all :class:`.RelationSet`\s for a text will belong to the
@@ -772,17 +772,17 @@ class RelationSet(models.Model):
     """
 
     template = models.ForeignKey('RelationTemplate', blank=True, null=True,
-                                 related_name='instantiations')
+                                 related_name='instantiations', on_delete=models.CASCADE)
     """
     If this RelationSet was created from a RelationTemplate, we can use the
     template to make decisions about display.
     """
 
     created = models.DateTimeField(auto_now_add=True)
-    createdBy = models.ForeignKey('VogonUser')
+    createdBy = models.ForeignKey('VogonUser', on_delete=models.CASCADE)
     """The user who created the RelationSet."""
 
-    occursIn = models.ForeignKey('Text', related_name='relationsets')
+    occursIn = models.ForeignKey('Text', related_name='relationsets', on_delete=models.CASCADE)
     """The text on which this RelationSet is based."""
 
     pending = models.BooleanField(default=False)
@@ -805,7 +805,7 @@ class RelationSet(models.Model):
     to Quadriga.
     """
 
-    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True, null=True)
+    submittedWith = models.ForeignKey('QuadrigaAccession', blank=True, null=True, on_delete=models.CASCADE)
     """
     The :class:`.QuadrigaAccession` tracks the entire set of RelationSets that
     were accessioned together in a single query.
@@ -950,7 +950,7 @@ class Relation(Annotation):
     """
 
     part_of = models.ForeignKey('RelationSet', blank=True, null=True,
-                                related_name='constituents')
+                                related_name='constituents', on_delete=models.CASCADE)
 
     source_content_type = models.ForeignKey(ContentType,
                                             on_delete=models.CASCADE,
@@ -960,7 +960,7 @@ class Relation(Annotation):
     source_content_object = GenericForeignKey('source_content_type',
                                               'source_object_id')
 
-    predicate = models.ForeignKey("Appellation", related_name="relationsAs")
+    predicate = models.ForeignKey("Appellation", related_name="relationsAs" , on_delete=models.CASCADE)
 
     object_content_type = models.ForeignKey(ContentType,
                                             on_delete=models.CASCADE,
@@ -970,7 +970,7 @@ class Relation(Annotation):
     object_content_object = GenericForeignKey('object_content_type',
                                               'object_object_id')
 
-    bounds = models.ForeignKey("TemporalBounds", blank=True, null=True)
+    bounds = models.ForeignKey("TemporalBounds", blank=True, null=True, on_delete=models.CASCADE)
     """
     .. deprecated:: 0.5
        We now fully implement the quadruple model in VogonWeb.
@@ -985,7 +985,7 @@ class RelationTemplate(models.Model):
     .. todo:: Add ``created_by`` field, perhaps others.
     """
 
-    createdBy = models.ForeignKey(VogonUser, related_name='templates')
+    createdBy = models.ForeignKey(VogonUser, related_name='templates', on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
     name = models.CharField(max_length=255)
@@ -1037,7 +1037,7 @@ class RelationTemplatePart(models.Model):
 
 
     part_of = models.ForeignKey('RelationTemplate',
-                                related_name="template_parts")
+                                related_name="template_parts", on_delete=models.CASCADE)
 
     internal_id = models.IntegerField(default=-1)
 
@@ -1045,12 +1045,12 @@ class RelationTemplatePart(models.Model):
                                         null=True, blank=True)
     source_label = models.CharField(max_length=100, null=True, blank=True)
     source_type = models.ForeignKey(Type, blank=True, null=True,
-                                    related_name='used_as_type_for_source')
+                                    related_name='used_as_type_for_source', on_delete=models.CASCADE)
     source_concept = models.ForeignKey(Concept, blank=True, null=True,
-                                       related_name='used_as_concept_for_source')
+                                       related_name='used_as_concept_for_source', on_delete=models.CASCADE)
     source_relationtemplate = models.ForeignKey('RelationTemplatePart',
                                                 blank=True, null=True,
-                                                related_name='used_as_source')
+                                                related_name='used_as_source', on_delete=models.CASCADE)
     source_relationtemplate_internal_id = models.IntegerField(default=-1)
 
     source_prompt_text = models.BooleanField(default=True)
@@ -1062,9 +1062,9 @@ class RelationTemplatePart(models.Model):
                                            null=True, blank=True)
     predicate_label = models.CharField(max_length=100, null=True, blank=True)
     predicate_type = models.ForeignKey(Type, blank=True, null=True,
-                                       related_name='used_as_type_for_predicate')
+                                       related_name='used_as_type_for_predicate', on_delete=models.CASCADE)
     predicate_concept = models.ForeignKey(Concept, blank=True, null=True,
-                                          related_name='used_as_concept_for_predicate')
+                                          related_name='used_as_concept_for_predicate', on_delete=models.CASCADE)
     predicate_prompt_text = models.BooleanField(default=True)
     """
     Indicates whether the user should be asked for evidence for predicate.
@@ -1076,12 +1076,12 @@ class RelationTemplatePart(models.Model):
                                         null=True, blank=True)
     object_label = models.CharField(max_length=100, null=True, blank=True)
     object_type = models.ForeignKey(Type, blank=True, null=True,
-                                    related_name='used_as_type_for_object')
+                                    related_name='used_as_type_for_object', on_delete=models.CASCADE)
     object_concept = models.ForeignKey(Concept, blank=True, null=True,
-                                       related_name='used_as_concept_for_object')
+                                       related_name='used_as_concept_for_object', on_delete=models.CASCADE)
     object_relationtemplate = models.ForeignKey('RelationTemplatePart',
                                                 blank=True, null=True,
-                                                related_name='used_as_object')
+                                                related_name='used_as_object', on_delete=models.CASCADE)
     object_relationtemplate_internal_id = models.IntegerField(default=-1)
     object_prompt_text = models.BooleanField(default=True)
     """Indicates whether the user should be asked for evidence for object."""
@@ -1108,7 +1108,7 @@ class DocumentPosition(models.Model):
     offsets (start/end), or XPaths.
     """
 
-    occursIn = models.ForeignKey('Text', related_name='positions')
+    occursIn = models.ForeignKey('Text', related_name='positions', on_delete=models.CASCADE)
 
     TOKEN_ID = 'TI'
     BOUNDING_BOX = 'BB'

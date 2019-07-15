@@ -5,7 +5,7 @@ Provides user-oriented views, including dashboard, registration, etc.
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count
 from django.http import HttpResponse, HttpResponseRedirect

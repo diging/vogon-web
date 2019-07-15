@@ -4,7 +4,7 @@ Provides project (:class:`.TextCollection`) -related views.
 
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect

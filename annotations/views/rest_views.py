@@ -13,7 +13,7 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 
@@ -477,7 +477,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_201_CREATED,
                         headers=headers)
 
-    @list_route()
+    @action(detail=False)
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
         if not q:

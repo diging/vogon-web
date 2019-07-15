@@ -2,7 +2,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template import loader
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from concepts.models import Concept, Type
 from concepts.filters import *
 from concepts.lifecycle import *
