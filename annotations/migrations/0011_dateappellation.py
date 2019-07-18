@@ -20,8 +20,8 @@ class Migration(migrations.Migration):
                 ('year', models.PositiveIntegerField(default=1)),
                 ('month', models.IntegerField(default=0)),
                 ('day', models.IntegerField(default=0)),
-                ('createdBy', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('occursIn', models.ForeignKey(to='annotations.Text')),
+                ('createdBy', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
+                ('occursIn', models.ForeignKey(to='annotations.Text', on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,

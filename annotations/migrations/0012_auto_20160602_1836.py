@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('project_id', models.CharField(max_length=255, null=True, blank=True)),
                 ('workspace_id', models.CharField(max_length=255, null=True, blank=True)),
                 ('network_id', models.CharField(max_length=255, null=True, blank=True)),
-                ('createdBy', models.ForeignKey(related_name='accessions', to=settings.AUTH_USER_MODEL)),
+                ('createdBy', models.ForeignKey(related_name='accessions', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
@@ -66,21 +66,21 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='appellation',
             name='submittedWith',
-            field=models.ForeignKey(blank=True, to='annotations.QuadrigaAccession', null=True),
+            field=models.ForeignKey(blank=True, to='annotations.QuadrigaAccession', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='dateappellation',
             name='submittedWith',
-            field=models.ForeignKey(blank=True, to='annotations.QuadrigaAccession', null=True),
+            field=models.ForeignKey(blank=True, to='annotations.QuadrigaAccession', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='relation',
             name='submittedWith',
-            field=models.ForeignKey(blank=True, to='annotations.QuadrigaAccession', null=True),
+            field=models.ForeignKey(blank=True, to='annotations.QuadrigaAccession', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='relationset',
             name='submittedWith',
-            field=models.ForeignKey(blank=True, to='annotations.QuadrigaAccession', null=True),
+            field=models.ForeignKey(blank=True, to='annotations.QuadrigaAccession', null=True, on_delete=models.CASCADE),
         ),
     ]

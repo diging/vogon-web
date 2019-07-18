@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='text',
             name='repository',
-            field=models.ForeignKey(related_name='texts', blank=True, to='repository.Repository', null=True),
+            field=models.ForeignKey(related_name='texts', blank=True, to='repository.Repository', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='text',

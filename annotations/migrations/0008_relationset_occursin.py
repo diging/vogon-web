@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='relationset',
             name='occursIn',
-            field=models.ForeignKey(related_name='relationsets', default=1, to='annotations.Text'),
+            field=models.ForeignKey(related_name='relationsets', default=1, to='annotations.Text', on_delete=models.CASCADE),
             preserve_default=False,
         ),
     ]

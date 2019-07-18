@@ -37,21 +37,21 @@ class Migration(migrations.Migration):
                 ('object_relationtemplate_internal_id', models.IntegerField(default=-1)),
                 ('object_prompt_text', models.BooleanField(default=True)),
                 ('object_description', models.TextField(null=True, blank=True)),
-                ('object_concept', models.ForeignKey(related_name='used_as_concept_for_object', blank=True, to='concepts.Concept', null=True)),
-                ('object_relationtemplate', models.ForeignKey(related_name='used_as_object', blank=True, to='annotations.RelationTemplatePart', null=True)),
-                ('object_type', models.ForeignKey(related_name='used_as_type_for_object', blank=True, to='concepts.Type', null=True)),
-                ('part_of', models.ForeignKey(related_name='template_parts', to='annotations.RelationTemplate')),
-                ('predicate_concept', models.ForeignKey(related_name='used_as_concept_for_predicate', blank=True, to='concepts.Concept', null=True)),
-                ('predicate_type', models.ForeignKey(related_name='used_as_type_for_predicate', blank=True, to='concepts.Type', null=True)),
-                ('source_concept', models.ForeignKey(related_name='used_as_concept_for_source', blank=True, to='concepts.Concept', null=True)),
-                ('source_relationtemplate', models.ForeignKey(related_name='used_as_source', blank=True, to='annotations.RelationTemplatePart', null=True)),
-                ('source_type', models.ForeignKey(related_name='used_as_type_for_source', blank=True, to='concepts.Type', null=True)),
+                ('object_concept', models.ForeignKey(related_name='used_as_concept_for_object', blank=True, to='concepts.Concept', null=True, on_delete=models.CASCADE)),
+                ('object_relationtemplate', models.ForeignKey(related_name='used_as_object', blank=True, to='annotations.RelationTemplatePart', null=True, on_delete=models.CASCADE)),
+                ('object_type', models.ForeignKey(related_name='used_as_type_for_object', blank=True, to='concepts.Type', null=True, on_delete=models.CASCADE)),
+                ('part_of', models.ForeignKey(related_name='template_parts', to='annotations.RelationTemplate', on_delete=models.CASCADE)),
+                ('predicate_concept', models.ForeignKey(related_name='used_as_concept_for_predicate', blank=True, to='concepts.Concept', null=True, on_delete=models.CASCADE)),
+                ('predicate_type', models.ForeignKey(related_name='used_as_type_for_predicate', blank=True, to='concepts.Type', null=True, on_delete=models.CASCADE)),
+                ('source_concept', models.ForeignKey(related_name='used_as_concept_for_source', blank=True, to='concepts.Concept', null=True, on_delete=models.CASCADE)),
+                ('source_relationtemplate', models.ForeignKey(related_name='used_as_source', blank=True, to='annotations.RelationTemplatePart', null=True, on_delete=models.CASCADE)),
+                ('source_type', models.ForeignKey(related_name='used_as_type_for_source', blank=True, to='concepts.Type', null=True, on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='relation',
             name='object_content_type',
-            field=models.ForeignKey(related_name='as_object_in_relation', blank=True, to='contenttypes.ContentType', null=True),
+            field=models.ForeignKey(related_name='as_object_in_relation', blank=True, to='contenttypes.ContentType', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='relation',
@@ -61,7 +61,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='relation',
             name='source_content_type',
-            field=models.ForeignKey(related_name='as_source_in_relation', blank=True, to='contenttypes.ContentType', null=True),
+            field=models.ForeignKey(related_name='as_source_in_relation', blank=True, to='contenttypes.ContentType', null=True, on_delete=models.CASCADE)
         ),
         migrations.AddField(
             model_name='relation',
@@ -73,14 +73,14 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('createdBy', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('template', models.ForeignKey(related_name='instantiations', blank=True, to='annotations.RelationTemplate', null=True)),
+                ('createdBy', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
+                ('template', models.ForeignKey(related_name='instantiations', blank=True, to='annotations.RelationTemplate', null=True, on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='relation',
             name='part_of',
-            field=models.ForeignKey(related_name='constituents', blank=True, to='annotations.RelationSet', null=True),
+            field=models.ForeignKey(related_name='constituents', blank=True, to='annotations.RelationSet', null=True, on_delete=models.CASCADE),
         ),
         
     ]

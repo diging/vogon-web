@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='appellation',
             name='project',
-            field=models.ForeignKey(related_name='appellations', blank=True, to='annotations.TextCollection', null=True),
+            field=models.ForeignKey(related_name='appellations', blank=True, to='annotations.TextCollection', null=True, on_delete=models.CASCADE),
         ),
     ]

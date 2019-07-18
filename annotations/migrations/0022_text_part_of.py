@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='text',
             name='part_of',
-            field=models.ForeignKey(related_name='parts', blank=True, to='annotations.Text', null=True),
+            field=models.ForeignKey(related_name='parts', blank=True, to='annotations.Text', null=True, on_delete=models.CASCADE),
         ),
     ]

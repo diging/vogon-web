@@ -77,11 +77,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='documentposition',
             name='occursIn',
-            field=models.ForeignKey(related_name='positions', to='annotations.Text'),
+            field=models.ForeignKey(related_name='positions', to='annotations.Text', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='appellation',
             name='position',
-            field=models.ForeignKey(related_name='appellations', blank=True, to='annotations.DocumentPosition', null=True),
+            field=models.ForeignKey(related_name='appellations', blank=True, to='annotations.DocumentPosition', null=True, on_delete=models.CASCADE),
         ),
     ]
