@@ -7,9 +7,8 @@ def jars_github_auth(user):
     Build an auth header for Amphora using ``user``'s Github access token.
     """
     try:
-        user_account = SocialAccount.objects.filter(user=user, provider='github')
-        token = list(SocialToken.objects.filter(account=user_account))[0]
-        # print(token)
+        user_account = SocialAccount.objects.filter(user=user, provider='github')[:1].get()
+        token = SocialToken.objects.filter(account=user_account)[:1].get()
     except SocialAccount.DoesNotExist:
         return {}
 
