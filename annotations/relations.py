@@ -326,8 +326,6 @@ def generate_expression(template, relations):
     expression_keys = [k[1].replace('_', '') for k in Formatter().parse(template.expression)
                        if k[1] is not None]
     expression_data = {}
-    print(expression_keys)
-    print(relations)
     for key in expression_keys:
         try:
             relation = relations[int(key[0])]
