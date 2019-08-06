@@ -59,7 +59,7 @@ def network_for_text(request, text_id):
         relationsets = relationsets.filter(project_id=project_id)
         appellations = appellations.filter(project_id=project_id)
     nodes, edges = generate_network_data_fast(relationsets, text_id=text_id, appellation_queryset=appellations)
-    return JsonResponse({'elements': nodes.values() + edges.values()})
+    return JsonResponse({'elements': list(nodes.values()) + list(edges.values())})
 
 
 def generate_network_data_fast(relationsets, text_id=None, user_id=None, appellation_queryset=None):
