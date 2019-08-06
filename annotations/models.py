@@ -998,6 +998,10 @@ class RelationTemplate(models.Model):
     """Pattern for representing the relation in normal language."""
 
     _terminal_nodes = models.TextField(blank=True, null=True)
+    use_in_mass_assignment = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
 
     def _get_terminal_nodes(self):
         return self._terminal_nodes

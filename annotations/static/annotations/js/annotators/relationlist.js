@@ -15,17 +15,32 @@ RelationListItem = {
                 </li>`,
 
     methods: {
-        select: function() { this.$emit('selectrelation', this.relation); },
-        isSelected: function() { return this.relation.selected; },
-        getRepresentation: function(relation) {
+        select: function () {
+            this.$emit('selectrelation', this.relation);
+        },
+        isSelected: function () {
+            return this.relation.selected;
+        },
+        getRepresentation: function (relation) {
             if (relation.representation) {
                 return relation.representation;
             } else {
-                return relation.appellations.map(function(appellation) {
+                return relation.appellations.map(function (appellation) {
                     return appellation.interpretation.label;
                 }).join('; ');
             }
+        },
+        getCreatorName: function (creator) {
+            if (creator.id == USER_ID) {
+                return 'you';
+            } else {
+                return creator.username;
+            }
+        },
+        getFormattedDate: function (isodate) {
+            return moment(isodate).format('dddd LL [at] LT');
         }
+
     }
 }
 
@@ -42,6 +57,8 @@ RelationList = {
         'relation-list-item': RelationListItem
     },
     methods: {
-        selectRelation: function(relation) { this.$emit('selectrelation', relation); }
+        selectRelation: function (relation) {
+            this.$emit('selectrelation', relation);
+        }
     }
 }

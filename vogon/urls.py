@@ -38,6 +38,7 @@ router.register(r'concept', views.rest_views.ConceptViewSet)
 router.register(r'type', views.rest_views.TypeViewSet)
 router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
+router.register(r'templates', views.rest_views.RelationTemplateViewSet, 'Templates')
 
 
 

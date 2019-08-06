@@ -58,10 +58,8 @@ def network_for_text(request, text_id):
     if project_id:
         relationsets = relationsets.filter(project_id=project_id)
         appellations = appellations.filter(project_id=project_id)
-    print((relationsets.count()))
     nodes, edges = generate_network_data_fast(relationsets, text_id=text_id, appellation_queryset=appellations)
-    print((len(edges)))
-    return JsonResponse({'elements': list(nodes.values()) + list(edges.values())})
+    return JsonResponse({'elements': nodes.values() + edges.values()})
 
 
 def generate_network_data_fast(relationsets, text_id=None, user_id=None, appellation_queryset=None):
@@ -84,7 +82,6 @@ def generate_network_data_fast(relationsets, text_id=None, user_id=None, appella
 
     for rset_id, data in groupby(relationsets.values(*fields), key=lambda r: r['id']):
         for source, target in combinations(data, 2):
-            print((rset_id, source, target))
             edges[tuple(sorted([source['terminal_nodes__id'], target['terminal_nodes__id']]))] += 1.
 
             for datum in [source, target]:
