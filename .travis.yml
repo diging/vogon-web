@@ -5,6 +5,8 @@ python:
 services:
   - redis-server
   - postgresql
+addons:
+    postgresql: '9.6'
 env:
   global:
     - DJANGO_SETTINGS_MODULE=vogon.settings
