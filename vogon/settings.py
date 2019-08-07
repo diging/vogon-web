@@ -52,6 +52,7 @@ INSTALLED_APPS = (
     'corsheaders',
     'djcelery',
     'repository',
+    'giles'
     # 'social.apps.django_app.default',
 )
 
