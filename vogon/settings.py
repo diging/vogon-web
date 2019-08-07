@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import django
-django.setup()
+
 
 import os, sys, requests
 from urllib.parse  import urlparse
@@ -28,6 +28,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'secretsecret')
+django.setup()
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = eval(os.environ.get('DEBUG', 'False'))
