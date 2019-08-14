@@ -39,9 +39,9 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = (
+    'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -59,6 +59,8 @@ INSTALLED_APPS = (
     'giles'
     # 'social.apps.django_app.default',
 )
+import django
+django.setup()
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
