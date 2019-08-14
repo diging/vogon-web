@@ -5,7 +5,7 @@ services:
   - redis-server
   - postgresql
 addons:
-    postgresql: '9.6'
+    postgresql: '11'
 env:
   global:
     - DJANGO_SETTINGS_MODULE=vogon.settings
