@@ -29,7 +29,7 @@ def _get_relations_data(relationset_qs):
     the "source" and "target" of the simplified graphical representation.
     """
 
-    app_ct = ContentType.objects.get_for_model(Appellation)
+    app_ct = ContentType.objects.get_for_model(app_label='Appellation', model='Appellation')
     relationsets_by_interpretation = []
     relationsets = []
 

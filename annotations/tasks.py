@@ -6,7 +6,6 @@ We should probably write some documentation.
 
 from django.contrib.auth.models import Group
 from django.utils.safestring import SafeText
-from django.contrib.contenttypes.models import ContentType
 
 import requests, uuid, re
 from datetime import datetime, timedelta

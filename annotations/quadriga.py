@@ -91,9 +91,9 @@ def to_dateappellationevent(dateappellation, toString=False):
 
 
 def to_relationevent(relation, toString=False):
-    appellation_type = ContentType.objects.get_for_model(Appellation)
-    relation_type = ContentType.objects.get_for_model(Relation)
-    dateappellation_type = ContentType.objects.get_for_model(DateAppellation)
+    appellation_type = ContentType.objects.get_for_model(app_label='Appellation', model='Appellation')
+    relation_type = ContentType.objects.get_for_model(app_label='Relation', model='Relation')
+    dateappellation_type = ContentType.objects.get_for_model(app_label='DateAppellation', model='DateAppellation')
 
     relation_event = _created_element(ET.Element('relation_event'), relation)
 

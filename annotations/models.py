@@ -816,7 +816,7 @@ class RelationSet(models.Model):
 
     @property
     def date_appellations_with_predicate(self):
-        dtype = ContentType.objects.get_for_model(DateAppellation)
+        dtype = ContentType.objects.get_for_model(app_label='DateAppellation', model='DateAppellation')
 
         appellations = []
         for relation in self.constituents.all():
@@ -831,7 +831,7 @@ class RelationSet(models.Model):
 
     @property
     def date_appellations(self):
-        dtype = ContentType.objects.get_for_model(DateAppellation)
+        dtype = ContentType.objects.get_for_model(app_label='DateAppellation', model='DateAppellation')
 
         appellations = []
         for relation in self.constituents.all():
@@ -856,7 +856,7 @@ class RelationSet(models.Model):
         if self.constituents.count() == 1:
             return self.constituents.first()
 
-        relation_type = ContentType.objects.get_for_model(Relation)
+        relation_type = ContentType.objects.get_for_model(app_label='Relation', model='Relation')
 
         # The "starting" Relation will be the only Relation that is not
         #  referenced by any other Relation. If we represent the RelationSet
@@ -914,7 +914,7 @@ class RelationSet(models.Model):
         -------
         :class:`django.db.models.query.QuerySet`
         """
-        appellation_type = ContentType.objects.get_for_model(Appellation)
+        appellation_type = ContentType.objects.get_for_model(app_label='Appellation', model='Appellation')
 
         appellation_ids = []
         for relation in self.constituents.all():

@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.contenttypes.models import ContentType
+#from django.contrib.contenttypes.models import ContentType
+#from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 optional = { 'blank': True, 'null': True }
@@ -11,7 +12,7 @@ class HeritableObject(models.Model):
     instantiates.
     """
 
-    real_type = models.ForeignKey(ContentType, editable=False, on_delete=models.CASCADE)
+    #real_type = models.ForeignKey(ContentType, editable=False, on_delete=models.CASCADE)
     label = models.CharField(max_length=255, **optional)
 
     def save(self, *args, **kwargs):
@@ -19,8 +20,8 @@ class HeritableObject(models.Model):
             self.real_type = self._get_real_type()
         super(HeritableObject, self).save(*args, **kwargs)
 
-    def _get_real_type(self):
-        return ContentType.objects.get_for_model(type(self))
+    # def _get_real_type(self):
+    #     return ContentType.objects.get_for_model(type(self))
 
     def cast(self):
         """
@@ -104,7 +105,10 @@ class Concept(HeritableObject):
                 return _get(concept.merged_with)
             return concept
         return _get(self)
-
+    
+    class Meta:
+        app_label = "concepts"
 
 class Type(Concept):
-    pass
+    class Meta:
+        app_label = "concepts"

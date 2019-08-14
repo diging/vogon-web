@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from annotations.models import Appellation, RelationSet, Text
 from annotations.display_helpers import get_snippet_relation, get_snippet
-from concepts.models import Concept, Type
+from .concepts.models import Concept, Type
 
 from itertools import groupby
 
@@ -34,7 +34,7 @@ def relation_details(request, source_concept_id, target_concept_id):
     target_concept = get_object_or_404(Concept, pk=target_concept_id)
 
     # Source and target on Relation are now generic, so we need this for lookup.
-    appellation_type = ContentType.objects.get_for_model(Appellation)
+    appellation_type = ContentType.objects.get_for_model(app_label='Appellation', model='Appellation')
 
     source_appellation_ids = Appellation.objects.filter(interpretation=source_concept.id).values_list('id', flat=True)
     target_appellation_ids = Appellation.objects.filter(interpretation=target_concept.id).values_list('id', flat=True)

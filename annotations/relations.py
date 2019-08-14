@@ -4,7 +4,6 @@ Business logic for building and using :class:`.RelationTemplate`\s.
 
 from django.db import transaction
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 
 from annotations.models import *
 from concepts.models import Concept

@@ -39,10 +39,10 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.sessions',
+    'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
@@ -58,8 +58,7 @@ INSTALLED_APPS = [
     'repository',
     'giles',
 ]
-import django
-django.setup()
+
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',

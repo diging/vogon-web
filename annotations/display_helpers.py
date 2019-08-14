@@ -16,7 +16,7 @@ def get_snippet_relation(relationset):
     Get a text snippet for a :class:`annotations.models.RelationSet` instance.
     """
 
-    appellation_type = ContentType.objects.get_for_model(Appellation)
+    appellation_type = ContentType.objects.get_for_model(app_label='Appellation', model='Appellation')
     tokenizedContent = relationset.occursIn.tokenizedContent
     annotated_words = []
 
@@ -240,7 +240,7 @@ def get_relations_summaries(relationset_qs):
     list
     """
 
-    app_ct = ContentType.objects.get_for_model(Appellation)
+    app_ct = ContentType.objects.get_for_model(app_label='Appellation', model='Appellation')
     relationsets_by_interpretation = []
     relationsets = []
 
@@ -445,7 +445,7 @@ def filter_relationset(qs, params):
 
     # We need this ContentType to filter on Relations, since .source and .object
     #  are Generic relations.
-    app_ct = ContentType.objects.get_for_model(Appellation)
+    app_ct = ContentType.objects.get_for_model(app_label='Appellation', model='Appellation')
 
     # Limit to RelationSets whose Appellations refer to Concepts of a
     #  specific Type.
