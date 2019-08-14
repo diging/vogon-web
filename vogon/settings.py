@@ -38,7 +38,7 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -56,9 +56,8 @@ INSTALLED_APPS = (
     'corsheaders',
     'djcelery',
     'repository',
-    'giles'
-    # 'social.apps.django_app.default',
-)
+    'giles',
+]
 import django
 django.setup()
 
