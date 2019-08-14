@@ -9,6 +9,6 @@ class GilesToken(models.Model):
     See https://diging.atlassian.net/wiki/display/GIL/REST+Authentication.
     """
 
-    for_user = models.OneToOneField(User, related_name='giles_token')
+    for_user = models.OneToOneField(User, related_name='giles_token', on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     token = models.CharField(max_length=255)
