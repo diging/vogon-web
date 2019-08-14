@@ -305,7 +305,7 @@ class ConceptLifecycle(object):
         import re, string
         from unidecode import unidecode
 
-        q = re.sub("[0-9]", "", unidecode(self.instance.label).translate(None, string.punctuation).lower())
+        q = re.sub("[0-9]", "", unidecode(self.instance.label).translate(string.punctuation).lower())
         if not q:
             return []
         try:
