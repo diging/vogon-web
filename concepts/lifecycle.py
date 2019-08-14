@@ -325,7 +325,7 @@ class ConceptLifecycle(object):
             A list of dicts with raw data from Conceptpower.
         """
         try:
-            data = self.conceptpower.search(equal_to=self.instance.uri)
+            data = self.conceptpower.search(self.instance.uri)
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
         return list(map(self._reform, data))
