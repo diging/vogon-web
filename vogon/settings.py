@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount',
     'allauth.socialaccount.providers.github',
     'concepts',
+    'giles',
     'annotations',
     'rest_framework',
     'corsheaders',

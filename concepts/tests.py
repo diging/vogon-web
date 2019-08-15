@@ -183,6 +183,8 @@ class TestConceptLifeCycle(TestCase):
         self.assertEqual(len(suggestions), 2)
         self.assertIsInstance(suggestions[0], ConceptData)
         self.assertEqual(suggestions[0].label, 'Bradshaw 1965')
+        print("*********************")
+        print(suggestions[0])
         self.assertEqual(suggestions[0].uri, 'http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585')
 
     @mock.patch("requests.get")
