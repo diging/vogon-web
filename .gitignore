@@ -15,6 +15,7 @@ vogon-web.komodoproject
 .Python
 env/
 venv/*
+venv36/*
 build/
 develop-eggs/
 downloads/

@@ -130,10 +130,10 @@ class ConceptLifecycle(object):
             _typed = None
 
         manager = ConceptLifecycle.create(
-            uri = data.get('uri') if data.get('uri') else data.get('id'),
-            label = data.get('word') if data.get('word') else data.get('lemma'),
-            description = data.get('description'),
-            pos = data.get('pos'),
+            uri = data.get('uri').strip() if data.get('uri') else data.get('id'),
+            label = data.get('word').strip() if data.get('word') else data.get('lemma'),
+            description = data.get('description').strip(),
+            pos = data.get('pos').strip(),
             typed = _typed,
             authority = 'Conceptpower',
         )
