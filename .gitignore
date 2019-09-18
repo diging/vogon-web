@@ -70,3 +70,4 @@ node_modules
 .DS_STORE
 .env
 .vscode
+.DS_Store

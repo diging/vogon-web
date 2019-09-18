@@ -97,7 +97,7 @@ urlpatterns = [
     re_path(r'^project/$', views.project_views.list_projects, name='list_projects'),
 
     re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    re_path(r'^autocomplete/', include('autocomplete_light.urls')),    # TODO: are we still using this?
+    #re_path(r'^autocomplete/', include('autocomplete_light.urls')),    # TODO: are we still using this?
 
     re_path(r'^sign_s3$', views.aws_views.sign_s3, name="sign_s3"),
 
@@ -135,7 +135,7 @@ urlpatterns = [
 
     re_path(r'^text/(?P<text_id>[0-9]+)/public/$', views.text_views.text_public, name='text_public'),
 
-    re_path(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
+    #re_path(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
 
 
     re_path(r'^sandbox/(?P<text_id>[0-9]+)/$', conceptViews.sandbox, name='sandbox'),
