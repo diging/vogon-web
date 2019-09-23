@@ -11,9 +11,48 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
+from rest_framework import serializers
+from rest_framework import viewsets, exceptions, status
+from rest_framework.response import Response
 
-from annotations.models import TextCollection, RelationSet
+from annotations.models import TextCollection, RelationSet, Text
 from annotations.forms import ProjectForm
+
+## Define Serializer (ToDo: Move this to separate file)
+class ProjectSerializer(serializers.ModelSerializer):
+    class TextSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Text
+            fields = ['id', 'title', 'added', 'repository_id', 'repository_source_id']
+    
+    texts = TextSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = TextCollection
+        fields = '__all__'
+
+class TextCollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TextCollection
+        fields = '__all__'
+
+## Viewsets
+class ProjectViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    
+    ToDo:
+        1. Get User info (from token)
+        2. Append user info while creating new user -> `ownedBy` (from token)
+    """
+    queryset = TextCollection.objects.all()
+    serializer_class = TextCollectionSerializer
+
+    def retrieve(self, request, pk=None):
+        queryset = TextCollection.objects.all()
+        project = get_object_or_404(queryset, pk=pk)
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)
 
 
 def view_project(request, project_id):

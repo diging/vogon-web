@@ -299,7 +299,8 @@ class TextCollection(models.Model):
                                    blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     participants = models.ManyToManyField(VogonUser,
-                                          related_name='contributes_to')
+                                          related_name='contributes_to',
+                                          blank=True)
 
     quadriga_id = models.CharField(max_length=255, blank=True, null=True,
                                    help_text=help_text("""Use this field to
