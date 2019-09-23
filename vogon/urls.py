@@ -24,6 +24,11 @@ from rest_framework_nested import routers as nrouters
 from annotations import views
 from concepts import views as conceptViews
 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'appellation', views.rest_views.AppellationViewSet)
@@ -48,6 +53,10 @@ router.register(r'project', views.project_views.ProjectViewSet)
 handler403 = 'annotations.exceptions.custom_403_handler'
 
 urlpatterns = [
+
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
     re_path(r'^$', views.main_views.home, name='home'),
     re_path(r'^about/$', views.main_views.about, name='about'),
 

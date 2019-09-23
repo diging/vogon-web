@@ -15,7 +15,6 @@ import os, sys, requests
 from urllib.parse  import urlparse
 import socket
 import dj_database_url
-import djcelery
 from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -34,7 +33,8 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,13 +48,12 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.github',
     'concepts',
     'giles',
-    'annotations',
     'rest_framework',
     'corsheaders',
-    'djcelery',
     'repository',
+    'annotations',
     # 'social.apps.django_app.default',
-)
+]
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -92,7 +91,8 @@ TEMPLATES = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (   
-        'rest_framework.authentication.SessionAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 50,
@@ -226,7 +226,7 @@ BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
 
 # Celery config.
 
-djcelery.setup_loader()
+
 CELERYBEAT_SCHEDULE = {
     'accession_ready_relationsets': {
         'task': 'annotations.tasks.accession_ready_relationsets',
@@ -275,3 +275,4 @@ CONCEPT_TYPES = {
 }
 
 SUBMIT_WAIT_TIME = {'days': 3, 'hours': 0, 'minutes': 0}
+
