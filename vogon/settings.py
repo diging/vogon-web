@@ -33,7 +33,7 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = (
     
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,8 +52,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'repository',
     'annotations',
-    # 'social.apps.django_app.default',
-]
+    'rest_auth',
+    'rest_framework.authtoken',
+    
+)
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',

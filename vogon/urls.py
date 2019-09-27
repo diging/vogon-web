@@ -23,6 +23,7 @@ from rest_framework import routers
 from rest_framework_nested import routers as nrouters
 from annotations import views
 from concepts import views as conceptViews
+from annotations.views.social_views import GithubLogin, GithubConnect
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -79,7 +80,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     re_path(r'^rest/', include(router.urls)),
-
+    re_path(r'^rest-auth/', include('rest_auth.urls')),
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
     # url(r'^text/$', views.text_views.texts, name='text_search'),
 
@@ -142,10 +143,14 @@ urlpatterns = [
 
     re_path(r'^repository/$', views.repository_views.repository_list, name='repository_list'),
 
+    re_path(r'^rest-auth/github/$', GithubLogin.as_view(), name='github_login'),
+    re_path(r'^rest-auth/github/connect/$', GithubConnect.as_view(), name='github_connect'),
+
     re_path(r'^text/(?P<text_id>[0-9]+)/public/$', views.text_views.text_public, name='text_public'),
 
     #re_path(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
 
+    
 
     re_path(r'^sandbox/(?P<text_id>[0-9]+)/$', conceptViews.sandbox, name='sandbox'),
 
