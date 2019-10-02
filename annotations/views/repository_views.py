@@ -1,24 +1,75 @@
 """
 Provides views related to external repositories.
 """
-
+import requests
+from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlencode
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, render
 from django.db.models import Q
+from rest_framework import viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from annotations.forms import RepositorySearchForm
 from annotations.tasks import tokenize
 from repository.models import Repository
 from repository.auth import *
 from repository.managers import *
-from annotations.models import Text, TextCollection, RelationSet
+from annotations.models import Text, TextCollection, RelationSet, VogonUser
 from annotations.annotators import supported_content_types
+from annotations.serializers import RepositorySerializer
 
-import requests
-from urllib.parse import urlparse, parse_qs
-from urllib.parse import urlencode
+
+class RepositoryViewSet(viewsets.ModelViewSet):
+    queryset = Repository.objects.all()
+    serializer_class = RepositorySerializer
+
+class RepositoryCollectionViewSet(viewsets.ViewSet):
+    def list(self, request, repository_pk=None):
+        # ToDo: Replace `user` with `request.user`
+        user = VogonUser.objects.get(pk=1)
+
+        repository = get_object_or_404(Repository, pk=repository_pk)
+        manager = RepositoryManager(repository.configuration, user=user)
+        collections = manager.collections()
+        return Response(collections)
+
+    def retrieve(self, request, pk=None, repository_pk=None):
+        # ToDo: Replace `user` with `request.user`
+        user = VogonUser.objects.get(pk=1)
+
+        repository = get_object_or_404(Repository, pk=repository_pk)
+        manager = RepositoryManager(repository.configuration, user=user)
+        collection = manager.collection(id=pk)
+        return Response(collection)
+
+class RepositoryTextView(viewsets.ViewSet):
+    def retrieve(self, request, pk=None, repository_pk=None):
+        # ToDo: Replace `user` with `request.user`
+        user = VogonUser.objects.get(pk=1)
+
+        repository = get_object_or_404(Repository, pk=repository_pk)
+        manager = RepositoryManager(repository.configuration, user=user)
+        result = manager.resource(id=int(pk))
+
+        try:
+            master_text = Text.objects.get(uri=result.get('uri'))
+        except Text.DoesNotExist:
+            master_text = None
+        aggregate_content = result.get('aggregate_content')
+        context = {
+            'result': result,
+            'master_text': master_text,
+        }
+        if master_text:
+            relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
+            context.update({
+                'relations': relations,
+            })
+        return Response(context)
 
 
 def _get_params(request):
@@ -118,7 +169,6 @@ def repository_collection(request, repository_id, collection_id):
         context.update({'next_page': next_page})
     if previous_page:
         context.update({'previous_page': previous_page})
-
     return render(request, 'annotations/repository_collection.html', context)
 
 

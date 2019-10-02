@@ -19,8 +19,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 
-from rest_framework import routers
-from rest_framework_nested import routers as nrouters
+from rest_framework_nested import routers
 from annotations import views
 from concepts import views as conceptViews
 
@@ -36,7 +35,7 @@ router.register(r'predicate', views.rest_views.PredicateViewSet)
 router.register(r'relation', views.rest_views.RelationViewSet)
 router.register(r'relationset', views.rest_views.RelationSetViewSet)
 router.register(r'text', views.rest_views.TextViewSet)
-router.register(r'repository', views.rest_views.RepositoryViewSet)
+router.register(r'repository', views.repository_views.RepositoryViewSet)
 router.register(r'temporalbounds', views.rest_views.TemporalBoundsViewSet)
 router.register(r'user', views.rest_views.UserViewSet)
 router.register(r'concept', views.rest_views.ConceptViewSet)
@@ -45,8 +44,9 @@ router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet)
 
-
-
+repository_router = routers.NestedSimpleRouter(router, r'repository', lookup='repository')
+repository_router.register(r'collections', views.repository_views.RepositoryCollectionViewSet, base_name='repository-collections')
+repository_router.register(r'texts', views.repository_views.RepositoryTextView, base_name='repository-texts')
 
 
 #Error Handlers
@@ -79,6 +79,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     re_path(r'^rest/', include(router.urls)),
+    re_path(r'^rest/', include(repository_router.urls)),
 
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
     # url(r'^text/$', views.text_views.texts, name='text_search'),

@@ -11,11 +11,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
-from rest_framework import serializers
-from rest_framework import viewsets, exceptions, status
+from rest_framework import viewsets
 from rest_framework.response import Response
 
-from annotations.models import TextCollection, RelationSet, Text, VogonUser
+from annotations.models import TextCollection, RelationSet, Text
 from annotations.forms import ProjectForm
 from annotations.serializers import TextCollectionSerializer, ProjectSerializer
 

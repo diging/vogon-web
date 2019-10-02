@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from annotations.models import VogonUser
 from .models import *
+from repository.models import Repository as RepositoryModel
 from concepts.models import Concept, Type
 
 
@@ -25,7 +26,7 @@ class RemoteResourceSerializer(serializers.Serializer):
 
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Repository
+        model = RepositoryModel
         fields = '__all__'
 
 
