@@ -15,41 +15,28 @@ from rest_framework import serializers
 from rest_framework import viewsets, exceptions, status
 from rest_framework.response import Response
 
-from annotations.models import TextCollection, RelationSet, Text
+from annotations.models import TextCollection, RelationSet, Text, VogonUser
 from annotations.forms import ProjectForm
+from annotations.serializers import TextCollectionSerializer, ProjectSerializer
 
-## Define Serializer (ToDo: Move this to separate file)
-class ProjectSerializer(serializers.ModelSerializer):
-    class TextSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Text
-            fields = ['id', 'title', 'added', 'repository_id', 'repository_source_id']
-    
-    texts = TextSerializer(many=True, read_only=True)
-    
-    class Meta:
-        model = TextCollection
-        fields = '__all__'
 
-class TextCollectionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TextCollection
-        fields = '__all__'
-
-## Viewsets
 class ProjectViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     
     ToDo:
         1. Get User info (from token)
-        2. Append user info while creating new user -> `ownedBy` (from token)
+        2. Append user info while creating new project -> `ownedBy` (from token)
     """
-    queryset = TextCollection.objects.all()
+    qs = TextCollection.objects.all()
+    queryset = qs.annotate(num_texts=Count('texts'),
+                           num_relations=Count('texts__relationsets'))
     serializer_class = TextCollectionSerializer
 
     def retrieve(self, request, pk=None):
-        queryset = TextCollection.objects.all()
+        qs = TextCollection.objects.all()
+        queryset = qs.annotate(num_texts=Count('texts'),
+                               num_relations=Count('texts__relationsets'))
         project = get_object_or_404(queryset, pk=pk)
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
