@@ -12,6 +12,7 @@ from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
 
 from annotations.forms import RepositorySearchForm
 from annotations.tasks import tokenize
@@ -27,6 +28,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
     queryset = Repository.objects.all()
     serializer_class = RepositorySerializer
 
+
 class RepositoryCollectionViewSet(viewsets.ViewSet):
     def list(self, request, repository_pk=None):
         # ToDo: Replace `user` with `request.user`
@@ -36,6 +38,21 @@ class RepositoryCollectionViewSet(viewsets.ViewSet):
         manager = RepositoryManager(repository.configuration, user=user)
         collections = manager.collections()
         return Response(collections)
+
+    @action(detail=False, methods=['get'])
+    def search(self, request, repository_pk=None):
+        # ToDo: Replace `user` with `request.user`
+        user = VogonUser.objects.get(pk=1)
+
+        query = request.query_params.get('q', '')
+        if not query:
+            return Response([])
+        
+        repository = get_object_or_404(Repository, pk=repository_pk)
+        manager = RepositoryManager(repository.configuration, user=user)
+        
+        results = manager.search(query=query)
+        return Response(results)
 
     def retrieve(self, request, pk=None, repository_pk=None):
         # ToDo: Replace `user` with `request.user`
