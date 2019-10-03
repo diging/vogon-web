@@ -151,6 +151,28 @@ USE_TZ = True
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOW_METHODS = [
+    'POST',
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'withcredentials',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'xsrfheadername',
+    'xsrfcookiename',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 APPEND_SLASH = False
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
