@@ -58,10 +58,8 @@ urlpatterns = [
     path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     re_path(r'^$', views.main_views.home, name='home'),
-    re_path(r'^about/$', views.main_views.about, name='about'),
 
     re_path(r'^users/$', views.user_views.list_user, name='users'),
-    re_path(r'^activity/$', views.main_views.recent_activity),
 
     re_path(r'^users/(?P<userid>[0-9]+)/$', views.user_views.user_details, name="user_details"),
     re_path(r'^accounts/login/$', views.user_views.login_view, name='login_fallback'),
