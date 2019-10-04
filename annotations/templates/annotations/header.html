@@ -58,14 +58,6 @@
                             {% if user.is_staff %}<li><a href="{% url "list_relationtemplate" %}">Templates</a></li>{% endif %}
                         </ul>
                     </li>
-					<li class="dropdown">
-                        <a href="#" class="btn btn-lg" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-info-sign"></span> <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{% url "about" %}">Overview</a></li>
-                            <li><a href="{% url "about" %}#goodfer">Use Cases</a></li>
-                            <li><a href="{% url "about" %}#team">Our Team</a></li>
-                        </ul>
-                    </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li class="{% if user.is_authenticated  %}dropdown{% endif %}">
