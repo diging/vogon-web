@@ -145,7 +145,6 @@ urlpatterns = [
 
     re_path(r'^rest-auth/github/$', GithubLogin.as_view(), name='github_login'),
     re_path(r'^rest-auth/github/connect/$', GithubConnect.as_view(), name='github_connect'),
-
     re_path(r'^text/(?P<text_id>[0-9]+)/public/$', views.text_views.text_public, name='text_public'),
 
     #re_path(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
