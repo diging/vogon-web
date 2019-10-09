@@ -86,7 +86,7 @@ def relations(request):
         'filter': filtered.data,
         'params_data': urlencode(params_data),
         }
-    return Response(json.dumps(context)', content_type='application/json)
+    return Response(json.dumps(context), content_type='application/json')
 
 
 def relations_graph(request):
