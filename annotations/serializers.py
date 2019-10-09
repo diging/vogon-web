@@ -146,7 +146,14 @@ class TextCollectionSerializer(serializers.ModelSerializer):
         model = TextCollection
         fields = '__all__'
 
-class ProjectSerializer(TextCollectionSerializer):
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TextCollection
+        fields = '__all__'
+
+
+class ProjectTextSerializer(TextCollectionSerializer):
     class TextSerializer(serializers.ModelSerializer):
         class Meta:
             model = Text

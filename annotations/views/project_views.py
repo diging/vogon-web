@@ -11,21 +11,17 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
-from rest_framework import viewsets
+from rest_framework import viewsets, serializers, status
 from rest_framework.response import Response
 
 from annotations.models import TextCollection, RelationSet, Text
 from annotations.forms import ProjectForm
-from annotations.serializers import TextCollectionSerializer, ProjectSerializer
+from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
-    
-    ToDo:
-        1. Get User info (from token)
-        2. Append user info while creating new project -> `ownedBy` (from token)
     """
     qs = TextCollection.objects.all()
     queryset = qs.annotate(num_texts=Count('texts'),
@@ -37,8 +33,16 @@ class ProjectViewSet(viewsets.ModelViewSet):
         queryset = qs.annotate(num_texts=Count('texts'),
                                num_relations=Count('texts__relationsets'))
         project = get_object_or_404(queryset, pk=pk)
-        serializer = ProjectSerializer(project)
+        serializer = ProjectTextSerializer(project)
         return Response(serializer.data)
+
+    def create(self, request):
+        request.data['ownedBy'] = request.user.pk
+        serializer = ProjectSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 def view_project(request, project_id):

@@ -54,8 +54,8 @@ handler403 = 'annotations.exceptions.custom_403_handler'
 
 urlpatterns = [
 
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v2/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     re_path(r'^$', views.main_views.home, name='home'),
 
@@ -76,8 +76,8 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
-    re_path(r'^rest/', include(router.urls)),
-    re_path(r'^rest/', include(repository_router.urls)),
+    re_path(r'^api/v2/', include(router.urls)),
+    re_path(r'^api/v2/', include(repository_router.urls)),
 
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
     # url(r'^text/$', views.text_views.texts, name='text_search'),
