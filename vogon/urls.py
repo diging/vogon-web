@@ -24,7 +24,7 @@ from rest_framework_nested import routers as nrouters
 from annotations import views
 from concepts import views as conceptViews
 from annotations.views.social_views import GithubLogin, GithubConnect
-
+from accounts import views as account_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -46,6 +46,8 @@ router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet)
 
+# used to create users
+router.register(r'users', account_views.UserViewSet, basename='users')
 
 
 
@@ -55,8 +57,8 @@ handler403 = 'annotations.exceptions.custom_403_handler'
 
 urlpatterns = [
 
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v2/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     re_path(r'^$', views.main_views.home, name='home'),
     re_path(r'^about/$', views.main_views.about, name='about'),
@@ -79,7 +81,7 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
-    re_path(r'^rest/', include(router.urls)),
+    re_path(r'^api/v2/', include(router.urls)),
     re_path(r'^rest-auth/', include('rest_auth.urls')),
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
     # url(r'^text/$', views.text_views.texts, name='text_search'),
