@@ -21,9 +21,9 @@ from annotations.serializers import *
 from annotations.models import *
 from concepts.models import Concept, Type
 from concepts.lifecycle import *
-
+from rest_framework.decorators import api_view
 import uuid
-
+import requests
 import goat
 goat.GOAT = settings.GOAT
 goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
@@ -541,3 +541,19 @@ def concept_search(request):
     q = request.get('search', None)
     pos = self.request.query_params.get('pos', None)
     return goat.Concept.search(q=q, pos=pos)
+
+
+
+@api_view(['GET', 'POST'])
+def test_user(request):
+    """
+    List all code snippets, or create a new snippet.
+    """
+    print('HIts')
+    print(request.data['code'])
+    if request.method == 'POST':
+        code = request.data['code']
+        r = requests.post("https://github.com/login/oauth/access_token", params={'client_id': 'ba7c54943f8cbf9f3ab4&', 'client_secret': '7776b85b22f03982843b40458e05366487eb1ee4', 'code': code})
+        print(r.url)
+        print(r.headers)
+        return Response({'name':request.user.username, "r": r})

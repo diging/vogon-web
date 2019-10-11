@@ -23,7 +23,6 @@ from rest_framework import routers
 from rest_framework_nested import routers as nrouters
 from annotations import views
 from concepts import views as conceptViews
-from annotations.views.social_views import GithubLogin, GithubConnect
 from accounts import views as account_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -59,7 +58,9 @@ urlpatterns = [
 
     path('api/v2/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
+    #for testing user exsistance in dev
+    path('api/v2/snippet/', views.rest_views.test_user, name="snippet list"),
+    
     re_path(r'^$', views.main_views.home, name='home'),
     re_path(r'^about/$', views.main_views.about, name='about'),
 
@@ -77,12 +78,12 @@ urlpatterns = [
     # re_path(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name="logout"),
     # re_path(r'^accounts/', include('django.contrib.auth.urls')),
 
-    re_path('', include('allauth.urls')),
+    #re_path('', include('allauth.urls')),
 
     path('admin/', admin.site.urls),
 
     re_path(r'^api/v2/', include(router.urls)),
-    re_path(r'^rest-auth/', include('rest_auth.urls')),
+    #re_path(r'^rest-auth/', include('rest_auth.urls')),
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
     # url(r'^text/$', views.text_views.texts, name='text_search'),
 
@@ -145,8 +146,8 @@ urlpatterns = [
 
     re_path(r'^repository/$', views.repository_views.repository_list, name='repository_list'),
 
-    re_path(r'^rest-auth/github/$', GithubLogin.as_view(), name='github_login'),
-    re_path(r'^rest-auth/github/connect/$', GithubConnect.as_view(), name='github_connect'),
+    #re_path(r'^rest-auth/github/$', GithubLogin.as_view(), name='github_login'),
+    #re_path(r'^rest-auth/github/connect/$', GithubConnect.as_view(), name='github_connect'),
     re_path(r'^text/(?P<text_id>[0-9]+)/public/$', views.text_views.text_public, name='text_public'),
 
     #re_path(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),

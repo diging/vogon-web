@@ -34,7 +34,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,19 +41,12 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.github',
     'concepts',
     'giles',
     'rest_framework',
     'corsheaders',
     'repository',
     'annotations',
-    'rest_auth',
-    'rest_framework.authtoken',
-    
 )
 
 MIDDLEWARE = (
@@ -114,26 +106,12 @@ DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # default
     # 'social.backends.github.GithubOAuth2',
-    'allauth.account.auth_backends.AuthenticationBackend',
+    #'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS =True
 ANONYMOUS_USER_ID = -1
 BASE_URL = os.environ.get('BASE_URL', '/')
-SOCIAL_AUTH_GITHUB_KEY = os.environ.get('SOCIAL_AUTH_GITHUB_KEY', None)
-SOCIAL_AUTH_GITHUB_SECRET = os.environ.get('SOCIAL_AUTH_GITHUB_SECRET', None)
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = BASE_URL
-SOCIAL_AUTH_GITHUB_SCOPE = ['user']
-
-SOCIALACCOUNT_PROVIDERS = {
-    'github': {
-        'SCOPE': [
-            'user',
-        ],
-    }
-}
-
-SOCIALACCOUNT_ADAPTER = 'annotations.adapter.SocialAccountAdapter'
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -253,7 +231,6 @@ MAX_GILES_UPLOADS = 20
 GOAT = os.environ.get('GOAT', 'http://127.0.0.1:8000')
 GOAT_APP_TOKEN = os.environ.get('GOAT_APP_TOKEN')
 
-LOGIN_URL = BASE_URL + 'login/github/'
 # LOGIN_REDIRECT_URL = 'home'
 # LOGOUT_REDIRECT_URL = 'home'
 
@@ -291,7 +268,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=90),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
