@@ -553,13 +553,13 @@ def test_user(request):
     List all code snippets, or create a new snippet.
     """
     print('HIts')
-    client_id = 'ba7c54943f8cbf9f3ab4'
-    client_secret = '7776b85b22f03982843b40458e05366487eb1ee4'
+    client_id = 
+    client_secret = 
     url = 'https://github.com/login/oauth/access_token'
 
     if request.method == 'GET':
         code = request.GET.get('code', '')
-        k = requests.post(f'https://github.com/login/oauth/access_token?client_id=ba7c54943f8cbf9f3ab4&client_secret=7776b85b22f03982843b40458e05366487eb1ee4&code={code}')
+        k = requests.post(f'https://github.com/login/oauth/access_token?client_id=&client_secret=&code={code}')
         print(k.text)
         res = {
             'result': k.text
