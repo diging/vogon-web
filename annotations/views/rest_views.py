@@ -16,6 +16,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
+from django.http import HttpResponseRedirect
+from requests_oauthlib import OAuth2Session
+from django.http import JsonResponse
 
 from annotations.serializers import *
 from annotations.models import *
@@ -550,10 +553,15 @@ def test_user(request):
     List all code snippets, or create a new snippet.
     """
     print('HIts')
-    print(request.data['code'])
-    if request.method == 'POST':
-        code = request.data['code']
-        r = requests.post("https://github.com/login/oauth/access_token", params={'client_id': 'ba7c54943f8cbf9f3ab4&', 'client_secret': '7776b85b22f03982843b40458e05366487eb1ee4', 'code': code})
-        print(r.url)
-        print(r.headers)
-        return Response({'name':request.user.username, "r": r})
+    client_id = 'ba7c54943f8cbf9f3ab4'
+    client_secret = '7776b85b22f03982843b40458e05366487eb1ee4'
+    url = 'https://github.com/login/oauth/access_token'
+
+    if request.method == 'GET':
+        code = request.GET.get('code', '')
+        k = requests.post(f'https://github.com/login/oauth/access_token?client_id=ba7c54943f8cbf9f3ab4&client_secret=7776b85b22f03982843b40458e05366487eb1ee4&code={code}')
+        print(k.text)
+        res = {
+            'result': k.text
+        } 
+        return JsonResponse(res)
