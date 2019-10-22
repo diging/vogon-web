@@ -22,10 +22,11 @@ from django.conf.urls.static import static
 from rest_framework_nested import routers
 from annotations import views
 from concepts import views as conceptViews
-
+from accounts import views as account_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    TokenVerifyView
 )
 
 
@@ -43,10 +44,12 @@ router.register(r'type', views.rest_views.TypeViewSet)
 router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet)
-
+# used to create users
+router.register(r'users', account_views.UserViewSet, basename='users')
 repository_router = routers.NestedSimpleRouter(router, r'repository', lookup='repository')
 repository_router.register(r'collections', views.repository_views.RepositoryCollectionViewSet, base_name='repository-collections')
 repository_router.register(r'texts', views.repository_views.RepositoryTextView, base_name='repository-texts')
+
 
 
 #Error Handlers
@@ -56,6 +59,10 @@ urlpatterns = [
 
     path('api/v2/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    #for testing user exsistance in dev
+    path('api/v2/snippet/', views.rest_views.test_user, name="snippet list"),
+
 
     re_path(r'^$', views.main_views.home, name='home'),
 
@@ -72,7 +79,7 @@ urlpatterns = [
     # re_path(r'^accounts/logout/$', 'django.contrib.auth.views.logout', name="logout"),
     # re_path(r'^accounts/', include('django.contrib.auth.urls')),
 
-    re_path('', include('allauth.urls')),
+    #re_path('', include('allauth.urls')),
 
     path('admin/', admin.site.urls),
 
@@ -141,10 +148,13 @@ urlpatterns = [
 
     re_path(r'^repository/$', views.repository_views.repository_list, name='repository_list'),
 
+    #re_path(r'^rest-auth/github/$', GithubLogin.as_view(), name='github_login'),
+    #re_path(r'^rest-auth/github/connect/$', GithubConnect.as_view(), name='github_connect'),
     re_path(r'^text/(?P<text_id>[0-9]+)/public/$', views.text_views.text_public, name='text_public'),
 
     #re_path(r'^annotate/image/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate_image, name='annotate_image'),
 
+    
 
     re_path(r'^sandbox/(?P<text_id>[0-9]+)/$', conceptViews.sandbox, name='sandbox'),
 
