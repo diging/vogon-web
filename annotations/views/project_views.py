@@ -11,48 +11,38 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
-from rest_framework import serializers
-from rest_framework import viewsets, exceptions, status
+from rest_framework import viewsets, serializers, status
 from rest_framework.response import Response
 
 from annotations.models import TextCollection, RelationSet, Text
 from annotations.forms import ProjectForm
+from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
 
-## Define Serializer (ToDo: Move this to separate file)
-class ProjectSerializer(serializers.ModelSerializer):
-    class TextSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Text
-            fields = ['id', 'title', 'added', 'repository_id', 'repository_source_id']
-    
-    texts = TextSerializer(many=True, read_only=True)
-    
-    class Meta:
-        model = TextCollection
-        fields = '__all__'
 
-class TextCollectionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TextCollection
-        fields = '__all__'
-
-## Viewsets
 class ProjectViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
-    
-    ToDo:
-        1. Get User info (from token)
-        2. Append user info while creating new user -> `ownedBy` (from token)
     """
-    queryset = TextCollection.objects.all()
+    qs = TextCollection.objects.all()
+    queryset = qs.annotate(num_texts=Count('texts'),
+                           num_relations=Count('texts__relationsets'))
     serializer_class = TextCollectionSerializer
 
     def retrieve(self, request, pk=None):
-        queryset = TextCollection.objects.all()
+        qs = TextCollection.objects.all()
+        queryset = qs.annotate(num_texts=Count('texts'),
+                               num_relations=Count('texts__relationsets'))
         project = get_object_or_404(queryset, pk=pk)
-        serializer = ProjectSerializer(project)
+        serializer = ProjectTextSerializer(project)
         return Response(serializer.data)
+
+    def create(self, request):
+        request.data['ownedBy'] = request.user.pk
+        serializer = ProjectSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 def view_project(request, project_id):

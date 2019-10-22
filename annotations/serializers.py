@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from annotations.models import VogonUser
 from .models import *
+from repository.models import Repository as RepositoryModel
 from concepts.models import Concept, Type
 
 
@@ -25,7 +26,7 @@ class RemoteResourceSerializer(serializers.Serializer):
 
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Repository
+        model = RepositoryModel
         fields = '__all__'
 
 
@@ -132,10 +133,32 @@ class TemporalBoundsSerializer(serializers.ModelSerializer):
 
 
 class TextCollectionSerializer(serializers.ModelSerializer):
+    class VogonUserSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = VogonUser
+            fields = ['id', 'username']
+    
+    ownedBy = VogonUserSerializer()
+    num_texts = serializers.IntegerField()
+    num_relations = serializers.IntegerField()
+    
     class Meta:
         model = TextCollection
         fields = '__all__'
 
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TextCollection
+        fields = '__all__'
+
+
+class ProjectTextSerializer(TextCollectionSerializer):
+    class TextSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Text
+            fields = ['id', 'title', 'added', 'repository_id', 'repository_source_id']
+    texts = TextSerializer(many=True, read_only=True)
 
 class TemplatePartSerializer(serializers.ModelSerializer):
     class Meta:

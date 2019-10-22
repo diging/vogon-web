@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+import json
 from django.http import HttpResponse, JsonResponse
 
 from django.shortcuts import get_object_or_404, render
@@ -6,9 +7,16 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet
 from annotations.annotators import annotator_factory
+from annotations.serializers import RelationSerializer
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from urllib.parse import urlencode
+
+from django.core import serializers
+from django_filters import FilterSet
+from requests import Response
+
+
 @login_required
 @ensure_csrf_cookie
 def annotate(request, text_id):
@@ -63,15 +71,22 @@ def relations(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         relations = paginator.page(paginator.num_pages)
-
+    count = paginator.count
+    previous = None if not relations.has_previous() else relations.previous_page_number()
+    next =None if not relations.has_next() else relations.next_page_number()
+    relationsserializer = RelationSerializer(relations, many=True)
     context = {
-        'paginator': paginator,
-        'relations': relations,
+        'paginator': {
+            'count':count,
+            'previous':previous,
+            'next':next
+        },
+        'relations': relationsserializer.data,
         'params': request.GET.urlencode(),
-        'filter': filtered,
+        'filter': filtered.data,
         'params_data': urlencode(params_data),
         }
-    return render(request, 'annotations/relations.html', context)
+    return Response(json.dumps(context), content_type='application/json')
 
 
 def relations_graph(request):
@@ -85,12 +100,13 @@ def relations_graph(request):
 
         nodes, edges = generate_network_data_fast(qs)
         return JsonResponse({'elements': list(nodes.values()) + list(edges.values())})
-
+    # relationsserializer = RelationSerializer(relations, many=True)
+    relationsvalue= relations(request)
     context = {
-        'relations': relations,
-        'filter': filtered,
+        'relations': relationsvalue.json(),
+        'filter': filtered.data,
         'data_path': request.path + '?' + request.GET.urlencode() + '&mode=data',
         'params': request.GET.urlencode(),
     }
 
-    return render(request, 'annotations/relations_graph.html', context)
+    return HttpResponse(json.dumps(context), content_type='application/json')
