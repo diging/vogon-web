@@ -27,6 +27,7 @@ from accounts import views as account_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    TokenVerifyView
 )
 
 
@@ -58,9 +59,10 @@ urlpatterns = [
 
     path('api/v2/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     #for testing user exsistance in dev
     path('api/v2/snippet/', views.rest_views.test_user, name="snippet list"),
-    
+
     re_path(r'^$', views.main_views.home, name='home'),
     re_path(r'^about/$', views.main_views.about, name='about'),
 

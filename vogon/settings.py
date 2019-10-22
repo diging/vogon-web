@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'corsheaders',
     'repository',
     'annotations',
+    'accounts'
 )
 
 MIDDLEWARE = (
@@ -290,3 +291,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', '')
+GITHUB_SECRET_ID = os.environ.get('GITHUB_SECRET_ID', '')

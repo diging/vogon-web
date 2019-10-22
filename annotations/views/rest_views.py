@@ -19,7 +19,7 @@ from rest_framework.pagination import (LimitOffsetPagination,
 from django.http import HttpResponseRedirect
 from requests_oauthlib import OAuth2Session
 from django.http import JsonResponse
-
+from accounts.models import GithubToken
 from annotations.serializers import *
 from annotations.models import *
 from concepts.models import Concept, Type
@@ -30,7 +30,7 @@ import requests
 import goat
 goat.GOAT = settings.GOAT
 goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
-
+from django.core.exceptions import ObjectDoesNotExist
 import logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -552,16 +552,14 @@ def test_user(request):
     """
     List all code snippets, or create a new snippet.
     """
-    print('HIts')
-    client_id = 
-    client_secret = 
-    url = 'https://github.com/login/oauth/access_token'
-
     if request.method == 'GET':
         code = request.GET.get('code', '')
-        k = requests.post(f'https://github.com/login/oauth/access_token?client_id=&client_secret=&code={code}')
-        print(k.text)
-        res = {
-            'result': k.text
-        } 
-        return JsonResponse(res)
+        r = requests.post(f'https://github.com/login/oauth/access_token?client_id={settings.GITHUB_CLIENT_ID}&client_secret={settings.GITHUB_SECRET_ID}&code={code}', headers={"Accept":"application/json"})
+        try:
+            token = GithubToken.objects.get(user=request.user)
+        except ObjectDoesNotExist:
+            token = GithubToken()
+            token.user = request.user
+        token.token = r.json()['access_token']
+        token.save()
+        return Response(status=status.HTTP_201_CREATED)
