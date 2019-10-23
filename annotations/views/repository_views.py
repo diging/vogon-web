@@ -66,6 +66,18 @@ class RepositoryCollectionViewSet(viewsets.ViewSet):
 
 class RepositoryTextView(viewsets.ViewSet):
     def retrieve(self, request, pk=None, repository_pk=None):
+        project_id = request.query_params.get('project_id', None)
+        part_of_project = None
+        if project_id:
+            project = get_object_or_404(TextCollection, pk=int(project_id))
+            try:
+                project.texts.get(repository_source_id=pk)
+                part_of_project = {
+                    'id': project.id,
+                    'name': project.name
+                }
+            except Text.DoesNotExist:
+                pass
         repository = get_object_or_404(Repository, pk=repository_pk)
         manager = RepositoryManager(repository.configuration, user=request.user)
         result = manager.resource(id=int(pk))
@@ -78,6 +90,7 @@ class RepositoryTextView(viewsets.ViewSet):
         context = {
             'result': result,
             'master_text': TextSerializer(master_text).data if master_text else None,
+            'part_of_project': part_of_project
         }
         if master_text:
             relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]

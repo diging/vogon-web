@@ -12,8 +12,11 @@ from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
 from rest_framework import viewsets, serializers, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from repository.managers import RepositoryManager
+from repository.models import Repository
 from annotations.models import TextCollection, RelationSet, Text
 from annotations.forms import ProjectForm
 from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
@@ -43,6 +46,30 @@ class ProjectViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=True, methods=['POST'])
+    def add_text(self, request, pk=None):
+        text_id = request.data['text_id']
+        repo_id = request.data['repository_id']
+
+        repository = get_object_or_404(Repository, pk=repo_id)
+        project = get_object_or_404(TextCollection, pk=pk)
+        manager = RepositoryManager(repository.configuration, user=request.user)
+        resource = manager.resource(id=int(text_id))
+
+        defaults = {
+            'title': resource.get('title'),
+            'created': resource.get('created'),
+            'repository': repository,
+            'repository_source_id': text_id,
+            'addedBy': request.user,
+        }
+        text, _ = Text.objects.get_or_create(uri=resource.get('uri'),
+                                             defaults=defaults)
+        project.texts.add(text)
+        
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)
 
 
 def view_project(request, project_id):
