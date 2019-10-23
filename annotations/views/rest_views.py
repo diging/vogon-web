@@ -547,8 +547,8 @@ def concept_search(request):
 
 
 
-@api_view(['GET', 'POST'])
-def test_user(request):
+@api_view(['GET'])
+def github_token(request):
     """
     List all code snippets, or create a new snippet.
     """

@@ -61,7 +61,7 @@ urlpatterns = [
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     #for testing user exsistance in dev
-    path('api/v2/snippet/', views.rest_views.test_user, name="snippet list"),
+    path('api/v2/github-token/', views.rest_views.github_token, name="github_token"),
 
 
     re_path(r'^$', views.main_views.home, name='home'),
