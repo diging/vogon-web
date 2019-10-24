@@ -28,7 +28,6 @@ class UserSerializer(serializers.ModelSerializer):
 class TokenObtainPairSerializer(TokenObtainPairSerializer):
 	@classmethod
 	def get_token(cls, user):
-		print("hits")
 		token = super().get_token(user)
 		try:
 			GithubToken.objects.get(user=user)
