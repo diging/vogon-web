@@ -57,11 +57,10 @@ handler403 = 'annotations.exceptions.custom_403_handler'
 
 urlpatterns = [
 
-    path('api/v2/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v2/token/',  account_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    #for testing user exsistance in dev
-    path('api/v2/github-token/', views.rest_views.github_token, name="github_token"),
+    path('api/v2/github-token/', account_views.github_token, name="github_token"),
 
 
     re_path(r'^$', views.main_views.home, name='home'),

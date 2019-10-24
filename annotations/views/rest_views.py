@@ -19,12 +19,10 @@ from rest_framework.pagination import (LimitOffsetPagination,
 from django.http import HttpResponseRedirect
 from requests_oauthlib import OAuth2Session
 from django.http import JsonResponse
-from accounts.models import GithubToken
 from annotations.serializers import *
 from annotations.models import *
 from concepts.models import Concept, Type
 from concepts.lifecycle import *
-from rest_framework.decorators import api_view
 import uuid
 import requests
 import goat
@@ -544,22 +542,3 @@ def concept_search(request):
     q = request.get('search', None)
     pos = self.request.query_params.get('pos', None)
     return goat.Concept.search(q=q, pos=pos)
-
-
-
-@api_view(['GET'])
-def github_token(request):
-    """
-    List all code snippets, or create a new snippet.
-    """
-    if request.method == 'GET':
-        code = request.GET.get('code', '')
-        r = requests.post(f'https://github.com/login/oauth/access_token?client_id={settings.GITHUB_CLIENT_ID}&client_secret={settings.GITHUB_SECRET_ID}&code={code}', headers={"Accept":"application/json"})
-        try:
-            token = GithubToken.objects.get(user=request.user)
-        except ObjectDoesNotExist:
-            token = GithubToken()
-            token.user = request.user
-        token.token = r.json()['access_token']
-        token.save()
-        return Response(status=status.HTTP_201_CREATED)

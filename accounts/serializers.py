@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from annotations.models import VogonUser
 from django.contrib.auth import get_user_model
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import GithubToken
 
 class UserSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(write_only=True)
@@ -22,3 +23,16 @@ class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = get_user_model()
 		fields = ('id','email', 'password', 'full_name', 'username', 'affiliation')
+
+
+class TokenObtainPairSerializer(TokenObtainPairSerializer):
+	@classmethod
+	def get_token(cls, user):
+		print("hits")
+		token = super().get_token(user)
+		try:
+			GithubToken.objects.get(user=user)
+			token['github_token'] = True
+		except GithubToken.DoesNotExist:
+			token['github_token'] = False
+		return token

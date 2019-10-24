@@ -10,8 +10,11 @@ def jars_github_auth(user):
     #     token = '3f059e2c9931a1ee36022dc8f669d1fc02dff6cb"
     # except SocialAccount.DoesNotExist:
     #     return {}
+    try:
+        auth_token = GithubToken.objects.get(user=user)
+    except GithubToken.DoesNotExist:
+        return {}
 
-    auth_token = GithubToken.objects.get(user=user)
     #':'.join([settings.SOCIAL_AUTH_GITHUB_KEY,
                         #    settings.SOCIAL_AUTH_GITHUB_SECRET,
                         #    token])
