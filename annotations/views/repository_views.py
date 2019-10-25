@@ -21,55 +21,65 @@ from repository.auth import *
 from repository.managers import *
 from annotations.models import Text, TextCollection, RelationSet, VogonUser
 from annotations.annotators import supported_content_types
-from annotations.serializers import RepositorySerializer
+from annotations.serializers import RepositorySerializer, TextSerializer
 
 
 class RepositoryViewSet(viewsets.ModelViewSet):
     queryset = Repository.objects.all()
     serializer_class = RepositorySerializer
 
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        repository = get_object_or_404(queryset, pk=pk)
+        manager = RepositoryManager(repository.configuration, user=request.user)
+        collections = manager.collections()
+        return Response({
+            **self.serializer_class(repository).data,
+            'collections': collections
+        })
+
 
 class RepositoryCollectionViewSet(viewsets.ViewSet):
     def list(self, request, repository_pk=None):
-        # ToDo: Replace `user` with `request.user`
-        user = VogonUser.objects.get(pk=1)
-
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=user)
+        manager = RepositoryManager(repository.configuration, user=request.user)
         collections = manager.collections()
         return Response(collections)
 
     @action(detail=False, methods=['get'])
     def search(self, request, repository_pk=None):
-        # ToDo: Replace `user` with `request.user`
-        user = VogonUser.objects.get(pk=1)
-
         query = request.query_params.get('q', '')
         if not query:
             return Response([])
         
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=user)
+        manager = RepositoryManager(repository.configuration, user=request.user)
         
         results = manager.search(query=query)
         return Response(results)
 
     def retrieve(self, request, pk=None, repository_pk=None):
-        # ToDo: Replace `user` with `request.user`
-        user = VogonUser.objects.get(pk=1)
-
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=user)
+        manager = RepositoryManager(repository.configuration, user=request.user)
         collection = manager.collection(id=pk)
         return Response(collection)
 
 class RepositoryTextView(viewsets.ViewSet):
     def retrieve(self, request, pk=None, repository_pk=None):
-        # ToDo: Replace `user` with `request.user`
-        user = VogonUser.objects.get(pk=1)
-
+        project_id = request.query_params.get('project_id', None)
+        part_of_project = None
+        if project_id:
+            project = get_object_or_404(TextCollection, pk=int(project_id))
+            try:
+                project.texts.get(repository_source_id=pk)
+                part_of_project = {
+                    'id': project.id,
+                    'name': project.name
+                }
+            except Text.DoesNotExist:
+                pass
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=user)
+        manager = RepositoryManager(repository.configuration, user=request.user)
         result = manager.resource(id=int(pk))
 
         try:
@@ -79,13 +89,12 @@ class RepositoryTextView(viewsets.ViewSet):
         aggregate_content = result.get('aggregate_content')
         context = {
             'result': result,
-            'master_text': master_text,
+            'master_text': TextSerializer(master_text).data if master_text else None,
+            'part_of_project': part_of_project
         }
         if master_text:
             relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
-            context.update({
-                'relations': relations,
-            })
+            context['relations'] = relations
         return Response(context)
 
 
