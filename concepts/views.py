@@ -64,6 +64,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
         # Search Concept labels for ``search`` param.
         query = self.request.query_params.get('search', None)
+        authority = self.request.query_params.get('authority', None)
         remote = self.request.query_params.get('remote', False)
         uri = self.request.query_params.get('uri', None)
         type_id = self.request.query_params.get('typed', None)
@@ -74,6 +75,8 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
         if uri:
             queryset = queryset.filter(uri=uri)
+        if authority:
+            queryset = queryset.filter(authority=authority)
         if type_uri:
             queryset = queryset.filter(type__uri=uri)
         if type_id:
