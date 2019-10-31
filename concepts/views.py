@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 import uuid
 
 from annotations.models import RelationSet, Appellation, TextCollection, VogonUserDefaultProject
-from annotations.serializers import ConceptSerializer, TypeSerializer
+from annotations.serializers import ConceptSerializer, TypeSerializer, RelationSerializer
 from concepts.models import Concept, Type
 from concepts.filters import *
 from concepts.lifecycle import *
@@ -23,6 +23,19 @@ from concepts.authorities import ConceptpowerAuthority, update_instance
 class ConceptViewSet(viewsets.ModelViewSet):
     queryset = Concept.objects.filter(~Q(concept_state=Concept.REJECTED))
     serializer_class = ConceptSerializer
+
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        concept = get_object_or_404(queryset, pk=pk)
+        serializer = self.get_serializer(concept, many=False)
+        result = serializer.data
+        relations = RelationSet.objects.filter(
+            terminal_nodes=concept
+        ).order_by('-created')[:10]
+        relations = RelationSerializer(relations, many=True)
+        result['relations'] = relations.data
+
+        return Response(result)
 
     def create(self, request, *args, **kwargs):
         data = request.data
