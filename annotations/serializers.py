@@ -73,12 +73,21 @@ class TextSerializer(serializers.ModelSerializer):
         return HttpResponse(text.id)
 
 
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+                  'description')
+
+
 class ConceptSerializer(serializers.ModelSerializer):
+    typed = TypeSerializer(required=False)
+
     class Meta:
         model = Concept
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
                   'description', 'pos', 'resolved', 'typed_label',
-                  'concept_state')
+                  'concept_state', 'appellation_set')
 
 
 class AppellationSerializer(serializers.ModelSerializer):
@@ -108,11 +117,6 @@ class AppellationPOSTSerializer(serializers.ModelSerializer):
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label', 'position', 'project')
 
-class TypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Type
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-                  'description')
 
 class RelationSetSerializer(serializers.ModelSerializer):
     appellations = AppellationSerializer(many=True)

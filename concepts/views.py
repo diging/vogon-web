@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 import uuid
 
 from annotations.models import RelationSet, Appellation, TextCollection, VogonUserDefaultProject
-from annotations.serializers import ConceptSerializer
+from annotations.serializers import ConceptSerializer, TypeSerializer
 from concepts.models import Concept, Type
 from concepts.filters import *
 from concepts.lifecycle import *
@@ -96,6 +96,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(concept_state=concept_state)
         return queryset
 
+
+class ConceptTypeViewSet(viewsets.ModelViewSet):
+    queryset = Type.objects.all()
+    serializer_class = TypeSerializer
 
 def list_concept_types(request):
     """
