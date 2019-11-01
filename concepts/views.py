@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 import uuid
 
 from annotations.models import RelationSet, Appellation, TextCollection, VogonUserDefaultProject
-from annotations.serializers import ConceptSerializer, TypeSerializer, RelationSerializer
+from annotations.serializers import ConceptSerializer, TypeSerializer, RelationSetSerializer
 from concepts.models import Concept, Type
 from concepts.filters import *
 from concepts.lifecycle import *
@@ -32,7 +32,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         relations = RelationSet.objects.filter(
             terminal_nodes=concept
         ).order_by('-created')[:10]
-        relations = RelationSerializer(relations, many=True)
+        relations = RelationSetSerializer(relations, many=True)
         result['relations'] = relations.data
 
         return Response(result)

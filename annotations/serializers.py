@@ -128,7 +128,8 @@ class RelationSetSerializer(serializers.ModelSerializer):
         model = RelationSet
         fields = ('id', 'label', 'created', 'template', 'createdBy',
                   'occursIn', 'appellations', 'concepts', 'project',
-                  'representation', 'date_appellations')  #
+                  'representation', 'date_appellations', 'submitted',
+                  'submittedOn', 'pending')  #
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
