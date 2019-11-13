@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet
+from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, Appellation
 from annotations.annotators import annotator_factory
 from annotations.serializers import RelationSerializer
 
@@ -15,14 +15,27 @@ from urllib.parse import urlencode
 from django.core import serializers
 from django_filters import FilterSet
 from requests import Response
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from annotations.serializers import TextSerializer, Text2Serializer
+from django.core import serializers
 
 
-@login_required
-@ensure_csrf_cookie
+#@login_required
+#@ensure_csrf_cookie
+@api_view(['GET', 'POST'])
 def annotate(request, text_id):
     text = get_object_or_404(Text, pk=text_id)
     annotator = annotator_factory(request, text)
-    return annotator.render()
+    data = annotator.render()
+    appellations = Appellation.objects.filter(occursIn=text.id)
+    content = data['content'].decode("utf-8")
+    data['content'] = content
+    project = TextCollection.objects.get(id=data['project'])
+    data['project'] = project
+    data['appellations'] = appellations
+    serializer = Text2Serializer(data)
+    return Response(serializer.data)
 
 
 @login_required

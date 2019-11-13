@@ -171,3 +171,48 @@ class TemplateSerializer(serializers.ModelSerializer):
         model = RelationTemplate
         fields = ('id', 'name', 'description', 'template_parts')
         depth = 1
+
+class TextAllSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Text
+        fields = '__all__'
+        depth = 1
+
+
+class Concept2Serializer(serializers.Serializer):
+    
+    id = serializers.IntegerField()
+    #url = serializers.CharField()
+    uri = serializers.CharField()
+    label = serializers.CharField()
+    authority = serializers.CharField()
+    typed = TypeSerializer()
+    description = serializers.CharField()
+    pos = serializers.CharField()
+    resolved = serializers.BooleanField()
+    typed_label = serializers.CharField()
+    # class Meta:
+    #     model = Concept
+    #     fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+    #               'description', 'pos', 'resolved', 'typed_label')
+
+
+class Appellation2Serializer(serializers.Serializer):
+    position = DocumentPositionSerializer(required=False)
+    tokenIds = serializers.CharField(required=False)
+    stringRep = serializers.CharField(required=False)
+    occursIn = TextAllSerializer(required=False)
+    interpretation = Concept2Serializer(required=False)
+    createdBy = UserSerializer()
+
+
+class Text2Serializer(serializers.Serializer):
+    text = TextAllSerializer()
+    textid = serializers.IntegerField(read_only=True)
+    title = serializers.CharField()
+    content = serializers.CharField()
+    baselocation = serializers.CharField()
+    userid = serializers.IntegerField(read_only=True)
+    repository_id =  serializers.IntegerField(read_only=True)
+    project = ProjectSerializer()
+    appellations = Appellation2Serializer(many=True)

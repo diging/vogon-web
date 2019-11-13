@@ -25,6 +25,8 @@ import copy
 import json
 import logging
 import networkx as nx
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 logger.setLevel('ERROR')
@@ -89,8 +91,7 @@ def add_relationtemplate(request):
 
     return render(request, 'annotations/relationtemplate.html', context)
 
-
-@login_required
+@api_view(['GET'])
 def list_relationtemplate(request):
     """
     Returns a list of all :class:`.RelationTemplate`\s.

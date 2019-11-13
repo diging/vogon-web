@@ -78,16 +78,6 @@
     							<li><a href="{{ base_url }}/admin/">Admin Site</a></li>
     						{% endif %}
                         </ul>
-
-
-
-    					{% else %}
-                            {% comment %} <a class="btn btn-lg" href="{% url 'social:begin' 'github' %}"> {% endcomment %}
-                            {% load socialaccount %}
-                            <a class="btn btn-lg" href="{% provider_login_url 'github'%}">
-                                <i class="glyphicon fa fa-github" aria-hidden="true"></i>
-                             </a>
-
     					{% endif %}
     				</li>
 				</ul>
