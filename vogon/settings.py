@@ -47,7 +47,8 @@ INSTALLED_APPS = (
     'corsheaders',
     'repository',
     'annotations',
-    'accounts'
+    'accounts',
+    'goat'
 )
 
 MIDDLEWARE = (
