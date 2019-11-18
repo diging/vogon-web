@@ -50,15 +50,14 @@ def search(query, pos='noun'):
     results = [r for manager in authority_managers
                for r in manager().search(query, pos=pos)]
 
-
     concepts = []
     for r in results:
-        r['label'] = r['word']
+        r['label'] = r['lemma']            
         instance, created = Concept.objects.get_or_create(
-                                uri=r['uri'],
-                                authority=manager.__name__)
+                                uri=r['id'],
+                                authority=ConceptpowerAuthority().__name__)
         if created:
-            instance = update_instance(Concept, instance, r, manager.__name__)
+            instance = update_instance(Concept, instance, r, ConceptpowerAuthority)
         concepts.append(instance)
     return concepts
 
@@ -88,7 +87,7 @@ def update_instance(sender, instance, concept_data, authority):
             type_uri = None
 
     if type_uri is not None:
-        type_instance = Type.objects.get_or_create(uri=type_uri, authority=authority)[0]
+        type_instance = Type.objects.get_or_create(uri=type_uri, authority=authority().__name__)[0]
         instance.typed = type_instance
         logger.debug(
             'Added Type {0} to Concept {1}.'.format(
