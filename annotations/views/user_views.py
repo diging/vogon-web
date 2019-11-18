@@ -1,18 +1,21 @@
 """
 Provides user-oriented views, including dashboard, registration, etc.
 """
-
+import json
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core import serializers
 from django.db.models import Q, Count
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 # TODO: should we be using VogonGroup?
 from django.contrib.auth.models import Group
@@ -21,6 +24,7 @@ from annotations.models import (VogonUser, Text, Appellation, RelationSet,
 								TextCollection, Relation)
 from annotations.forms import RegistrationForm, UserChangeForm
 from annotations.display_helpers import user_recent_texts
+from annotations.serializers import ProjectSerializer
 
 import datetime
 from isoweek import Week
@@ -30,6 +34,23 @@ class VogonUserAuthenticationForm(AuthenticationForm):
 	class Meta:
 		model = VogonUser
 
+
+class DashboardView(APIView):
+	"""
+	User's dashboard page
+	
+		* Recently annotated texts
+		* Recently added texts
+		* Recent projects
+		* Recent annotations
+	"""
+	def get(self, request):
+		fields = ['id', 'name', 'description']
+		projects = ProjectSerializer(
+			request.user.collections.all()[:5], many=True
+		).data
+		print(request.user.contributes_to.all())
+		return Response({ 'projects': projects })
 
 @login_required
 def logout_view(request):
