@@ -15,7 +15,6 @@ import os, sys, requests
 from urllib.parse  import urlparse
 import socket
 import dj_database_url
-import djcelery
 from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -51,7 +50,6 @@ INSTALLED_APPS = (
     'annotations',
     'rest_framework',
     'corsheaders',
-    'djcelery',
     'repository',
     # 'social.apps.django_app.default',
 )
@@ -226,7 +224,6 @@ BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
 
 # Celery config.
 
-djcelery.setup_loader()
 CELERYBEAT_SCHEDULE = {
     'accession_ready_relationsets': {
         'task': 'annotations.tasks.accession_ready_relationsets',
