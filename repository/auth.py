@@ -18,7 +18,7 @@ def jars_github_auth(user):
     #':'.join([settings.SOCIAL_AUTH_GITHUB_KEY,
                         #    settings.SOCIAL_AUTH_GITHUB_SECRET,
                         #    token])
-    return {'Authorization': 'GithubToken %s' % auth_token}
+    return {'Authorization': 'GithubToken %s' % auth_token.token}
 
 
 def giles_auth(user):
