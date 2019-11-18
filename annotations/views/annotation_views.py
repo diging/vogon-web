@@ -34,6 +34,7 @@ def annotate(request, text_id):
     project = TextCollection.objects.get(id=data['project'])
     data['project'] = project
     data['appellations'] = appellations
+    print(appellations)
     serializer = Text2Serializer(data)
     return Response(serializer.data)
 
