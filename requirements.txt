@@ -1,7 +1,6 @@
 amqp==2.5.1
 anyjson==0.3.3
 billiard==3.6.1.0
-black-goat-client==0.2.6
 bleach==1.4.2
 celery==4.3.0
 certifi==2018.1.18
