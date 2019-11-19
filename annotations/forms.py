@@ -14,6 +14,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 import autocomplete_light
 
 import networkx as nx
+from goat.views import retrieve as retrieve_concept
 
 
 class RegistrationForm(forms.Form):
@@ -174,17 +175,14 @@ class ConceptField(forms.CharField):
             key = 'uri'
             py_value = self.queryset.get(**{key: value})
         except self.queryset.model.DoesNotExist:
-            import goat
-            goat.GOAT = settings.GOAT
-            goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
-            concept = goat.Concept.retrieve(identifier=value)
+            concept = retrieve_concept(value)
 
             data = dict(
                 uri=value,
-                label=concept.data['name'],
-                description=concept.data['description'],
+                label=concept['name'],
+                description=concept['description'],
             )
-            ctype_data = concept.data['concept_type']#
+            ctype_data = concept['concept_type']
             if ctype_data:
                 data.update({'typed': Type.objects.get_or_create(uri=ctype_data['identifier'])[0]})
 

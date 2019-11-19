@@ -25,9 +25,8 @@ from concepts.models import Concept, Type
 from concepts.lifecycle import *
 import uuid
 import requests
-import goat
-goat.GOAT = settings.GOAT
-goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
+from goat.views import retrieve as retrieve_concept
+from goat.views import search as search_concepts
 from django.core.exceptions import ObjectDoesNotExist
 import logging
 logging.basicConfig()
@@ -177,8 +176,8 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
                 concept = Concept.objects.get(uri=interpretation)
             except Concept.DoesNotExist:
 
-                concept_data = goat.Concept.retrieve(identifier=interpretation)
-                type_data = concept_data.data.get('concept_type')
+                concept_data = retrieve_concept(interpretation)
+                type_data = concept_data.get('concept_type', None)
                 type_instance = None
                 if type_data:
                     try:
@@ -189,15 +188,15 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
                             uri = type_data.get('identifier'),
                             label = type_data.get('name'),
                             description = type_data.get('description'),
-                            authority = concept_data.data.get('authority', {}).get('name'),
+                            authority = concept_data.get('authority', {}).get('name'),
                         )
 
                 concept = ConceptLifecycle.create(
                     uri = interpretation,
-                    label = concept_data.data.get('name'),
-                    description = concept_data.data.get('description'),
+                    label = concept_data.get('name'),
+                    description = concept_data.get('description'),
                     typed = type_instance,
-                    authority = concept_data.data.get('authority', {}).get('name'),
+                    authority = concept_data.get('authority', {}).get('name'),
                 ).instance
 
             data['interpretation'] = concept.id
@@ -484,7 +483,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         if not q:
             return Response({'results': []})
         pos = request.GET.get('pos', None)
-        concepts = goat.Concept.search(q=q, pos=pos, limit=50)
+        concepts = search_concepts(q=q, user_id=request.user.id, pos=pos, limit=50)
 
         def _relabel(datum):
             _fields = {
@@ -492,9 +491,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 'id': 'alt_id',
                 'identifier': 'uri'
             }
-
             return {_fields.get(k, k): v for k, v in list(datum.items())}
-        return Response({'results': list(map(_relabel, [c.data for c in concepts]))})
+
+        return Response({'results': list(map(_relabel, concepts))})
 
 
     def get_queryset(self, *args, **kwargs):
@@ -541,4 +540,4 @@ class ConceptViewSet(viewsets.ModelViewSet):
 def concept_search(request):
     q = request.get('search', None)
     pos = self.request.query_params.get('pos', None)
-    return goat.Concept.search(q=q, pos=pos)
+    return search_concepts(q=q, user_id=request.user.id, pos=pos)
