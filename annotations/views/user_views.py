@@ -2,6 +2,7 @@
 Provides user-oriented views, including dashboard, registration, etc.
 """
 import json
+from itertools import groupby
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
@@ -24,7 +25,10 @@ from annotations.models import (VogonUser, Text, Appellation, RelationSet,
 								TextCollection, Relation)
 from annotations.forms import RegistrationForm, UserChangeForm
 from annotations.display_helpers import user_recent_texts
-from annotations.serializers import ProjectSerializer
+from annotations.serializers import (
+	ProjectSerializer, TextSerializer, RelationSetSerializer,
+	UserSerializer
+)
 
 import datetime
 from isoweek import Week
@@ -49,8 +53,60 @@ class DashboardView(APIView):
 		projects = ProjectSerializer(
 			request.user.collections.all()[:5], many=True
 		).data
-		print(request.user.contributes_to.all())
-		return Response({ 'projects': projects })
+		projects_contributed = ProjectSerializer(
+			request.user.contributes_to.all()[:5], many=True
+		).data
+
+		# Retrieve a unique list of texts that were recently annotated by the user.
+		#  Since many annotations will be on "subtexts" (i.e. Texts that are
+		#  part_of another Text), we need to first identify the unique subtexts,
+		#  and then assemble a list of unique "top level" texts.
+		_recently_annotated = request.user.appellation_set \
+				.order_by('occursIn_id', '-created') \
+				.values_list('occursIn_id')[:20]
+			
+		_annotated_texts = Text.objects.filter(pk__in=_recently_annotated)
+		_key = lambda t: t.id
+		_recent_grouper = groupby(
+			sorted(
+				[t.top_level_text for t in _annotated_texts],
+				key=_key
+			),
+			key=_key
+		)
+		_recent_texts = []
+		for t_id, group in _recent_grouper:
+			_recent_texts.append(next(group))
+		_recent_texts = _recent_texts[:5]
+		recent_texts = TextSerializer(_recent_texts, many=True).data
+
+		_added_texts = Text.objects.filter(
+				addedBy_id=request.user.id, 
+				part_of__isnull=True
+			) \
+			.order_by('-added')[:5]
+		added_texts = TextSerializer(_added_texts, many=True).data
+
+		appellation_qs = Appellation.objects.filter(createdBy__pk=request.user.id) \
+										.filter(asPredicate=False) \
+										.distinct().count()
+		relationset_qs = RelationSet.objects.filter(createdBy__pk=request.user.id) \
+										.distinct().count()
+
+		_relations = RelationSet.objects.filter(createdBy=request.user) \
+				.order_by('-created')[:10]
+
+		relations = RelationSetSerializer(_relations, many=True, context={'request': request}).data
+		return Response({ 
+			'user': UserSerializer(request.user).data,
+			'projects': projects,
+			'projects_contributed': projects_contributed,
+			'recent_texts': recent_texts,
+			'added_texts': added_texts,
+			'appellation_count': appellation_qs,
+			'relation_count': relationset_qs,
+			'relations': relations
+		})
 
 @login_required
 def logout_view(request):

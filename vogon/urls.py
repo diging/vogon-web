@@ -62,7 +62,7 @@ urlpatterns = [
     path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/v2/github-token/', account_views.github_token, name="github_token"),
 
-    path('api/v2/dashboard/', views.user_views.DashboardView.as_view(), name='user_dashboard'),
+    re_path(r'^api/v2/dashboard', views.user_views.DashboardView.as_view(), name='user_dashboard'),
 
     re_path(r'^$', views.main_views.home, name='home'),
 

@@ -55,7 +55,8 @@ class TextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Text
         fields = ('id', 'uri', 'title', 'created', 'added', 'addedBy',
-                  'source', 'annotators', 'annotation_count', 'children')
+                  'source', 'annotators', 'annotation_count', 'children',
+                  'repository_id', 'repository_source_id')
 
     def create(self, validated_data):
         repository = Repository.objects.get(pk=validated_data['source'])
@@ -118,18 +119,34 @@ class AppellationPOSTSerializer(serializers.ModelSerializer):
                   'interpretation_type_label', 'position', 'project')
 
 
+class RelationTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RelationTemplate
+        fields = '__all__'
+
+
 class RelationSetSerializer(serializers.ModelSerializer):
+    class DateAppellationPredicateSerializer(serializers.BaseSerializer):
+        def to_representation(self, obj):
+            return {
+                'interpretation': ConceptSerializer(obj[0], context=self.context).data,
+                'appellation': DateAppellationSerializer(obj[1], context=self.context).data
+            }
     appellations = AppellationSerializer(many=True)
     date_appellations = DateAppellationSerializer(many=True)
     concepts = ConceptSerializer(many=True)
     createdBy = UserSerializer()
+    template = RelationTemplateSerializer()
+    date_appellations_with_predicate = DateAppellationPredicateSerializer(many=True)
+    occursIn = TextSerializer()
 
     class Meta:
         model = RelationSet
         fields = ('id', 'label', 'created', 'template', 'createdBy',
                   'occursIn', 'appellations', 'concepts', 'project',
                   'representation', 'date_appellations', 'submitted',
-                  'submittedOn', 'pending')  #
+                  'submittedOn', 'pending', 'ready', 'template',
+                  'date_appellations_with_predicate', 'occurs_in_text')  #
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):

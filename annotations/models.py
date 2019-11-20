@@ -641,7 +641,7 @@ class DateAppellation(Annotation):
             _rep += '-' + str(self.day).zfill(2)
         return _rep
 
-    def __unicode__(self):
+    def __str__(self):
         """
         Returns an ISO-8601 compliant unicode representation of the date.
         """
@@ -889,6 +889,10 @@ class RelationSet(models.Model):
         label = 'Untemplated relation created by %s at %s' % (self.createdBy,
                                                                self.created)
         return label
+
+    @property
+    def occurs_in_text(self):
+        return self.occursIn.top_level_text.title
 
     def ready(self):
         """

@@ -21,7 +21,7 @@ from repository.auth import *
 from repository.managers import *
 from annotations.models import Text, TextCollection, RelationSet, VogonUser
 from annotations.annotators import supported_content_types
-from annotations.serializers import RepositorySerializer, TextSerializer
+from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
 
 
 class RepositoryViewSet(viewsets.ModelViewSet):
@@ -94,7 +94,7 @@ class RepositoryTextView(viewsets.ViewSet):
         }
         if master_text:
             relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
-            context['relations'] = relations
+            context['relations'] = RelationSetSerializer(relations, many=True, context={'request': request}).data
         return Response(context)
 
 
