@@ -139,6 +139,7 @@ class RelationSetSerializer(serializers.ModelSerializer):
     template = RelationTemplateSerializer()
     date_appellations_with_predicate = DateAppellationPredicateSerializer(many=True)
     occursIn = TextSerializer()
+    created = serializers.DateTimeField()
 
     class Meta:
         model = RelationSet
@@ -146,7 +147,8 @@ class RelationSetSerializer(serializers.ModelSerializer):
                   'occursIn', 'appellations', 'concepts', 'project',
                   'representation', 'date_appellations', 'submitted',
                   'submittedOn', 'pending', 'ready', 'template',
-                  'date_appellations_with_predicate', 'occurs_in_text')  #
+                  'date_appellations_with_predicate', 'occurs_in_text',
+                  'terminal_nodes')  #
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
