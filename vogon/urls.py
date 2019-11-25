@@ -45,7 +45,7 @@ router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet)
 # used to create users
-router.register(r'users', account_views.UserViewSet, basename='users')
+router.register(r'users', views.user_views.UserViewSet, basename='users')
 repository_router = routers.NestedSimpleRouter(router, r'repository', lookup='repository')
 repository_router.register(r'collections', views.repository_views.RepositoryCollectionViewSet, base_name='repository-collections')
 repository_router.register(r'texts', views.repository_views.RepositoryTextView, base_name='repository-texts')

@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from rest_framework import viewsets
 from rest_framework.response import Response
 
 # TODO: should we be using VogonGroup?
@@ -107,6 +108,48 @@ class DashboardView(APIView):
 			'relation_count': relationset_qs,
 			'relations': relations
 		})
+
+class UserViewSet(viewsets.ModelViewSet):
+	"""
+	User list and detail page
+	"""
+	queryset = VogonUser.objects.exclude(id=-1).order_by('username')
+	serializer_class = UserSerializer
+
+	def list(self, *args, **kwargs):
+		queryset = self.get_queryset()
+		serializer = self.get_serializer_class()
+
+		self.page = self.paginate_queryset(queryset)
+		if self.page is not None:
+			serializer = self.get_serializer(self.page, many=True)
+			return self.get_paginated_response(serializer.data)
+		else:
+			users = serializer(queryset, many=True).data
+			
+		return Response(users)
+
+	def get_paginated_response(self, data):
+		return Response({
+			'count':len(self.get_queryset()),
+			'results': data,
+		})
+
+	def get_queryset(self, *args, **kwargs):
+		queryset = super(UserViewSet, self).get_queryset(*args, **kwargs)
+		search = self.request.query_params.get('search', None)
+		if search:
+			queryset = queryset.filter(
+				Q(full_name__icontains=search) |
+				Q(username__icontains=search)
+			)
+		queryset = queryset.annotate(
+			annotation_count=Count('appellation'),
+			relation_count=Count('relation'),
+			text_count=Count('addedTexts')
+		)
+		return queryset
+
 
 @login_required
 def logout_view(request):

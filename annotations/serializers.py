@@ -6,10 +6,15 @@ from concepts.models import Concept, Type
 
 
 class UserSerializer(serializers.ModelSerializer):
+    annotation_count = serializers.IntegerField(allow_null=True)
+    relation_count = serializers.IntegerField(allow_null=True)
+    text_count = serializers.IntegerField(allow_null=True)
+
     class Meta:
         model = VogonUser
         fields = ('username', 'email', 'id', 'affiliation', 'location',
-                  'full_name', 'link')
+                  'full_name', 'link', 'is_admin', 'imagefile',
+                  'annotation_count', 'relation_count', 'text_count')
 
 
 class RemoteCollectionSerializer(serializers.Serializer):
