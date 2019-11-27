@@ -2,6 +2,7 @@
 Provides user-oriented views, including dashboard, registration, etc.
 """
 import json
+import arrow
 from itertools import groupby
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
@@ -10,6 +11,7 @@ from django.urls import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import serializers
 from django.db.models import Q, Count
+from django.db.models.functions import Trunc
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_protect
@@ -28,7 +30,7 @@ from annotations.forms import RegistrationForm, UserChangeForm
 from annotations.display_helpers import user_recent_texts
 from annotations.serializers import (
 	ProjectSerializer, TextSerializer, RelationSetSerializer,
-	UserSerializer
+	UserSerializer, TextCollectionSerializer, RelationSetSerializer
 )
 
 import datetime
@@ -129,6 +131,36 @@ class UserViewSet(viewsets.ModelViewSet):
 			
 		return Response(users)
 
+	def retrieve(self, request, pk=None):
+		user = get_object_or_404(VogonUser, pk=pk)
+		user_data = UserSerializer(user).data
+		appellation_count = user.appellation_set.count()
+		relation_count = user.relation_set.count()
+		text_count = Text.objects.filter(appellation__createdBy=user) \
+			.distinct().count()
+
+		project_qs = user.collections.all().annotate(
+			num_texts=Count('texts'),
+			num_relations=Count('texts__relationsets')
+		)
+		projects = TextCollectionSerializer(project_qs, many=True).data
+
+		relations_qs = RelationSet.objects.filter(createdBy=user) \
+			.order_by('-created')[:10]
+		relations = RelationSetSerializer(relations_qs, many=True).data
+
+		weekly_annotations = self.get_weekly_annotations(user)
+
+		return Response({
+			**user_data,
+			'appellation_count': appellation_count,
+			'relation_count': relation_count,
+			'text_count': text_count,
+			'projects': projects,
+			'relations': relations,
+			'weekly_annotations': weekly_annotations
+		})
+
 	def get_paginated_response(self, data):
 		return Response({
 			'count':len(self.get_queryset()),
@@ -149,6 +181,47 @@ class UserViewSet(viewsets.ModelViewSet):
 			text_count=Count('addedTexts')
 		)
 		return queryset
+
+	def get_weekly_annotations(self, user):
+		today = arrow.get()
+		week_start = today.shift(days=1-today.isoweekday())
+		end = arrow.get(
+			week_start.year,
+			week_start.month,
+			week_start.day
+		)
+		start = end.shift(weeks=-8)
+
+		relations_by_user = Relation.objects.filter(
+				createdBy = user,
+				created__gt = start.datetime
+			).extra({'date' : 'date(created)'}).values('date') \
+			.annotate(count = Count('created')) \
+			.annotate(week_date = Trunc('created', 'week'))
+		appelations_by_user = Appellation.objects.filter(
+				createdBy = user,
+				created__gt = start.datetime
+			).extra({'date' : 'date(created)'}).values('date') \
+			.annotate(count = Count('created')) \
+			.annotate(week_date = Trunc('created', 'week'))
+		annotation_by_user = list(relations_by_user)
+		annotation_by_user.extend(list(appelations_by_user))
+
+		grouped = groupby(annotation_by_user, lambda x:  x['week_date'])
+
+		weekly_annotations = {}
+		for week, group in grouped:
+			annotations = list(group)
+			count = sum([x['count'] for x in annotations])
+			weekly_annotations[week] = count
+		
+		result = []
+		for week in arrow.Arrow.range('week', start, end):
+			result.append({
+				'week': week.datetime,
+				'count': weekly_annotations.get(week.datetime, 0)
+			})
+		return result
 
 
 @login_required
