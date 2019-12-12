@@ -35,6 +35,7 @@ def annotate(request, text_id):
     data['project'] = project
     data['appellations'] = appellations
     print(appellations)
+    data['relations'] = Relation.objects.filter(occursIn=text.id)
     serializer = Text2Serializer(data)
     return Response(serializer.data)
 
