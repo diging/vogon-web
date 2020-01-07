@@ -73,11 +73,21 @@ class TextSerializer(serializers.ModelSerializer):
         return HttpResponse(text.id)
 
 
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type
+        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
+                  'description')
+
+
 class ConceptSerializer(serializers.ModelSerializer):
+    typed = TypeSerializer(required=False)
+
     class Meta:
         model = Concept
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-                  'description', 'pos', 'resolved', 'typed_label')
+                  'description', 'pos', 'resolved', 'typed_label',
+                  'concept_state', 'appellation_set')
 
 
 class AppellationSerializer(serializers.ModelSerializer):
@@ -107,11 +117,6 @@ class AppellationPOSTSerializer(serializers.ModelSerializer):
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
                   'interpretation_type_label', 'position', 'project')
 
-class TypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Type
-        fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-                  'description')
 
 class RelationSetSerializer(serializers.ModelSerializer):
     appellations = AppellationSerializer(many=True)
@@ -123,7 +128,8 @@ class RelationSetSerializer(serializers.ModelSerializer):
         model = RelationSet
         fields = ('id', 'label', 'created', 'template', 'createdBy',
                   'occursIn', 'appellations', 'concepts', 'project',
-                  'representation', 'date_appellations')  #
+                  'representation', 'date_appellations', 'submitted',
+                  'submittedOn', 'pending')  #
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):
