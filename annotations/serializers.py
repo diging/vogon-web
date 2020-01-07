@@ -166,10 +166,22 @@ class ProjectTextSerializer(TextCollectionSerializer):
             fields = ['id', 'title', 'added', 'repository_id', 'repository_source_id']
     texts = TextSerializer(many=True, read_only=True)
 
+class TemplateFieldsSerializer(serializers.Serializer):
+    part_field = serializers.CharField(max_length=200, required=False)
+    concept_label = serializers.CharField(max_length=200, required=False)
+    part_id = serializers.IntegerField()
+    evidence_required = serializers.BooleanField(default=False)
+    description = serializers.CharField(max_length=2000, required=False)
+    type = serializers.CharField(max_length=100, required=False)
+    concept_id = serializers.IntegerField(required=False)
+    label = serializers.CharField(max_length=200, required=False)
+
+
 class TemplatePartSerializer(serializers.ModelSerializer):
+    fields = TemplateFieldsSerializer(many=True, default=[])
     class Meta:
         model = RelationTemplate
-        fields = ('id', 'name', 'description')
+        fields = ('id', 'name', 'description', 'fields')
 
 
 class TemplateSerializer(serializers.ModelSerializer):

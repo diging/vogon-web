@@ -1,7 +1,11 @@
 """
 Provides :class:`.RelationTemplate`\-related views.
 """
-
+import copy
+import json
+import logging
+import networkx as nx
+from string import Formatter
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -13,24 +17,52 @@ from django.db import transaction, DatabaseError
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
-from string import Formatter
+from rest_framework import viewsets, serializers, status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm, RelationTemplateForm)
 from annotations.models import *
 from annotations import relations
+from annotations.serializers import TemplatePartSerializer
 from concepts.models import Concept, Type
 
-import copy
-import json
-import logging
-import networkx as nx
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 logger.setLevel('ERROR')
 
+class RelationTemplateViewSet(viewsets.ModelViewSet):
+    queryset = RelationTemplate.objects.all()
+    serializer_class = TemplatePartSerializer
+
+    def list(self, request):
+        queryset = self.get_queryset()
+        data = [
+            {
+                'id': item.id,
+                'name': item.name,
+                'description': item.description,
+                'fields': relations.get_fields(item),
+            } for item in queryset.order_by('-id')
+        ]
+        serializer = TemplatePartSerializer(data, many=True)
+        result = serializer.data
+        return Response(result)
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(RelationTemplateViewSet, self).get_queryset(*args, **kwargs)
+        search = self.request.query_params.get('search', None)
+        all_templates = self.request.query_params.get('all', False)
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) | 
+                Q(description__icontains=search)
+            )
+        if not all_templates:
+            queryset = queryset.filter(createdBy=self.request.user)
+        return queryset
+        
 
 @staff_member_required
 def add_relationtemplate(request):

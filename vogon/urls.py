@@ -35,6 +35,7 @@ router.register(r'appellation', views.rest_views.AppellationViewSet)
 router.register(r'predicate', views.rest_views.PredicateViewSet)
 router.register(r'relation', views.rest_views.RelationViewSet)
 router.register(r'relationset', views.rest_views.RelationSetViewSet)
+router.register(r'relationtemplate', views.relationtemplate_views.RelationTemplateViewSet)
 router.register(r'text', views.rest_views.TextViewSet)
 router.register(r'repository', views.repository_views.RepositoryViewSet)
 router.register(r'temporalbounds', views.rest_views.TemporalBoundsViewSet)
@@ -102,7 +103,7 @@ urlpatterns = [
 
     # url(r'^text/add/upload/$', views.text_views.upload_file, name="file_upload"),
     # url(r'^text/(?P<textid>[0-9]+)/$', views.text_views.text, name="text"),
-    re_path(r'^api/v2/annotate/(?P<text_id>[0-9]+)/$', views.annotation_views.annotate, name="annotate"),
+    re_path(r'^api/v2/annotate/(?P<text_id>[0-9]+)/', views.annotation_views.annotate, name="annotate"),
     re_path(r'^display/(?P<text_id>[0-9]+)/$', views.annotation_views.annotation_display, name="annotation-display"),
 
     re_path(r'^project/(?P<project_id>[0-9]+)/$', views.project_views.view_project, name='view_project'),
