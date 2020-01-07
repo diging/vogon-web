@@ -11,6 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework import viewsets
 from rest_framework.response import Response as RestResponse
+from rest_framework.decorators import api_view
 
 from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, Appellation
 from annotations.annotators import annotator_factory
