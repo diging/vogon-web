@@ -18,7 +18,7 @@ from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, serializers, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 
 from annotations.forms import (RelationTemplatePartFormSet,
@@ -49,6 +49,22 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
         serializer = TemplatePartSerializer(data, many=True)
         result = serializer.data
         return Response(result)
+
+    @action(detail=True, methods=['post'])
+    def create_relation(self, request, pk=None):
+        template = get_object_or_404(RelationTemplate, pk=pk)
+        data = request.data
+        text = get_object_or_404(Text, pk=data['occursIn'])
+        
+        project_id = data.get('project', None)
+        if project_id is None:
+            project_id = VogonUserDefaultProject.objects.get(
+                for_user=request.user).project.id
+        
+        relationset = relations.create_relationset(
+            template, data, request.user, text, project_id
+        )
+        return JsonResponse({ 'relationset': relationset.id })
 
     def get_queryset(self, *args, **kwargs):
         queryset = super(RelationTemplateViewSet, self).get_queryset(*args, **kwargs)
