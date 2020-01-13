@@ -107,4 +107,5 @@ class Concept(HeritableObject):
 
 
 class Type(Concept):
-    pass
+    def __str__(self):
+        return self.typed_label

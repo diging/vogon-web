@@ -25,7 +25,7 @@ from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm, RelationTemplateForm)
 from annotations.models import *
 from annotations import relations
-from annotations.serializers import TemplatePartSerializer
+from annotations.serializers import TemplatePartSerializer, TypeSerializer
 from concepts.models import Concept, Type
 
 
@@ -78,6 +78,13 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
         if not all_templates:
             queryset = queryset.filter(createdBy=self.request.user)
         return queryset
+
+    @action(detail=False)
+    def create_form(self, request):
+        types = Type.objects.all()
+        return Response({
+            'open_concepts': TypeSerializer(types, context={'request': request}, many=True).data
+        })
         
 
 @staff_member_required
