@@ -1,25 +1,61 @@
-from django.contrib.auth.decorators import login_required
 import json
+from urllib.parse import urlencode
+from requests import Response
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
-
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.core import serializers
+from django_filters import FilterSet
+from django_filters.rest_framework import DjangoFilterBackend
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from rest_framework import viewsets
+from rest_framework.response import Response as RestResponse
+from rest_framework.decorators import api_view
 
 from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, Appellation
 from annotations.annotators import annotator_factory
-from annotations.serializers import RelationSerializer
+from annotations.serializers import (RelationSerializer, RelationSetSerializer,
+    ProjectSerializer, UserSerializer)
+from annotations.filters import RelationSetFilter
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from urllib.parse import urlencode
 
-from django.core import serializers
-from django_filters import FilterSet
-from requests import Response
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from annotations.serializers import TextSerializer, Text2Serializer
-from django.core import serializers
+class RelationSetViewSet(viewsets.ModelViewSet):
+    queryset = RelationSet.objects.all().order_by('-created')
+    serializer_class = RelationSetSerializer
 
+    def list(self, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer_class()
+
+        self.page = self.paginate_queryset(queryset)
+        if self.page is not None:
+            serializer = self.get_serializer(self.page, many=True)
+            return self.get_paginated_response(serializer.data, meta=self.request.query_params.get('meta', False))
+        else:
+            relations = serializer(queryset, many=True).data
+            
+        return RestResponse(relations)
+
+    def get_paginated_response(self, data, meta):
+        extra = {}
+        if meta:
+            projects = TextCollection.objects.all()
+            users = VogonUser.objects.all()
+            extra = {
+                'projects': ProjectSerializer(projects, many=True).data,
+                'users': UserSerializer(users, many=True).data
+            }
+        return RestResponse({
+            'count':len(self.get_queryset()),
+            'results': data,
+            **extra
+        })
+    
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(RelationSetViewSet, self).get_queryset(*args, **kwargs)
+        filtered = RelationSetFilter(self.request.query_params, queryset)
+        return filtered.qs
 
 #@login_required
 #@ensure_csrf_cookie

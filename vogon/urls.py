@@ -34,7 +34,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'appellation', views.rest_views.AppellationViewSet)
 router.register(r'predicate', views.rest_views.PredicateViewSet)
 router.register(r'relation', views.rest_views.RelationViewSet)
-router.register(r'relationset', views.rest_views.RelationSetViewSet)
+router.register(r'relationset', views.annotation_views.RelationSetViewSet)
 router.register(r'relationtemplate', views.relationtemplate_views.RelationTemplateViewSet)
 router.register(r'text', views.rest_views.TextViewSet)
 router.register(r'repository', views.repository_views.RepositoryViewSet)
@@ -46,7 +46,7 @@ router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet)
 # used to create users
-router.register(r'users', account_views.UserViewSet, basename='users')
+router.register(r'users', views.user_views.UserViewSet, basename='users')
 repository_router = routers.NestedSimpleRouter(router, r'repository', lookup='repository')
 repository_router.register(r'collections', views.repository_views.RepositoryCollectionViewSet, base_name='repository-collections')
 repository_router.register(r'texts', views.repository_views.RepositoryTextView, base_name='repository-texts')
@@ -63,6 +63,7 @@ urlpatterns = [
     path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/v2/github-token/', account_views.github_token, name="github_token"),
 
+    re_path(r'^api/v2/dashboard', views.user_views.DashboardView.as_view(), name='user_dashboard'),
 
     re_path(r'^$', views.main_views.home, name='home'),
 

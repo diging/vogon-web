@@ -32,7 +32,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         relations = RelationSet.objects.filter(
             terminal_nodes=concept
         ).order_by('-created')[:10]
-        relations = RelationSetSerializer(relations, many=True)
+        relations = RelationSetSerializer(relations, many=True, context={'request': request})
         result['relations'] = relations.data
 
         return Response(result)

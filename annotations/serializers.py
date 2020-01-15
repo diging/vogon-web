@@ -6,10 +6,15 @@ from concepts.models import Concept, Type
 
 
 class UserSerializer(serializers.ModelSerializer):
+    annotation_count = serializers.IntegerField(allow_null=True)
+    relation_count = serializers.IntegerField(allow_null=True)
+    text_count = serializers.IntegerField(allow_null=True)
+
     class Meta:
         model = VogonUser
         fields = ('username', 'email', 'id', 'affiliation', 'location',
-                  'full_name', 'link')
+                  'full_name', 'link', 'is_admin', 'imagefile',
+                  'annotation_count', 'relation_count', 'text_count')
 
 
 class RemoteCollectionSerializer(serializers.Serializer):
@@ -55,7 +60,8 @@ class TextSerializer(serializers.ModelSerializer):
     class Meta:
         model = Text
         fields = ('id', 'uri', 'title', 'created', 'added', 'addedBy',
-                  'source', 'annotators', 'annotation_count', 'children')
+                  'source', 'annotators', 'annotation_count', 'children',
+                  'repository_id', 'repository_source_id')
 
     def create(self, validated_data):
         repository = Repository.objects.get(pk=validated_data['source'])
@@ -118,18 +124,36 @@ class AppellationPOSTSerializer(serializers.ModelSerializer):
                   'interpretation_type_label', 'position', 'project')
 
 
+class RelationTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RelationTemplate
+        fields = '__all__'
+
+
 class RelationSetSerializer(serializers.ModelSerializer):
+    class DateAppellationPredicateSerializer(serializers.BaseSerializer):
+        def to_representation(self, obj):
+            return {
+                'interpretation': ConceptSerializer(obj[0], context=self.context).data,
+                'appellation': DateAppellationSerializer(obj[1], context=self.context).data
+            }
     appellations = AppellationSerializer(many=True)
     date_appellations = DateAppellationSerializer(many=True)
     concepts = ConceptSerializer(many=True)
     createdBy = UserSerializer()
+    template = RelationTemplateSerializer()
+    date_appellations_with_predicate = DateAppellationPredicateSerializer(many=True)
+    occursIn = TextSerializer()
+    created = serializers.DateTimeField()
 
     class Meta:
         model = RelationSet
         fields = ('id', 'label', 'created', 'template', 'createdBy',
                   'occursIn', 'appellations', 'concepts', 'project',
                   'representation', 'date_appellations', 'submitted',
-                  'submittedOn', 'pending')  #
+                  'submittedOn', 'pending', 'ready', 'template',
+                  'date_appellations_with_predicate', 'occurs_in_text',
+                  'terminal_nodes')  #
 
 
 class TemporalBoundsSerializer(serializers.ModelSerializer):

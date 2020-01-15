@@ -15,13 +15,13 @@ class VogonUserAdmin(UserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('username', 'full_name', 'email', 'affiliation', 'is_admin')
+    list_display = ('username', 'full_name', 'email', 'affiliation', 'is_admin', 'imagefile')
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {
             'fields': ('full_name', 'affiliation', 'location', 'link',
-                       'conceptpower_uri')
+                       'conceptpower_uri', 'imagefile')
         }),
         ('Permissions', {'fields': ('is_admin', 'is_active')}),
     )
