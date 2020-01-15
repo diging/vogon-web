@@ -27,6 +27,7 @@ from annotations.models import *
 from annotations import relations
 from annotations.serializers import TemplatePartSerializer, TypeSerializer
 from concepts.models import Concept, Type
+from goat.views import retrieve as retrieve_concept
 
 
 logger = logging.getLogger(__name__)
@@ -79,12 +80,79 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(createdBy=self.request.user)
         return queryset
 
+    def create(self, request):
+        data = request.data
+        template_data = {
+            'name': data.get('name', None),
+            'description': data.get('description', ''),
+            'expression': data.get('expression', ''),
+            'terminal_nodes': data.get('terminal_nodes', ''),
+            'createdBy': request.user,
+        }
+        
+        # Create required concepts
+        for part in data.get('parts', []):
+            for field in ['source', 'predicate', 'object']:
+                node_type = part[f'{field}_node_type']
+                if node_type == 'CO':
+                    concept = self.add_concept(part[f'{field}_concept'])
+                    part[f'{field}_concept'] = concept
+                elif node_type == 'TP':
+                    concept_type_id = part[f'{field}_type']
+                    concept_type = Type.objects.get(pk=concept_type_id)
+                    part[f'{field}_type'] = concept_type
+                if field != 'predicate':
+                    internal_id = part[f'{field}_relationtemplate_internal_id']
+                    part[f'{field}_relationtemplate_internal_id'] = int(internal_id)
+
+        try:
+            template = relations.create_template(
+                template_data,
+                data.get('parts', [])
+            )
+            return Response({
+                'success': True,
+                'template_id': template.id
+            })
+        except relations.InvalidTemplate as E:
+            return Response({
+                'success': False,
+                'error': str(E)
+            }, status=500)
+
     @action(detail=False)
     def create_form(self, request):
         types = Type.objects.all()
         return Response({
             'open_concepts': TypeSerializer(types, context={'request': request}, many=True).data
         })
+
+    def add_concept(self, concept):
+        uri = concept['uri']
+        try:
+            # Try to find the concept in vogon by `uri`
+            result = Concept.objects.get(uri=uri)
+        except Concept.DoesNotExist:
+            # Find the concept from Goat by `uri`
+            concept = retrieve_concept(uri)
+            data = dict(
+                uri=uri,
+                label=concept['name'],
+                description=concept['description'],
+            )
+            ctype_data = concept['concept_type']
+            if ctype_data:
+                data.update({
+                    'typed': Type.objects.get_or_create(
+                        uri=ctype_data['identifier'],
+                        label=ctype_data['identifier']
+                    )[0]
+                })
+
+            # Create the concept object in vogon
+            result = Concept.objects.create(**data)
+        
+        return result
         
 
 @staff_member_required
