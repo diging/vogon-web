@@ -64,7 +64,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
         relationset = relations.create_relationset(
             template, data, request.user, text, project_id
         )
-        return JsonResponse({ 'relationset': relationset.id })
+        return JsonResponse({ 'relationset_id': relationset.id })
 
     def get_queryset(self, *args, **kwargs):
         queryset = super(RelationTemplateViewSet, self).get_queryset(*args, **kwargs)
