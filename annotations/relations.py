@@ -362,7 +362,7 @@ def handle_temporal_data(template, data, creator, text, relationset, relations, 
     if depgraph.size() == 0:
         root = template.template_parts.first().internal_id
     else:
-        root = nx.topological_sort(depgraph)[0]
+        root = list(nx.topological_sort(depgraph))[0]
     top_relation = relations[root]    # To which we attach temporal relations.
 
     for relation_type in ['start', 'end', 'occur']:

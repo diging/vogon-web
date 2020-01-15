@@ -216,6 +216,7 @@ class Concept2Serializer(serializers.Serializer):
 
 
 class Appellation2Serializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
     position = DocumentPositionSerializer(required=False)
     tokenIds = serializers.CharField(required=False)
     stringRep = serializers.CharField(required=False)
