@@ -108,4 +108,4 @@ class Concept(HeritableObject):
 
 class Type(Concept):
     def __str__(self):
-        return self.typed_label
+        return self.typed_label or self.label or self.uri

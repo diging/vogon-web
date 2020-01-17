@@ -25,7 +25,7 @@ from annotations.forms import (RelationTemplatePartFormSet,
                                RelationTemplatePartForm, RelationTemplateForm)
 from annotations.models import *
 from annotations import relations
-from annotations.serializers import TemplatePartSerializer, TypeSerializer
+from annotations.serializers import TemplatePartSerializer, TypeSerializer, TemplateSerializer
 from concepts.models import Concept, Type
 from goat.views import retrieve as retrieve_concept
 
@@ -38,18 +38,16 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
     serializer_class = TemplatePartSerializer
 
     def list(self, request):
-        queryset = self.get_queryset()
-        data = [
-            {
-                'id': item.id,
-                'name': item.name,
-                'description': item.description,
-                'fields': relations.get_fields(item),
-            } for item in queryset.order_by('-id')
-        ]
+        data = self.get_queryset()
         serializer = TemplatePartSerializer(data, many=True)
         result = serializer.data
         return Response(result)
+
+    def retrieve(self, request, pk=None):
+        queryset = RelationTemplate.objects.all()
+        template = get_object_or_404(queryset, pk=pk)
+        serializer = TemplateSerializer(template)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def create_relation(self, request, pk=None):
@@ -78,9 +76,52 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
             )
         if not all_templates:
             queryset = queryset.filter(createdBy=self.request.user)
-        return queryset
+        data = [
+            {
+                'id': item.id,
+                'name': item.name,
+                'description': item.description,
+                'fields': relations.get_fields(item),
+            } for item in queryset.order_by('-id')
+        ]
+        return data
 
     def create(self, request):
+        return self.create_or_update(request)
+    
+    def update(self, request, pk=None):
+        queryset = RelationTemplate.objects.all()
+        template = get_object_or_404(queryset, pk=pk)
+        if template:
+            request.data['id'] = template.id
+            return self.create_or_update(request)
+
+    def destroy(self, request, pk=None):
+        if not RelationSet.objects.filter(template_id=pk):
+            try:
+                with transaction.atomic():
+                    RelationTemplate.objects.filter(
+                        id=pk
+                    ).delete()
+                    RelationTemplatePart.objects.filter(
+                        part_of=pk
+                    ).delete()
+            except DatabaseError:
+                return Response({
+                    'success': False,
+                    'error': 'There was an error while deleting the relation template. Please redo the operation.'
+                }, status=500)
+        else:
+            return Response({
+                'success': False,
+                'error': 'Could not delete relation template because there is data associated with it'
+            }, status=500)
+
+        return Response({
+            'success': True
+        })
+    
+    def create_or_update(self, request):
         data = request.data
         template_data = {
             'name': data.get('name', None),
@@ -89,6 +130,8 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
             'terminal_nodes': data.get('terminal_nodes', ''),
             'createdBy': request.user,
         }
+        if data.get('id', None):
+            template_data['id'] = data['id']
         
         # Create required concepts
         for part in data.get('parts', []):
