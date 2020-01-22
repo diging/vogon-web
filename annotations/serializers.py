@@ -211,8 +211,8 @@ class TemplatePartSerializer(serializers.ModelSerializer):
 class TemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RelationTemplate
-        fields = ('id', 'name', 'description', 'template_parts')
-        depth = 1
+        fields = ('id', 'name', 'created', 'description', 'expression', 'terminal_nodes', 'template_parts')
+        depth = 2
 
 class TextAllSerializer(serializers.ModelSerializer):
     class Meta:

@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django import forms
 from django.forms import widgets, BaseFormSet
+from django.forms.utils import flatatt
 from django.db.models import Count
 from django.db.utils import ProgrammingError
 from django.conf import settings
@@ -143,10 +144,10 @@ class AutocompleteWidget(widgets.TextInput):
             return formats.localize_input(value)
         return value
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if value is None:
             value = ''
-        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
+        final_attrs = self.build_attrs(attrs, { "type": self.input_type, "name": name })
         if value != '':
             # Only add the 'value' attribute if a value is non-empty.
             final_attrs['value'] = widgets.force_text(self._format_value(value))
@@ -155,7 +156,7 @@ class AutocompleteWidget(widgets.TextInput):
         if 'class' in final_attrs:
             classes += ' ' + final_attrs['class']
 
-        return widgets.format_html('<input class="' + classes + '"{} />', widgets.flatatt(final_attrs))
+        return widgets.format_html('<input class="' + classes + '"{} />', flatatt(final_attrs))
 
 
 class ConceptField(forms.CharField):

@@ -29,7 +29,7 @@ class HeritableObject(models.Model):
 
         return self.real_type.get_object_for_this_type(pk=self.pk)
 
-    def __unicode__(self):
+    def __str__(self):
         return str(self.label)
 
     class Meta:
@@ -67,7 +67,7 @@ class Concept(HeritableObject):
             return self.typed.label
         return None
 
-    def __unicode__(self):
+    def __str__(self):
         if self.label:
             return self.label
         return self.uri
@@ -107,4 +107,5 @@ class Concept(HeritableObject):
 
 
 class Type(Concept):
-    pass
+    def __str__(self):
+        return self.typed_label or self.label or self.uri

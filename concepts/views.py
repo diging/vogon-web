@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.decorators import action
 import re, urllib.request, urllib.parse, urllib.error, string
 from unidecode import unidecode
 from urllib.parse import urlencode
@@ -18,6 +19,7 @@ from concepts.models import Concept, Type
 from concepts.filters import *
 from concepts.lifecycle import *
 from concepts.authorities import ConceptpowerAuthority, update_instance
+from goat.views import search as search_concepts
 
 
 class ConceptViewSet(viewsets.ModelViewSet):
@@ -108,6 +110,26 @@ class ConceptViewSet(viewsets.ModelViewSet):
         if concept_state:
             queryset = queryset.filter(concept_state=concept_state)
         return queryset
+
+    @action(detail=False)
+    def search(self, request):
+        q = request.query_params.get('q')
+        pos = request.query_params.get('pos')
+        force = request.query_params.get('force')
+        if not q:
+            return Response({'results': []})
+
+        concepts = search_concepts(q=q, user_id=request.user.id, pos=pos, limit=50, force=force)
+
+        def _relabel(datum):
+            _fields = {
+                'name': 'label',
+                'id': 'alt_id',
+                'identifier': 'uri'
+            }
+            return {_fields.get(k, k): v for k, v in list(datum.items())}
+
+        return Response({'results': list(map(_relabel, concepts))})
 
 
 class ConceptTypeViewSet(viewsets.ModelViewSet):
