@@ -16,7 +16,7 @@ from rest_framework.decorators import api_view
 from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, Appellation
 from annotations.annotators import annotator_factory
 from annotations.serializers import (RelationSerializer, RelationSetSerializer,
-    ProjectSerializer, UserSerializer)
+    ProjectSerializer, UserSerializer, Text2Serializer)
 from annotations.filters import RelationSetFilter
 
 
@@ -73,7 +73,7 @@ def annotate(request, text_id):
     print(appellations)
     data['relations'] = Relation.objects.filter(occursIn=text.id)
     serializer = Text2Serializer(data, context={'request': request})
-    return Response(serializer.data)
+    return RestResponse(serializer.data)
 
 
 @login_required
