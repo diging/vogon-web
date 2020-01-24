@@ -18,6 +18,8 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from rest_framework.decorators import permission_classes, authentication_classes
+from rest_framework.permissions import AllowAny
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -32,6 +34,7 @@ from annotations.serializers import (
 	ProjectSerializer, TextSerializer, RelationSetSerializer,
 	UserSerializer, TextCollectionSerializer, RelationSetSerializer
 )
+from accounts.serializers import UserSerializer as VogonUserSerializer
 
 import datetime
 from isoweek import Week
@@ -116,15 +119,15 @@ class UserViewSet(viewsets.ModelViewSet):
 	User list and detail page
 	"""
 	queryset = VogonUser.objects.exclude(id=-1).order_by('username')
-	serializer_class = UserSerializer
+	serializer_class = VogonUserSerializer
 
 	def list(self, *args, **kwargs):
 		queryset = self.get_queryset()
-		serializer = self.get_serializer_class()
+		serializer = UserSerializer
 
 		self.page = self.paginate_queryset(queryset)
 		if self.page is not None:
-			serializer = self.get_serializer(self.page, many=True)
+			serializer = UserSerializer(self.page, many=True)
 			return self.get_paginated_response(serializer.data)
 		else:
 			users = serializer(queryset, many=True).data
@@ -160,6 +163,11 @@ class UserViewSet(viewsets.ModelViewSet):
 			'relations': relations,
 			'weekly_annotations': weekly_annotations
 		})
+
+	@authentication_classes([])
+	@permission_classes([AllowAny])
+	def create(self, request):
+		return super().create(request)
 
 	def get_paginated_response(self, data):
 		return Response({
