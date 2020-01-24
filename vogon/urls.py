@@ -51,6 +51,8 @@ repository_router = routers.NestedSimpleRouter(router, r'repository', lookup='re
 repository_router.register(r'collections', views.repository_views.RepositoryCollectionViewSet, base_name='repository-collections')
 repository_router.register(r'texts', views.repository_views.RepositoryTextView, base_name='repository-texts')
 
+repository_content_router = routers.NestedSimpleRouter(repository_router, r'texts', lookup='texts')
+repository_content_router.register(r'content', views.repository_views.RepositoryTextContentViewSet, base_name='repository-text-content')
 
 
 #Error Handlers
@@ -86,6 +88,7 @@ urlpatterns = [
 
     re_path(r'^api/v2/', include(router.urls)),
     re_path(r'^api/v2/', include(repository_router.urls)),
+    re_path(r'^api/v2/', include(repository_content_router.urls)),
 
     # url(r'^text/$', views.search_views.TextSearchView.as_view(), name='text_search'),
     # url(r'^text/$', views.text_views.texts, name='text_search'),
