@@ -11,6 +11,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import login, authenticate
 from django.conf import settings
 from django.db.models import Q, Count
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -26,15 +27,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    qs = TextCollection.objects.all()
-    queryset = qs.annotate(num_texts=Count('texts'),
-                           num_relations=Count('texts__relationsets'))
+    queryset = TextCollection.objects.all()
     serializer_class = TextCollectionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ('ownedBy__username',)
 
     def retrieve(self, request, pk=None):
-        qs = TextCollection.objects.all()
-        queryset = qs.annotate(num_texts=Count('texts'),
-                               num_relations=Count('texts__relationsets'))
+        queryset = self.get_queryset()
         project = get_object_or_404(queryset, pk=pk)
         serializer = ProjectTextSerializer(project)
         return Response(serializer.data)
@@ -71,6 +70,19 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
 
+    def get_queryset(self):
+        queryset = super(ProjectViewSet, self).get_queryset()
+        queryset = queryset.annotate(
+            num_texts=Count('texts'),
+            num_relations=Count('texts__relationsets')
+        )
+        return queryset
+
+    def get_paginated_response(self, data):
+        return Response({
+            'count':len(self.filter_queryset(self.get_queryset())),
+            'results': data
+        })
 
 def view_project(request, project_id):
     """

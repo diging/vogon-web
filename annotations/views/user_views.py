@@ -150,7 +150,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 		relations_qs = RelationSet.objects.filter(createdBy=user) \
 			.order_by('-created')[:10]
-		relations = RelationSetSerializer(relations_qs, many=True).data
+		relations = RelationSetSerializer(relations_qs, many=True, context={'request': request}).data
 
 		weekly_annotations = self.get_weekly_annotations(user)
 
