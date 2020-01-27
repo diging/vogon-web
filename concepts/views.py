@@ -14,7 +14,10 @@ from urllib.parse import urlencode
 import uuid
 
 from annotations.models import RelationSet, Appellation, TextCollection, VogonUserDefaultProject
-from annotations.serializers import ConceptSerializer, TypeSerializer, RelationSetSerializer
+from annotations.serializers import (
+    ConceptSerializer, TypeSerializer, RelationSetSerializer,
+    ConceptLifecycleSerializer
+)
 from concepts.models import Concept, Type
 from concepts.filters import *
 from concepts.lifecycle import *
@@ -23,7 +26,9 @@ from goat.views import search as search_concepts
 
 
 class ConceptViewSet(viewsets.ModelViewSet):
-    queryset = Concept.objects.filter(~Q(concept_state=Concept.REJECTED))
+    queryset = Concept.objects.filter(~Q(concept_state=Concept.REJECTED)) \
+            .filter(appellation__isnull=False) \
+            .distinct('id').order_by('-id')
     serializer_class = ConceptSerializer
 
     def retrieve(self, request, pk=None):
@@ -130,6 +135,22 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return {_fields.get(k, k): v for k, v in list(datum.items())}
 
         return Response({'results': list(map(_relabel, concepts))})
+
+    @action(detail=True, methods=['GET', 'POST'])
+    def approve(self, request, pk=None):
+        if request.method == 'GET':
+            concept = get_object_or_404(Concept, pk=pk)
+            manager = ConceptLifecycle(concept)
+
+            candidates = manager.get_similar()
+            matches = manager.get_matching()
+
+            return Response({
+                'concept': self.get_serializer(concept, many=False).data,
+                'candidates': ConceptLifecycleSerializer(candidates, many=True).data,
+                'matches': ConceptLifecycleSerializer(matches, many=True).data,
+            })
+
 
 
 class ConceptTypeViewSet(viewsets.ModelViewSet):

@@ -67,6 +67,11 @@ class Concept(HeritableObject):
             return self.typed.label
         return None
 
+    @property
+    def conceptpower_namespaced(self):
+        from concepts.authorities import get_namespace, ConceptpowerAuthority
+        return get_namespace(self.uri) == ConceptpowerAuthority.namespace
+
     def __str__(self):
         if self.label:
             return self.label
