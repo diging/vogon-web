@@ -93,8 +93,13 @@ class ConceptSerializer(serializers.ModelSerializer):
         model = Concept
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
                   'description', 'pos', 'resolved', 'typed_label',
-                  'concept_state', 'appellation_set')
+                  'concept_state', 'appellation_set', 'conceptpower_namespaced')
 
+class ConceptLifecycleSerializer(serializers.Serializer):
+    label = serializers.CharField(required=True)
+    description = serializers.CharField(required=False)
+    typed = serializers.CharField(required=False)
+    uri = serializers.CharField(required=False)
 
 class AppellationSerializer(serializers.ModelSerializer):
     position = DocumentPositionSerializer(required=False)
