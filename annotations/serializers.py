@@ -88,12 +88,23 @@ class TypeSerializer(serializers.ModelSerializer):
 
 class ConceptSerializer(serializers.ModelSerializer):
     typed = TypeSerializer(required=False)
+    typed_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = Concept
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-                  'description', 'pos', 'resolved', 'typed_label',
+                  'description', 'pos', 'resolved', 'typed_label', 'typed_id',
                   'concept_state', 'appellation_set', 'conceptpower_namespaced')
+
+    def update(self, instance, validated_data):
+        instance.label = validated_data.get('label', instance.label)
+        instance.description = validated_data.get('description', instance.description)
+        typed_id = validated_data.get('typed_id')
+        if typed_id:
+            typed_instance = Type.objects.get(pk=typed_id)
+            instance.typed = typed_instance
+        instance.save()
+        return instance
 
 class ConceptLifecycleSerializer(serializers.Serializer):
     label = serializers.CharField(required=True)
