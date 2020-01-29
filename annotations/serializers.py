@@ -106,6 +106,11 @@ class ConceptSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class ConceptExampleSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    label = serializers.CharField(required=True)
+    description = serializers.CharField(required=False)
+
 class ConceptLifecycleSerializer(serializers.Serializer):
     label = serializers.CharField(required=True)
     description = serializers.CharField(required=False)
