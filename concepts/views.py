@@ -16,7 +16,7 @@ import uuid
 from annotations.models import RelationSet, Appellation, TextCollection, VogonUserDefaultProject
 from annotations.serializers import (
     ConceptSerializer, TypeSerializer, RelationSetSerializer,
-    ConceptLifecycleSerializer
+    ConceptLifecycleSerializer, ConceptExampleSerializer
 )
 from concepts.models import Concept, Type
 from concepts.filters import *
@@ -207,6 +207,24 @@ class ConceptViewSet(viewsets.ModelViewSet):
 class ConceptTypeViewSet(viewsets.ModelViewSet):
     queryset = Type.objects.all()
     serializer_class = TypeSerializer
+    pagination_class = None
+
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        concept_type = get_object_or_404(queryset, pk=pk)
+        serializer = self.get_serializer(concept_type, many=False)
+        result = serializer.data
+        
+        examples = Concept.objects.filter(
+            typed__id=pk,
+            concept_state=Concept.RESOLVED
+        ).values('id', 'label', 'description')[:20]
+        
+        result['examples'] = ConceptExampleSerializer(
+            examples, many=True, partial=True,
+            context={'request': request}
+        ).data
+        return Response(result)
 
 def list_concept_types(request):
     """
