@@ -79,7 +79,7 @@ class Annotator(object):
         self.project = project;
         self.context = {
             'request': request,
-            'user':  VogonUser.objects.get(id=2) #request.user,
+            'user':  request.user,
         }
         self.text = text
         self.resource = None
