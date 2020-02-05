@@ -18,7 +18,6 @@ from annotations.forms import RepositorySearchForm
 from annotations.tasks import tokenize
 from repository.models import Repository
 from repository.auth import *
-from repository.managers import *
 from annotations.models import Text, TextCollection, RelationSet, VogonUser
 from annotations.annotators import supported_content_types
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
@@ -31,7 +30,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         queryset = self.get_queryset()
         repository = get_object_or_404(queryset, pk=pk)
-        manager = RepositoryManager(repository.configuration, user=request.user)
+        manager = repository.manager(request.user)
         collections = manager.collections()
         return Response({
             **self.serializer_class(repository).data,
@@ -42,7 +41,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
 class RepositoryCollectionViewSet(viewsets.ViewSet):
     def list(self, request, repository_pk=None):
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=request.user)
+        manager = repository.manager(request.user)
         collections = manager.collections()
         return Response(collections)
 
@@ -53,14 +52,13 @@ class RepositoryCollectionViewSet(viewsets.ViewSet):
             return Response([])
         
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=request.user)
-        
+        manager = repository.manager(request.user)
         results = manager.search(query=query)
         return Response(results)
 
     def retrieve(self, request, pk=None, repository_pk=None):
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=request.user)
+        manager = repository.manager(request.user)
         collection = manager.collection(id=pk)
         return Response(collection)
 
@@ -79,7 +77,7 @@ class RepositoryTextView(viewsets.ViewSet):
             except Text.DoesNotExist:
                 pass
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=request.user)
+        manager = repository.manager(request.user)
         result = manager.resource(id=int(pk))
 
         try:
@@ -145,7 +143,7 @@ def _get_pagination(response, base_url, base_params):
 def repository_collections(request, repository_id):
     template = "annotations/repository_collections.html"
     repository = get_object_or_404(Repository, pk=repository_id)
-    manager = RepositoryManager(repository.configuration, user=request.user)
+    manager = repository.manager(request.user)
     project_id = request.GET.get('project_id')
     try:
         collections = manager.collections()
@@ -169,7 +167,7 @@ def repository_collection(request, repository_id, collection_id):
     params = _get_params(request)
 
     repository = get_object_or_404(Repository, pk=repository_id)
-    manager = RepositoryManager(repository.configuration, user=request.user)
+    manager = repository.manager(request.user)
     try:
         collection = manager.collection(id=collection_id, **params)
     except IOError:
@@ -203,7 +201,7 @@ def repository_browse(request, repository_id):
     params = _get_params(request)
 
     repository = get_object_or_404(Repository, pk=repository_id)
-    manager = RepositoryManager(repository.configuration, user=request.user)
+    manager = repository.manager(request.user)
     project_id = request.GET.get('project_id')
     try:
         resources = manager.list(**params)
@@ -240,7 +238,7 @@ def repository_search(request, repository_id):
     params = _get_params(request)
 
     repository = get_object_or_404(Repository, pk=repository_id)
-    manager = RepositoryManager(repository.configuration, user=request.user)
+    manager = repository.manager(request.user)
     query = request.GET.get('query', None)
     project_id = request.GET.get('project_id')
     if query:
@@ -286,7 +284,7 @@ def repository_details(request, repository_id):
     user = None if isinstance(request.user, AnonymousUser) else request.user
 
     repository = get_object_or_404(Repository, pk=repository_id)
-    manager = RepositoryManager(repository.configuration, user=user)
+    manager = repository.manager(request.user)
     project_id = request.GET.get('project_id')
     context = {
         'user': user,
@@ -324,7 +322,7 @@ def repository_text(request, repository_id, text_id):
     else:
         project = None
     repository = get_object_or_404(Repository, pk=repository_id)
-    manager = RepositoryManager(repository.configuration, user=request.user)
+    manager = repository.manager(request.user)
     try:
         result = manager.resource(id=int(text_id))
     except IOError:
@@ -367,7 +365,7 @@ def repository_text_content(request, repository_id, text_id, content_id):
 
     repository = get_object_or_404(Repository, pk=repository_id)
 
-    manager = RepositoryManager(repository.configuration, user=request.user)
+    manager = repository.manager(request.user)
     # content_resources = {o['id']: o for o in resource['content']}
     # content = content_resources.get(int(content_id))    # Not a dict.
     try:
@@ -446,7 +444,7 @@ def repository_text_add_to_project(request, repository_id, text_id, project_id):
     repository = get_object_or_404(Repository, pk=repository_id)
     project = get_object_or_404(TextCollection, pk=project_id)
 
-    manager = RepositoryManager(repository.configuration, user=request.user)
+    manager = repository.manager(request.user)
 
     try:
         resource = manager.resource(id=int(text_id))

@@ -119,6 +119,17 @@ class Repository(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     configuration = models.TextField()
+    url = models.CharField(max_length=255, default='')
+
+    AMPHORA = 'Amphora'
+    REPO_CHOICES = [
+        (AMPHORA, 'Amphora')
+    ]
+    repo_type = models.CharField(
+        max_length=100,
+        choices=REPO_CHOICES, 
+        default=AMPHORA
+    )
 
     # def __init__(self, *args, **kwargs):
     #     super(Repository, self).__init__(*args, **kwargs)
@@ -131,8 +142,9 @@ class Repository(models.Model):
     #         pass
 
     def manager(self, user):
-        from repository.managers import RepositoryManager
-        return RepositoryManager(self.configuration, user=user)
+        if self.repo_type == self.AMPHORA:
+            from repository.managers import AmphoraRepository
+            return AmphoraRepository(user=user, endpoint=self.url)
 
     def can(self, method_name):
         return method_name in list(self._get_configuration()['methods'].keys())
