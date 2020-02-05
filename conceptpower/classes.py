@@ -81,6 +81,8 @@ class Conceptpower:
 
         url = "{0}ConceptLookup/{1}/{2}".format(self.endpoint, query, pos)
         response = requests.get(url, headers = { 'Accept': 'application/xml' })
+        if response.status_code != 200:
+            return []
         root = ET.fromstring(response.content)
         conceptEntries = root.findall("{0}conceptEntry".format(self.namespace))
 

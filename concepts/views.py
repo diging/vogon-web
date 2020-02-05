@@ -14,7 +14,10 @@ from urllib.parse import urlencode
 import uuid
 
 from annotations.models import RelationSet, Appellation, TextCollection, VogonUserDefaultProject
-from annotations.serializers import ConceptSerializer, TypeSerializer, RelationSetSerializer
+from annotations.serializers import (
+    ConceptSerializer, TypeSerializer, RelationSetSerializer,
+    ConceptLifecycleSerializer, ConceptExampleSerializer
+)
 from concepts.models import Concept, Type
 from concepts.filters import *
 from concepts.lifecycle import *
@@ -23,7 +26,9 @@ from goat.views import search as search_concepts
 
 
 class ConceptViewSet(viewsets.ModelViewSet):
-    queryset = Concept.objects.filter(~Q(concept_state=Concept.REJECTED))
+    queryset = Concept.objects.filter(~Q(concept_state=Concept.REJECTED)) \
+            .filter(appellation__isnull=False) \
+            .distinct('id').order_by('-id')
     serializer_class = ConceptSerializer
 
     def retrieve(self, request, pk=None):
@@ -36,6 +41,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
         ).order_by('-created')[:10]
         relations = RelationSetSerializer(relations, many=True, context={'request': request})
         result['relations'] = relations.data
+
+        types = Type.objects.all()
+        result['types'] = TypeSerializer(types, many=True, context={'request': request}).data
 
         return Response(result)
 
@@ -131,10 +139,92 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
         return Response({'results': list(map(_relabel, concepts))})
 
+    @action(detail=True, methods=['GET'])
+    def matches(self, request, pk=None):
+        concept = get_object_or_404(Concept, pk=pk)
+        manager = ConceptLifecycle(concept)
+
+        candidates = manager.get_similar()
+        matches = manager.get_matching()
+
+        return Response({
+            'concept': self.get_serializer(concept, many=False).data,
+            'candidates': ConceptLifecycleSerializer(candidates, many=True).data,
+            'matches': ConceptLifecycleSerializer(matches, many=True).data,
+        })
+    
+    @action(detail=True, methods=['POST'])
+    def approve(self, request, pk=None):
+        concept = get_object_or_404(Concept, pk=pk)
+        manager = ConceptLifecycle(concept)
+        manager.approve()
+        
+        return Response({
+            'success': True
+        })
+
+    @action(detail=True, methods=['POST'])
+    def merge(self, request, pk=None):
+        source = get_object_or_404(Concept, pk=pk)
+        manager = ConceptLifecycle(source)
+
+        target = request.query_params.get('target')
+        manager.merge_with(target)
+
+        return Response({
+            'success': True
+        })
+
+    @action(detail=True, methods=['POST'])
+    def add(self, request, pk=None):
+        concept = get_object_or_404(Concept, pk=pk)
+        manager = ConceptLifecycle(concept)
+
+        if concept.concept_state != Concept.APPROVED:
+            return Response({
+                'success': False,
+                'error': 'Concept should be approved!'
+            }, status=403)
+
+        try:
+            manager.add()
+        except ConceptUpstreamException as E:
+            return Response({
+                'success': False,
+                'error': 'Conceptpower is causing problems - %s' % str(E)
+            }, status=500)
+        except ConceptLifecycleException as E:
+            return Response({
+                'success': False,
+                'error': 'Conceptpower lifecycle error - %s' % str(E)
+            }, status=500)
+
+        return Response({
+            'success': True
+        })
+
 
 class ConceptTypeViewSet(viewsets.ModelViewSet):
     queryset = Type.objects.all()
     serializer_class = TypeSerializer
+    pagination_class = None
+
+    def retrieve(self, request, pk=None):
+        queryset = self.get_queryset()
+        concept_type = get_object_or_404(queryset, pk=pk)
+        serializer = self.get_serializer(concept_type, many=False)
+        result = serializer.data
+        
+        examples = Concept.objects.filter(
+            typed__id=pk,
+            concept_state=Concept.RESOLVED
+        ).values('id', 'label', 'description')[:20]
+        
+        result['examples'] = ConceptExampleSerializer(
+            examples, many=True, partial=True,
+            context={'request': request}
+        ).data
+        return Response(result)
 
 def list_concept_types(request):
     """

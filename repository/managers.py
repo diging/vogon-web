@@ -82,4 +82,24 @@ class AmphoraRepository:
             url=f'{self.endpoint}/content/{id}/',
             headers=self.headers,
         )
-        return json.loads(response.content)
+        result = json.loads(response.content)
+        result['location'] = result['content_location']
+        result['title'] = result['name']
+        
+        next_resource = result['next'].get('resource', {})
+        next_content = result['next'].get('content', [])
+        previous_resource = result['previous'].get('resource', {})
+        previous_content = result['previous'].get('content')
+        result['next'] = next_resource
+        result['next_content'] = next_content
+        result['previous'] = previous_resource
+        result['previous_content'] = previous_content
+
+        return result
+
+    def get_raw(self, target, **params):
+        return requests.get(
+            url=target,
+            headers=self.headers,
+            params=params
+        ).content

@@ -187,7 +187,7 @@ class PlainTextAnnotator(Annotator):
         request = self.context['request']
         user = VogonUser.objects.get(id=2)
         manager = self.text.repository.manager(user)
-        endpoint = manager.configuration['endpoint']
+        endpoint = self.text.repository.url
         if urlparse(target).netloc == urlparse(endpoint).netloc:
             return manager.get_raw(target)
         response = requests.get(target)
