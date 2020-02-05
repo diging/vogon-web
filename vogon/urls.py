@@ -35,7 +35,7 @@ router.register(r'appellation', views.rest_views.AppellationViewSet)
 router.register(r'predicate', views.rest_views.PredicateViewSet)
 router.register(r'relation', views.rest_views.RelationViewSet)
 router.register(r'relationset', views.annotation_views.RelationSetViewSet)
-router.register(r'relationtemplate', views.relationtemplate_views.RelationTemplateViewSet)
+router.register(r'relationtemplate', views.relationtemplate_views.RelationTemplateViewSet, base_name='relationtemplate')
 router.register(r'text', views.rest_views.TextViewSet)
 router.register(r'repository', views.repository_views.RepositoryViewSet)
 router.register(r'temporalbounds', views.rest_views.TemporalBoundsViewSet)
@@ -44,7 +44,7 @@ router.register(r'concept', conceptViews.ConceptViewSet)
 router.register(r'type', conceptViews.ConceptTypeViewSet)
 router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
-router.register(r'project', views.project_views.ProjectViewSet)
+router.register(r'project', views.project_views.ProjectViewSet, base_name='project')
 # used to create users
 router.register(r'users', views.user_views.UserViewSet, basename='users')
 repository_router = routers.NestedSimpleRouter(router, r'repository', lookup='repository')
@@ -86,7 +86,8 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
-    re_path(r'^api/v2/', include(router.urls)),
+    re_path(r'^api/v2/', include((router.urls, "vogon_rest"))),
+    # re_path(r'^api/v2/', include(router.urls)),
     re_path(r'^api/v2/', include(repository_router.urls)),
     re_path(r'^api/v2/', include(repository_content_router.urls)),
 

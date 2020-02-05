@@ -45,7 +45,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=['POST'], url_name='addtext')
     def add_text(self, request, pk=None):
         text_id = request.data['text_id']
         repo_id = request.data['repository_id']
