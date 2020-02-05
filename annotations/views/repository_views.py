@@ -17,7 +17,6 @@ from rest_framework.decorators import action
 from annotations.forms import RepositorySearchForm
 from annotations.tasks import tokenize
 from repository.models import Repository
-from repository.auth import *
 from annotations.models import Text, TextCollection, RelationSet, VogonUser
 from annotations.annotators import supported_content_types
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
