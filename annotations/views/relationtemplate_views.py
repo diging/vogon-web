@@ -49,7 +49,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
         serializer = TemplateSerializer(template)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], url_name='createrelation')
     def create_relation(self, request, pk=None):
         template = get_object_or_404(RelationTemplate, pk=pk)
         data = request.data
@@ -163,7 +163,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
                 'error': str(E)
             }, status=500)
 
-    @action(detail=False)
+    @action(detail=False, url_name='createform')
     def create_form(self, request):
         types = Type.objects.all()
         return Response({

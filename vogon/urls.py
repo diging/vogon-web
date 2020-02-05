@@ -41,7 +41,7 @@ router.register(r'repository', views.repository_views.RepositoryViewSet)
 router.register(r'temporalbounds', views.rest_views.TemporalBoundsViewSet)
 router.register(r'user', views.rest_views.UserViewSet)
 router.register(r'concept', conceptViews.ConceptViewSet)
-router.register(r'type', conceptViews.ConceptTypeViewSet)
+router.register(r'type', conceptViews.ConceptTypeViewSet, base_name='type')
 router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet, base_name='project')
@@ -87,7 +87,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     re_path(r'^api/v2/', include((router.urls, "vogon_rest"))),
-    # re_path(r'^api/v2/', include(router.urls)),
     re_path(r'^api/v2/', include(repository_router.urls)),
     re_path(r'^api/v2/', include(repository_content_router.urls)),
 
