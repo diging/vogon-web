@@ -15,7 +15,6 @@ from rest_framework import viewsets, serializers, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from repository.managers import RepositoryManager
 from repository.models import Repository
 from annotations.models import TextCollection, RelationSet, Text
 from annotations.forms import ProjectForm
@@ -54,7 +53,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         repository = get_object_or_404(Repository, pk=repo_id)
         project = get_object_or_404(TextCollection, pk=pk)
-        manager = RepositoryManager(repository.configuration, user=request.user)
+        manager = repository.manager(request.user)
         resource = manager.resource(id=int(text_id))
 
         defaults = {
