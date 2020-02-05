@@ -20,8 +20,6 @@ from annotations.tasks import tokenize
 from annotations.models import Text, TextCollection, RelationSet, VogonUser
 from annotations.annotators import supported_content_types
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
-from repository.auth import *
-from repository.managers import *
 from repository.models import Repository
 
 
@@ -100,7 +98,7 @@ class RepositoryTextView(viewsets.ViewSet):
 class RepositoryTextContentViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None, repository_pk=None, texts_pk=None):
         repository = get_object_or_404(Repository, pk=repository_pk)
-        manager = RepositoryManager(repository.configuration, user=request.user)
+        manager = repository.manager(request.user)
 
         try:
             content = manager.content(id=pk)
