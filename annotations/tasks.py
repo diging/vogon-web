@@ -17,8 +17,6 @@ from collections import defaultdict
 from annotations.models import *
 from annotations import quadriga
 
-from celery import shared_task
-
 from django.conf import settings
 import logging
 logging.basicConfig()
@@ -171,7 +169,6 @@ def save_text_instance(tokenized_content, text_title, date_created, is_public, u
     return text
 
 
-@shared_task
 def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
     logger.debug('Submitting %i relations to Quadriga' % len(rset_ids))
     rsets = RelationSet.objects.filter(pk__in=rset_ids)
@@ -210,7 +207,6 @@ def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
     else:
         logger.debug('Quadriga submission failed with %s' % str(response))
 
-@shared_task
 def accession_ready_relationsets():
     logger.debug('Looking for relations to accession to Quadriga...')
     # print 'processing %i relationsets' % len(all_rsets)
