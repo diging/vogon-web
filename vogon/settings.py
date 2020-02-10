@@ -203,18 +203,6 @@ QUADRIGA_PROJECT = os.environ.get('QUADRIGA_PROJECT', 'vogonweb')
 
 BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
 
-# Celery config.
-
-
-CELERYBEAT_SCHEDULE = {
-    'accession_ready_relationsets': {
-        'task': 'annotations.tasks.accession_ready_relationsets',
-        'schedule': timedelta(minutes=10, seconds=0),
-    },
-}
-
-CELERY_TIMEZONE = 'UTC'
-
 GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)
 
 VERSION = '0.4'
