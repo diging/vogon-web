@@ -124,7 +124,7 @@ class RelationSetAdmin(admin.ModelAdmin):
         model = RelationSet
 
     list_display = ('id', 'createdBy', 'occursIn', 'created', 'ready',
-                    'pending', 'submitted', )
+                    'submitted', )
     actions = (submit_relationsets, submit_relationsets_synch)
 
 
@@ -144,3 +144,4 @@ admin.site.register(RelationSet, RelationSetAdmin)
 admin.site.register(RelationTemplate)
 admin.site.register(RelationTemplatePart)
 admin.site.register(DateAppellation)
+admin.site.register(QuadrigaAccession)

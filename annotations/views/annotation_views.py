@@ -1,4 +1,5 @@
 import json
+import itertools as it
 from urllib.parse import urlencode
 from requests import Response
 from django.contrib.auth.decorators import login_required
@@ -11,13 +12,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from rest_framework import viewsets
 from rest_framework.response import Response as RestResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 
 from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, Appellation
 from annotations.annotators import annotator_factory
 from annotations.serializers import (RelationSerializer, RelationSetSerializer,
     ProjectSerializer, UserSerializer, Text2Serializer)
 from annotations.filters import RelationSetFilter
+from annotations.tasks import submit_relationsets_to_quadriga
 
 
 class RelationSetViewSet(viewsets.ModelViewSet):
@@ -57,6 +59,35 @@ class RelationSetViewSet(viewsets.ModelViewSet):
         filtered = RelationSetFilter(self.request.query_params, queryset)
         return filtered.qs
 
+    @action(detail=False, methods=['post'])
+    def submit_for_quadriga(self, request):
+        relationset_ids = request.data.get('relationset_ids', [])
+        relationsets = RelationSet.objects.filter(
+            pk__in=relationset_ids,
+            createdBy=request.user,
+            submitted=False,
+        )
+        relationsets = [x for x in relationsets if x.ready()]
+        
+        project_grouper = lambda x: getattr(x.project, 'quadriga_id', -1)
+        for project_id, project_group in it.groupby(relationsets, key=project_grouper):
+            for text_id, text_group in it.groupby(project_group, key=lambda x: x.occursIn.id):
+                text = Text.objects.get(pk=text_id)
+                rsets = []
+                for rs in text_group:
+                    rsets.append(rs.id)
+                    rs.save()
+                kwargs = {}
+                if project_id:
+                    kwargs.update({
+                        'project_id': project_id
+                    })
+
+                submit_relationsets_to_quadriga(rsets, text.id, request.user.id, **kwargs)
+
+
+        return RestResponse({})
+
 #@login_required
 #@ensure_csrf_cookie
 @api_view(['GET', 'POST'])
@@ -72,6 +103,13 @@ def annotate(request, text_id):
     data['appellations'] = appellations
     print(appellations)
     data['relations'] = Relation.objects.filter(occursIn=text.id)
+    relationsets = RelationSet.objects.filter(
+        occursIn=text.id, 
+        createdBy=request.user, 
+        submitted=False,
+    )
+    relationsets = [x for x in relationsets if x.ready()]
+    data['pending_relationsets'] = relationsets
     serializer = Text2Serializer(data, context={'request': request})
     return RestResponse(serializer.data)
 
