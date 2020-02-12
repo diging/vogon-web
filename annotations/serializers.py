@@ -80,6 +80,7 @@ class TextSerializer(serializers.ModelSerializer):
 
 
 class TypeSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name="vogon_rest:type-detail")
     class Meta:
         model = Type
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
@@ -89,6 +90,7 @@ class TypeSerializer(serializers.ModelSerializer):
 class ConceptSerializer(serializers.ModelSerializer):
     typed = TypeSerializer(required=False)
     typed_id = serializers.IntegerField(required=False, allow_null=True)
+    url = serializers.HyperlinkedIdentityField(view_name="vogon_rest:concept-detail")
 
     class Meta:
         model = Concept
