@@ -21,8 +21,6 @@ from rest_framework import viewsets, serializers, status
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 
-from annotations.forms import (RelationTemplatePartFormSet,
-                               RelationTemplatePartForm, RelationTemplateForm)
 from annotations.models import *
 from annotations import relations
 from annotations.serializers import TemplatePartSerializer, TypeSerializer, TemplateSerializer
