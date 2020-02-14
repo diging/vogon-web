@@ -65,9 +65,9 @@ urlpatterns = [
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/v2/github-token/', account_views.github_token, name="github_token"),
-    re_path(r'^api/v2/', include(router.urls)),
-    re_path(r'^api/v2/', include(repository_router.urls)),
-    re_path(r'^api/v2/', include(repository_content_router.urls)),
+    re_path(r'^api/v2/', include((router.urls, "vogon_rest"))),
+    re_path(r'^api/v2/', include((repository_router.urls, "vogon_rest"))),
+    re_path(r'^api/v2/', include((repository_content_router.urls, "vogon_rest"))),
 
     path('admin/', admin.site.urls),
 

@@ -158,11 +158,6 @@ AUTH_USER_MODEL = 'annotations.VogonUser'
 es = urlparse(os.environ.get('SEARCHBOX_URL') or 'http://127.0.0.1:9200/')
 port = es.port or 80
 
-# AWS Access Key and Secret Key credentials
-AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
-AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
-S3_BUCKET = 'vogonweb-test'
-DEFAULT_USER_IMAGE = 'https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png'
 
 TEMPORAL_PREDICATES = {
     'start':
