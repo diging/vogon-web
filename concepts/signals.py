@@ -21,7 +21,7 @@ def concept_post_save_receiver(sender, **kwargs):
     instance = kwargs.get('instance', None)
     if instance:
         logger.debug("Received post_save signal for Concept %s" % instance.uri)
-        resolve_concept.delay(instance.id)
+        resolve_concept(instance.id)
 
 #
 #

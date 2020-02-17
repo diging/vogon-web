@@ -6,7 +6,6 @@ import dicttoxml
 
 #---------- LOCAL SETTINGS COMMAND -------------------
 import os
-os.system("export REDIS_URL=redis://")
 os.system("export DJANGO_SETTINGS_MODULE='vogon.local_settings'")
 
 

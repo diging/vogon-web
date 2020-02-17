@@ -1,5 +1,7 @@
 from django.test import TestCase
 from django.db.models.signals import post_save
+from django.db import transaction
+from django.db import IntegrityError
 from concepts.authorities import resolve, search
 from concepts.models import Concept, Type
 from concepts.signals import concept_post_save_receiver
@@ -358,7 +360,7 @@ class TestConceptLifeCycle(TestCase):
             label = "Test",
             uri = "http://viaf.org/viaf/12345",
             resolve = False,
-            typed = Type.objects.get_or_create(uri='viaf:personal')[0]
+            typed = Type.objects.get_or_create(uri='viaf:personal',label='viaf')[0]
         )
         concept = manager.instance
 
@@ -374,7 +376,3 @@ class TestConceptLifeCycle(TestCase):
         created = manager.get(concept.merged_with.uri)
         self.assertIn(concept.uri, created.equal_to)
 
-    def tearDown(self):
-        Concept.objects.all().delete()
-        Type.objects.all().delete()
-        reconnect_signal(post_save, concept_post_save_receiver, Type)
