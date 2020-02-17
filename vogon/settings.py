@@ -62,6 +62,7 @@ MIDDLEWARE = (
     "django.middleware.security.SecurityMiddleware",
 )
 
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 ROOT_URLCONF = "vogon.urls"
 
 SITE_ID = 1
