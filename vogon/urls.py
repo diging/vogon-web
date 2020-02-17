@@ -66,8 +66,8 @@ urlpatterns = [
     path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/v2/github-token/', account_views.github_token, name="github_token"),
     re_path(r'^api/v2/', include((router.urls, "vogon_rest"))),
-    re_path(r'^api/v2/', include((repository_router.urls, "vogon_rest"))),
-    re_path(r'^api/v2/', include((repository_content_router.urls, "vogon_rest"))),
+    re_path(r'^api/v2/', include((repository_router.urls, "vogon_rest_repo"))),
+    re_path(r'^api/v2/', include((repository_content_router.urls, "vogon_rest_repo_content"))),
 
     path('admin/', admin.site.urls),
 
