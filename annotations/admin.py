@@ -1,10 +1,11 @@
 from django.contrib import admin
-from annotations.forms import *
+from django.contrib.auth.admin import UserAdmin
+from itertools import groupby
+
+from annotations.forms import UserChangeForm, UserCreationForm
 from annotations.models import *
 from annotations import quadriga
 from annotations.tasks import submit_relationsets_to_quadriga
-
-from itertools import groupby
 
 
 class VogonUserAdmin(UserAdmin):
