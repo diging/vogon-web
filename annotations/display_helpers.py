@@ -87,9 +87,9 @@ def get_snippet_relation(relationset):
             grouped_words.append(tokenSeq)
 
     # Now build the snippet.
-    combined_snippet = u""
+    combined_snippet = ""
     for tokenSeq in grouped_words:
-        snippet = u""
+        snippet = ""
         start_index = max(0, min([int(t) for t in tokenSeq])) - 5
         end_index = max([int(t) for t in tokenSeq]) + 5
         for i in range(start_index, end_index):
@@ -100,11 +100,11 @@ def get_snippet_relation(relationset):
             if str(i) in tokenSeq:
                 # Tooltip shows the interpretation (Concept) for this
                 #  Appellation.
-                word = u"<strong data-toggle='tooltip' title='%s' class='text-warning text-snippet'>%s</strong>" % (annotation_map[str(i)], match.group(1))
+                word = "<strong data-toggle='tooltip' title='%s' class='text-warning text-snippet'>%s</strong>" % (annotation_map[str(i)], match.group(1))
             else:
                 word = match.group(1)
-            snippet = u'%s %s' % (snippet, word)
-        combined_snippet += u' ...%s... ' % snippet.strip()
+            snippet = '%s %s' % (snippet, word)
+        combined_snippet += ' ...%s... ' % snippet.strip()
     return SafeText(combined_snippet)
 
 
@@ -140,11 +140,11 @@ def get_snippet(appellation):
         word = ""
 
         if str(i) in annotated_words:
-            word = u"<strong class='text-warning text-snippet'>%s</strong>" % match.group(1)
+            word = "<strong class='text-warning text-snippet'>%s</strong>" % match.group(1)
         else:
             word = match.group(1)
-        snippet = u'%s %s' % (snippet, word)
-    return SafeText(u'...%s...' % snippet.strip())
+        snippet = '%s %s' % (snippet, word)
+    return SafeText('...%s...' % snippet.strip())
 
 
 def get_appellation_summaries(appellations):
@@ -195,7 +195,7 @@ def get_appellation_summaries(appellations):
                 elif appellation['interpretation__typed__label']:
                     type_label = appellation['interpretation__typed__label']
                 else:
-                    type_label = u''
+                    type_label = ''
                 if appellation['interpretation__merged_with__label']:
                     concept_label = appellation['interpretation__merged_with__label']
                 else:
@@ -308,35 +308,6 @@ def get_relations_summaries(relationset_qs):
         })
     return relationsets
 
-
-def user_recent_texts(user):
-    """
-    Return a list of :class:`.Text`\s recently annotated by a
-    :class:`.VogonUser`\.
-
-    TODO: Do we need this anymore?
-
-    Parameters
-    ----------
-    user : :class:`.VogonUser`
-
-    Returns
-    -------
-    list
-    """
-    fields = ['occursIn_id', 'occursIn__title', 'created']
-    by_appellations = user.appellation_set.all().order_by('-created')\
-                                          .values_list(*fields)
-    by_relations = user.relation_set.all().order_by('-created')\
-                                    .values_list(*fields)
-
-    results_sorted = sorted(chain([tuple(t) for t in by_relations],
-                                  [tuple(t) for t in by_appellations]),
-                            key=lambda t: t[2])[::-1]
-
-    return list(set([(t[0], t[1]) for t in results_sorted]))
-
-
 # def get_recent_annotations(last=20, user=None):
 #     """
 #     Generate aggregate activity feed for all annotations.
@@ -397,7 +368,7 @@ def get_recent_annotations_for_graph(annotation_by_user, start_date):
 
     # Count annotations for each week.
     for count_per_day in annotation_by_user:
-        if(isinstance(count_per_day['date'], unicode)):
+        if(isinstance(count_per_day['date'], str)):
             date = datetime.datetime.strptime(count_per_day['date'], time_format)
         else:
             date = count_per_day['date']
@@ -405,7 +376,7 @@ def get_recent_annotations_for_graph(annotation_by_user, start_date):
     annotation_per_week = list()
 
     # Sort the date and format the data in the format required by d3.js.
-    keys = (result.keys())
+    keys = (list(result.keys()))
     keys.sort()
     for key in keys:
         new_format = dict()

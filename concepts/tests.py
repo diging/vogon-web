@@ -1,5 +1,7 @@
 from django.test import TestCase
 from django.db.models.signals import post_save
+from django.db import transaction
+from django.db import IntegrityError
 from concepts.authorities import resolve, search
 from concepts.models import Concept, Type
 from concepts.signals import concept_post_save_receiver
@@ -125,14 +127,10 @@ class TestConceptLifeCycle(TestCase):
 
         mock_get.return_value = MockResponse("""<conceptpowerReply xmlns:digitalHPS="http://www.digitalhps.org/">
                 <digitalHPS:conceptEntry>
-                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">
-                http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585
-                </digitalHPS:id>
+                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585</digitalHPS:id>
                 <digitalHPS:lemma>Bradshaw 1965</digitalHPS:lemma>
                 <digitalHPS:pos>noun</digitalHPS:pos>
-                <digitalHPS:description>
-                Bradshaw, Anthony David. 1965. "The evolutionary significance of phenotypic plasticity in plants." Advances in Genetics 13: 115-155.
-                </digitalHPS:description>
+                <digitalHPS:description>Bradshaw, Anthony David. 1965. "The evolutionary significance of phenotypic plasticity in plants." Advances in Genetics 13: 115-155.</digitalHPS:description>
                 <digitalHPS:conceptList>Publications</digitalHPS:conceptList>
                 <digitalHPS:creator_id>erick</digitalHPS:creator_id>
                 <digitalHPS:equal_to/>
@@ -143,37 +141,25 @@ class TestConceptLifeCycle(TestCase):
                 <digitalHPS:deleted>false</digitalHPS:deleted>
                 <digitalHPS:wordnet_id/>
                 <digitalHPS:alternativeIds>
-                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">
-                http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585
-                </digitalHPS:id>
+                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585</digitalHPS:id>
                 </digitalHPS:alternativeIds>
                 </digitalHPS:conceptEntry>
                 <digitalHPS:conceptEntry>
-                <digitalHPS:id concept_id="WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood" concept_uri="http://www.digitalhps.org/concepts/WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood">
-                http://www.digitalhps.org/concepts/WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood
-                </digitalHPS:id>
+                <digitalHPS:id concept_id="WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood" concept_uri="http://www.digitalhps.org/concepts/WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood">http://www.digitalhps.org/concepts/WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood</digitalHPS:id>
                 <digitalHPS:lemma>christopher william bradshaw isherwood</digitalHPS:lemma>
                 <digitalHPS:pos>noun</digitalHPS:pos>
-                <digitalHPS:description>
-                United States writer (born in England) whose best known novels portray Berlin in the 1930's and who collaborated with W. H. Auden in writing plays in verse (1904-1986)
-                </digitalHPS:description>
+                <digitalHPS:description>United States writer (born in England) whose best known novels portray Berlin in the 1930's and who collaborated with W. H. Auden in writing plays in verse (1904-1986)</digitalHPS:description>
                 <digitalHPS:conceptList>WordNet</digitalHPS:conceptList>
                 <digitalHPS:creator_id/>
                 <digitalHPS:equal_to/>
                 <digitalHPS:modified_by/>
                 <digitalHPS:similar_to/>
-                <digitalHPS:synonym_ids>
-                WID-11074284-N-01-Isherwood,WID-11074284-N-02-Christopher_Isherwood,
-                </digitalHPS:synonym_ids>
+                <digitalHPS:synonym_ids>WID-11074284-N-01-Isherwood,WID-11074284-N-02-Christopher_Isherwood,</digitalHPS:synonym_ids>
                 <digitalHPS:type/>
                 <digitalHPS:deleted>false</digitalHPS:deleted>
-                <digitalHPS:wordnet_id>
-                WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood
-                </digitalHPS:wordnet_id>
+                <digitalHPS:wordnet_id>WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood</digitalHPS:wordnet_id>
                 <digitalHPS:alternativeIds>
-                <digitalHPS:id concept_id="WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood" concept_uri="http://www.digitalhps.org/concepts/WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood">
-                http://www.digitalhps.org/concepts/WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood
-                </digitalHPS:id>
+                <digitalHPS:id concept_id="WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood" concept_uri="http://www.digitalhps.org/concepts/WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood">http://www.digitalhps.org/concepts/WID-11074284-N-03-Christopher_William_Bradshaw_Isherwood</digitalHPS:id>
                 </digitalHPS:alternativeIds>
                 </digitalHPS:conceptEntry>
                 </conceptpowerReply>""")
@@ -201,14 +187,10 @@ class TestConceptLifeCycle(TestCase):
 
         mock_get.return_value = MockResponse("""<conceptpowerReply xmlns:digitalHPS="http://www.digitalhps.org/">
                 <digitalHPS:conceptEntry>
-                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">
-                http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585
-                </digitalHPS:id>
+                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585</digitalHPS:id>
                 <digitalHPS:lemma>Bradshaw 1965</digitalHPS:lemma>
                 <digitalHPS:pos>noun</digitalHPS:pos>
-                <digitalHPS:description>
-                Bradshaw, Anthony David. 1965. "The evolutionary significance of phenotypic plasticity in plants." Advances in Genetics 13: 115-155.
-                </digitalHPS:description>
+                <digitalHPS:description>Bradshaw, Anthony David. 1965. "The evolutionary significance of phenotypic plasticity in plants." Advances in Genetics 13: 115-155.</digitalHPS:description>
                 <digitalHPS:conceptList>Publications</digitalHPS:conceptList>
                 <digitalHPS:creator_id>erick</digitalHPS:creator_id>
                 <digitalHPS:equal_to/>
@@ -219,9 +201,7 @@ class TestConceptLifeCycle(TestCase):
                 <digitalHPS:deleted>false</digitalHPS:deleted>
                 <digitalHPS:wordnet_id/>
                 <digitalHPS:alternativeIds>
-                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">
-                http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585
-                </digitalHPS:id>
+                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585</digitalHPS:id>
                 </digitalHPS:alternativeIds>
                 </digitalHPS:conceptEntry>
             </conceptpowerReply>""")
@@ -269,14 +249,10 @@ class TestConceptLifeCycle(TestCase):
         """
         mock_get.return_value = MockResponse("""<conceptpowerReply xmlns:digitalHPS="http://www.digitalhps.org/">
                 <digitalHPS:conceptEntry>
-                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">
-                http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585
-                </digitalHPS:id>
+                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585</digitalHPS:id>
                 <digitalHPS:lemma>Bradshaw 1965</digitalHPS:lemma>
                 <digitalHPS:pos>noun</digitalHPS:pos>
-                <digitalHPS:description>
-                Bradshaw, Anthony David. 1965. "The evolutionary significance of phenotypic plasticity in plants." Advances in Genetics 13: 115-155.
-                </digitalHPS:description>
+                <digitalHPS:description>Bradshaw, Anthony David. 1965. "The evolutionary significance of phenotypic plasticity in plants." Advances in Genetics 13: 115-155.</digitalHPS:description>
                 <digitalHPS:conceptList>Publications</digitalHPS:conceptList>
                 <digitalHPS:creator_id>erick</digitalHPS:creator_id>
                 <digitalHPS:equal_to/>
@@ -287,9 +263,7 @@ class TestConceptLifeCycle(TestCase):
                 <digitalHPS:deleted>false</digitalHPS:deleted>
                 <digitalHPS:wordnet_id/>
                 <digitalHPS:alternativeIds>
-                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">
-                http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585
-                </digitalHPS:id>
+                <digitalHPS:id concept_id="CON76832db2-7abb-4c77-b08e-239017b6a585" concept_uri="http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585">http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585</digitalHPS:id>
                 </digitalHPS:alternativeIds>
                 </digitalHPS:conceptEntry>
                 </conceptpowerReply>""")
@@ -300,9 +274,9 @@ class TestConceptLifeCycle(TestCase):
             resolve = False
         )
         instance = manager.instance
+        
         manager.merge_with('http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585')
         instance.refresh_from_db()
-
         self.assertTrue(instance.merged_with is not None)
         self.assertIsInstance(instance.merged_with, Concept)
         self.assertEqual(instance.concept_state, Concept.MERGED)
@@ -386,7 +360,7 @@ class TestConceptLifeCycle(TestCase):
             label = "Test",
             uri = "http://viaf.org/viaf/12345",
             resolve = False,
-            typed = Type.objects.get_or_create(uri='viaf:personal')[0]
+            typed = Type.objects.get_or_create(uri='viaf:personal',label='viaf')[0]
         )
         concept = manager.instance
 
@@ -402,7 +376,3 @@ class TestConceptLifeCycle(TestCase):
         created = manager.get(concept.merged_with.uri)
         self.assertIn(concept.uri, created.equal_to)
 
-    def tearDown(self):
-        Concept.objects.all().delete()
-        Type.objects.all().delete()
-        reconnect_signal(post_save, concept_post_save_receiver, Type)

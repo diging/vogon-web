@@ -173,7 +173,7 @@ def validate_expression(template_data, part_data, **kwargs):
     N_parts = len(part_data)
 
     try:
-        keys = zip(*list(Formatter().parse(template_data.get('expression'))))[1]
+        keys = list(zip(*list(Formatter().parse(template_data.get('expression')))))[1]
         for part_id, pred_flag in map(tuple, keys):
             if not int(part_id) <= N_parts:
                 raise InvalidTemplate("Part ID in expression is invalid.")
@@ -217,6 +217,8 @@ def parse_template_part_data(part_data, **kwargs):
             '%s_%s' % (pred, field): part_data['%s_%s' % (pred, field)]
             for field in node_fields.get(part_data['%s_node_type' % pred], [])
         })
+    if part_data.get('id', None):
+        data['id'] = part_data['id']
     return data
 
 
@@ -244,23 +246,46 @@ def create_template(template_data, part_data):
     dependencies = dict(build_dependency_graph(template_data, part_data).edges())
     part_ids = {}    # Internal IDs to PK ids for RelationTemplatePart.
 
-    creation_data = map(parse_template_part_data, part_data)
+    creation_data = list(map(parse_template_part_data, part_data))
 
     with transaction.atomic():
-        template = RelationTemplate.objects.create(**template_data)
+        if template_data.get('id', None):
+            template_data['_terminal_nodes'] = template_data['terminal_nodes']
+            template_data.pop('terminal_nodes', None)
+            k = RelationTemplate.objects.filter(pk=template_data['id']).update(**template_data)
+            template = RelationTemplate.objects.get(pk=template_data['id'])
+
+        else:
+            template = RelationTemplate.objects.create(**template_data)
         for datum in creation_data:
             datum['part_of_id'] = template.id
 
+        template_part_ids = [part.id for part in template.template_parts.all()]
+
+        def get_or_create_part(data):
+            if data.get('id', None):
+                RelationTemplatePart.objects.filter(pk=data['id']).update(**data)
+                return RelationTemplatePart.objects.get(pk=data['id'])
+            else:
+                return RelationTemplatePart.objects.create(**data)
+
         parts = {
-            datum['internal_id']: RelationTemplatePart.objects.create(**datum)
+            datum['internal_id']: get_or_create_part(datum)
             for datum in creation_data
         }
-        for part in parts.values():
+        for part in list(parts.values()):
             for pred in ['source', 'object']:
                 internal = getattr(part, '%s_relationtemplate_internal_id' % pred)
                 if internal > -1:
                     setattr(part, '%s_relationtemplate' % pred, parts[internal])
                     part.save()
+        
+        # Check if any part needs to be deleted
+        part_ids = [part.get('id') for part in creation_data if part.get('id')]
+        part_ids_to_delete = list(set(template_part_ids) - set(part_ids))
+        for part_id in part_ids_to_delete:
+            RelationTemplatePart.objects.get(pk=part_id).delete()
+
     return template
 
 
@@ -362,7 +387,7 @@ def handle_temporal_data(template, data, creator, text, relationset, relations, 
     if depgraph.size() == 0:
         root = template.template_parts.first().internal_id
     else:
-        root = nx.topological_sort(depgraph)[0]
+        root = list(nx.topological_sort(depgraph))[0]
     top_relation = relations[root]    # To which we attach temporal relations.
 
     for relation_type in ['start', 'end', 'occur']:

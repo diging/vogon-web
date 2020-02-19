@@ -1,96 +1,106 @@
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse
+import itertools as it
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.decorators import action
 
-from django.shortcuts import get_object_or_404, render
-from django.views.decorators.csrf import ensure_csrf_cookie
-
-from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet
+from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, Appellation
 from annotations.annotators import annotator_factory
-
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from urllib import urlencode
-@login_required
-@ensure_csrf_cookie
-def annotate(request, text_id):
-    text = get_object_or_404(Text, pk=text_id)
-    annotator = annotator_factory(request, text)
-    return annotator.render()
+from annotations.serializers import (RelationSetSerializer,
+    ProjectSerializer, UserSerializer, Text2Serializer)
+from annotations.filters import RelationSetFilter
+from annotations.tasks import submit_relationsets_to_quadriga
 
 
-@login_required
-def annotation_display(request, text_id):
-    text = get_object_or_404(Text, pk=text_id)
-    annotator = annotator_factory(request, text)
-    return annotator.render_display()
+class RelationSetViewSet(viewsets.ModelViewSet):
+    queryset = RelationSet.objects.all().order_by('-created')
+    serializer_class = RelationSetSerializer
 
-@login_required
-def annotate_image(request, text_id):
-    template = "annotations/annotate_image.html"
-    text = Text.objects.get(pk=text_id)
+    def list(self, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer_class()
 
-    return render(request, template, context)
-
-
-def relations(request):
-    from annotations.filters import RelationSetFilter
-
-
-    filtered = RelationSetFilter(request.GET, queryset=RelationSet.objects.all())
-    qs = filtered.qs
-
-    paginator = Paginator(qs, 40)
-    page = request.GET.get('page')
-
-    data = filtered.form.cleaned_data
-    params_data = {}
-    for key, value in data.items():
-        if key in ('createdBy', 'project'):
-            if value is not None and hasattr(value, 'id'):
-                params_data[key] = value.id
-        elif key in ('createdAfter', 'createdBefore'):
-            if value is not None:
-                value = '{0.month}/{0.day}/{0.year}'.format(value)
-                params_data[key] = value
+        self.page = self.paginate_queryset(queryset)
+        if self.page is not None:
+            serializer = self.get_serializer(self.page, many=True)
+            return self.get_paginated_response(serializer.data, meta=self.request.query_params.get('meta', False))
         else:
-            params_data[key] = value
+            relations = serializer(queryset, many=True).data
+            
+        return Response(relations)
+
+    def get_paginated_response(self, data, meta):
+        extra = {}
+        if meta:
+            projects = TextCollection.objects.all()
+            users = VogonUser.objects.all()
+            extra = {
+                'projects': ProjectSerializer(projects, many=True).data,
+                'users': UserSerializer(users, many=True).data
+            }
+        return Response({
+            'count':len(self.get_queryset()),
+            'results': data,
+            **extra
+        })
+    
+    def get_queryset(self, *args, **kwargs):
+        queryset = super(RelationSetViewSet, self).get_queryset(*args, **kwargs)
+        filtered = RelationSetFilter(self.request.query_params, queryset)
+        return filtered.qs
+
+    @action(detail=False, methods=['post'])
+    def submit_for_quadriga(self, request):
+        relationset_ids = request.data.get('relationset_ids', [])
+        relationsets = RelationSet.objects.filter(
+            pk__in=relationset_ids,
+            createdBy=request.user,
+            submitted=False,
+        )
+        relationsets = [x for x in relationsets if x.ready()]
+        
+        project_grouper = lambda x: getattr(x.project, 'quadriga_id', -1)
+        for project_id, project_group in it.groupby(relationsets, key=project_grouper):
+            for text_id, text_group in it.groupby(project_group, key=lambda x: x.occursIn.id):
+                text = Text.objects.get(pk=text_id)
+                rsets = []
+                for rs in text_group:
+                    rsets.append(rs.id)
+                    rs.save()
+                kwargs = {}
+                if project_id:
+                    kwargs.update({
+                        'project_id': project_id
+                    })
+
+                submit_relationsets_to_quadriga(rsets, text.id, request.user.id, **kwargs)
 
 
-    try:
-        relations = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        relations = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        relations = paginator.page(paginator.num_pages)
+        return Response({})
 
-    context = {
-        'paginator': paginator,
-        'relations': relations,
-        'params': request.GET.urlencode(),
-        'filter': filtered,
-        'params_data': urlencode(params_data),
-        }
-    return render(request, 'annotations/relations.html', context)
+class AnnotationViewSet(viewsets.ViewSet):
+    queryset = Text.objects.all()
 
-
-def relations_graph(request):
-    from annotations.filters import RelationSetFilter
-    from annotations.views.network_views import generate_network_data_fast
-    qs = RelationSet.objects.all()
-    filtered = RelationSetFilter(request.GET, queryset=qs)
-    qs = filtered.qs
-
-    if request.GET.get('mode', None) == 'data':
-
-        nodes, edges = generate_network_data_fast(qs)
-        return JsonResponse({'elements': nodes.values() + edges.values()})
-
-    context = {
-        'relations': relations,
-        'filter': filtered,
-        'data_path': request.path + '?' + request.GET.urlencode() + '&mode=data',
-        'params': request.GET.urlencode(),
-    }
-
-    return render(request, 'annotations/relations_graph.html', context)
+    def retrieve(self, request, pk=None):
+        """
+        View to get all data related to annotate text
+        """
+        text = get_object_or_404(Text, pk=pk)
+        annotator = annotator_factory(request, text)
+        data = annotator.render()
+        appellations = Appellation.objects.filter(occursIn=text.id)
+        content = data['content'].decode("utf-8")
+        data['content'] = content
+        project = TextCollection.objects.get(id=data['project'])
+        data['project'] = project
+        data['appellations'] = appellations
+        data['relations'] = Relation.objects.filter(occursIn=text.id)
+        relationsets = RelationSet.objects.filter(
+            occursIn=text.id,
+            createdBy=request.user,
+            submitted=False,
+        )
+        relationsets = [x for x in relationsets if x.ready()]
+        data['pending_relationsets'] = relationsets
+        serializer = Text2Serializer(data, context={'request': request})
+        return Response(serializer.data)

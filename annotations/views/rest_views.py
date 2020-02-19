@@ -2,7 +2,7 @@
 Provides all of the class-based views for the REST API.
 """
 
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.conf import settings
 
 from rest_framework import status
@@ -13,25 +13,26 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
-
+from django.http import HttpResponseRedirect
+from requests_oauthlib import OAuth2Session
+from django.http import JsonResponse
 from annotations.serializers import *
 from annotations.models import *
 from concepts.models import Concept, Type
 from concepts.lifecycle import *
-
 import uuid
-
-import goat
-goat.GOAT = settings.GOAT
-goat.GOAT_APP_TOKEN = settings.GOAT_APP_TOKEN
-
+import requests
+from goat.views import retrieve as retrieve_concept
+from goat.views import search as search_concepts
+from django.core.exceptions import ObjectDoesNotExist
 import logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
+
 
 
 # http://stackoverflow.com/questions/17769814/django-rest-framework-model-serializers-read-nested-write-flat
@@ -40,16 +41,14 @@ class SwappableSerializerMixin(object):
         try:
             return self.serializer_classes[self.request.method]
         except AttributeError:
-            logger.debug(
-                '%(cls)s does not have the required serializer_classes'
-                'property' % {'cls': self.__class__.__name__})
+            logger.debug('%(cls)s does not have the required serializer_classes'
+                         'property' % {'cls': self.__class__.__name__})
             raise AttributeError
         except KeyError:
             logger.debug('request method %(method)s is not listed'
-                         ' in %(cls)s serializer_classes' % {
-                             'cls': self.__class__.__name__,
-                             'method': self.request.method
-                         })
+                         ' in %(cls)s serializer_classes' %
+                         {'cls': self.__class__.__name__,
+                          'method': self.request.method})
             # required if you don't include all the methods (option, etc) in your serializer_class
             return super(SwappableSerializerMixin, self).get_serializer_class()
 
@@ -65,17 +64,15 @@ class AnnotationFilterMixin(object):
     Mixin for :class:`viewsets.ModelViewSet` that provides filtering by
     :class:`.Text` and :class:`.User`\.
     """
-
     def get_queryset(self, *args, **kwargs):
-        queryset = super(AnnotationFilterMixin, self).get_queryset(
-            *args, **kwargs)
+        queryset = super(AnnotationFilterMixin, self).get_queryset(*args, **kwargs)
 
         textid = self.request.query_params.get('text', None)
         texturi = self.request.query_params.get('text_uri', None)
         userid = self.request.query_params.get('user', None)
         position_type = self.request.query_params.get('position_type', None)
         if position_type:
-            queryset = queryset.filter(position__position_type=position_type)
+            queryset = queryset.filter(position__position_type=position_type )
         if textid:
             queryset = queryset.filter(occursIn=int(textid))
         if texturi:
@@ -105,7 +102,7 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
-        print request.data
+        print((request.data))
         data = request.data.copy()
         position = data.pop('position', None)
         if 'month' in data and data['month'] is None:
@@ -117,20 +114,20 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
         try:
             serializer = serializer_class(data=data)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         # raise AttributeError('asdf')
         try:
             instance = serializer.save()
         except Exception as E:
-            print ":::", E
+            print((":::", E))
             raise E
 
         text_id = serializer.data.get('occursIn')
@@ -141,7 +138,7 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
                 try:
                     position_serializer.is_valid(raise_exception=True)
                 except Exception as E:
-                    print "DocumentPosition::", position_serializer.errors
+                    print(("DocumentPosition::", position_serializer.errors))
                     raise E
                 position = position_serializer.save()
 
@@ -149,16 +146,15 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
             instance.save()
 
         instance.refresh_from_db()
-        reserializer = DateAppellationSerializer(
-            instance, context={'request': request})
+        reserializer = DateAppellationSerializer(instance, context={'request': request})
 
         headers = self.get_success_headers(serializer.data)
-        return Response(
-            reserializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(reserializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
 
 
-class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
-                         viewsets.ModelViewSet):
+
+class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=False)
     serializer_class = AppellationSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
@@ -166,7 +162,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
         'GET': AppellationSerializer,
         'POST': AppellationPOSTSerializer
     }
-
     # pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
@@ -176,36 +171,32 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
 
         # A concept URI may have been passed directly, in which case we need to
         #  get (or create) the local Concept instance.
-        if type(interpretation) in [str, unicode
-                                    ] and interpretation.startswith('http'):
+        if type(interpretation) in [str, str] and interpretation.startswith('http'):
             try:
                 concept = Concept.objects.get(uri=interpretation)
             except Concept.DoesNotExist:
 
-                concept_data = goat.Concept.retrieve(identifier=interpretation)
-                type_data = concept_data.data.get('concept_type')
+                concept_data = retrieve_concept(interpretation)
+                type_data = concept_data.get('concept_type', None)
                 type_instance = None
                 if type_data:
                     try:
-                        type_instance = Type.objects.get(
-                            uri=type_data.get('identifier'))
+                        type_instance = Type.objects.get(uri=type_data.get('identifier'))
                     except Type.DoesNotExist:
-                        print type_data
+                        print(type_data)
                         type_instance = Type.objects.create(
-                            uri=type_data.get('identifier'),
-                            label=type_data.get('name'),
-                            description=type_data.get('description'),
-                            authority=concept_data.data.get('authority',
-                                                            {}).get('name'),
+                            uri = type_data.get('identifier'),
+                            label = type_data.get('name'),
+                            description = type_data.get('description'),
+                            authority = concept_data.get('authority', {}).get('name'),
                         )
 
                 concept = ConceptLifecycle.create(
-                    uri=interpretation,
-                    label=concept_data.data.get('name'),
-                    description=concept_data.data.get('description'),
-                    typed=type_instance,
-                    authority=concept_data.data.get('authority',
-                                                    {}).get('name'),
+                    uri = interpretation,
+                    label = concept_data.get('name'),
+                    description = concept_data.get('description'),
+                    typed = type_instance,
+                    authority = concept_data.get('authority', {}).get('name'),
                 ).instance
 
             data['interpretation'] = concept.id
@@ -215,20 +206,20 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
         try:
             serializer = serializer_class(data=data)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         # raise AttributeError('asdf')
         try:
             instance = serializer.save()
         except Exception as E:
-            print ":::", E
+            print((":::", E))
             raise E
 
         # Prior to 0.5, the selected tokens were stored directly in Appellation,
@@ -244,12 +235,13 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
 
         if tokenIDs:
             position = DocumentPosition.objects.create(
-                occursIn_id=text_id,
-                position_type=DocumentPosition.TOKEN_ID,
-                position_value=tokenIDs)
+                        occursIn_id=text_id,
+                        position_type=DocumentPosition.TOKEN_ID,
+                        position_value=tokenIDs)
 
             instance.position = position
             instance.save()
+
 
         if position:
             if type(position) is not DocumentPosition:
@@ -257,7 +249,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
                 try:
                     position_serializer.is_valid(raise_exception=True)
                 except Exception as E:
-                    print "DocumentPosition::", position_serializer.errors
+                    print(("DocumentPosition::", position_serializer.errors))
                     raise E
                 position = position_serializer.save()
 
@@ -265,12 +257,11 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin,
             instance.save()
 
         instance.refresh_from_db()
-        reserializer = AppellationSerializer(
-            instance, context={'request': request})
+        reserializer = AppellationSerializer(instance, context={'request': request})
 
         headers = self.get_success_headers(serializer.data)
-        return Response(
-            reserializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(reserializer.data, status=status.HTTP_201_CREATED,
+                        headers=headers)
 
     # TODO: implement some real filters!
     def get_queryset(self, *args, **kwargs):
@@ -307,8 +298,7 @@ class RelationSetViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def get_queryset(self, *args, **kwargs):
-        queryset = super(RelationSetViewSet, self).get_queryset(
-            *args, **kwargs)
+        queryset = super(RelationSetViewSet, self).get_queryset(*args, **kwargs)
 
         textid = self.request.query_params.getlist('text')
         userid = self.request.query_params.getlist('user')
@@ -316,8 +306,7 @@ class RelationSetViewSet(viewsets.ModelViewSet):
         if len(textid) > 0:
             queryset = queryset.filter(occursIn__in=[int(t) for t in textid])
         if len(userid) > 0:
-            queryset = queryset.filter(
-                createdBy__pk__in=[int(i) for i in userid])
+            queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
         elif userid is not None and type(userid) is not list:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
 
@@ -348,8 +337,7 @@ class RelationViewSet(viewsets.ModelViewSet):
         userid = self.request.query_params.getlist('user')
         typeid = self.request.query_params.getlist('type')
         conceptid = self.request.query_params.getlist('concept')
-        related_concepts = self.request.query_params.getlist(
-            'related_concepts')
+        related_concepts = self.request.query_params.getlist('related_concepts')
 
         # Refers to the predicate's interpretation, not the predicate itself.
         predicate_conceptid = self.request.query_params.getlist('predicate')
@@ -358,29 +346,15 @@ class RelationViewSet(viewsets.ModelViewSet):
         if len(textid) > 0:
             queryset = queryset.filter(occursIn__in=[int(t) for t in textid])
         if len(typeid) > 0:
-            queryset = queryset.filter(
-                source__interpretation__typed__pk__in=[int(t) for t in typeid]
-            ).filter(
-                object__interpretation__typed__pk__in=[int(t) for t in typeid])
+            queryset = queryset.filter(source__interpretation__typed__pk__in=[int(t) for t in typeid]).filter(object__interpretation__typed__pk__in=[int(t) for t in typeid])
         if len(predicate_conceptid) > 0:
-            queryset = queryset.filter(predicate__interpretation__pk__in=[
-                int(t) for t in predicate_conceptid
-            ])
+            queryset = queryset.filter(predicate__interpretation__pk__in=[int(t) for t in predicate_conceptid])
         if len(conceptid) > 0:  # Source or target concept in `concept`.
-            queryset = queryset.filter(
-                Q(source__interpretation__id__in=[int(c) for c in conceptid])
-                | Q(object__interpretation__id__in=[int(c)
-                                                    for c in conceptid]))
+            queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in conceptid]) | Q(object__interpretation__id__in=[int(c) for c in conceptid]))
         if len(related_concepts) > 0:  # Source or target concept in `concept`.
-            queryset = queryset.filter(
-                Q(source__interpretation__id__in=[
-                    int(c) for c in related_concepts
-                ]) & Q(object__interpretation__id__in=[
-                    int(c) for c in related_concepts
-                ]))
+            queryset = queryset.filter(Q(source__interpretation__id__in=[int(c) for c in related_concepts]) & Q(object__interpretation__id__in=[int(c) for c in related_concepts]))
         if len(userid) > 0:
-            queryset = queryset.filter(
-                createdBy__pk__in=[int(i) for i in userid])
+            queryset = queryset.filter(createdBy__pk__in=[int(i) for i in userid])
         elif userid is not None and type(userid) is not list:
             queryset = queryset.filter(createdBy__pk=self.request.user.id)
 
@@ -402,7 +376,6 @@ class TextViewSet(viewsets.ModelViewSet):
     queryset = Text.objects.all()
     serializer_class = TextSerializer
     permission_classes = (IsAuthenticatedOrReadOnly, )
-
     # pagination_class = StandardResultsSetPagination
 
     def get_queryset(self, *args, **kwargs):
@@ -412,11 +385,9 @@ class TextViewSet(viewsets.ModelViewSet):
 
         queryset = super(TextViewSet, self).get_queryset(*args, **kwargs)
 
-        textcollectionid = self.request.query_params.get(
-            'textcollection', None)
+        textcollectionid = self.request.query_params.get('textcollection', None)
         conceptid = self.request.query_params.getlist('concept')
-        related_concepts = self.request.query_params.getlist(
-            'related_concepts')
+        related_concepts = self.request.query_params.getlist('related_concepts')
         uri = self.request.query_params.get('uri', None)
 
         if textcollectionid:
@@ -424,13 +395,9 @@ class TextViewSet(viewsets.ModelViewSet):
         if uri:
             queryset = queryset.filter(uri=uri)
         if len(conceptid) > 0:
-            queryset = queryset.filter(appellation__interpretation__pk__in=[
-                int(c) for c in conceptid
-            ])
+            queryset = queryset.filter(appellation__interpretation__pk__in=[int(c) for c in conceptid])
         if len(related_concepts) > 1:
-            queryset = queryset.filter(
-                appellation__interpretation_id=int(related_concepts[0])
-            ).filter(appellation__interpretation_id=int(related_concepts[1]))
+            queryset = queryset.filter(appellation__interpretation_id=int(related_concepts[0])).filter(appellation__interpretation_id=int(related_concepts[1]))
 
         return queryset.distinct()
 
@@ -443,16 +410,13 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
     def get_queryset(self, *args, **kwargs):
         """
         """
-        queryset = super(TextCollectionViewSet, self).get_queryset(
-            *args, **kwargs)
+        queryset = super(TextCollectionViewSet, self).get_queryset(*args, **kwargs)
 
         userid = self.request.query_params.get('user', None)
         if userid:
             queryset = queryset.filter(ownedBy__pk=userid)
         else:
-            queryset = queryset.filter(
-                Q(ownedBy__pk=self.request.user.id)
-                | Q(participants=self.request.user.id))
+            queryset = queryset.filter(Q(ownedBy__pk=self.request.user.id) | Q(participants=self.request.user.id))
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -469,8 +433,9 @@ class TextCollectionViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(data)
 
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data,
+                        status=status.HTTP_201_CREATED,
+                        headers=headers)
 
 
 class TypeViewSet(viewsets.ModelViewSet):
@@ -485,7 +450,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
-        print "ConceptViewSet:: create::", request.data
+        print(("ConceptViewSet:: create::", request.data))
         data = request.data
         if data['uri'] == 'generate':
             data['uri'] = 'http://vogonweb.net/{0}'.format(uuid.uuid4())
@@ -503,28 +468,33 @@ class ConceptViewSet(viewsets.ModelViewSet):
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as E:
-            print serializer.errors
+            print((serializer.errors))
             raise E
 
         self.perform_create(serializer)
         headers = self.get_success_headers(data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data,
+                        status=status.HTTP_201_CREATED,
+                        headers=headers)
 
-    @list_route()
+    @action(detail=False)
     def search(self, request, **kwargs):
         q = request.GET.get('search', None)
         if not q:
             return Response({'results': []})
         pos = request.GET.get('pos', None)
-        concepts = goat.Concept.search(q=q, pos=pos, limit=50)
+        concepts = search_concepts(q=q, user_id=request.user.id, pos=pos, limit=50)
 
         def _relabel(datum):
-            _fields = {'name': 'label', 'id': 'alt_id', 'identifier': 'uri'}
+            _fields = {
+                'name': 'label',
+                'id': 'alt_id',
+                'identifier': 'uri'
+            }
+            return {_fields.get(k, k): v for k, v in list(datum.items())}
 
-            return {_fields.get(k, k): v for k, v in datum.iteritems()}
+        return Response({'results': list(map(_relabel, concepts))})
 
-        return Response({'results': map(_relabel, [c.data for c in concepts])})
 
     def get_queryset(self, *args, **kwargs):
         """
@@ -570,20 +540,4 @@ class ConceptViewSet(viewsets.ModelViewSet):
 def concept_search(request):
     q = request.get('search', None)
     pos = self.request.query_params.get('pos', None)
-    return goat.Concept.search(q=q, pos=pos)
-
-
-class RelationTemplateViewSet(viewsets.ViewSet):
-    @list_route(methods=['get'])
-    def get_single_relation(self, request):
-        template_parts = RelationTemplatePart.objects.values(
-            'part_of_id').annotate(
-                type_count=models.Count("part_of_id")).filter(
-                    type_count__lte=1)
-        templates = []
-        for part in template_parts:
-            template = RelationTemplate.objects.get(id=part["part_of_id"])
-            if template.use_in_mass_assignment:
-                templates.append(template)
-        serializer = TemplateSerializer(templates, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    return search_concepts(q=q, user_id=request.user.id, pos=pos)

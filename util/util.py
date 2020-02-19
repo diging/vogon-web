@@ -28,16 +28,16 @@ def correctPosition(position):
         content_data = manager.content(id=int(text.repository_source_id))
         raw_content = requests.get(content_data['location']).content
     except IOError:
-        print 'nope', text
+        print('nope', text)
         return
-    start, end = map(int, position.position_value.split(','))
+    start, end = list(map(int, position.position_value.split(',')))
     escaped = escape(raw_content)
     start_o = len(unescape(escaped[:start]))
     end_o = len(unescape(escaped[:end]))
     # position.position_value = '%i,%i' % (start_o, end_o)
     # position.save()
-    print start, end, ':: --> ::', start_o, end_o
-    print escaped[start:end], unescape(escaped)[start_o:end_o]
+    print(start, end, ':: --> ::', start_o, end_o)
+    print(escaped[start:end], unescape(escaped)[start_o:end_o])
 
 
 from annotations.tasks import tokenize
@@ -48,9 +48,9 @@ def correctTaggedPosition(position):
         content_data = manager.content(id=int(text.repository_source_id))
         raw_content = requests.get(content_data['location']).content
     except IOError:
-        print 'nope', text
+        print('nope', text)
         return
-    token_ids = map(int, position.position_value.split(','))
+    token_ids = list(map(int, position.position_value.split(',')))
     start_id, end_id = min(token_ids), max(token_ids)
     tokenized = tokenize(raw_content.decode('utf-8'))
     start_ptn = '<word id="%i">' % start_id
@@ -59,7 +59,7 @@ def correctTaggedPosition(position):
     try:
         tok = re.search('<word id="%i">([^\<]+)</word>' % end_id, tokenized, flags=re.U).group(1)
     except AttributeError:
-        print start_id, end_id, text.id
+        print(start_id, end_id, text.id)
         raise
     end_idx = tokenized.index(end_ptn) + len(end_ptn) + len(tok)
     start_o = len(detokenize(tokenized[:start_idx]))
@@ -67,8 +67,8 @@ def correctTaggedPosition(position):
     position.position_value = '%i,%i' % (start_o, end_o)
     position.position_type = 'CO'
     position.save()
-    print start_idx, end_idx, ':: --> ::', start_o, end_o
-    print tokenized[start_idx:end_idx], detokenize(tokenized)[start_o:end_o]
+    print(start_idx, end_idx, ':: --> ::', start_o, end_o)
+    print(tokenized[start_idx:end_idx], detokenize(tokenized)[start_o:end_o])
 
 
 import re, codecs
@@ -212,7 +212,7 @@ def correctTaggedPosition(position):
     with transaction.atomic():
         text = position.occursIn
         try:
-            token_ids = map(int, position.position_value.split(','))
+            token_ids = list(map(int, position.position_value.split(',')))
         except ValueError:
             token_ids = None
         if token_ids:
@@ -224,47 +224,47 @@ def correctTaggedPosition(position):
             try:
                 tok = re.search('<word id="%i">([^\<]+)</word>' % end_id, tokenized, flags=re.U).group(1)
             except AttributeError:
-                print start_id, end_id, text.id
+                print(start_id, end_id, text.id)
                 raise
             end_idx = tokenized.index(end_ptn) + len(end_ptn) + len(tok)
             start_o = len(detokenize(tokenized[:start_idx]))
             end_o = len(detokenize(tokenized[:end_idx]))
             position.position_value = '%i,%i' % (start_o, end_o)
-            print start_idx, end_idx, ':: --> ::', start_o, end_o
-            print tokenized[start_idx:end_idx], '-->', detokenize(tokenized)[start_o:end_o]
+            print(start_idx, end_idx, ':: --> ::', start_o, end_o)
+            print(tokenized[start_idx:end_idx], '-->', detokenize(tokenized)[start_o:end_o])
         else:
             position.position_value = ''
-            print '-- Baseless --'
+            print('-- Baseless --')
         position.position_type = 'CO'
         position.save()
 
 
-{u'fields': {u'internal_id': 1,
-             u'object_concept': None,
-             u'object_description': u'The other of the two collaborators',
-             u'object_label': u'Collaborator',
-             u'object_node_type': u'TP',
-             u'object_prompt_text': True,
-             u'object_relationtemplate': None,
-             u'object_relationtemplate_internal_id': -1,
-             u'object_type': 2,
-             u'part_of': 1,
-             u'predicate_concept': None,
-             u'predicate_description': None,
-             u'predicate_label': u'',
-             u'predicate_node_type': u'IS',
-             u'predicate_prompt_text': True,
-             u'predicate_type': None,
-             u'source_concept': 8153,
-             u'source_description': u'Please select the word or phrase that substantiates the fact or nature of the collaboration, excluding direct references to the actors themselves. For example, if the text says, "Bradshaw collaborated with Mobbs," then select the phrase, "collaborated with".',
-             u'source_label': u'Evidence for the collaboration',
-             u'source_node_type': u'CO',
-             u'source_prompt_text': True,
-             u'source_relationtemplate': None,
-             u'source_relationtemplate_internal_id': -1,
-             u'source_type': None},
- u'model': u'annotations.relationtemplatepart',
- u'pk': 1}
+{'fields': {'internal_id': 1,
+             'object_concept': None,
+             'object_description': 'The other of the two collaborators',
+             'object_label': 'Collaborator',
+             'object_node_type': 'TP',
+             'object_prompt_text': True,
+             'object_relationtemplate': None,
+             'object_relationtemplate_internal_id': -1,
+             'object_type': 2,
+             'part_of': 1,
+             'predicate_concept': None,
+             'predicate_description': None,
+             'predicate_label': '',
+             'predicate_node_type': 'IS',
+             'predicate_prompt_text': True,
+             'predicate_type': None,
+             'source_concept': 8153,
+             'source_description': 'Please select the word or phrase that substantiates the fact or nature of the collaboration, excluding direct references to the actors themselves. For example, if the text says, "Bradshaw collaborated with Mobbs," then select the phrase, "collaborated with".',
+             'source_label': 'Evidence for the collaboration',
+             'source_node_type': 'CO',
+             'source_prompt_text': True,
+             'source_relationtemplate': None,
+             'source_relationtemplate_internal_id': -1,
+             'source_type': None},
+ 'model': 'annotations.relationtemplatepart',
+ 'pk': 1}
 
 new_rtparts = {}
 with transaction.atomic():
@@ -313,7 +313,7 @@ for rc in chain(jhb.resourcecontainer_set.all(), embryo.resourcecontainer_set.al
     try:
         cid = rc.primary.content.filter(content_type='text/plain', is_deleted=False, content_resource__location__startswith='https://diging').first().content_resource.id
     except AttributeError:
-        print uri
+        print(uri)
         continue
     resource_map[uri] = (rid, cid)
 
@@ -346,7 +346,7 @@ defaults = {
     'originalResource': getattr(resource.get('url'), 'value', None),
 }
 
-for uri, idents in uri_source_map.iteritems():
+for uri, idents in uri_source_map.items():
     text_id, content_id = tuple(idents)
     content = manager.content(id=int(content_id))
     resource = manager.resource(id=int(text_id))
@@ -370,7 +370,7 @@ for uri, idents in uri_source_map.iteritems():
     }
     text, _ = Text.objects.get_or_create(uri=content['uri'], defaults=defaults)
     text_id_map[uri] = text.id
-    print uri
+    print(uri)
 
 doc_positions_failed = []
 doc_position_map = {}
@@ -381,7 +381,7 @@ for i, datum in enumerate(doc_positions):
             position_value = datum['fields']['position_value'],
             position_type = datum['fields']['position_type']
         ).id
-        print '\r', i, doc_position_map[datum['pk']],
+        print('\r', i, doc_position_map[datum['pk']], end=' ')
     except:
         doc_positions_failed.append(datum)
 
@@ -408,7 +408,7 @@ for i, datum in enumerate(dateappellations):
             position_id = position,
             day = datum['fields']['day'],
         ).id
-        print '\r', i, date_appellation_map[datum['pk']],
+        print('\r', i, date_appellation_map[datum['pk']], end=' ')
     except:
         dateappellations_failed.append(datum)
 
@@ -435,7 +435,7 @@ for i, datum in enumerate(appellation_data):
             position_id = position,
             submittedWith_id = submittedWith,
         ).id
-        print '\r', i, appellation_map[datum['pk']],
+        print('\r', i, appellation_map[datum['pk']], end=' ')
     except:
         appellations_failed.append(datum)
 
@@ -486,7 +486,7 @@ for i, datum in enumerate(relationset_data):
             submittedWith_id = submittedWith,
             pending = datum['fields']['pending'],
         ).id
-        print '\r', i, relationset_map[datum['pk']],
+        print('\r', i, relationset_map[datum['pk']], end=' ')
     except:
         relationsets_failed.append(datum)
 
@@ -511,7 +511,7 @@ def proc_relation(datum):
         )
         bounds = datum['fields']['bounds']
         if bounds is not None:
-            for key, value in temporal_data[bounds].iteritems():
+            for key, value in temporal_data[bounds].items():
                 if value:
                     uri = settings.TEMPORAL_PREDICATES[key]
                     appellation = Appellation.objects.create(
@@ -569,7 +569,7 @@ relations_failed = []
 for i, datum in enumerate(relation_data[1:]):
     try:
         relation_map[datum['pk']] = proc_relation(datum)
-        print '\r', i, relation_map[datum['pk']],
+        print('\r', i, relation_map[datum['pk']], end=' ')
     except:
         relations_failed.append(datum)
 
@@ -583,12 +583,12 @@ for datum in relation_data:
     relation.source_content_object = get_target(so_ctype, so_id)
     relation.object_content_object = get_target(ob_ctype, ob_id)
     relation.save()
-    print '\r', relation.id,
+    print('\r', relation.id, end=' ')
 
 
-for pk in relationset_map.values():
+for pk in list(relationset_map.values()):
     relationset = RelationSet.objects.get(pk=pk)
     for cp in relationset.terminal_nodes.all():
         if cp.label == '' or cp.label is None:
             relationset.terminal_nodes.remove(cp)
-            print cp
+            print(cp)

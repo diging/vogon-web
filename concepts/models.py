@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 optional = { 'blank': True, 'null': True }
 
@@ -11,7 +11,7 @@ class HeritableObject(models.Model):
     instantiates.
     """
 
-    real_type = models.ForeignKey(ContentType, editable=False)
+    real_type = models.ForeignKey(ContentType, editable=False, on_delete=models.CASCADE)
     label = models.CharField(max_length=255, **optional)
 
     def save(self, *args, **kwargs):
@@ -29,8 +29,8 @@ class HeritableObject(models.Model):
 
         return self.real_type.get_object_for_this_type(pk=self.pk)
 
-    def __unicode__(self):
-        return unicode(self.label)
+    def __str__(self):
+        return str(self.label)
 
     class Meta:
         abstract = True
@@ -39,7 +39,7 @@ class HeritableObject(models.Model):
 class Concept(HeritableObject):
     uri = models.CharField(max_length=255, unique=True)
     resolved = models.BooleanField(default=False)
-    typed = models.ForeignKey('Type', related_name='instances', **optional )
+    typed = models.ForeignKey('Type', related_name='instances', **optional, on_delete=models.CASCADE)
     description = models.TextField(**optional)
     authority = models.CharField(max_length=255, blank=True, null=True)
     pos = models.CharField(max_length=255, **optional)
@@ -59,7 +59,7 @@ class Concept(HeritableObject):
     concept_state=models.CharField(max_length=10, choices=concept_state_choices,
                                    default='Pending')
     merged_with = models.ForeignKey('Concept', related_name='merged_concepts',
-                                    **optional)
+                                    **optional, on_delete=models.CASCADE)
 
     @property
     def typed_label(self):
@@ -67,7 +67,12 @@ class Concept(HeritableObject):
             return self.typed.label
         return None
 
-    def __unicode__(self):
+    @property
+    def conceptpower_namespaced(self):
+        from concepts.authorities import get_namespace, ConceptpowerAuthority
+        return get_namespace(self.uri) == ConceptpowerAuthority.namespace
+
+    def __str__(self):
         if self.label:
             return self.label
         return self.uri
@@ -107,4 +112,5 @@ class Concept(HeritableObject):
 
 
 class Type(Concept):
-    pass
+    def __str__(self):
+        return self.typed_label or self.label or self.uri

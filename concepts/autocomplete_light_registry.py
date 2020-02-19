@@ -1,6 +1,6 @@
 import autocomplete_light
 import autocomplete_light.shortcuts as al
-from models import Concept
+from .models import Concept
 
 
 class ConceptAutocomplete(autocomplete_light.AutocompleteModelTemplate):

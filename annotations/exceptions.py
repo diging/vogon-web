@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 
 
-def custom_403_handler(request):
+def custom_403_handler(request, exception):
     """
     Default 403 Handler. This method gets invoked if a PermissionDenied
     Exception is raised.

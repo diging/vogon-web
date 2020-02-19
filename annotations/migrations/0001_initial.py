@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 from django.conf import settings
@@ -48,8 +48,8 @@ class Migration(migrations.Migration):
                 ('endPos', models.IntegerField(null=True, blank=True)),
                 ('asPredicate', models.BooleanField(default=False)),
                 ('controlling_verb', models.CharField(blank=True, max_length=4, null=True, help_text=b'\n    Applies only if the Appellation is a predicate.', choices=[(None, b''), (b'is', b'is/was'), (b'has', b'has/had')])),
-                ('createdBy', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('interpretation', models.ForeignKey(to='concepts.Concept')),
+                ('createdBy', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
+                ('interpretation', models.ForeignKey(to='concepts.Concept', on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,
@@ -106,9 +106,9 @@ class Migration(migrations.Migration):
                 ('added', models.DateTimeField(auto_now_add=True)),
                 ('originalResource', models.URLField(null=True, blank=True)),
                 ('public', models.BooleanField(default=True)),
-                ('addedBy', models.ForeignKey(related_name='addedTexts', to=settings.AUTH_USER_MODEL)),
+                ('addedBy', models.ForeignKey(related_name='addedTexts', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
                 ('annotators', models.ManyToManyField(related_name='userTexts', to=settings.AUTH_USER_MODEL)),
-                ('source', models.ForeignKey(related_name='loadedTexts', blank=True, to='annotations.Repository', null=True)),
+                ('source', models.ForeignKey(related_name='loadedTexts', blank=True, to='annotations.Repository', null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'permissions': (('view_text', 'View text'),),
@@ -121,7 +121,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255)),
                 ('description', models.TextField()),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('ownedBy', models.ForeignKey(related_name='collections', to=settings.AUTH_USER_MODEL)),
+                ('ownedBy', models.ForeignKey(related_name='collections', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
                 ('participants', models.ManyToManyField(related_name='contributes_to', to=settings.AUTH_USER_MODEL)),
                 ('texts', models.ManyToManyField(related_name='partOf', null=True, to='annotations.Text', blank=True)),
             ],
@@ -144,46 +144,46 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='relation',
             name='bounds',
-            field=models.ForeignKey(blank=True, to='annotations.TemporalBounds', null=True),
+            field=models.ForeignKey(blank=True, to='annotations.TemporalBounds', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='relation',
             name='createdBy',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='relation',
             name='object',
-            field=models.ForeignKey(related_name='relationsTo', to='annotations.Appellation'),
+            field=models.ForeignKey(related_name='relationsTo', to='annotations.Appellation', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='relation',
             name='occursIn',
-            field=models.ForeignKey(to='annotations.Text'),
+            field=models.ForeignKey(to='annotations.Text', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='relation',
             name='predicate',
-            field=models.ForeignKey(related_name='relationsAs', to='annotations.Appellation'),
+            field=models.ForeignKey(related_name='relationsAs', to='annotations.Appellation', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='relation',
             name='source',
-            field=models.ForeignKey(related_name='relationsFrom', to='annotations.Appellation'),
+            field=models.ForeignKey(related_name='relationsFrom', to='annotations.Appellation', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='authorization',
             name='repository',
-            field=models.ForeignKey(to='annotations.Repository'),
+            field=models.ForeignKey(to='annotations.Repository', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='authorization',
             name='user',
-            field=models.ForeignKey(related_name='authorizations', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(related_name='authorizations', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='appellation',
             name='occursIn',
-            field=models.ForeignKey(to='annotations.Text'),
+            field=models.ForeignKey(to='annotations.Text', on_delete=models.CASCADE),
         ),
     ]

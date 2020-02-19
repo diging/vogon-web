@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Type',
             fields=[
-                ('concept_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='concepts.Concept')),
+                ('concept_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='concepts.Concept', on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,
@@ -40,11 +40,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='concept',
             name='real_type',
-            field=models.ForeignKey(editable=False, to='contenttypes.ContentType'),
+            field=models.ForeignKey(editable=False, to='contenttypes.ContentType', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='concept',
             name='typed',
-            field=models.ForeignKey(related_name='instances', blank=True, to='concepts.Type', null=True),
+            field=models.ForeignKey(related_name='instances', blank=True, to='concepts.Type', null=True,  on_delete=models.CASCADE),
         ),
     ]

@@ -57,8 +57,9 @@ from django.http import Http404
 from annotations.tasks import tokenize
 from annotations.utils import basepath
 from annotations.models import TextCollection, VogonUserDefaultProject
-from urlparse import urlparse
+from urllib.parse import urlparse
 import chardet
+from .models import VogonUser
 
 
 class Annotator(object):
@@ -69,16 +70,16 @@ class Annotator(object):
     content_types = []
 
     def __init__(self, request, text):
-        project_id = request.GET.get('project_id')
+        project_id = 1 #request.GET.get('project_id')
         if project_id:
-            project = TextCollection.objects.get(pk=project_id)
+            project = 1 #TextCollection.objects.get(pk=project_id)
         else:
-            project = request.user.get_default_project()
+            project = 1 #request.user.get_default_project()
 
         self.project = project;
         self.context = {
             'request': request,
-            'user': request.user,
+            'user':  request.user,
         }
         self.text = text
         self.resource = None
@@ -126,7 +127,8 @@ class Annotator(object):
         :class:`django.http.response.HttpResponse`
         """
         context.update(self.get_context())
-        return render(self.context.get('request'), self.template, context)
+        #return render(self.context.get('request'), self.template, context)
+        return context
 
     def render_display(self, context={}):
         """
@@ -152,17 +154,20 @@ class Annotator(object):
         return render(self.context.get('request'), self.display_template, context)
 
     def get_context(self):
+        
         resource = self.get_resource()
         request = self.context.get('request')
+        print('hits')
         content = self.get_content(resource)
         detect  = chardet.detect(content)
+        
         return {
             'text': self.text,
             'textid': self.text.id,
             'title': 'Annotate Text',
             'content': content.decode(detect['encoding']).encode('utf-8'), # We are using chardet to guess the encoding becuase giles is returning everyting with a utf-8 header even if it is not utf-8
             'baselocation' : basepath(request),
-            'userid': request.user.id,
+            'userid': 2,
             'title': self.text.title,
             'repository_id': self.text.repository.id,
             'project': self.project
@@ -180,8 +185,9 @@ class PlainTextAnnotator(Annotator):
     def get_content(self, resource):
         target = resource.get('location')
         request = self.context['request']
-        manager = self.text.repository.manager(request.user)
-        endpoint = manager.configuration['endpoint']
+        user = VogonUser.objects.get(id=2)
+        manager = self.text.repository.manager(user)
+        endpoint = self.text.repository.url
         if urlparse(target).netloc == urlparse(endpoint).netloc:
             return manager.get_raw(target)
         response = requests.get(target)

@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from urlparse import urlparse
+from urllib.parse import urlparse
 from conceptpower import Conceptpower
 
 from concepts.models import *
@@ -82,7 +82,7 @@ class ConceptLifecycle(object):
 
     @property
     def is_external(self):
-        print self._get_namespace(), self.is_native, self.is_created
+        print((self._get_namespace(), self.is_native, self.is_created))
         return not (self.is_native or self.is_created)
 
     @property
@@ -130,10 +130,10 @@ class ConceptLifecycle(object):
             _typed = None
 
         manager = ConceptLifecycle.create(
-            uri = data.get('uri') if data.get('uri') else data.get('id'),
-            label = data.get('word') if data.get('word') else data.get('lemma'),
-            description = data.get('description'),
-            pos = data.get('pos'),
+            uri = data.get('uri').strip() if data.get('uri') else data.get('id'),
+            label = data.get('word').strip() if data.get('word') else data.get('lemma'),
+            description = data.get('description').strip(),
+            pos = data.get('pos').strip(),
             typed = _typed,
             authority = 'Conceptpower',
         )
@@ -305,14 +305,14 @@ class ConceptLifecycle(object):
         import re, string
         from unidecode import unidecode
 
-        q = re.sub("[0-9]", "", unidecode(self.instance.label).translate(None, string.punctuation).lower())
+        q = re.sub("[0-9]", "", unidecode(self.instance.label).translate(string.punctuation).lower())
         if not q:
             return []
         try:
             data = self.conceptpower.search(q)
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
-        return map(self._reform, data)
+        return list(map(self._reform, data))
 
     def get_matching(self):
         """
@@ -325,7 +325,7 @@ class ConceptLifecycle(object):
             A list of dicts with raw data from Conceptpower.
         """
         try:
-            data = self.conceptpower.search(equal_to=self.instance.uri)
+            data = self.conceptpower.search(self.instance.uri)
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
-        return map(self._reform, data)
+        return list(map(self._reform, data))

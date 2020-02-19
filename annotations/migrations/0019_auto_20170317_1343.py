@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.db import models, migrations
 
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='text',
             name='repository',
-            field=models.ForeignKey(related_name='texts', blank=True, to='repository.Repository', null=True),
+            field=models.ForeignKey(related_name='texts', blank=True, to='repository.Repository', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='text',

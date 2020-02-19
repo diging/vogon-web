@@ -1,10 +1,11 @@
 from django.contrib import admin
-from annotations.forms import *
+from django.contrib.auth.admin import UserAdmin
+from itertools import groupby
+
+from annotations.forms import UserChangeForm, UserCreationForm
 from annotations.models import *
 from annotations import quadriga
 from annotations.tasks import submit_relationsets_to_quadriga
-
-from itertools import groupby
 
 
 class VogonUserAdmin(UserAdmin):
@@ -15,13 +16,13 @@ class VogonUserAdmin(UserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('username', 'full_name', 'email', 'affiliation', 'is_admin')
+    list_display = ('username', 'full_name', 'email', 'affiliation', 'is_admin', 'imagefile')
     list_filter = ('is_admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {
             'fields': ('full_name', 'affiliation', 'location', 'link',
-                       'conceptpower_uri')
+                       'conceptpower_uri', 'imagefile')
         }),
         ('Permissions', {'fields': ('is_admin', 'is_active')}),
     )
@@ -124,7 +125,7 @@ class RelationSetAdmin(admin.ModelAdmin):
         model = RelationSet
 
     list_display = ('id', 'createdBy', 'occursIn', 'created', 'ready',
-                    'pending', 'submitted', )
+                    'submitted', )
     actions = (submit_relationsets, submit_relationsets_synch)
 
 
@@ -144,3 +145,4 @@ admin.site.register(RelationSet, RelationSetAdmin)
 admin.site.register(RelationTemplate)
 admin.site.register(RelationTemplatePart)
 admin.site.register(DateAppellation)
+admin.site.register(QuadrigaAccession)
