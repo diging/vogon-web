@@ -108,6 +108,30 @@ class ConceptSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class ConceptLiteSerializer(serializers.ModelSerializer):
+    typed = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = Concept
+        fields = ('id', 'uri', 'label', 'description', 'typed', 'pos')
+
+    def save(self):
+        typed = self.validated_data.get('typed')
+        if typed:
+            typed_instance = Type.objects.get(pk=typed)
+        else:
+            typed_instance = None
+        data = self.validated_data
+        data['typed'] = typed_instance
+        concept = Concept(**data)
+        concept.save()
+
+        if typed_instance:
+            self.validated_data['typed'] = typed_instance.id
+        else:
+            self.validated_data['typed'] = None
+
+
 class ConceptExampleSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=True)
     label = serializers.CharField(required=True)
@@ -270,6 +294,7 @@ class Appellation2Serializer(serializers.Serializer):
     occursIn = TextAllSerializer(required=False)
     interpretation = Concept2Serializer(required=False)
     createdBy = UserSerializer()
+    created = serializers.CharField(required=True)
 
 
 class Text2Serializer(serializers.Serializer):
@@ -283,4 +308,5 @@ class Text2Serializer(serializers.Serializer):
     project = ProjectSerializer()
     appellations = Appellation2Serializer(many=True)
     relations = RelationSerializer(many=True)
+    concept_types = TypeSerializer(many=True)
     pending_relationsets = RelationSetSerializer(many=True)

@@ -10,6 +10,7 @@ from annotations.serializers import (RelationSetSerializer,
     ProjectSerializer, UserSerializer, Text2Serializer)
 from annotations.filters import RelationSetFilter
 from annotations.tasks import submit_relationsets_to_quadriga
+from concepts.models import Type
 
 
 class RelationSetViewSet(viewsets.ModelViewSet):
@@ -95,6 +96,7 @@ class AnnotationViewSet(viewsets.ViewSet):
         data['project'] = project
         data['appellations'] = appellations
         data['relations'] = Relation.objects.filter(occursIn=text.id)
+        data['concept_types'] = Type.objects.all()
         relationsets = RelationSet.objects.filter(
             occursIn=text.id,
             createdBy=request.user,
