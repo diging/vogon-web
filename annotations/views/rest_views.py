@@ -166,6 +166,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
+        data['createdBy'] = request.user.id
         position = data.pop('position', None)
         interpretation = data.get('interpretation')
 
@@ -175,7 +176,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             try:
                 concept = Concept.objects.get(uri=interpretation)
             except Concept.DoesNotExist:
-
                 concept_data = retrieve_concept(interpretation)
                 type_data = concept_data.get('concept_type', None)
                 type_instance = None
