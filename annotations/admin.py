@@ -1,10 +1,11 @@
 from django.contrib import admin
-from annotations.forms import *
+from django.contrib.auth.admin import UserAdmin
+from itertools import groupby
+
+from annotations.forms import UserChangeForm, UserCreationForm
 from annotations.models import *
 from annotations import quadriga
 from annotations.tasks import submit_relationsets_to_quadriga
-
-from itertools import groupby
 
 
 class VogonUserAdmin(UserAdmin):
@@ -124,7 +125,7 @@ class RelationSetAdmin(admin.ModelAdmin):
         model = RelationSet
 
     list_display = ('id', 'createdBy', 'occursIn', 'created', 'ready',
-                    'pending', 'submitted', )
+                    'submitted', )
     actions = (submit_relationsets, submit_relationsets_synch)
 
 
@@ -144,3 +145,4 @@ admin.site.register(RelationSet, RelationSetAdmin)
 admin.site.register(RelationTemplate)
 admin.site.register(RelationTemplatePart)
 admin.site.register(DateAppellation)
+admin.site.register(QuadrigaAccession)

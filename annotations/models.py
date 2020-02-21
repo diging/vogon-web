@@ -786,13 +786,6 @@ class RelationSet(models.Model):
     occursIn = models.ForeignKey('Text', related_name='relationsets', on_delete=models.CASCADE)
     """The text on which this RelationSet is based."""
 
-    pending = models.BooleanField(default=False)
-    """
-    A :class:`.RelationSet` is pending if it has been selected for submission,
-    but the submission process has not yet completed. The primary purpose of
-    this field is to prevent duplicate submissions.
-    """
-
     submitted = models.BooleanField(default=False)
     """
     Whether or not the :class:`.RelationSet` has been accessioned to Quadriga.
@@ -873,7 +866,7 @@ class RelationSet(models.Model):
 
         # Topological sort is supposed to be faster than calculating in-degree
         #  and searching for the 0-valued node.
-        return Relation.objects.get(pk=nx.topological_sort(dg)[0])
+        return Relation.objects.get(pk=list(nx.topological_sort(dg))[0])
 
     @property
     def label(self):

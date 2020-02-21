@@ -80,6 +80,7 @@ class TextSerializer(serializers.ModelSerializer):
 
 
 class TypeSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name="vogon_rest:type-detail")
     class Meta:
         model = Type
         fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
@@ -89,6 +90,7 @@ class TypeSerializer(serializers.ModelSerializer):
 class ConceptSerializer(serializers.ModelSerializer):
     typed = TypeSerializer(required=False)
     typed_id = serializers.IntegerField(required=False, allow_null=True)
+    url = serializers.HyperlinkedIdentityField(view_name="vogon_rest:concept-detail")
 
     class Meta:
         model = Concept
@@ -172,7 +174,7 @@ class RelationSetSerializer(serializers.ModelSerializer):
         fields = ('id', 'label', 'created', 'template', 'createdBy',
                   'occursIn', 'appellations', 'concepts', 'project',
                   'representation', 'date_appellations', 'submitted',
-                  'submittedOn', 'pending', 'ready', 'template',
+                  'submittedOn', 'ready', 'template',
                   'date_appellations_with_predicate', 'occurs_in_text',
                   'terminal_nodes')  #
 
@@ -281,3 +283,4 @@ class Text2Serializer(serializers.Serializer):
     project = ProjectSerializer()
     appellations = Appellation2Serializer(many=True)
     relations = RelationSerializer(many=True)
+    pending_relationsets = RelationSetSerializer(many=True)

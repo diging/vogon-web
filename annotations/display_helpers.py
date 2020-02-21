@@ -308,35 +308,6 @@ def get_relations_summaries(relationset_qs):
         })
     return relationsets
 
-
-def user_recent_texts(user):
-    """
-    Return a list of :class:`.Text`\s recently annotated by a
-    :class:`.VogonUser`\.
-
-    TODO: Do we need this anymore?
-
-    Parameters
-    ----------
-    user : :class:`.VogonUser`
-
-    Returns
-    -------
-    list
-    """
-    fields = ['occursIn_id', 'occursIn__title', 'created']
-    by_appellations = user.appellation_set.all().order_by('-created')\
-                                          .values_list(*fields)
-    by_relations = user.relation_set.all().order_by('-created')\
-                                    .values_list(*fields)
-
-    results_sorted = sorted(chain([tuple(t) for t in by_relations],
-                                  [tuple(t) for t in by_appellations]),
-                            key=lambda t: t[2])[::-1]
-
-    return list(set([(t[0], t[1]) for t in results_sorted]))
-
-
 # def get_recent_annotations(last=20, user=None):
 #     """
 #     Generate aggregate activity feed for all annotations.

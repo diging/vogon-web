@@ -92,7 +92,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 20,
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json'
 }
 
 WSGI_APPLICATION = 'vogon.wsgi.application'
@@ -157,11 +158,6 @@ AUTH_USER_MODEL = 'annotations.VogonUser'
 es = urlparse(os.environ.get('SEARCHBOX_URL') or 'http://127.0.0.1:9200/')
 port = es.port or 80
 
-# AWS Access Key and Secret Key credentials
-AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY', None)
-AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY', None)
-S3_BUCKET = 'vogonweb-test'
-DEFAULT_USER_IMAGE = 'https://s3-us-west-2.amazonaws.com/vogonweb-test/defaultprofile.png'
 
 TEMPORAL_PREDICATES = {
     'start':
@@ -202,18 +198,6 @@ QUADRIGA_CLIENTID = os.environ.get('QUADRIGA_CLIENTID', 'vogonweb')
 QUADRIGA_PROJECT = os.environ.get('QUADRIGA_PROJECT', 'vogonweb')
 
 BASE_URI_NAMESPACE = u'http://www.vogonweb.net'
-
-# Celery config.
-
-
-CELERYBEAT_SCHEDULE = {
-    'accession_ready_relationsets': {
-        'task': 'annotations.tasks.accession_ready_relationsets',
-        'schedule': timedelta(minutes=10, seconds=0),
-    },
-}
-
-CELERY_TIMEZONE = 'UTC'
 
 GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)
 

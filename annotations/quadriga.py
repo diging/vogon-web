@@ -241,7 +241,7 @@ def to_quadruples(relationsets, text, user, network_label=None,
         'workspace_id': workspace_id,
     }
     if toString:
-        return ET.tostring(project), params
+        return ET.tostring(project, encoding='unicode', method='xml'), params
     return project, params
 
 
