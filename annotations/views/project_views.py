@@ -60,6 +60,30 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['POST'], url_name='removetext')
+    def remove_text(self, request, pk=None):
+        text_id = request.data['text_id']
+        repo_id = request.data['repository_id']
+
+        repository = get_object_or_404(Repository, pk=repo_id)
+        project = get_object_or_404(TextCollection, pk=pk)
+        manager = repository.manager(request.user)
+        resource = manager.resource(id=int(text_id))
+
+        defaults = {
+            'title': resource.get('title'),
+            'created': resource.get('created'),
+            'repository': repository,
+            'repository_source_id': text_id,
+            'addedBy': request.user,
+        }
+        text, _ = Text.objects.get_or_create(uri=resource.get('uri'),
+                                             defaults=defaults)
+        project.texts.remove(text)
+        
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)
+
     def get_queryset(self):
         queryset = super(ProjectViewSet, self).get_queryset()
         queryset = queryset.annotate(
