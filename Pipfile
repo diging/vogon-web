@@ -9,7 +9,7 @@ verify_ssl = true
 amqp = "==2.5.1"
 arrow = "==0.15.4"
 anyjson = "==0.3.3"
-bleach = "==1.4.2"
+bleach = "==3.1.1"
 certifi = "==2018.1.18"
 chardet = "==3.0.4"
 decorator = "==4.4.0"
