@@ -63,21 +63,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['DELETE'], url_name='deletetext')
     def delete_text(self, request, pk=None):
         text_id = request.data['text_id']
-        repo_id = request.data['repository_id']
 
-        repository = get_object_or_404(Repository, pk=repo_id)
+        submitted = RelationSet.objects.filter(occursIn_id=text_id, submitted=True)
+        if submitted:
+            return Response(status=status.HTTP_412_PRECONDITION_FAILED)
+        
         project = get_object_or_404(TextCollection, pk=pk)
-        manager = repository.manager(request.user)
-        resource = manager.resource(id=int(text_id))
+        project.texts.remove(text_id)
 
-        text = Text.objects.get(uri=resource.get('uri'))
-        
-        print('panda')
-        print(text.id)
-        project.texts.remove(text.id)
-        
-        serializer = ProjectSerializer(project)
-        return Response(serializer.data)
+        return Response(status=status.HTTP_200_OK)
 
     def get_queryset(self):
         queryset = super(ProjectViewSet, self).get_queryset()
