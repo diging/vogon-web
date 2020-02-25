@@ -60,8 +60,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['POST'], url_name='removetext')
-    def remove_text(self, request, pk=None):
+    @action(detail=True, methods=['DELETE'], url_name='deletetext')
+    def delete_text(self, request, pk=None):
         text_id = request.data['text_id']
         repo_id = request.data['repository_id']
 
@@ -70,16 +70,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
         manager = repository.manager(request.user)
         resource = manager.resource(id=int(text_id))
 
-        defaults = {
-            'title': resource.get('title'),
-            'created': resource.get('created'),
-            'repository': repository,
-            'repository_source_id': text_id,
-            'addedBy': request.user,
-        }
-        text, _ = Text.objects.get_or_create(uri=resource.get('uri'),
-                                             defaults=defaults)
-        project.texts.remove(text)
+        text = Text.objects.get(uri=resource.get('uri'))
+        
+        print('panda')
+        print(text.id)
+        project.texts.remove(text.id)
         
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
