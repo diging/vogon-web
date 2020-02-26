@@ -8,7 +8,8 @@ from rest_framework.decorators import action
 from annotations.models import RelationSet
 from annotations.serializers import (
     ConceptSerializer, TypeSerializer, RelationSetSerializer,
-    ConceptLifecycleSerializer, ConceptExampleSerializer
+    ConceptLifecycleSerializer, ConceptExampleSerializer,
+    ConceptLiteSerializer
 )
 from concepts.models import Concept, Type
 from concepts.lifecycle import *
@@ -51,7 +52,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         except:
             data['typed'] = Type.objects.get(uri=concept_type).id
 
-        serializer = self.get_serializer(data=data)
+        serializer = ConceptLiteSerializer(data=data)
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as E:
