@@ -295,6 +295,7 @@ class Appellation2Serializer(serializers.Serializer):
     interpretation = Concept2Serializer(required=False)
     createdBy = UserSerializer()
     created = serializers.CharField(required=True)
+    submitted = serializers.BooleanField(required=True)
 
 
 class Text2Serializer(serializers.Serializer):
