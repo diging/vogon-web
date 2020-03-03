@@ -69,7 +69,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_412_PRECONDITION_FAILED)
         
         project = get_object_or_404(TextCollection, pk=pk)
-        project.texts.remove(text_id)
+        project.texts.filter(pk=text_id).delete()
 
         return Response(status=status.HTTP_200_OK)
 

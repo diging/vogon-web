@@ -75,10 +75,14 @@ class RepositoryTextView(viewsets.ViewSet):
         except Text.DoesNotExist:
             master_text = Text.objects.create(uri=result.get('uri'),title=result.get('name'),public=result.get('public'),content_type=result.get('content_types'),repository_source_id=result.get('id'),repository_id=repository_pk,addedBy_id=1)
         aggregate_content = result.get('aggregate_content')
+
+        submitted = RelationSet.objects.filter(occursIn_id=master_text.id, submitted=True)
+
         context = {
             'result': result,
             'master_text': TextSerializer(master_text).data if master_text else None,
-            'part_of_project': part_of_project
+            'part_of_project': part_of_project,
+            'submitted': submitted if submitted else None
         }
         if master_text:
             relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
