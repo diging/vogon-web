@@ -296,6 +296,8 @@ class Appellation2Serializer(serializers.Serializer):
     createdBy = UserSerializer()
     created = serializers.CharField(required=True)
     submitted = serializers.BooleanField(required=True)
+    relationsFrom = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    relationsTo = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
 
 class Text2Serializer(serializers.Serializer):
@@ -309,5 +311,6 @@ class Text2Serializer(serializers.Serializer):
     project = ProjectSerializer()
     appellations = Appellation2Serializer(many=True)
     relations = RelationSerializer(many=True)
+    relationsets = RelationSetSerializer(many=True)
     concept_types = TypeSerializer(many=True)
     pending_relationsets = RelationSetSerializer(many=True)
