@@ -69,11 +69,11 @@ class RepositoryTextView(viewsets.ViewSet):
         repository = get_object_or_404(Repository, pk=repository_pk)
         manager = repository.manager(request.user)
         result = manager.resource(id=int(pk))
-
+        
         try:
             master_text = Text.objects.get(uri=result.get('uri'))
         except Text.DoesNotExist:
-            master_text = None
+            master_text = Text.objects.create(uri=result.get('uri'),title=result.get('name'),public=result.get('public'),content_type=result.get('content_types'),repository_source_id=result.get('id'),repository_id=repository_pk,addedBy_id=1)
         aggregate_content = result.get('aggregate_content')
         context = {
             'result': result,

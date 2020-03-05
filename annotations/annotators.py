@@ -157,7 +157,6 @@ class Annotator(object):
         
         resource = self.get_resource()
         request = self.context.get('request')
-        print('hits')
         content = self.get_content(resource)
         detect  = chardet.detect(content)
         
@@ -185,7 +184,7 @@ class PlainTextAnnotator(Annotator):
     def get_content(self, resource):
         target = resource.get('location')
         request = self.context['request']
-        user = VogonUser.objects.get(id=2)
+        user = VogonUser.objects.get(id=self.context['user'].id)
         manager = self.text.repository.manager(user)
         endpoint = self.text.repository.url
         if urlparse(target).netloc == urlparse(endpoint).netloc:
