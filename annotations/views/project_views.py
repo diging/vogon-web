@@ -8,7 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from annotations.models import TextCollection, RelationSet, Text
+from annotations.models import TextCollection, RelationSet, Text, Annotation
 from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
 from repository.models import Repository
 
@@ -64,7 +64,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def delete_text(self, request, pk=None):
         text_id = request.data['text_id']
 
-        submitted = RelationSet.objects.filter(occursIn_id=text_id, submitted=True)
+        submitted = Annotation.objects.filter(occursIn_id=text_id, submitted=True)
         if submitted:
             return Response(status=status.HTTP_412_PRECONDITION_FAILED)
         
