@@ -80,6 +80,7 @@ class RepositoryTextView(viewsets.ViewSet):
         for child in range(len(master_text.children)):
             if Appellation.objects.filter(occursIn_id=master_text.children[child], submitted=True):
                 submitted = True
+                break
 
         context = {
             'result': result,
