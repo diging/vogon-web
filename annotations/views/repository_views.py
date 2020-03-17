@@ -77,11 +77,9 @@ class RepositoryTextView(viewsets.ViewSet):
         aggregate_content = result.get('aggregate_content')
 
         submitted = False
-        i = 0
-        while i < len(master_text.children):
-            if Appellation.objects.filter(occursIn_id=master_text.children[i], submitted=True):
+        for child in range(len(master_text.children)):
+            if Appellation.objects.filter(occursIn_id=master_text.children[child], submitted=True):
                 submitted = True
-            i = i + 1
 
         context = {
             'result': result,
