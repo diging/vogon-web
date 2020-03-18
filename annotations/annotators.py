@@ -70,13 +70,13 @@ class Annotator(object):
     content_types = []
 
     def __init__(self, request, text):
-        project_id = 1 #request.GET.get('project_id')
+        project_id = request.query_params.get('project_id', None)
         if project_id:
-            project = 1 #TextCollection.objects.get(pk=project_id)
+            project = TextCollection.objects.get(pk=project_id)
         else:
-            project = 1 #request.user.get_default_project()
+            project = request.user.get_default_project()
 
-        self.project = project;
+        self.project = project
         self.context = {
             'request': request,
             'user':  request.user,

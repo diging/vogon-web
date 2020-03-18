@@ -160,13 +160,22 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
     permission_classes = (IsAuthenticatedOrReadOnly, )
     serializer_classes = {
         'GET': AppellationSerializer,
-        'POST': AppellationPOSTSerializer
+        'POST': AppellationPOSTSerializer,
+        'PATCH': AppellationPOSTSerializer
     }
     # pagination_class = LimitOffsetPagination
 
     def create(self, request, *args, **kwargs):
+        return self.createOrUpdate(request)
+    
+    def update(self, request, pk=None, partial=True):
+        return self.createOrUpdate(request, pk)
+
+    def createOrUpdate(self, request, pk=None):
         data = request.data.copy()
         data['createdBy'] = request.user.id
+        if pk:
+            instance = Appellation.objects.get(pk=pk)
         position = data.pop('position', None)
         interpretation = data.get('interpretation')
 
@@ -204,7 +213,10 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         serializer_class = self.get_serializer_class()
 
         try:
-            serializer = serializer_class(data=data)
+            if pk:
+                serializer = serializer_class(instance, data=data)
+            else:
+                serializer = serializer_class(data=data)
         except Exception as E:
             print((serializer.errors))
             raise E
