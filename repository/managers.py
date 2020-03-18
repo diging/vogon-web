@@ -83,6 +83,8 @@ class AmphoraRepository:
             headers=self.headers,
         )
         result = json.loads(response.content)
+        if not result.get('content_location', None):
+            return None
         result['location'] = result['content_location']
         result['title'] = result['name']
         

@@ -92,6 +92,11 @@ class RepositoryTextContentViewSet(viewsets.ViewSet):
 
         try:
             content = manager.content(id=pk)
+            if not content:
+                return Response({
+                    'success': False,
+                    'error': 'The text is still getting processed. Check back later...'
+                }, 400)
             resource = manager.resource(id=texts_pk)
         except IOError:
             return Response({
