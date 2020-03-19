@@ -76,7 +76,7 @@ class Annotator(object):
         else:
             project = 1 #request.user.get_default_project()
 
-        self.project = project;
+        self.project = project
         self.context = {
             'request': request,
             'user':  request.user,
