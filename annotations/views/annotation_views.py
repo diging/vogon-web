@@ -89,16 +89,30 @@ class AnnotationViewSet(viewsets.ViewSet):
         text = get_object_or_404(Text, pk=pk)
         annotator = annotator_factory(request, text)
         data = annotator.render()
-        appellations = Appellation.objects.filter(occursIn=text.id)
         content = data['content'].decode("utf-8")
         data['content'] = content
-        project = TextCollection.objects.get(id=data['project'])
+        project = data['project']
+        
         data['project'] = project
+        appellations = Appellation.objects.filter(
+            occursIn=text.id,
+            createdBy=request.user,
+            project=project
+        )
         data['appellations'] = appellations
-        data['relations'] = Relation.objects.filter(occursIn=text.id)
+        data['relations'] = Relation.objects.filter(
+            occursIn=text.id,
+            createdBy=request.user
+        )
+        data['relationsets'] = RelationSet.objects.filter(
+            occursIn=text.id, 
+            project=project, 
+            createdBy=request.user
+        )
         data['concept_types'] = Type.objects.all()
         relationsets = RelationSet.objects.filter(
             occursIn=text.id,
+            project=project,
             createdBy=request.user,
             submitted=False,
         )
