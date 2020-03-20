@@ -241,8 +241,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8000",
+    "http://localhost:8005",
     "http://localhost:8080",
     "http://127.0.0.1:8080",
+    "http://127.0.0.1:8005",
     "http://127.0.0.1:8060",
     "http://localhost:8060",
 ]
@@ -251,6 +253,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:8000",
     "http://localhost:8060",
+    "http://localhost:8005",
 ]
 
 SIMPLE_JWT = {
