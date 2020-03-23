@@ -34,11 +34,19 @@ class UserViewSet(viewsets.ModelViewSet):
 	User list, detail page and dashboard
 	"""
 	queryset = VogonUser.objects.exclude(id=-1).order_by('username')
+	print(queryset)
 	serializer_class = VogonUserSerializer
 
 	def list(self, *args, **kwargs):
 		queryset = self.get_queryset()
+
+		
+		for x in queryset:
+			appellation_count[x] = queryset[x].appellation_set.count()
+      
+		print(appelation_count)
 		serializer = UserSerializer
+		print('hello')
 
 		self.page = self.paginate_queryset(queryset)
 		if self.page is not None:
@@ -51,7 +59,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
 	def retrieve(self, request, pk=None):
 		user = get_object_or_404(VogonUser, pk=pk)
+		print(type(user))
 		user_data = UserSerializer(user).data
+		print('hello1')
 		appellation_count = user.appellation_set.count()
 		relation_count = user.relation_set.count()
 		text_count = Text.objects.filter(appellation__createdBy=user) \
