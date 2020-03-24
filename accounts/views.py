@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view
 import requests
 from django.conf import settings
 from .models import GithubToken
+import logging
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -30,8 +31,11 @@ def github_token(request):
     """
     List all code snippets, or create a new snippet.
     """
+    logger = logging.getLogger(__name__)
     if request.method == "GET":
         code = request.GET.get("code", "")
+        logger.error(code)
+        print(code)
         r = requests.post(
             "https://github.com/login/oauth/access_token",
             params={
@@ -46,6 +50,7 @@ def github_token(request):
         except GithubToken.DoesNotExist:
             token = GithubToken()
             token.user = request.user
+        logger.error(r.json())
         token.token = r.json()["access_token"]
         token.save()
         return Response(status=status.HTTP_201_CREATED)
