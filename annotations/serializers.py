@@ -16,6 +16,10 @@ class UserSerializer(serializers.ModelSerializer):
                   'full_name', 'link', 'is_admin', 'imagefile',
                   'annotation_count', 'relation_count', 'text_count')
 
+class VogonUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VogonUser
+        fields = ['id', 'username', 'full_name', 'email']
 
 class RemoteCollectionSerializer(serializers.Serializer):
     source = serializers.IntegerField()
@@ -209,12 +213,7 @@ class TemporalBoundsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class TextCollectionSerializer(serializers.ModelSerializer):
-    class VogonUserSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = VogonUser
-            fields = ['id', 'username']
-    
+class TextCollectionSerializer(serializers.ModelSerializer):    
     ownedBy = VogonUserSerializer()
     num_texts = serializers.IntegerField()
     num_relations = serializers.IntegerField()
@@ -225,6 +224,8 @@ class TextCollectionSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    ownedBy = VogonUserSerializer()
+    participants = VogonUserSerializer(many=True)
     class Meta:
         model = TextCollection
         fields = '__all__'
@@ -236,6 +237,7 @@ class ProjectTextSerializer(TextCollectionSerializer):
             model = Text
             fields = ['id', 'title', 'added', 'repository_id', 'repository_source_id']
     texts = TextSerializer(many=True, read_only=True)
+    participants = VogonUserSerializer(many=True)
 
 class TemplateFieldsSerializer(serializers.Serializer):
     part_field = serializers.CharField(max_length=200, required=False)

@@ -93,6 +93,12 @@ class AnnotationViewSet(viewsets.ViewSet):
         content = data['content'].decode("utf-8")
         data['content'] = content
         project = data['project']
+
+        if project.ownedBy != request.user and request.user not in project.participants.all():
+            return Response({
+                "error": True,
+                "message": "You are not allowed to annotate in this project!"
+            }, 403)
         
         data['project'] = project
         appellations = Appellation.objects.filter(
