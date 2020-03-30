@@ -168,9 +168,9 @@ class UserViewSet(viewsets.ModelViewSet):
 				Q(username__icontains=search)
 			)
 		queryset = queryset.annotate(
-			annotation_count=Count('appellation'),
-			relation_count=Count('relation'),
-			text_count=Count('addedTexts')
+			annotation_count=Count('appellation', distinct=True),
+			relation_count=Count('relation', distinct=True),
+			text_count=Count('addedTexts', distinct=True)
 		)
 		return queryset
 
