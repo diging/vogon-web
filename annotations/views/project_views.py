@@ -60,8 +60,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['DELETE'], url_name='deletetext')
-    def delete_text(self, request, pk=None):
+    def destroy(self, request, pk=None):
         text_id = request.data['text_id']
 
         submitted = Appellation.objects.filter(occursIn_id=text_id, submitted=True)
@@ -71,7 +70,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project = get_object_or_404(TextCollection, pk=pk)
         project.texts.filter(pk=text_id).delete()
 
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_queryset(self):
         queryset = super(ProjectViewSet, self).get_queryset()
