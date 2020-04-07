@@ -247,6 +247,7 @@ CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:8005",
     "http://127.0.0.1:8060",
     "http://localhost:8060",
+	"172.19.0.1",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -254,6 +255,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:8060",
     "http://localhost:8005",
+	"172.19.0.1",
 ]
 
 SIMPLE_JWT = {
