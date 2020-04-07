@@ -26,10 +26,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = eval(os.environ.get('DEBUG', 'False'))
-DEBUG = True
+DEBUG = eval(os.environ.get('DEBUG', 'False'))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -101,8 +100,19 @@ WSGI_APPLICATION = "vogon.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {"default": dj_database_url.config()}
-DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql_psycopg2"
+# DATABASES = {"default": dj_database_url.config()}
+# DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql_psycopg2"
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', 
+        'NAME': os.environ.get('DB_NAME', ''),                     
+        'USER': os.environ.get('DB_USER', ''),
+        'PASSWORD': os.environ.get('DB_PASSWAORD', ''),
+        'HOST': os.environ.get('DB_HOST', ''),
+        'PORT': os.environ.get('DB_PORT', '5432),                     
+    }
+}
 
 # print DATABASES
 
