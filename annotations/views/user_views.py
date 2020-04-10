@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 from rest_framework.decorators import permission_classes, authentication_classes, action
 from rest_framework.permissions import AllowAny
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 
 from annotations.models import (VogonUser, Text, Appellation, RelationSet,
@@ -151,7 +151,13 @@ class UserViewSet(viewsets.ModelViewSet):
 	@authentication_classes([])
 	@permission_classes([AllowAny])
 	def create(self, request):
-		return super().create(request)
+		try:
+			return super().create(request)
+		except Exception as e: 
+			response = []
+			for arg in (e.args[0]):
+				response.append(e.args[0][arg])
+			return Response(response, status=status.HTTP_412_PRECONDITION_FAILED)
 
 	def get_paginated_response(self, data):
 		return Response({
