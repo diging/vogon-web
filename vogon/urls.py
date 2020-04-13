@@ -25,8 +25,7 @@ from concepts import views as conceptViews
 from accounts import views as account_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView
+    TokenRefreshView
 )
 
 
@@ -73,7 +72,7 @@ urlpatterns = [
     # REST Views
     path('api/v2/token/',  account_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('api/v2/token/verify/', account_views.VogonTokenVerifyView.as_view(), name='token_verify'),
     path('api/v2/github-token/', account_views.github_token, name="github_token"),
     path('api/v2/citesphere-token/', account_views.citesphere_token, name='citesphere_token'),
     path('api/v2/forgot-password/', account_views.ForgotPasswordView.as_view(), name="forgot_password"),

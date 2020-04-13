@@ -316,3 +316,17 @@ class Text2Serializer(serializers.Serializer):
     relationsets = RelationSetSerializer(many=True)
     concept_types = TypeSerializer(many=True)
     pending_relationsets = RelationSetSerializer(many=True)
+
+class GenericNotificationRelatedField(serializers.RelatedField):
+    def to_representation(self, value):
+        if isinstance(value, VogonUser):
+            serializer = VogonUserSerializer(value)
+        if isinstance(value, TextCollection):
+            serializer = ProjectSerializer(value)
+
+        return serializer.data
+
+class NotificationSerializer(serializers.Serializer):
+    recipient = VogonUserSerializer(VogonUser, read_only=True)
+    unread = serializers.BooleanField(read_only=True)
+    actor = GenericNotificationRelatedField(read_only=True)
