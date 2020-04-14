@@ -29,7 +29,7 @@ RUN ["chmod", "+x", "/usr/src/app/bin/vogon-gunicorn.sh"]
 
 # TODO: This should be changed to master once we are done testing
 
-COPY vogon-web /usr/src/app/vogon-web
+RUN git clone -b develop https://github.com/diging/vogon-web.git
 WORKDIR /usr/src/app/vogon-web
 RUN pip install -r requirements.txt
 
