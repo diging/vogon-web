@@ -33,7 +33,4 @@ RUN git clone -b develop https://github.com/diging/vogon-web.git
 WORKDIR /usr/src/app/vogon-web
 RUN pip install -r requirements.txt
 
-COPY .env_secrets .
-CMD source .env_secrets
-
 ENTRYPOINT ["../bin/vogon-backend-startup.sh"]
