@@ -164,7 +164,7 @@ class VogonTokenVerifyView(TokenVerifyView):
 	def post(self, request, *args, **kwargs):
 		super().post(request, *args, **kwargs)
 		user = authentication.JWTAuthentication().authenticate(request)[0]
-		notifications = user.notifications.unread()
+		notifications = user.notifications
 		return Response({ 
 			'notifications': NotificationSerializer(notifications, many=True).data
 		}, status=status.HTTP_200_OK)

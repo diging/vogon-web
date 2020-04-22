@@ -327,6 +327,11 @@ class GenericNotificationRelatedField(serializers.RelatedField):
         return serializer.data
 
 class NotificationSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
     recipient = VogonUserSerializer(VogonUser, read_only=True)
     unread = serializers.BooleanField(read_only=True)
     actor = GenericNotificationRelatedField(read_only=True)
+    verb = serializers.CharField(required=True)
+    timestamp = serializers.CharField(required=True)
+    action_object = GenericNotificationRelatedField(read_only=True)
+    target = GenericNotificationRelatedField(read_only=True)
