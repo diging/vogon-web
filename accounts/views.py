@@ -17,6 +17,7 @@ from annotations.models import VogonUser
 from accounts.models import ResetToken, GithubToken, CitesphereToken
 from accounts.serializers import UserSerializer, TokenObtainPairSerializer, ResetPasswordSerializer
 from annotations.serializers import NotificationSerializer
+from notifications.models import Notification
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -168,3 +169,11 @@ class VogonTokenVerifyView(TokenVerifyView):
 		return Response({ 
 			'notifications': NotificationSerializer(notifications, many=True).data
 		}, status=status.HTTP_200_OK)
+
+class NotificationViewset(viewsets.ViewSet):
+	@action(detail=True, methods=['post'], url_name='markasread')
+	def mark_as_read(self, request, pk=None):
+		notification = Notification.objects.filter(pk=pk, recipient=request.user)
+		notification.mark_all_as_read()
+		return Response({})
+    

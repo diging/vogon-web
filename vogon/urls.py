@@ -48,6 +48,7 @@ router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet, base_name='project')
 router.register(r'users', views.user_views.UserViewSet, basename='users')
+router.register(r'notifications', account_views.NotificationViewset, basename='notifications')
 
 # Amphora Routers
 amphora_repo_router = routers.NestedSimpleRouter(router, r'repository/amphora', lookup='repository')
