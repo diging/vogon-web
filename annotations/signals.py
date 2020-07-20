@@ -24,4 +24,3 @@ def my_handler(sender, action, pk_set, instance, **kwargs):
             recipient=user, 
             verb=f'You have been removed as collaborator from the project "{instance.name}"'
         )
-
