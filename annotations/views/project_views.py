@@ -156,7 +156,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['GET'], url_name='export_affiliations')
     def export_affiliations(self, request, pk=None):
         project = get_object_or_404(TextCollection, pk=pk)
-        template = RelationTemplate.objects.get(name="Affiliation") # TODO: Change ID
+        template = RelationTemplate.objects.get(name="Affiliation")
 
         relationsets = RelationSet.objects.filter(
             project=project,
