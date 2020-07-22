@@ -18,10 +18,13 @@ class RepositoryViewSet(viewsets.ModelViewSet):
     serializer_class = RepositorySerializer
 
     def retrieve(self, request, pk=None):
+        limit = request.query_params.get('limit', None)
+        offset = request.query_params.get('offset', None)
         queryset = self.get_queryset()
         repository = get_object_or_404(queryset, pk=pk)
         manager = repository.manager(request.user)
-        collections = manager.collections()
+        collections = manager.collections(limit=limit, offset=offset)
+
         return Response({
             **self.serializer_class(repository).data,
             'collections': collections
