@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from annotations import annotators
-from annotations.models import Text, TextCollection, RelationSet
+from annotations.models import Text, TextCollection, RelationSet, Appellation
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
 from repository.models import Repository
 
@@ -75,10 +75,18 @@ class RepositoryTextView(viewsets.ViewSet):
         except Text.DoesNotExist:
             master_text = Text.objects.create(uri=result.get('uri'),title=result.get('name'),public=result.get('public'),content_type=result.get('content_types'),repository_source_id=result.get('id'),repository_id=repository_pk,addedBy_id=1)
         aggregate_content = result.get('aggregate_content')
+
+        submitted = False
+        for child in range(len(master_text.children)):
+            if Appellation.objects.filter(occursIn_id=master_text.children[child], submitted=True):
+                submitted = True
+                break
+
         context = {
             'result': result,
             'master_text': TextSerializer(master_text).data if master_text else None,
-            'part_of_project': part_of_project
+            'part_of_project': part_of_project,
+            'submitted': submitted
         }
         if master_text:
             relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
