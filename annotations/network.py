@@ -52,7 +52,6 @@ def network_data(relationsets, text_id=None, appellation_queryset=None):
         } for k, v in edges.items()
     }
     return {
-        'nodes': nodes.values(),
-        'edges': edges.values()
+        'elements': list(nodes.values()) + list(edges.values())
     }
 
