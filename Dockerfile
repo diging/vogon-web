@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 RUN mkdir run
 RUN mkdir logs/
 RUN mkdir bin
+RUN mkdir data
 
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove && apt-get autoclean
 # most of these are for lxml which needs a bunch of dependancies installed
@@ -19,7 +20,8 @@ RUN apt-get install -y \
     net-tools \
     git-all \
     supervisor \
-    vim
+    vim \
+    redis-server
 
 COPY docker_scripts/vogon-gunicorn.sh bin/
 COPY docker_scripts/vogon-supervisord.conf /etc/supervisor/conf.d/
@@ -32,5 +34,6 @@ RUN ["chmod", "+x", "/usr/src/app/bin/vogon-gunicorn.sh"]
 RUN git clone -b develop https://github.com/diging/vogon-web.git
 WORKDIR /usr/src/app/vogon-web
 RUN pip install -r requirements.txt
+
 
 ENTRYPOINT ["../bin/vogon-backend-startup.sh"]
