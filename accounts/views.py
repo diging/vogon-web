@@ -101,8 +101,7 @@ class ForgotPasswordView(APIView):
             )
 
             return Response({ "success": True })
-        else:
-            return Response({ "success": False, "message": "Username not specified" }, status=400)
+        return Response({ "success": False, "message": "Username not specified" }, status=400)
 
 class ResetPasswordView(APIView):
     def post(self, request):
@@ -131,11 +130,10 @@ class ResetPasswordView(APIView):
                             "success": True,
                             "message": "Successfully reset the password!"
                         })
-                    else:
-                        return Response({
-                            "success": False,
-                            "message": "Invalid reset link! Try resetting again..."
-                        }, status=403)
+                    return Response({
+                        "success": False,
+                        "message": "Invalid reset link! Try resetting again..."
+                    }, status=403)
                 except jwt.exceptions.PyJWTError:
                     return Response({
                         "success": False,
