@@ -54,4 +54,3 @@ def network_data(relationsets, text_id=None, appellation_queryset=None):
     return {
         'elements': list(nodes.values()) + list(edges.values())
     }
-
