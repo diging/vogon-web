@@ -1,5 +1,7 @@
 #!/bin/bash
+source /usr/src/app/data/env_secrets
 service redis-server start
 service supervisor start
-docker cp /diging2/docker/python-apps-docker/vogonPython3/vogon_docker_test/vogon-backend/.env_secrets vogon-compose_vogon_1:/.env_secrets
-#python manage.py runserver 0.0.0.0:8000
+cd /usr/src/app/vogon-web
+python manage.py migrate
+tail -f /dev/null
