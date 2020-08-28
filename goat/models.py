@@ -36,9 +36,15 @@ class Authority(BasicAccessionMixin):
 
     @property
     def manager(self):
-        if not self.configuration:
-            raise AttributeError("Configuration unavailable for %s" % self.name)
-        return AuthorityManager(self.configuration)
+        if self.builtin_identity_system.name == 'builtin:Conceptpower':
+            from goat.authorities.conceptpower import ConceptPower
+            return ConceptPower(self.namespace)  # TODO: Move this to models
+        elif self.builtin_identity_system.name == 'builtin:VIAF':
+            from goat.authorities.viaf import Viaf
+            return Viaf(self.namespace)  # TODO: Move this to models
+        # if not self.configuration:
+        #     raise AttributeError("Configuration unavailable for %s" % self.name)
+        # return AuthorityManager(self.configuration)
 
     @property
     def get(self):

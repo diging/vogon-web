@@ -48,15 +48,17 @@ def search(user_id, authority_id, params):
     authority = Authority.objects.get(pk=authority_id)
     concepts = []
     results = authority.search(params)
+    
+    print("Searching authority", results)
 
     for result in results:
-        identities = result.extra.pop('identities', None)
-        if getattr(result, 'concept_type', None):
+        identities = result.get('identities', None)
+        if result['concept_type']:
             try:
-                concept_type = Concept.objects.get(identifier=result.concept_type)
+                concept_type = Concept.objects.get(identifier=result['concept_type'])
             except Concept.DoesNotExist:
                 try:
-                    concept_type_result = authority.manager.type(identifier=result.concept_type)
+                    concept_type_result = authority.manager.type(identifier=result['concept_type'])
                 except:
                     concept_type_result = None
 
@@ -68,28 +70,28 @@ def search(user_id, authority_id, params):
                 if concept_type_result:
                     defaults.update({
                         'name': concept_type_result['name'],
-                        'local_identifier': result.concept_type,
+                        'local_identifier': result['concept_type'],
                         'description': concept_type_result['description'],
 
                     })
                 else:
                     defaults.update({
-                        'name': result.concept_type,
-                        'local_identifier': result.concept_type,
+                        'name': result['concept_type'],
+                        'local_identifier': result['concept_type'],
                     })
                 if defaults.get('name') is None:
-                    defaults['name'] = result.concept_type
-                concept_type = Concept.objects.create(identifier=result.concept_type, **defaults)
+                    defaults['name'] = result['concept_type']
+                concept_type = Concept.objects.create(identifier=result['concept_type'], **defaults)
         else:
             concept_type = None
 
         concept, _ = Concept.objects.get_or_create(
-            identifier=result.identifier,
+            identifier=result['identifier'],
             defaults={
                 'added_by': user,
-                'name': result.name,
-                'local_identifier': result.local_identifier,
-                'description': result.description,
+                'name': result['name'],
+                'local_identifier': result['local_identifier'],
+                'description': result['description'],
                 'concept_type': concept_type,
                 'authority': authority
             }
@@ -106,7 +108,7 @@ def search(user_id, authority_id, params):
                 for ident in identities
             ]
             identity = Identity.objects.create(
-                name = result.name,
+                name = result['name'],
                 part_of = authority.builtin_identity_system,
                 added_by = user
             )
