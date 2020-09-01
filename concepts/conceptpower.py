@@ -5,8 +5,8 @@ from lxml import etree
 from django.conf import settings
 
 class ConceptPower:
-    def __init__(self, namespace):
-        self.namespace = namespace
+    def __init__(self):
+        self.namespace = settings.CONCEPTPOWER_NAMESPACE
         self.endpoint = settings.CONCEPTPOWER_ENDPOINT
         self.username = settings.CONCEPTPOWER_USERID
         self.password = settings.CONCEPTPOWER_PASSWORD
@@ -14,9 +14,9 @@ class ConceptPower:
     def search(self, params):
         url = f'{self.endpoint}/ConceptSearch'
         params = {
-            'word': params['q'],
-            'pos': params['pos'],
-            'number_of_records_per_page': params['limit']
+            'word': params.get('q', ''),
+            'pos': params.get('pos', 'noun'),
+            'number_of_records_per_page': params.get('limit', 100)
         }
         response = requests.get(url=url, params=params)
         root = etree.fromstring(response.content)
@@ -100,6 +100,7 @@ class ConceptPower:
         data : dict
             When the concept has been successfully added, data is returned.
         """
+        print("Creating concept", label)
         auth = HTTPBasicAuth(self.username, self.password)
         url = f'{self.endpoint}/concept/add'
         data = {
@@ -114,6 +115,7 @@ class ConceptPower:
         }
 
         response = request.post(url=url, data=json.dumps(data), auth=auth)
+        print("Created concpet", response.json())
 
         if response.status_code != 200:
             raise RuntimeError(response.status_code, response.text)

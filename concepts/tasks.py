@@ -8,7 +8,6 @@ logger.setLevel(settings.LOGLEVEL)
 
 import requests
 
-from concepts.authorities import resolve, search, add
 from concepts.models import Concept
 from concepts.lifecycle import *
 

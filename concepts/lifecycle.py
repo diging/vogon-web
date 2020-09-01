@@ -1,9 +1,8 @@
 from django.conf import settings
-
 from urllib.parse import urlparse
-from conceptpower import Conceptpower
 
-from concepts.models import *
+from .conceptpower import ConceptPower
+from .models import *
 
 
 TYPES = settings.CONCEPT_TYPES
@@ -45,11 +44,6 @@ class ConceptLifecycle(object):
         assert isinstance(instance, Concept)
         self.instance = instance
         self.conceptpower = Conceptpower()
-
-        self.conceptpower.endpoint = settings.CONCEPTPOWER_ENDPOINT
-        self.conceptpower.namespace = settings.CONCEPTPOWER_NAMESPACE
-        self.user = settings.CONCEPTPOWER_USERID
-        self.password = settings.CONCEPTPOWER_PASSWORD
 
     @staticmethod
     def get_namespace(uri):
@@ -261,8 +255,7 @@ class ConceptLifecycle(object):
         if not pos:
             pos = 'noun'
         try:
-            data = self.conceptpower.create(self.user, self.password,
-                                            self.instance.label, pos,
+            data = self.conceptpower.create(self.instance.label, pos,
                                             self.DEFAULT_LIST,
                                             self.instance.description,
                                             concept_type,
@@ -309,7 +302,7 @@ class ConceptLifecycle(object):
         if not q:
             return []
         try:
-            data = self.conceptpower.search(q)
+            data = self.conceptpower.search({ 'q': q })
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
         return list(map(self._reform, data))
@@ -325,7 +318,7 @@ class ConceptLifecycle(object):
             A list of dicts with raw data from Conceptpower.
         """
         try:
-            data = self.conceptpower.search(self.instance.uri)
+            data = self.conceptpower.search({ 'q': self.instance.uri })
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
         return list(map(self._reform, data))

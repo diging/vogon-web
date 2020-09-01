@@ -3,8 +3,6 @@ from annotations.models import VogonUser
 
 import datetime, json
 
-from goat.authorities import AuthorityManager
-
 
 opt = {'blank': True, 'null': True}
 
@@ -37,14 +35,11 @@ class Authority(BasicAccessionMixin):
     @property
     def manager(self):
         if self.builtin_identity_system.name == 'builtin:Conceptpower':
-            from goat.authorities.conceptpower import ConceptPower
-            return ConceptPower(self.namespace)  # TODO: Move this to models
+            from concepts.conceptpower import ConceptPower
+            return ConceptPower()
         elif self.builtin_identity_system.name == 'builtin:VIAF':
-            from goat.authorities.viaf import Viaf
-            return Viaf(self.namespace)  # TODO: Move this to models
-        # if not self.configuration:
-        #     raise AttributeError("Configuration unavailable for %s" % self.name)
-        # return AuthorityManager(self.configuration)
+            from concepts.viaf import Viaf
+            return Viaf(self.namespace)
 
     @property
     def get(self):

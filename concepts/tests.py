@@ -2,7 +2,6 @@ from django.test import TestCase
 from django.db.models.signals import post_save
 from django.db import transaction
 from django.db import IntegrityError
-from concepts.authorities import resolve, search
 from concepts.models import Concept, Type
 from concepts.signals import concept_post_save_receiver
 import mock, json
