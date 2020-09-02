@@ -11,7 +11,7 @@ from .serializers import TokenObtainPairSerializer
 from rest_framework.decorators import api_view
 import requests
 from django.conf import settings
-from .models import GithubToken
+from .models import GithubToken, CitesphereToken
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -45,6 +45,29 @@ def github_token(request):
             token = GithubToken.objects.get(user=request.user)
         except GithubToken.DoesNotExist:
             token = GithubToken()
+            token.user = request.user
+        token.token = r.json()["access_token"]
+        token.save()
+        return Response(status=status.HTTP_201_CREATED)
+
+@api_view(["GET"])
+def citesphere_token(request):
+    if request.method == "GET":
+        code = request.GET.get("code", "")
+        r = requests.post(
+            f"{settings.CITESPHERE_ENDPOINT}/api/v1/oauth/token",
+            params={
+                "client_id": settings.CITESPHERE_CLIENT_ID,
+                "client_secret": settings.CITESPHERE_CLIENT_SECRET,
+                "code": code,
+                "grant_type": "authorization_code"
+            },
+            headers={"Accept": "application/json"},
+        )
+        try:
+            token = CitesphereToken.objects.get(user=request.user)
+        except CitesphereToken.DoesNotExist:
+            token = CitesphereToken()
             token.user = request.user
         token.token = r.json()["access_token"]
         token.save()

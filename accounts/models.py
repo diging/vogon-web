@@ -5,3 +5,7 @@ from annotations.models import VogonUser
 class GithubToken(models.Model):
 	token = models.CharField(max_length=50)
 	user = models.ForeignKey(VogonUser, on_delete=models.CASCADE)
+
+class CitesphereToken(models.Model):
+	token = models.CharField(max_length=50)
+	user = models.ForeignKey(VogonUser, on_delete=models.CASCADE)
