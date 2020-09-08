@@ -49,8 +49,6 @@ def search(user_id, authority_id, params):
     concepts = []
     results = authority.search(params)
     
-    print("Searching authority", results)
-
     for result in results:
         identities = result.get('identities', None)
         if result['concept_type']:

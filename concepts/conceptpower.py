@@ -100,7 +100,6 @@ class ConceptPower:
         data : dict
             When the concept has been successfully added, data is returned.
         """
-        print("Creating concept", label)
         auth = HTTPBasicAuth(self.username, self.password)
         url = f'{self.endpoint}/concept/add'
         data = {
@@ -114,8 +113,7 @@ class ConceptPower:
             "similar": similar_uris
         }
 
-        response = request.post(url=url, data=json.dumps(data), auth=auth)
-        print("Created concpet", response.json())
+        response = requests.post(url=url, data=json.dumps(data), auth=auth)
 
         if response.status_code != 200:
             raise RuntimeError(response.status_code, response.text)
@@ -125,6 +123,7 @@ class ConceptPower:
     def _parse_concept(self, entry):
         name = entry.find(f'{{{self.namespace}}}lemma').text
         description = entry.find(f'{{{self.namespace}}}description').text
+        pos = entry.find(f'{{{self.namespace}}}pos').text
         local_identifier = entry.find(f'{{{self.namespace}}}id').text
         identity = entry.find(f'{{{self.namespace}}}equal_to').text
         
@@ -145,6 +144,7 @@ class ConceptPower:
         
         data = {
             'name': name,
+            'pos': pos,
             'description': description,
             'concept_type': concept_type,
             'identifier': identifier,

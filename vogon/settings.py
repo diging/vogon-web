@@ -211,7 +211,7 @@ CONCEPTPOWER_ENDPOINT = os.environ.get(
 	"CONCEPTPOWER_ENDPOINT", "http://chps.asu.edu/conceptpower/rest/"
 )
 CONCEPTPOWER_NAMESPACE = os.environ.get(
-	"CONCEPTPOWER_NAMESPACE", "{http://www.digitalhps.org/}"
+	"CONCEPTPOWER_NAMESPACE", "http://www.digitalhps.org/"
 )
 
 QUADRIGA_USERID = os.environ.get("QUADRIGA_USERID", "")
