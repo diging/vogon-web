@@ -3,8 +3,8 @@ import json
 from lxml import etree
 
 class Viaf:
-    def __init__(self, namespace):
-        self.namespace = namespace
+    def __init__(self):
+        self.namespace = 'http://viaf.org/viaf/terms#'
         self.endpoint = 'http://viaf.org'
 
     def search(self, params):

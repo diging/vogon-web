@@ -19,7 +19,6 @@ def orchestrate_search(user_id, authority_ids, params):
     user = VogonUser.objects.get(pk=user_id)
     authorities = Authority.objects.filter(pk__in=authority_ids)
 
-    authorities = filter(lambda a: a.configuration is not None, authorities)
     result = [search(user.id, auth.id, params) for auth in authorities]
     return result
 
@@ -62,7 +61,6 @@ def search(user_id, authority_id, params):
 
                 defaults = {
                     'added_by': user,
-                    'authority': authority,
                     'authority': authority
                 }
                 if concept_type_result:

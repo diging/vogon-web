@@ -26,10 +26,6 @@ class Authority(BasicAccessionMixin):
     name = models.CharField(max_length=255)
     namespace = models.CharField(max_length=255, **opt)
     description = models.TextField(**opt)
-
-    configuration = models.TextField(**opt)
-    """JSON-serialized configuration (if available) for this authority."""
-
     builtin_identity_system = models.ForeignKey('IdentitySystem', on_delete=models.CASCADE, **opt)
 
     @property
@@ -39,7 +35,7 @@ class Authority(BasicAccessionMixin):
             return ConceptPower()
         elif self.builtin_identity_system.name == 'builtin:VIAF':
             from concepts.viaf import Viaf
-            return Viaf(self.namespace)
+            return Viaf()
 
     @property
     def get(self):
@@ -48,9 +44,6 @@ class Authority(BasicAccessionMixin):
     @property
     def search(self):
         return self.manager.search
-
-    def accepts(self, method, *params):
-        return self.manager.accepts(method, *params)
 
     def __str__(self):
         return self.name
