@@ -911,6 +911,7 @@ class RelationSet(models.Model):
                 appellation_ids.append(relation.source_object_id)
             if relation.object_content_type == appellation_type:
                 appellation_ids.append(relation.object_object_id)
+            appellation_ids.append(relation.predicate.id)
 
         return Appellation.objects.filter(pk__in=appellation_ids)
 
