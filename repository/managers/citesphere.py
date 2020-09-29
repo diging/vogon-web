@@ -20,7 +20,53 @@ class CitesphereAuthority:
 
     def user_info(self):
         response = requests.get(
-            url=f'{self.endpoint}/user',
-            header=self.headers
+            url=f'{self.endpoint}/api/v1/user',
+            headers=self.headers
         )
         return json.loads(response.content)
+
+    def collections(self):
+        response = requests.get(
+            url=f'{self.endpoint}/api/v1/groups',
+            headers=self.headers
+        )
+        groups = json.loads(response.content)
+        
+        # Parse groups to the standard format
+        result = []
+        for group in groups:
+            collection = {
+                "id": group['id'],
+                "name": group['name'],
+                "uri": f"{self.endpoint}/auth/group/{group['id']}",
+                "url": f"{self.endpoint}/api/v1/groups/{group['id']}/items",
+                "description": group['description'],
+                "public": False if group['type'] == "Private" else True
+            }
+            result.append(group)
+
+        return result
+
+    def collection(self, id, limit=None, offset=None):
+        response = requests.get(
+            url=f'{self.endpoint}/api/v1/group/{id}/items'
+        )
+        content = json.loads(response.content)
+        result = {
+            "id": id,
+            "name": content['name'],
+            "url": f"{self.endpoint}/api/v1/group/{id}/items",
+            "public": False if group['type'] == "Private" else True,
+        }
+        resources = []
+        for item in content['items']:
+            resources.append({
+                "id": item['key'],
+                "name": item['title'],
+                "title": item['title'],
+                "url": "",
+                "uri": "",
+            })
+
+        result["collections"] = resources
+        return result

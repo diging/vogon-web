@@ -8,8 +8,10 @@ class Repository(models.Model):
     url = models.CharField(max_length=255, default='')
 
     AMPHORA = 'Amphora'
+    CITESPHERE = 'Citesphere'
     REPO_CHOICES = [
-        (AMPHORA, 'Amphora')
+        (AMPHORA, 'Amphora'),
+        (CITESPHERE, 'Citesphere')
     ]
     repo_type = models.CharField(
         max_length=100,
@@ -21,3 +23,9 @@ class Repository(models.Model):
         if self.repo_type == self.AMPHORA:
             from repository.managers import AmphoraRepository
             return AmphoraRepository(user=user, endpoint=self.url)
+        elif self.repo_type == self.CITESPHERE:
+            from repository.managers import CitesphereAuthority
+            return CitesphereAuthority(user=user, endpoint=self.url)
+
+    def __str__(self):
+        return self.name
