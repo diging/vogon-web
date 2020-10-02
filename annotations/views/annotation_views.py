@@ -103,24 +103,20 @@ class AnnotationViewSet(viewsets.ViewSet):
         data['project'] = project
         appellations = Appellation.objects.filter(
             occursIn=text.id,
-            createdBy=request.user,
             project=project
         )
         data['appellations'] = appellations
         data['relations'] = Relation.objects.filter(
             occursIn=text.id,
-            createdBy=request.user
         )
         data['relationsets'] = RelationSet.objects.filter(
             occursIn=text.id, 
             project=project, 
-            createdBy=request.user
         )
         data['concept_types'] = Type.objects.all()
         relationsets = RelationSet.objects.filter(
             occursIn=text.id,
             project=project,
-            createdBy=request.user,
             submitted=False,
         )
         relationsets = [x for x in relationsets if x.ready()]
