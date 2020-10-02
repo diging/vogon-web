@@ -72,7 +72,8 @@ def citesphere_token(request):
 		except CitesphereToken.DoesNotExist:
 			token = CitesphereToken()
 			token.user = request.user
-		token.token = r.json()["access_token"]
+		token.access_token = r.json()["access_token"]
+		token.refresh_token = r.json()["refresh_token"]
 		token.save()
 		return Response(status=status.HTTP_201_CREATED)
 

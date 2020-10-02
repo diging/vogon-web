@@ -1,5 +1,7 @@
 import requests
 import json
+from django.conf import settings
+from rest_framework import status
 
 from accounts.models import CitesphereToken
 
@@ -7,30 +9,52 @@ class CitesphereAuthority:
     def __init__(self, user, endpoint):
         self.endpoint = endpoint
         self.user = user
-        self.headers = {
-            **self._get_auth_header()
-        }
+        self.headers = self._get_auth_header()
 
     def _get_auth_header(self):
         try:
-            auth_token = CitesphereToken.objects.get(user=self.user)
-            return {'Authorization': f'Bearer {auth_token.token}'}
+            self.auth_token = CitesphereToken.objects.get(user=self.user)
+            return {'Authorization': f'Bearer {self.auth_token.access_token}'}
         except CitesphereToken.DoesNotExist:
             return {}
 
-    def user_info(self):
-        response = requests.get(
-            url=f'{self.endpoint}/api/v1/user',
-            headers=self.headers
+    def _get_response(self, endpoint):
+        """
+        Return response from `endpoint`, 
+        get a new token and retry if unauthorized
+        """
+        response = requests.get(url=endpoint, headers=self.headers)
+        if response.status_code == status.HTTP_401_UNAUTHORIZED:
+            self._get_access_token() # Set new token
+            return self._get_response(endpoint) # Retry the request
+        else:
+            return json.loads(response.content)
+
+    def _get_access_token(self):
+        """
+        Get a new `access_token` using the `refresh_token`
+        and save it in `CitesphereToken` object
+        """
+        refresh_token = self.auth_token.refresh_token
+        response = requests.post(
+            url=f'{self.endpoint}/api/v1/oauth/token',
+            params={
+                "client_id": settings.CITESPHERE_CLIENT_ID,
+                "client_secret": settings.CITESPHERE_CLIENT_SECRET,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token"
+            }
         )
-        return json.loads(response.content)
+        content = json.loads(response.content)
+        self.auth_token.access_token = content["access_token"]
+        self.auth_token.save()
+        self.headers = self._get_auth_header()
+
+    def user_info(self):
+        return self._get_response(f'{self.endpoint}/api/v1/user')
 
     def collections(self):
-        response = requests.get(
-            url=f'{self.endpoint}/api/v1/groups',
-            headers=self.headers
-        )
-        groups = json.loads(response.content)
+        groups = self._get_response(f'{self.endpoint}/api/v1/groups')
         
         # Parse groups to the standard format
         result = []
@@ -48,15 +72,12 @@ class CitesphereAuthority:
 
         return result
 
-    def collection(self, id, limit=None, offset=None):
-        response = requests.get(
-            url=f'{self.endpoint}/api/v1/group/{id}/items'
-        )
-        content = json.loads(response.content)
+    def collection(self, col_id, limit=None, offset=None):
+        content = self._get_response(f'{self.endpoint}/api/v1/group/{col_id}/items')
         result = {
-            "id": id,
+            "id": col_id,
             "name": content['name'],
-            "url": f"{self.endpoint}/api/v1/group/{id}/items",
+            "url": f"{self.endpoint}/api/v1/group/{col_id}/items",
             "public": False if group['type'] == "Private" else True,
         }
         resources = []
