@@ -41,9 +41,10 @@ class CitesphereAuthority:
                 "uri": f"{self.endpoint}/auth/group/{group['id']}",
                 "url": f"{self.endpoint}/api/v1/groups/{group['id']}/items",
                 "description": group['description'],
-                "public": False if group['type'] == "Private" else True
+                "public": False if group['type'] == "Private" else True,
+                "size": group['numItems']
             }
-            result.append(group)
+            result.append(collection)
 
         return result
 
