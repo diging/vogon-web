@@ -15,11 +15,18 @@ class TestCitesphereAuthorityTestCase(TestCase):
             password='test',
             email='test@example.com'
         )
-        CitesphereToken.objects.create(token='', user=self.user)
+        CitesphereToken.objects.create(
+            access_token='',
+            refresh_token='',
+            user=self.user
+        )
         self.citesphere = CitesphereAuthority(
             user=self.user,
             endpoint='https://diging-dev.asu.edu/citesphere-review/api/v1'
         )
+
+    def test_token_expiry(self):
+        pass
 
     @mock.patch("requests.get")
     def test_user_info(self, mock_get):
@@ -41,5 +48,12 @@ class TestCitesphereAuthorityTestCase(TestCase):
 
     @mock.patch("requests.get")
     def test_groups_multiple(self, mock_get):
-        mock_get.return_value = MockResponse()
-        
+        mock_get.return_value = MockResponse.from_file(
+            'repository/managers/tests/mock_response_collections.json'
+        )
+        response = self.citesphere.collections()
+        expected = MockResponse.from_file(
+            'repository/managers/tests/response_collections_expected.json'
+        ).json()
+        self.assertEqual(response, expected)
+

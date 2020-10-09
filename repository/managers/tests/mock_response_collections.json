@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1,
+        "name": "group-1",
+        "version": 5,
+        "created": "2018-11-19T21:34:21Z",
+        "lastModified": "2020-09-22T21:11:07Z",
+        "numItems": 5,
+        "owner": 5,
+        "type": "Private",
+        "description": "<p>This is for testing citesphere.</p>",
+        "url": ""
+    },
+    {
+        "id": 2,
+        "name": "group-2",
+        "version": 4,
+        "created": "2018-11-19T21:34:21Z",
+        "lastModified": "2020-09-22T21:11:07Z",
+        "numItems": 2,
+        "owner": 3,
+        "type": "Public",
+        "description": "<p>This is for testing citesphere.</p>",
+        "url": ""
+    }
+]

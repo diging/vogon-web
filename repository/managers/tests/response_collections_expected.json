@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "group-1",
+    "uri": "https://diging-dev.asu.edu/citesphere-review/api/v1/auth/group/1",
+    "url": "https://diging-dev.asu.edu/citesphere-review/api/v1/api/v1/groups/1/items",
+    "description": "<p>This is for testing citesphere.</p>",
+    "public": false,
+    "size": 5
+  },
+  {
+    "id": 2,
+    "name": "group-2",
+    "uri": "https://diging-dev.asu.edu/citesphere-review/api/v1/auth/group/2",
+    "url": "https://diging-dev.asu.edu/citesphere-review/api/v1/api/v1/groups/2/items",
+    "description": "<p>This is for testing citesphere.</p>",
+    "public": true,
+    "size": 2
+  }
+]
