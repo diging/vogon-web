@@ -20,15 +20,21 @@ class CitesphereAuthority:
 
     def _get_response(self, endpoint):
         """
-        Return response from `endpoint`, 
+        Return response from `endpoint`,
         get a new token and retry if unauthorized
         """
-        response = requests.get(url=endpoint, headers=self.headers)
-        if response.status_code == status.HTTP_401_UNAUTHORIZED:
-            self._get_access_token() # Set new token
-            return self._get_response(endpoint) # Retry the request
-        else:
-            return json.loads(response.content)
+        retries = 5
+        for _ in range(retries):
+            response = requests.get(url=endpoint, headers=self.headers)
+            if response.status_code == status.HTTP_401_UNAUTHORIZED:
+                try:
+                    self._get_access_token() # Set new token
+                except requests.RequestException as e:
+                    raise e
+            else:
+                return json.loads(response.content)
+
+        raise requests.exceptions.RetryError("Could not renew token")
 
     def _get_access_token(self):
         """
@@ -45,15 +51,22 @@ class CitesphereAuthority:
                 "grant_type": "refresh_token"
             }
         )
-        content = json.loads(response.content)
-        self.auth_token.access_token = content["access_token"]
-        self.auth_token.save()
-        self.headers = self._get_auth_header()
+        if response.status_code == 200:
+            content = json.loads(response.content)
+            self.auth_token.access_token = content["access_token"]
+            self.auth_token.save()
+            self.headers = self._get_auth_header()
+        else:
+            print(response.content)
+            raise requests.RequestException("Error renewing access_token")
+
+    def test_endpoint(self):
+        return self._get_response(f'{self.endpoint}/api/v1/test')
 
     def user_info(self):
         return self._get_response(f'{self.endpoint}/api/v1/user')
 
-    def collections(self):
+    def groups(self):
         groups = self._get_response(f'{self.endpoint}/api/v1/groups')
         
         # Parse groups to the standard format
@@ -72,23 +85,31 @@ class CitesphereAuthority:
 
         return result
 
-    def collection(self, col_id, limit=None, offset=None):
-        content = self._get_response(f'{self.endpoint}/api/v1/group/{col_id}/items')
-        result = {
-            "id": col_id,
-            "name": content['name'],
-            "url": f"{self.endpoint}/api/v1/group/{col_id}/items",
-            "public": False if group['type'] == "Private" else True,
-        }
-        resources = []
-        for item in content['items']:
-            resources.append({
-                "id": item['key'],
-                "name": item['title'],
-                "title": item['title'],
-                "url": "",
-                "uri": "",
-            })
+    def items(self, col_id, limit=None, offset=None):
+        content = self._get_response(f'{self.endpoint}/api/v1/groups/{col_id}/items')
+        # result = {
+        #     "id": col_id,
+        #     "name": content['name'],
+        #     "url": f"{self.endpoint}/api/v1/group/{col_id}/items",
+        #     "public": False if group['type'] == "Private" else True,
+        # }
+        # resources = []
+        # for item in content['items']:
+        #     resources.append({
+        #         "id": item['key'],
+        #         "name": item['title'],
+        #         "title": item['title'],
+        #         "url": "",
+        #         "uri": "",
+        #     })
 
-        result["collections"] = resources
-        return result
+        # result["collections"] = resources
+        # return result
+        return {}
+
+    def collections(self):
+        # TODO: Change terminologies
+        return self.groups()
+
+    def collection(self, id):
+        raise NotImplementedError
