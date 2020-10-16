@@ -106,10 +106,3 @@ class CitesphereAuthority:
         # result["collections"] = resources
         # return result
         return {}
-
-    def collections(self):
-        # TODO: Change terminologies
-        return self.groups()
-
-    def collection(self, id):
-        raise NotImplementedError
