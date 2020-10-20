@@ -25,15 +25,21 @@ class CitesphereAuthority:
         group = self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}')
         return self._parse_group_info(group)
 
-    def group_items(self, group_id, limit=None, offset=None):
-        return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/items')
+    def group_items(self, group_id, page=1):
+        params = { "page": page }
+        return self._get_response(
+            f'{self.endpoint}/api/v1/groups/{group_id}/items',
+            params=params
+        )
 
     def group_collections(self, group_id, limit=None, offset=None):
         return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/collections')
 
-    def collection_items(self, group_id, col_id):
+    def collection_items(self, group_id, col_id, page=1):
+        params = { "page": page }
         return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/collections/{col_id}/items'
+            f'{self.endpoint}/api/v1/groups/{group_id}/collections/{col_id}/items',
+            params=params
         )
 
     def collection_collections(self, group_id, col_id):
@@ -48,14 +54,14 @@ class CitesphereAuthority:
         except CitesphereToken.DoesNotExist:
             return {}
 
-    def _get_response(self, endpoint):
+    def _get_response(self, endpoint, params = None):
         """
         Return response from `endpoint`,
         get a new token and retry if unauthorized
         """
         retries = 5
         for _ in range(retries):
-            response = requests.get(url=endpoint, headers=self.headers)
+            response = requests.get(url=endpoint, headers=self.headers, params=params)
             if response.status_code == status.HTTP_401_UNAUTHORIZED:
                 try:
                     self._get_access_token() # Set new token

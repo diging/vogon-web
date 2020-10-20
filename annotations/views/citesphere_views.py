@@ -44,6 +44,11 @@ class CitesphereGroupsViewSet(viewsets.ViewSet):
         collections = manager.group_collections(pk)
         items = manager.group_items(pk)
 
+        # Append `children` field
+        for collection in collections["collections"]:
+            if collection["numberOfCollections"] > 0:
+                collection["children"] = []
+
         result = {
             **collections,
             "items": items["items"]
@@ -72,6 +77,10 @@ class CitesphereCollectionsViewSet(viewsets.ViewSet):
         )
         manager = repository.manager(request.user)
         collections = manager.collection_collections(groups_pk, pk)
+        for collection in collections["collections"]:
+            if collection["numberOfCollections"] > 0:
+                collection["children"] = []
+
         return Response(collections)
 
     @action(detail=True, methods=['get'])
@@ -82,7 +91,8 @@ class CitesphereCollectionsViewSet(viewsets.ViewSet):
             repo_type=Repository.CITESPHERE
         )
         manager = repository.manager(request.user)
-        items = manager.collection_items(groups_pk, pk)
+        page = request.query_params.get('page', 1)
+        items = manager.collection_items(groups_pk, pk, page)
         return Response(items)
 
 
@@ -94,5 +104,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
             repo_type=Repository.CITESPHERE
         )
         manager = repository.manager(request.user)
-        items = manager.group_items(groups_pk)
+        page = request.query_params.get('page', 1)
+        items = manager.group_items(groups_pk, page)
         return Response(items)
