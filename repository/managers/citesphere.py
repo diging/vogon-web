@@ -11,6 +11,36 @@ class CitesphereAuthority:
         self.user = user
         self.headers = self._get_auth_header()
 
+    def test_endpoint(self):
+        return self._get_response(f'{self.endpoint}/api/v1/test')
+
+    def user_info(self):
+        return self._get_response(f'{self.endpoint}/api/v1/user')
+
+    def groups(self):
+        groups = self._get_response(f'{self.endpoint}/api/v1/groups')
+        return list(map(self._parse_group_info, groups))
+
+    def group_info(self, group_id):
+        group = self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}')
+        return self._parse_group_info(group)
+
+    def group_items(self, group_id, limit=None, offset=None):
+        return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/items')
+
+    def group_collections(self, group_id, limit=None, offset=None):
+        return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/collections')
+
+    def collection_items(self, group_id, col_id):
+        return self._get_response(
+            f'{self.endpoint}/api/v1/groups/{group_id}/collections/{col_id}/items'
+        )
+
+    def collection_collections(self, group_id, col_id):
+        return self._get_response(
+            f'{self.endpoint}/api/v1/groups/{group_id}/collections/{col_id}/collections'
+        )
+    
     def _get_auth_header(self):
         try:
             self.auth_token = CitesphereToken.objects.get(user=self.user)
@@ -60,49 +90,13 @@ class CitesphereAuthority:
             print(response.content)
             raise requests.RequestException("Error renewing access_token")
 
-    def test_endpoint(self):
-        return self._get_response(f'{self.endpoint}/api/v1/test')
-
-    def user_info(self):
-        return self._get_response(f'{self.endpoint}/api/v1/user')
-
-    def groups(self):
-        groups = self._get_response(f'{self.endpoint}/api/v1/groups')
-        
-        # Parse groups to the standard format
-        result = []
-        for group in groups:
-            collection = {
-                "id": group['id'],
-                "name": group['name'],
-                "uri": f"{self.endpoint}/auth/group/{group['id']}",
-                "url": f"{self.endpoint}/api/v1/groups/{group['id']}/items",
-                "description": group['description'],
-                "public": False if group['type'] == "Private" else True,
-                "size": group['numItems']
-            }
-            result.append(collection)
-
-        return result
-
-    def items(self, col_id, limit=None, offset=None):
-        content = self._get_response(f'{self.endpoint}/api/v1/groups/{col_id}/items')
-        # result = {
-        #     "id": col_id,
-        #     "name": content['name'],
-        #     "url": f"{self.endpoint}/api/v1/group/{col_id}/items",
-        #     "public": False if group['type'] == "Private" else True,
-        # }
-        # resources = []
-        # for item in content['items']:
-        #     resources.append({
-        #         "id": item['key'],
-        #         "name": item['title'],
-        #         "title": item['title'],
-        #         "url": "",
-        #         "uri": "",
-        #     })
-
-        # result["collections"] = resources
-        # return result
-        return {}
+    def _parse_group_info(self, group):
+        return {
+            "id": group['id'],
+            "name": group['name'],
+            "uri": f"{self.endpoint}/auth/group/{group['id']}",
+            "url": f"{self.endpoint}/api/v1/groups/{group['id']}/items",
+            "description": group['description'],
+            "public": False if group['type'] == "Private" else True,
+            "size": group['numItems']
+        }

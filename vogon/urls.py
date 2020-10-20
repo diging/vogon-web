@@ -62,6 +62,9 @@ amphora_repo_content_router.register(r'content', views.amphora_views.AmphoraText
 citesphere_repo_router = routers.NestedSimpleRouter(router, r'repository/citesphere', lookup='repository')
 citesphere_repo_router.register(r'groups', views.citesphere_views.CitesphereGroupsViewSet, base_name='repository-citesphere-groups')
 
+citesphere_repo_group_router = routers.NestedSimpleRouter(citesphere_repo_router, r'groups', lookup='groups')
+citesphere_repo_group_router.register(r'collections', views.citesphere_views.CitesphereCollectionsViewSet, base_name='repository-citesphere-collctions')
+citesphere_repo_group_router.register(r'items', views.citesphere_views.CitesphereItemsViewSet, base_name='repository-citesphere-items')
 
 #Error Handlers
 handler403 = 'annotations.exceptions.custom_403_handler'
@@ -79,6 +82,7 @@ urlpatterns = [
     re_path(r'^api/v2/', include((amphora_repo_router.urls, "vogon_rest_repo"))),
     re_path(r'^api/v2/', include((amphora_repo_content_router.urls, "vogon_rest_repo_content"))),
     re_path(r'^api/v2/', include((citesphere_repo_router.urls, "vogon_rest_citesphere"))),
+    re_path(r'^api/v2/', include((citesphere_repo_group_router.urls, "vogon_rest_citesphere_groups"))),
 
     path('admin/', admin.site.urls),
 
