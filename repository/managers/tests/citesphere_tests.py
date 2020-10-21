@@ -38,7 +38,7 @@ class TestCitesphereAuthorityTestCase(TestCase):
             4. Retry `test_endpoint`
             5. Success Response (200)
         """
-        def mock_test_endpoint(url, headers):
+        def mock_test_endpoint(url, headers, params):
             if headers["Authorization"] == "Bearer t1":
                 # Case 1 - invalid token
                 return MockResponse("", status_code=401)
@@ -72,7 +72,7 @@ class TestCitesphereAuthorityTestCase(TestCase):
             3. Try renewing token
             4. Error on renewing token
         """
-        def mock_test_endpoint(url, headers):
+        def mock_test_endpoint(url, headers, params):
             return MockResponse("", status_code=401)
 
         def mock_refresh_token(url, params):
@@ -98,7 +98,7 @@ class TestCitesphereAuthorityTestCase(TestCase):
             4. Repeat 1-3 `retries` times.
             5. Fail request
         """
-        def mock_test_endpoint(url, headers):
+        def mock_test_endpoint(url, headers, params):
             return MockResponse("", status_code=401)
 
         def mock_refresh_token(url, params):

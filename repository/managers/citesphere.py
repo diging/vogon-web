@@ -79,7 +79,7 @@ class CitesphereAuthority:
         """
         refresh_token = self.auth_token.refresh_token
         response = requests.post(
-            url=f'{self.endpoint}/api/v1/oauth/token',
+            url=f'{self.endpoint}/api/oauth/token',
             params={
                 "client_id": settings.CITESPHERE_CLIENT_ID,
                 "client_secret": settings.CITESPHERE_CLIENT_SECRET,
