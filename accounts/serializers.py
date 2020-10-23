@@ -35,3 +35,9 @@ class TokenObtainPairSerializer(TokenObtainPairSerializer):
 		except GithubToken.DoesNotExist:
 			token['github_token'] = False
 		return token
+
+class ResetPasswordSerializer(serializers.Serializer):
+	username = serializers.CharField(required=True)
+	password1 = serializers.CharField(required=True)
+	password2 = serializers.CharField(required=True)
+	token = serializers.CharField(required=True)

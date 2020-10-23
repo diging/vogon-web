@@ -14,7 +14,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from annotations.models import VogonUser
 from accounts.models import ResetToken, GithubToken, CitesphereToken
-from accounts.serializers import UserSerializer, TokenObtainPairSerializer
+from accounts.serializers import UserSerializer, TokenObtainPairSerializer, ResetPasswordSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -94,10 +94,10 @@ class ForgotPasswordView(APIView):
             # Email token
             send_mail(
                 'Vogon password reset',
-                f'Reset link: http://localhost:8080/reset-password/{token}',
-                'test@vogonweb.com',
+                f'Reset link: {settings.EMAIL_RESET_LINK}/{token}',
+                settings.EMAIL_SENDER_ID,
                 [user.email],
-                fail_silently=True,
+                fail_silently=False,
             )
 
             return Response({ "success": True })
@@ -105,12 +105,14 @@ class ForgotPasswordView(APIView):
 
 class ResetPasswordView(APIView):
     def post(self, request):
-        username = request.data.get('username', None)
-        password1 = request.data.get('password1', None)
-        password2 = request.data.get('password2', None)
-        token = request.data.get('token', None)
+        serializer = ResetPasswordSerializer(data=request.data)
 
-        if username and password1 and password2 and token:
+        if serializer.is_valid():
+            username = serializer.data.get('username')
+            password1 = serializer.data.get('password1')
+            password2 = serializer.data.get('password2')
+            token = serializer.data.get('token')
+
             if password1 == password2:
                 user = get_object_or_404(VogonUser, username=username)
                 
