@@ -42,9 +42,8 @@ class TestCitesphereAuthorityTestCase(TestCase):
             if headers["Authorization"] == "Bearer t1":
                 # Case 1 - invalid token
                 return MockResponse("", status_code=401)
-            else:
-                # Case 2 - valid token
-                return MockResponse("{}")
+            # Case 2 - valid token
+            return MockResponse("{}")
 
         def mock_refresh_token(url, params):
             return MockResponse(json.dumps({
@@ -142,4 +141,3 @@ class TestCitesphereAuthorityTestCase(TestCase):
             'repository/managers/tests/response_collections_expected.json'
         ).json()
         self.assertEqual(response, expected)
-

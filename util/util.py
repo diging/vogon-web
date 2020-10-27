@@ -25,7 +25,7 @@ def correctPosition(position):
     text = position.occursIn
     manager = text.repository.manager(user)
     try:
-        content_data = manager.content(id=int(text.repository_source_id))
+        content_data = manager.content(content_id=int(text.repository_source_id))
         raw_content = requests.get(content_data['location']).content
     except IOError:
         print('nope', text)
@@ -45,7 +45,7 @@ def correctTaggedPosition(position):
     text = position.occursIn
     manager = text.repository.manager(user)
     try:
-        content_data = manager.content(id=int(text.repository_source_id))
+        content_data = manager.content(content_id=int(text.repository_source_id))
         raw_content = requests.get(content_data['location']).content
     except IOError:
         print('nope', text)
@@ -348,8 +348,8 @@ defaults = {
 
 for uri, idents in uri_source_map.items():
     text_id, content_id = tuple(idents)
-    content = manager.content(id=int(content_id))
-    resource = manager.resource(id=int(text_id))
+    content = manager.content(content_id=int(content_id))
+    resource = manager.resource(resource_id=int(text_id))
     resource_text_defaults = {
         'title': resource.get('title'),
         'created': resource.get('created'),

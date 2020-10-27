@@ -44,7 +44,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         repository = get_object_or_404(Repository, pk=repo_id)
         project = get_object_or_404(TextCollection, pk=pk)
         manager = repository.manager(request.user)
-        resource = manager.resource(id=int(text_id))
+        resource = manager.resource(resource_id=int(text_id))
 
         defaults = {
             'title': resource.get('title'),

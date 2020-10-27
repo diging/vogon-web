@@ -26,6 +26,7 @@ class Repository(models.Model):
         elif self.repo_type == self.CITESPHERE:
             from repository.managers import CitesphereAuthority
             return CitesphereAuthority(user=user, endpoint=self.url)
+        return None
 
     def __str__(self):
         return self.name

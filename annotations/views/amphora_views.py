@@ -60,7 +60,7 @@ class AmphoraCollectionViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None, repository_pk=None):
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
         manager = repository.manager(request.user)
-        collection = manager.collection(id=pk)
+        collection = manager.collection(collection_id=pk)
         return Response(collection)
 
 class AmphoraTextViewSet(viewsets.ViewSet):
@@ -79,7 +79,7 @@ class AmphoraTextViewSet(viewsets.ViewSet):
                 pass
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
         manager = repository.manager(request.user)
-        result = manager.resource(id=int(pk))
+        result = manager.resource(resource_id=int(pk))
         
         try:
             master_text = Text.objects.get(uri=result.get('uri'))
@@ -119,13 +119,13 @@ class AmphoraTextContentViewSet(viewsets.ViewSet):
         manager = repository.manager(request.user)
 
         try:
-            content = manager.content(id=pk)
+            content = manager.content(content_id=pk)
             if not content:
                 return Response({
                     'success': False,
                     'error': 'The text is still getting processed. Check back later...'
                 }, 400)
-            resource = manager.resource(id=texts_pk)
+            resource = manager.resource(resource_id=texts_pk)
         except IOError:
             return Response({
                 'success': False,
@@ -153,7 +153,7 @@ class AmphoraTextContentViewSet(viewsets.ViewSet):
         part_of_id = self.request.query_params.get('part_of', None)
         if part_of_id:
             try:
-                master = manager.resource(id=int(part_of_id))
+                master = manager.resource(resource_id=int(part_of_id))
             except IOError:
                 return Response({
                     'success': False,

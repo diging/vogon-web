@@ -26,9 +26,9 @@ class AmphoraRepository:
         )
         return json.loads(response.content)
         
-    def resource(self, id):
+    def resource(self, resource_id):
         response = requests.get(
-            url=f'{self.endpoint}/resource/{id}/',
+            url=f'{self.endpoint}/resource/{resource_id}/',
             headers=self.headers
         )
         result = json.loads(response.content)
@@ -53,9 +53,9 @@ class AmphoraRepository:
         )
         return json.loads(response.content)
 
-    def collection(self, id, limit=None, offset=None):
+    def collection(self, collection_id, limit=None, offset=None):
         response = requests.get(
-            url=f'{self.endpoint}/collection/{id}/',
+            url=f'{self.endpoint}/collection/{collection_id}/',
             headers=self.headers,
             params={'limit': limit, 'offset': offset}
         )
@@ -78,9 +78,9 @@ class AmphoraRepository:
         )
         return json.loads(response.content)
 
-    def content(self, id):
+    def content(self, content_id):
         response = requests.get(
-            url=f'{self.endpoint}/content/{id}/',
+            url=f'{self.endpoint}/content/{content_id}/',
             headers=self.headers,
         )
         result = json.loads(response.content)
