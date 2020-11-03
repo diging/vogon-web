@@ -140,8 +140,9 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
                     part[f'{field}_concept'] = concept
                 elif node_type == 'TP':
                     concept_type_id = part[f'{field}_type']
-                    concept_type = Type.objects.get(pk=concept_type_id)
-                    part[f'{field}_type'] = concept_type
+                    if concept_type_id:
+                        concept_type = Type.objects.get(pk=concept_type_id)
+                        part[f'{field}_type'] = concept_type
                 if field != 'predicate':
                     internal_id = part[f'{field}_relationtemplate_internal_id']
                     part[f'{field}_relationtemplate_internal_id'] = int(internal_id)
