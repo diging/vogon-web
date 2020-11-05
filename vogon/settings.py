@@ -107,7 +107,7 @@ WSGI_APPLICATION = "vogon.wsgi.application"
 DATABASES = {
      'default': {
          'ENGINE': 'django.db.backends.postgresql_psycopg2', 
-         'NAME': 'postgres,
+         'NAME': 'postgres',
          'USER': 'postgres',
          'PASSWORD': '',
          'HOST': 'db',
