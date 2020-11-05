@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 # DEBUG = eval(os.environ.get('DEBUG', 'False'))
 DEBUG = True
 
-ALLOWED_HOSTS = ["amphora.asu.edu"]
+ALLOWED_HOSTS = ["amphora.asu.edu", "localhost"]
 
 # Application definition
 
@@ -151,8 +151,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.environ.get("STATIC_ROOT", os.path.join(PROJECT_ROOT, "staticfiles"))
 STATIC_URL = BASE_URL + "static/"
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
+#STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
+STATICFILES_DIRS = (os.environ.get("STATIC_ROOT", ""),)
 JARS_KEY = "050814a54ac5c81b990140c3c43278031d391676"
 AUTH_USER_MODEL = "annotations.VogonUser"
 
