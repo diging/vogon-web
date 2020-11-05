@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 # DEBUG = eval(os.environ.get('DEBUG', 'False'))
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["amphora.asu.edu"]
 
 # Application definition
 
@@ -101,19 +101,10 @@ WSGI_APPLICATION = "vogon.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-#DATABASES = {"default": dj_database_url.config()}
-#DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql_psycopg2"
+DATABASES = {"default": dj_database_url.config()}
+DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql_psycopg2"
 
-DATABASES = {
-     'default': {
-         'ENGINE': 'django.db.backends.postgresql_psycopg2', 
-         'NAME': 'postgres',
-         'USER': 'postgres',
-         'PASSWORD': '',
-         'HOST': 'db',
-         'PORT': '5432',
-     }
- }
+
 
 # print DATABASES
 
@@ -258,6 +249,7 @@ CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:8005",
     "http://127.0.0.1:8060",
     "http://localhost:8060",
+    "http://amphora.asu.edu"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -265,6 +257,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:8060",
     "http://localhost:8005",
+    "http://amphora.asu.edu"
 ]
 
 SIMPLE_JWT = {
