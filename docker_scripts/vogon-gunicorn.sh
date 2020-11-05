@@ -2,6 +2,7 @@
 
 NAME="vogon-web"                                  # Name of the application
 DJANGODIR=/usr/src/app/vogon-web             # Django project directory
+CONFDIR=/usr/src/app/data
 SOCKFILE=/usr/src/app/run/vogon.sock  # we will communicte using this unix socket
 NUM_WORKERS=3                                     # how many worker processes should Gunicorn spawn
 DJANGO_SETTINGS_MODULE=vogon.settings             # which settings file should Django use
@@ -9,9 +10,9 @@ DJANGO_WSGI_MODULE=vogon.wsgi                     # WSGI module name
 
 echo "Starting $NAME as `whoami`"
 
-# Activate the virtual environment
-cd $DJANGODIR
+cd $CONFDIR
 source env_secrets
+cd $DJANGODIR
 export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE
 export PYTHONPATH=$DJANGODIR:$PYTHONPATH
 export DB_USER='postgres'
