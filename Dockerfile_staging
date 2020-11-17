@@ -29,4 +29,4 @@ COPY docker_scripts/vogon-backend-startup.sh bin/
 RUN ["chmod", "+x", "/usr/src/app/bin/vogon-backend-startup.sh"]
 RUN ["chmod", "+x", "/usr/src/app/bin/vogon-gunicorn.sh"]
 
-ENTRYPOINT ["../bin/vogon-backend-startup.sh"]
+ENTRYPOINT ["../bin/vogon-backend-startup-staging.sh"]
