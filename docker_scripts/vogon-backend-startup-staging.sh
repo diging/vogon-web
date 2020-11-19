@@ -1,6 +1,6 @@
 #!/bin/bash
 cd /usr/src/app/host
-pip install -r requirements
+pip install -r requirements.txt
 
 source env_secrets
 
