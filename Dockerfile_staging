@@ -23,10 +23,10 @@ RUN apt-get install -y \
     vim \
     redis-server
 
-COPY docker_scripts/vogon-gunicorn.sh bin/
-COPY docker_scripts/vogon-supervisord.conf /etc/supervisor/conf.d/
-COPY docker_scripts/vogon-backend-startup.sh bin/
-RUN ["chmod", "+x", "/usr/src/app/bin/vogon-backend-startup.sh"]
+COPY docker_scripts/vogon-gunicorn-staging.sh bin/vogon-gunicorn.sh
+COPY docker_scripts/vogon-supervisord-staging.conf /etc/supervisor/conf.d/vogon-supervisord.conf
+COPY docker_scripts/vogon-backend-startup-staging.sh bin/
+RUN ["chmod", "+x", "/usr/src/app/bin/vogon-backend-startup-staging.sh"]
 RUN ["chmod", "+x", "/usr/src/app/bin/vogon-gunicorn.sh"]
 
-ENTRYPOINT ["../bin/vogon-backend-startup-staging.sh"]
+ENTRYPOINT ["./bin/vogon-backend-startup-staging.sh"]
