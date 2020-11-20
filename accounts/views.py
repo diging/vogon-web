@@ -46,7 +46,6 @@ def github_token(request):
 		except GithubToken.DoesNotExist:
 			token = GithubToken()
 			token.user = request.user
-		logger.debug(r.json())
 		token.token = r.json()["access_token"]
 		token.save()
 		return Response(status=status.HTTP_201_CREATED)
