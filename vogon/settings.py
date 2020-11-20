@@ -173,7 +173,7 @@ BASE_PATH = os.environ.get("BASE_PATH", "/")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.environ.get("STATIC_ROOT", os.path.join(PROJECT_ROOT, "staticfiles"))
-STATIC_URL = BASE_PATH + "static/"
+STATIC_URL = os.environ.get("APP_PREFIX", "") + "static/"
 
 JARS_KEY = "050814a54ac5c81b990140c3c43278031d391676"
 AUTH_USER_MODEL = "annotations.VogonUser"
