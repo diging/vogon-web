@@ -26,8 +26,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = eval(os.environ.get('DEBUG', 'False'))
-DEBUG = True
+DEBUG = eval(os.environ.get('DEBUG', 'False'))
+# DEBUG = True
 
 ALLOWED_HOSTS = ["amphora.asu.edu", "localhost"]
 
@@ -173,7 +173,7 @@ BASE_PATH = os.environ.get("BASE_PATH", "/")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.environ.get("STATIC_ROOT", os.path.join(PROJECT_ROOT, "staticfiles"))
-STATIC_URL = BASE_URL + "static/"
+STATIC_URL = BASE_PATH + "static/"
 
 #STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
