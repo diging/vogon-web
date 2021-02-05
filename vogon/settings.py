@@ -62,6 +62,9 @@ MIDDLEWARE = (
 	"django.middleware.security.SecurityMiddleware",
 )
 
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_RESET_LINK = "http://localhost:8080/reset-password"
+EMAIL_SENDER_ID = "test@vogonweb.com"
 ROOT_URLCONF = "vogon.urls"
 
 SITE_ID = 1

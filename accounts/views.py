@@ -1,17 +1,20 @@
-from django.shortcuts import render
-from annotations.models import VogonUser
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
-from django.contrib.auth import authenticate, get_user_model
-from accounts.serializers import UserSerializer
-from rest_framework import permissions, status, viewsets
-from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import TokenObtainPairSerializer
-from rest_framework.decorators import api_view
+import arrow
+import jwt
 import requests
 from django.conf import settings
-from .models import GithubToken, CitesphereToken
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404, render
+from django.contrib.auth import authenticate, get_user_model
+from rest_framework import permissions, status, viewsets
+from rest_framework.response import Response
+from rest_framework.decorators import action, api_view
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from annotations.models import VogonUser
+from accounts.models import ResetToken, GithubToken, CitesphereToken
+from accounts.serializers import UserSerializer, TokenObtainPairSerializer, ResetPasswordSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -72,6 +75,83 @@ def citesphere_token(request):
 		token.token = r.json()["access_token"]
 		token.save()
 		return Response(status=status.HTTP_201_CREATED)
+
+class ForgotPasswordView(APIView):
+    def post(self, request):
+        username = request.data.get('username', None)
+        if username:
+            try:
+                user = VogonUser.objects.get(username=username)
+            except VogonUser.DoesNotExist:
+                return Response({ "success": False, "message": "User not found" }, status=404)
+            token = jwt.encode({ 
+                'exp': arrow.utcnow().shift(days=1).timestamp,
+                'username': user.username,
+            }, settings.SECRET_KEY, algorithm='HS256').decode('UTF-8')
+            reset_token = ResetToken(user=user, token=token)
+            reset_token.save()
+
+            # Email token
+            send_mail(
+                'Vogon password reset',
+                f'Reset link: {settings.EMAIL_RESET_LINK}/{token}',
+                settings.EMAIL_SENDER_ID,
+                [user.email],
+                fail_silently=False,
+            )
+
+            return Response({ "success": True })
+        return Response({ "success": False, "message": "Username not specified" }, status=400)
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            username = serializer.data.get('username')
+            password1 = serializer.data.get('password1')
+            password2 = serializer.data.get('password2')
+            token = serializer.data.get('token')
+
+            if password1 == password2:
+                user = get_object_or_404(VogonUser, username=username)
+                
+                # Check if this token was generated
+                reset_token = get_object_or_404(ResetToken, user=user, token=token)
+
+                # Verify token
+                try:
+                    decoded = jwt.decode(reset_token.token, settings.SECRET_KEY, algorithms='HS256')
+
+                    # Ensure token is created by the same user
+                    if decoded['username'] == user.username:
+                        user.set_password(password1)
+                        user.save()
+                        reset_token.delete()
+                        return Response({
+                            "success": True,
+                            "message": "Successfully reset the password!"
+                        })
+                    return Response({
+                        "success": False,
+                        "message": "Invalid reset link! Try resetting again..."
+                    }, status=403)
+                except jwt.exceptions.PyJWTError:
+                    return Response({
+                        "success": False,
+                        "message": "Invalid reset link! Try resetting again..."
+                    }, status=403)
+
+            else:
+                return Response({
+                    "success": False,
+                    "message": "Passwords does not match"
+                }, status=400)
+        else:
+            return Response({
+                "success": False,
+                "message": "Specify all the fields"
+            }, status=400)
 
 
 class TokenObtainPairView(TokenObtainPairView):
