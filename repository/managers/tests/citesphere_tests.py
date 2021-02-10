@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.confg import settings
 import requests
 import unittest.mock as mock
 import json
@@ -11,14 +12,13 @@ from util.test_util import MockResponse
 
 class TestCitesphereAuthorityTestCase(TestCase):
     def setUp(self):
-        access_token = 't1'
         self.user = VogonUser.objects.create(
             username='test',
-            password='',
+            password=settings.TEST_CITESPHERE_PWD,
             email='test@example.com'
         )
         self.token = CitesphereToken.objects.create(
-            access_token=access_token,
+            access_token=settings.TEST_CITESPHERE_ACCESS,
             refresh_token='',
             user=self.user
         )
