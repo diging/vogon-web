@@ -19,7 +19,7 @@ class TestCitesphereAuthorityTestCase(TestCase):
         )
         self.token = CitesphereToken.objects.create(
             access_token=settings.TEST_CITESPHERE_ACCESS,
-            refresh_token='',
+            refresh_token=settings.TEST_CITESPHERE_REFRESH,
             user=self.user
         )
         self.citesphere = CitesphereAuthority(
