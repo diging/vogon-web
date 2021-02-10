@@ -23,10 +23,9 @@ class Repository(models.Model):
         if self.repo_type == self.AMPHORA:
             from repository.managers import AmphoraRepository
             return AmphoraRepository(user=user, endpoint=self.url)
-        elif self.repo_type == self.CITESPHERE:
+        if self.repo_type == self.CITESPHERE:
             from repository.managers import CitesphereAuthority
             return CitesphereAuthority(user=user, endpoint=self.url)
-        return None
 
     def __str__(self):
         return self.name
