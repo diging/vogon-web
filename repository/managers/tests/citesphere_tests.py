@@ -11,13 +11,14 @@ from util.test_util import MockResponse
 
 class TestCitesphereAuthorityTestCase(TestCase):
     def setUp(self):
+        access_token = 't1'
         self.user = VogonUser.objects.create(
             username='test',
-            password='test',
+            password='',
             email='test@example.com'
         )
         self.token = CitesphereToken.objects.create(
-            access_token='t1',
+            access_token=access_token,
             refresh_token='',
             user=self.user
         )
