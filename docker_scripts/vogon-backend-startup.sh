@@ -5,4 +5,5 @@ service supervisor start
 cd /usr/src/app/vogon-web
 python manage.py createcachetable
 python manage.py migrate
+python manage.py test
 tail -f /dev/null
