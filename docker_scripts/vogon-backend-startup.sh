@@ -5,8 +5,7 @@ service supervisor start
 cd /usr/src/app/vogon-web
 python manage.py createcachetable
 python manage.py migrate
-python manage.py test
-if [ "$?" = "0" ]; then
+if [ "python manage.py test" = "0" ]; then
     printf "[TEST] - executable built: ${EXEC}\n"
 else
     printf "[TEST] - failed\n"
