@@ -5,12 +5,14 @@ service supervisor start
 cd /usr/src/app/vogon-web
 python manage.py createcachetable
 python manage.py migrate
-if [ "python manage.py test" = "0" ]; then
-    printf "[TEST] - executable built: ${EXEC}\n"
+python manage.py test
+
+if [[ $? -eq 0 ]]; then
+   docker stop ${CONTAINER_NAME}
+   exit 0 # success
 else
-    printf "[TEST] - failed\n"
-    exit 1
-fi
+   docker stop ${CONTAINER_NAME}
+   exit 1 # fail
 tail -f /dev/null
 
 if python manage.py test; then
