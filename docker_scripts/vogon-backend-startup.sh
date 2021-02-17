@@ -7,12 +7,11 @@ python manage.py createcachetable
 python manage.py migrate
 python manage.py test
 
-if [[ $? -eq 0 ]]; then
-   docker stop ${CONTAINER_NAME}
-   exit 0 # success
+if python manage.py test; then
+    
 else
-   docker stop ${CONTAINER_NAME}
-   exit 1 # fail
+    return exit 1
+fi
 tail -f /dev/null
 
 if python manage.py test; then
