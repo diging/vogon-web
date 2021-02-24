@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, Appellation
+from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository
 from annotations.annotators import annotator_factory
 from annotations.serializers import (RelationSetSerializer,
     ProjectSerializer, UserSerializer, Text2Serializer)
@@ -26,9 +26,8 @@ class RelationSetViewSet(viewsets.ModelViewSet):
         if self.page is not None:
             serializer = self.get_serializer(self.page, many=True)
             return self.get_paginated_response(serializer.data, meta=self.request.query_params.get('meta', False))
-        else:
-            relations = serializer(queryset, many=True).data
-            
+        
+        relations = serializer(queryset, many=True).data    
         return Response(relations)
 
     def get_paginated_response(self, data, meta):
