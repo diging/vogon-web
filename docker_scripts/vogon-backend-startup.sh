@@ -11,7 +11,7 @@ if python manage.py test
 then
     echo "runs"
 else
-    exit 1
+    return exit 1
 fi
 tail -f /dev/null
 
