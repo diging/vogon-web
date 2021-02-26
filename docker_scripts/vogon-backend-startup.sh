@@ -1,5 +1,5 @@
 #!/bin/bash
-source /usr/src/app/data/host/env_secrets
+source /usr/src/app/data/env_secrets
 service redis-server start
 service supervisor start
 cd /usr/src/app/vogon-web
