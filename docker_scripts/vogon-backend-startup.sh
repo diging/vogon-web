@@ -1,9 +1,9 @@
 #!/bin/bash
-source /usr/src/app/data/env_secrets
+source /usr/src/app/host/env_secrets
 pip install -r requirements.txt
 service redis-server start
 service supervisor start
-cd /usr/src/app/vogon-web
+cd /usr/src/app/host
 python manage.py createcachetable
 python manage.py migrate
 
