@@ -1,5 +1,6 @@
 #!/bin/bash
 source /usr/src/app/data/env_secrets
+pip install -r requirements.txt
 service redis-server start
 service supervisor start
 cd /usr/src/app/vogon-web
