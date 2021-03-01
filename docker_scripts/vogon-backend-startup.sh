@@ -15,5 +15,3 @@ else
 fi
 tail -f /dev/null
 
-if python manage.py test; then
-else return exit 1 fi
