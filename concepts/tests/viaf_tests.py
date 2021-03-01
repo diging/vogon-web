@@ -1,6 +1,6 @@
+import json
 from django.test import TestCase
 import unittest.mock as mock
-import json
 
 from concepts.viaf import Viaf
 from concepts.tests.utils import MockResponse

@@ -199,5 +199,3 @@ class ConceptPowerCreateTestCase(TestCase):
 
         self.assertEqual(500, context.exception.args[0])
         self.assertEqual('Error while creating concept', context.exception.args[1])
-
-

@@ -2,7 +2,7 @@ from django.conf import settings
 from urllib.parse import urlparse
 
 from .conceptpower import ConceptPower
-from .models import *
+from .models import Concept, Type
 
 
 TYPES = settings.CONCEPT_TYPES
@@ -53,12 +53,12 @@ class ConceptLifecycle(object):
 
         o = urlparse(uri)
         
-        if type(o.scheme) == bytes:
+        if isinstance(o.scheme, bytes):
             scheme = str(o.scheme, 'utf-8')
         else:
             scheme = o.scheme
-
-        if type(o.netloc) == bytes:
+        
+        if isinstance(o.netloc, bytes):
             netloc = str(o.netloc, 'utf-8')
         else:
             netloc = o.netloc

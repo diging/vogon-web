@@ -33,7 +33,7 @@ class Authority(BasicAccessionMixin):
         if self.builtin_identity_system.name == 'builtin:Conceptpower':
             from concepts.conceptpower import ConceptPower
             return ConceptPower()
-        elif self.builtin_identity_system.name == 'builtin:VIAF':
+        if self.builtin_identity_system.name == 'builtin:VIAF':
             from concepts.viaf import Viaf
             return Viaf()
 

@@ -1,11 +1,13 @@
+import mock
+import json
 from django.test import TestCase
 from django.db.models.signals import post_save
 from django.db import transaction
 from django.db import IntegrityError
+
 from concepts.models import Concept, Type
 from concepts.signals import concept_post_save_receiver
-import mock, json
-from concepts.lifecycle import *
+from concepts.lifecycle import ConceptLifecycleException, ConceptData, ConceptLifecycle
 
 
 class MockResponse(object):
@@ -374,4 +376,3 @@ class TestConceptLifeCycle(TestCase):
 
         created = manager.get(concept.merged_with.uri)
         self.assertIn(concept.uri, created.equal_to)
-
