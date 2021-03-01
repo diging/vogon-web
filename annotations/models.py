@@ -47,11 +47,11 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from django.conf import settings
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin, Permission
 )
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
 
 from annotations.utils import help_text
 from concepts.models import Concept, Type
