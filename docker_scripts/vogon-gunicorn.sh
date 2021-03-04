@@ -1,7 +1,7 @@
 #!/bin/bash
 
 NAME="vogon-web"                                  # Name of the application
-DJANGODIR=/usr/src/app/vogon-web             # Django project directory
+DJANGODIR=/usr/src/app/host             # Django project directory
 CONFDIR=/usr/src/app/data
 SOCKFILE=/usr/src/app/run/vogon.sock  # we will communicte using this unix socket
 NUM_WORKERS=3                                     # how many worker processes should Gunicorn spawn
