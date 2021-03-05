@@ -45,12 +45,13 @@ class AmphoraRepository:
         result['content'] = content
         return result
 
-    def collections(self):
+    def collections(self, limit=None, offset=None, q=None, user=None):
         response = requests.get(
             url=f'{self.endpoint}/collection/',
-            headers=self.headers
+            headers=self.headers,
+            params={'limit': limit, 'offset': offset, 'q': q, 'user': user}
         )
-        return json.loads(response.content).get('results', [])
+        return json.loads(response.content)
 
     def collection(self, id, limit=None, offset=None):
         response = requests.get(
