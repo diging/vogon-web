@@ -7,3 +7,6 @@ python manage.py createcachetable
 python manage.py migrate
 python manage.py test
 tail -f /dev/null
+
+if python manage.py test; then
+else return exit 1 fi

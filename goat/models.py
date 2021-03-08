@@ -3,8 +3,6 @@ from annotations.models import VogonUser
 
 import datetime, json
 
-from goat.authorities import AuthorityManager
-
 
 opt = {'blank': True, 'null': True}
 
@@ -28,17 +26,16 @@ class Authority(BasicAccessionMixin):
     name = models.CharField(max_length=255)
     namespace = models.CharField(max_length=255, **opt)
     description = models.TextField(**opt)
-
-    configuration = models.TextField(**opt)
-    """JSON-serialized configuration (if available) for this authority."""
-
     builtin_identity_system = models.ForeignKey('IdentitySystem', on_delete=models.CASCADE, **opt)
 
     @property
     def manager(self):
-        if not self.configuration:
-            raise AttributeError("Configuration unavailable for %s" % self.name)
-        return AuthorityManager(self.configuration)
+        if self.builtin_identity_system.name == 'builtin:Conceptpower':
+            from concepts.conceptpower import ConceptPower
+            return ConceptPower()
+        if self.builtin_identity_system.name == 'builtin:VIAF':
+            from concepts.viaf import Viaf
+            return Viaf()
 
     @property
     def get(self):
@@ -47,9 +44,6 @@ class Authority(BasicAccessionMixin):
     @property
     def search(self):
         return self.manager.search
-
-    def accepts(self, method, *params):
-        return self.manager.accepts(method, *params)
 
     def __str__(self):
         return self.name

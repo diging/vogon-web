@@ -7,6 +7,10 @@ from goat import tasks
 from goat.serializers import *
 from goat.models import *
 
+def get_concept_cache_key(query, pos):
+    if not pos:
+        return query
+    return f"{pos}###{query}"
 
 def search(*args, **kwargs):
     """
@@ -22,9 +26,10 @@ def search(*args, **kwargs):
     # The client can coerce a new search even if we have results for an
     #  identical query.
     force = params.pop('force', None) == 'force'
+    cache_key = get_concept_cache_key(q, kwargs.get("pos"))
 
-    if not force and cache.get(q):
-        return cache.get(q)
+    if not force and cache.get(cache_key):
+        return cache.get(cache_key)
 
     # We let the asynchronous task create the SearchResultSet, since it will
     #  spawn tasks that need to update the SearchResultSet upon completion.
@@ -35,7 +40,7 @@ def search(*args, **kwargs):
     #  not yet exist.
     result = reduce(lambda x,y: x+y, result) # Flatten
     result = ConceptSerializer(result, many=True).data
-    cache.set(q, result, 24 * 60 * 60) # Set 24hrs expiry
+    cache.set(cache_key, result, 24 * 60 * 60) # Set 24hrs expiry
     return result
 
 def retrieve(identifier):

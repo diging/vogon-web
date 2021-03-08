@@ -46,7 +46,6 @@ class AuthoritySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Authority
-        exclude = ('configuration',)
 
 
 class AuthorityDetailSerializer(serializers.ModelSerializer):
@@ -56,18 +55,6 @@ class AuthorityDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Authority
         fields = '__all__'
-
-    def validate_configuration(self, value):
-        """
-        If a configuration is provided, ensure that it is valid JSON.
-        """
-        if not value:
-            try:
-                json.loads(value)
-            except ValueError:
-                raise serializers.ValidationError("Configuration must be valid"
-                                                  "JSON.")
-        return value
 
 
 class ConceptTypeSerializer(serializers.ModelSerializer):
