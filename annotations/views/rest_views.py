@@ -19,6 +19,7 @@ from rest_framework.pagination import (LimitOffsetPagination,
 from django.http import HttpResponseRedirect
 from requests_oauthlib import OAuth2Session
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from annotations.serializers import *
 from annotations.models import *
 from concepts.models import Concept, Type
@@ -170,6 +171,21 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
     
     def update(self, request, pk=None, partial=True):
         return self.createOrUpdate(request, pk)
+
+    def destroy(self, request, pk=None):
+        appellation = get_object_or_404(Appellation, pk=pk)
+        data = Appellation2Serializer(appellation, many=False)
+        
+        if len(data["relationsFrom"].value) or len(data["relationsTo"].value):
+            # Can't delete the appellation
+            return Response({
+                "message": "Cannot delete the appellation as it is part of an existing relation"
+            }, 400)
+            
+        appellation.delete()
+        return Response({
+            "message": "Successfully deleted appellation"
+        })
 
     def createOrUpdate(self, request, pk=None):
         data = request.data.copy()
