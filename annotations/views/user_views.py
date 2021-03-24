@@ -45,9 +45,8 @@ class UserViewSet(viewsets.ModelViewSet):
 		if self.page is not None:
 			serializer = UserSerializer(self.page, many=True)
 			return self.get_paginated_response(serializer.data)
-		else:
-			users = serializer(queryset, many=True).data
-			
+		
+		users = serializer(queryset, many=True).data	
 		return Response(users)
 
 	def retrieve(self, request, pk=None):
@@ -228,5 +227,3 @@ class UserViewSet(viewsets.ModelViewSet):
 				'count': weekly_annotations.get(week.datetime, 0)
 			})
 		return result
-
-
