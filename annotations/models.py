@@ -94,6 +94,10 @@ class VogonUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def get_by_natural_key(self, username):
+        return self.get(**{
+            f'{self.model.USERNAME_FIELD}__iexact': username
+        })
 
 class VogonUserDefaultProject(models.Model):
     for_user = models.OneToOneField('VogonUser', related_name='default_project', on_delete=models.CASCADE)
