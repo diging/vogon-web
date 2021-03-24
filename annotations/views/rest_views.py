@@ -245,6 +245,16 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
         text_id = serializer.data.get('occursIn')
 
+        # Add text to the project, if it's not already a part of.
+        text = Text.objects.get(pk=text_id)
+        project = TextCollection.objects.get(pk=data['project'])
+        is_text_part_of_project = Text.objects.filter(
+            pk=text_id, partOf__pk=project.id
+        ).exists()        
+        if not is_text_part_of_project:
+            # Add text to the project
+            project.texts.add(text)
+
         if tokenIDs:
             position = DocumentPosition.objects.create(
                         occursIn_id=text_id,
