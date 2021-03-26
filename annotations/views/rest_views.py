@@ -182,52 +182,16 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         # A concept URI may have been passed directly, in which case we need to
         #  get (or create) the local Concept instance.
         if type(interpretation) in [str, str] and interpretation.startswith('http'):
-            try:
-                concept = Concept.objects.get(uri=interpretation)
-            except Concept.DoesNotExist:
-                concept_data = retrieve_concept(interpretation)
-                type_data = concept_data.get('concept_type', None)
-                type_instance = None
-                if type_data:
-                    try:
-                        type_instance = Type.objects.get(uri=type_data.get('identifier'))
-                    except Type.DoesNotExist:
-                        print(type_data)
-                        type_instance = Type.objects.create(
-                            uri = type_data.get('identifier'),
-                            label = type_data.get('name'),
-                            description = type_data.get('description'),
-                            authority = concept_data.get('authority', {}).get('name'),
-                        )
-
-                concept = ConceptLifecycle.create(
-                    uri = interpretation,
-                    label = concept_data.get('name'),
-                    description = concept_data.get('description'),
-                    typed = type_instance,
-                    authority = concept_data.get('authority', {}).get('name'),
-                ).instance
-
+            concept = self._get_or_create_local_concept(interpretation)
             data['interpretation'] = concept.id
 
-        serializer_class = self.get_serializer_class()
-
-        try:
-            if pk:
-                serializer = serializer_class(instance, data=data)
-            else:
-                serializer = serializer_class(data=data)
-        except Exception as E:
-            print((serializer.errors))
-            raise E
-
+        serializer = self._get_serializer(pk, data)
         try:
             serializer.is_valid(raise_exception=True)
         except Exception as E:
             print((serializer.errors))
             raise E
 
-        # raise AttributeError('asdf')
         try:
             instance = serializer.save()
         except Exception as E:
@@ -307,6 +271,46 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             queryset = queryset.filter(position__position_type=position_type)
         return queryset.order_by('-created')
 
+    def _get_serializer(self, pk, data):
+        serializer_class = self.get_serializer_class()
+        try:
+            if pk:
+                instance = Appellation.objects.get(pk=pk)
+                return serializer_class(instance, data=data)
+            return serializer_class(data=data)
+        except Exception as E:
+            print((serializer.errors))
+            raise E
+
+    def _get_or_create_local_concept(self, interpretation):
+        try:
+            concept = Concept.objects.get(uri=interpretation)
+        except Concept.DoesNotExist:
+            concept_data = retrieve_concept(interpretation)
+            type_data = concept_data.get('concept_type', None)
+            type_instance = None
+            if type_data:
+                try:
+                    type_instance = Type.objects.get(
+                        uri=type_data.get('identifier')
+                    )
+                except Type.DoesNotExist:
+                    type_instance = Type.objects.create(
+                        uri = type_data.get('identifier'),
+                        label = type_data.get('name'),
+                        description = type_data.get('description'),
+                        authority = concept_data.get('authority', {}).get('name'),
+                    )
+
+            concept = ConceptLifecycle.create(
+                uri = interpretation,
+                label = concept_data.get('name'),
+                description = concept_data.get('description'),
+                typed = type_instance,
+                authority = concept_data.get('authority', {}).get('name'),
+            ).instance
+        
+        return concept
 
 class PredicateViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     queryset = Appellation.objects.filter(asPredicate=True)
