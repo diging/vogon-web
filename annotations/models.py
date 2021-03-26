@@ -448,8 +448,6 @@ class Text(models.Model):
     def __unicode__(self):
         return self.title
 
-# TODO: remove this model, as it is no longer used (in favor of the repository
-#  module).
 class Repository(models.Model):
     """
     Represents an online repository from which :class:`.Text`\s can be
@@ -487,9 +485,6 @@ class Repository(models.Model):
         return str(self.name)
 
 
-
-# TODO: remove this model, as it is no longer used (in favor of the repository
-#  module).
 class Authorization(models.Model):
     """
     Represents an authorization token for an external service.
@@ -652,7 +647,7 @@ class DateAppellation(Annotation):
         """
         if self.day > 0:
             return 'day'
-        elif self.month > 0:
+        if self.month > 0:
             return 'month'
         return 'year'
 
