@@ -40,30 +40,21 @@ Users and groups
 Detailed descriptions
 ---------------------
 """
-
+import ast
+import networkx as nx
 from django.db import models
-
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-
-from concepts.models import Concept
-from django.conf import settings
-import ast
-
-
-from annotations.utils import help_text
-
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin, Permission
 )
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
+from annotations.utils import help_text
 from concepts.models import Concept, Type
-
-import ast
-import networkx as nx
 
 
 class VogonUserManager(BaseUserManager):
