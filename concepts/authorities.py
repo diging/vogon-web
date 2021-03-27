@@ -3,7 +3,7 @@
 
 from .models import Concept, Type
 
-from conceptpower import Conceptpower
+from .conceptpower import ConceptPower
 from urllib.parse import urlparse
 from django.conf import settings
 
@@ -12,54 +12,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
 
-
-class AuthorityManager(object):
-    pass
-
-
-class ConceptpowerAuthority(AuthorityManager, Conceptpower):
-    __name__ = 'Conceptpower'
-
-    endpoint = settings.CONCEPTPOWER_ENDPOINT
-    namespace = settings.CONCEPTPOWER_NAMESPACE
-
-#
-# class VogonAuthority(AuthorityManager):
-#     __name__ = "VogonAuthority"
-#
-#     def search(self, query, pos='noun'):
-#         return Concept.objects.filter(label__contains=query).filter(pos=pos)
-#
-#     def get(self, uri):
-#         return Concept.object.get(uri=uri)
-#
-#     def get_type(self, uri):
-#         return Type.objects.get(uri=uri)
-#
-#     namespace = '{http://vogon.asu.edu/}'
-
-
-# Register AuthorityManagers here.
-authority_managers = (
-    ConceptpowerAuthority,
-    # VogonAuthority,
-)
-
-
-def search(query, pos='noun'):
-    results = [r for manager in authority_managers
-               for r in manager().search(query, pos=pos)]
-
-    concepts = []
-    for r in results:
-        r['label'] = r['lemma']            
-        instance, created = Concept.objects.get_or_create(
-                                uri=r['id'],
-                                authority=ConceptpowerAuthority().__name__)
-        if created:
-            instance = update_instance(Concept, instance, r, ConceptpowerAuthority)
-        concepts.append(instance)
-    return concepts
+CONCEPTPPOWER_AUTHORITY = 'Conceptpower'
 
 
 def update_instance(sender, instance, concept_data, authority):
@@ -87,7 +40,7 @@ def update_instance(sender, instance, concept_data, authority):
             type_uri = None
 
     if type_uri is not None:
-        type_instance = Type.objects.get_or_create(uri=type_uri, authority=authority().__name__)[0]
+        type_instance = Type.objects.get_or_create(uri=type_uri, authority=authority)[0]
         instance.typed = type_instance
         logger.debug(
             'Added Type {0} to Concept {1}.'.format(
@@ -119,27 +72,27 @@ def resolve(sender, instance):
         get_method = 'get'
         label_field = 'word'
     elif type(instance_cast) is Type:
-        get_method = 'get_type'
+        get_method = 'type'
         label_field = 'type'
 
     # Skip any instance that has already been resolved, or that lacks a URI.
     if not (instance.resolved or instance.concept_state == Concept.RESOLVED) and instance.uri is not None:
         logger.debug('Instance {0} not yet resolved.'.format(instance.id))
 
-        manager_class = ConceptpowerAuthority
+        manager_class = ConceptPower
         if manager_class.namespace == get_namespace(instance.uri):
             manager = manager_class()
             method = getattr(manager, get_method)
             concept_data = method(instance.uri)
             concept_data['label'] = concept_data.get(label_field, 'No label')
-            instance.authority = manager.__name__
+            instance.authority = CONCEPTPPOWER_AUTHORITY
 
             logger.debug(
-                'Trying AuthorityManager {0}.'.format(manager.__name__))
+                'Trying AuthorityManager {0}.'.format(CONCEPTPPOWER_AUTHORITY))
 
             instance.resolved = True
             instance.concept_state = Concept.RESOLVED
-            update_instance(sender, instance, concept_data, manager.__name__)
+            update_instance(sender, instance, concept_data, CONCEPTPPOWER_AUTHORITY)
             instance.refresh_from_db()
             return instance
 
@@ -156,15 +109,6 @@ def get_namespace(uri):
         raise ValueError("Could not determine namespace for {0}.".format(uri))
 
     return "{" + namespace + "}"
-
-
-def get_by_namespace(namespace):
-    """
-    Retrieve a registered :class:`AuthorityManager` by its namespace.
-    """
-
-    return [ manager for manager in authority_managers
-                if manager.namespace == namespace ]
 
 
 def add(instance):
@@ -199,7 +143,7 @@ def add(instance):
     """
 
     concept_list = 'VogonWeb Concepts'
-    conceptpower = ConceptpowerAuthority()
+    conceptpower = ConceptPower()
 
     if not instance.typed:
         raise RuntimeError('Cannot add a concept without a type')
@@ -212,9 +156,7 @@ def add(instance):
         kwargs.update({
             'equal_uris': instance.uri
         })
-    response = conceptpower.create(settings.CONCEPTPOWER_USERID,
-                                   settings.CONCEPTPOWER_PASSWORD,
-                                   instance.label, pos.lower(),
+    response = conceptpower.create(instance.label, pos.lower(),
                                    concept_list, instance.description,
                                    instance.typed.uri)
 

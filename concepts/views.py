@@ -128,7 +128,12 @@ class ConceptViewSet(viewsets.ModelViewSet):
             }
             return {_fields.get(k, k): v for k, v in list(datum.items())}
 
-        return Response({'results': list(map(_relabel, concepts))})
+        return Response({
+            'results': list(filter(
+                lambda concept: concept['authority'] is not None,
+                map(_relabel, concepts)
+            ))
+        })
 
     @action(detail=True, methods=['GET'])
     def matches(self, request, pk=None):

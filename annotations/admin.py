@@ -133,7 +133,7 @@ class AppellationAdmin(admin.ModelAdmin):
     class Meta:
         model = Appellation
     list_display = ('id', 'createdBy', 'occursIn', 'created', 'interpretation',
-                    'asPredicate')
+                    'asPredicate', 'submitted')
 
 
 admin.site.register(VogonUser, VogonUserAdmin)

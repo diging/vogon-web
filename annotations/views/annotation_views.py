@@ -10,6 +10,7 @@ from annotations.serializers import (RelationSetSerializer,
     ProjectSerializer, UserSerializer, Text2Serializer)
 from annotations.filters import RelationSetFilter
 from annotations.tasks import submit_relationsets_to_quadriga
+from annotations.network import network_data
 from concepts.models import Type
 
 
@@ -89,16 +90,30 @@ class AnnotationViewSet(viewsets.ViewSet):
         text = get_object_or_404(Text, pk=pk)
         annotator = annotator_factory(request, text)
         data = annotator.render()
-        appellations = Appellation.objects.filter(occursIn=text.id)
         content = data['content'].decode("utf-8")
         data['content'] = content
-        project = TextCollection.objects.get(id=data['project'])
+        project = data['project']
+        
         data['project'] = project
+        appellations = Appellation.objects.filter(
+            occursIn=text.id,
+            createdBy=request.user,
+            project=project
+        )
         data['appellations'] = appellations
-        data['relations'] = Relation.objects.filter(occursIn=text.id)
+        data['relations'] = Relation.objects.filter(
+            occursIn=text.id,
+            createdBy=request.user
+        )
+        data['relationsets'] = RelationSet.objects.filter(
+            occursIn=text.id, 
+            project=project, 
+            createdBy=request.user
+        )
         data['concept_types'] = Type.objects.all()
         relationsets = RelationSet.objects.filter(
             occursIn=text.id,
+            project=project,
             createdBy=request.user,
             submitted=False,
         )
@@ -106,3 +121,34 @@ class AnnotationViewSet(viewsets.ViewSet):
         data['pending_relationsets'] = relationsets
         serializer = Text2Serializer(data, context={'request': request})
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], url_name='network')
+    def network(self, request, pk=None):
+        """
+        Provides network data for the graph tab in the text annotation view.
+        """
+        text = get_object_or_404(Text, pk=pk)
+        annotator = annotator_factory(request, text)
+        data = annotator.render()
+        project = data['project']
+
+        user = request.user
+        relationsets = RelationSet.objects.filter(
+            occursIn_id=pk,
+            createdBy=user,
+            project=project
+        )
+        appellations = Appellation.objects.filter(
+            asPredicate=False,
+            occursIn_id=pk,
+            createdBy=user,
+            project=project
+        )
+
+        graph = network_data(
+            relationsets,
+            text_id=pk,
+            appellation_queryset=appellations
+        )
+
+        return Response(graph)

@@ -1,0 +1,29 @@
+[
+  {
+    "identities": null,
+    "identifier": "http://www.digitalhps.org/concepts/WID-05898568-N-02-program",
+    "concept_type": null,
+    "local_identifier": "http://www.digitalhps.org/concepts/WID-05898568-N-02-program",
+    "description": "a series of steps to be carried out or goals to be accomplished; \"they drew up a six-step plan\"; \"they discussed plans for a new bond issue\"",
+    "name": "program",
+    "pos": "noun"
+  },
+  {
+    "identities": null,
+    "identifier": "http://www.digitalhps.org/concepts/WID-05899087-N-01-program",
+    "concept_type": null,
+    "local_identifier": "http://www.digitalhps.org/concepts/WID-05899087-N-01-program",
+    "description": "a system of projects or services intended to meet a public need; \"he proposed an elaborate program of public works\"; \"working mothers rely on the day care program\"",
+    "name": "program",
+    "pos": "noun"
+  },
+  {
+    "identities": null,
+    "identifier": "http://www.digitalhps.org/concepts/WID-06619428-N-02-program",
+    "concept_type": null,
+    "local_identifier": "http://www.digitalhps.org/concepts/WID-06619428-N-02-program",
+    "description": "a radio or television show; \"did you see his program last night?\"",
+    "name": "program",
+    "pos": "noun"
+  }
+]

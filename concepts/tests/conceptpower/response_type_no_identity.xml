@@ -1,0 +1,17 @@
+<conceptpowerReply xmlns:digitalHPS="http://www.digitalhps.org/">
+    <digitalHPS:type_entry>
+        <digitalHPS:type type_id="986a7cc9-c0c1-4720-b344-853f08c136ab" type_uri="http://www.digitalhps.org/types/TYPE_986a7cc9-c0c1-4720-b344-853f08c136ab">E21 Person</digitalHPS:type>
+        <digitalHPS:description>This class comprises real persons who live or are assumed to have lived.  
+Legendary figures that may have existed, such as Ulysses and King Arthur, fall into this class 
+if the documentation refers to them as historical figures. In cases where doubt exists as to 
+whether several persons are in fact identical, multiple instances can be created and linked to 
+indicate their relationship. The CRM does not propose a specific form to support reasoning 
+about possible identity. 
+Examples:   
+&#131; Tut-Ankh-Amun 
+&#131; Nelson Mandela</digitalHPS:description>
+        <digitalHPS:creator_id>jdamerow</digitalHPS:creator_id>
+        <digitalHPS:matches></digitalHPS:matches>
+        <digitalHPS:modified_by></digitalHPS:modified_by>
+    </digitalHPS:type_entry>
+</conceptpowerReply>

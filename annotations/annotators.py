@@ -70,13 +70,13 @@ class Annotator(object):
     content_types = []
 
     def __init__(self, request, text):
-        project_id = 1 #request.GET.get('project_id')
+        project_id = request.query_params.get('project_id', None)
         if project_id:
-            project = 1 #TextCollection.objects.get(pk=project_id)
+            project = TextCollection.objects.get(pk=project_id)
         else:
-            project = 1 #request.user.get_default_project()
+            project = request.user.get_default_project()
 
-        self.project = project;
+        self.project = project
         self.context = {
             'request': request,
             'user':  request.user,
@@ -157,7 +157,6 @@ class Annotator(object):
         
         resource = self.get_resource()
         request = self.context.get('request')
-        print('hits')
         content = self.get_content(resource)
         detect  = chardet.detect(content)
         
@@ -185,7 +184,7 @@ class PlainTextAnnotator(Annotator):
     def get_content(self, resource):
         target = resource.get('location')
         request = self.context['request']
-        user = VogonUser.objects.get(id=2)
+        user = VogonUser.objects.get(id=self.context['user'].id)
         manager = self.text.repository.manager(user)
         endpoint = self.text.repository.url
         if urlparse(target).netloc == urlparse(endpoint).netloc:

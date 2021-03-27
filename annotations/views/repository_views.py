@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from annotations import annotators
-from annotations.models import Text, TextCollection, RelationSet
+from annotations.models import Text, TextCollection, RelationSet, Appellation
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
 from repository.models import Repository
 
@@ -18,10 +18,20 @@ class RepositoryViewSet(viewsets.ModelViewSet):
     serializer_class = RepositorySerializer
 
     def retrieve(self, request, pk=None):
+        limit = request.query_params.get('limit', None)
+        offset = request.query_params.get('offset', None)
+        q = request.query_params.get('q', None)
+        user = request.query_params.get('user', None)
         queryset = self.get_queryset()
         repository = get_object_or_404(queryset, pk=pk)
         manager = repository.manager(request.user)
-        collections = manager.collections()
+        collections = manager.collections(
+            limit=limit,
+            offset=offset,
+            q=q,
+            user=user
+        )
+
         return Response({
             **self.serializer_class(repository).data,
             'collections': collections
@@ -69,16 +79,32 @@ class RepositoryTextView(viewsets.ViewSet):
         repository = get_object_or_404(Repository, pk=repository_pk)
         manager = repository.manager(request.user)
         result = manager.resource(id=int(pk))
-
+        
         try:
             master_text = Text.objects.get(uri=result.get('uri'))
         except Text.DoesNotExist:
-            master_text = None
+            master_text = Text.objects.create(
+                uri=result.get('uri'),
+                title=result.get('name'),
+                public=result.get('public'),
+                content_type=result.get('content_types'),
+                repository_source_id=result.get('id'),
+                repository_id=repository_pk,
+                addedBy=request.user
+            )
         aggregate_content = result.get('aggregate_content')
+
+        submitted = False
+        for child in range(len(master_text.children)):
+            if Appellation.objects.filter(occursIn_id=master_text.children[child], submitted=True):
+                submitted = True
+                break
+
         context = {
             'result': result,
             'master_text': TextSerializer(master_text).data if master_text else None,
-            'part_of_project': part_of_project
+            'part_of_project': part_of_project,
+            'submitted': submitted
         }
         if master_text:
             relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
@@ -92,6 +118,11 @@ class RepositoryTextContentViewSet(viewsets.ViewSet):
 
         try:
             content = manager.content(id=pk)
+            if not content:
+                return Response({
+                    'success': False,
+                    'error': 'The text is still getting processed. Check back later...'
+                }, 400)
             resource = manager.resource(id=texts_pk)
         except IOError:
             return Response({

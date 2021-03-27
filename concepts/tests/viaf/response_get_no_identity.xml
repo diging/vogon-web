@@ -1,0 +1,10 @@
+<ns1:VIAFCluster xmlns="http://viaf.org/viaf/terms#" xmlns:foaf="http://xmlns.com/foaf/0.1/" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:void="http://rdfs.org/ns/void#" xmlns:ns1="http://viaf.org/viaf/terms#">
+  <ns1:viafID>61634867</ns1:viafID>
+  <ns1:nameType>Personal</ns1:nameType>
+  <ns1:mainHeadings>
+    <ns1:data>
+      <ns1:text>Einstein, Alfred, 1880-1952.</ns1:text>
+      <ns1:sources></ns1:sources>
+    </ns1:data>
+  </ns1:mainHeadings>
+</ns1:VIAFCluster>

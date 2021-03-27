@@ -1,9 +1,8 @@
 from django.conf import settings
-
 from urllib.parse import urlparse
-from conceptpower import Conceptpower
 
-from concepts.models import *
+from .conceptpower import ConceptPower
+from .models import Concept, Type
 
 
 TYPES = settings.CONCEPT_TYPES
@@ -44,12 +43,7 @@ class ConceptLifecycle(object):
     def __init__(self, instance):
         assert isinstance(instance, Concept)
         self.instance = instance
-        self.conceptpower = Conceptpower()
-
-        self.conceptpower.endpoint = settings.CONCEPTPOWER_ENDPOINT
-        self.conceptpower.namespace = settings.CONCEPTPOWER_NAMESPACE
-        self.user = settings.CONCEPTPOWER_USERID
-        self.password = settings.CONCEPTPOWER_PASSWORD
+        self.conceptpower = ConceptPower()
 
     @staticmethod
     def get_namespace(uri):
@@ -58,12 +52,21 @@ class ConceptLifecycle(object):
         """
 
         o = urlparse(uri)
-        namespace = o.scheme + "://" + o.netloc + "/"
+        
+        if isinstance(o.scheme, bytes):
+            scheme = str(o.scheme, 'utf-8')
+        else:
+            scheme = o.scheme
+        
+        if isinstance(o.netloc, bytes):
+            netloc = str(o.netloc, 'utf-8')
+        else:
+            netloc = o.netloc
 
-        if o.scheme == '' or o.netloc == '':
+        if scheme == '' or netloc == '':
             return None
-            # raise ConceptLifecycleException("Could not determine namespace for %s." % uri)
 
+        namespace = f'{scheme}://{netloc}/'
         return namespace
 
     def _get_namespace(self):
@@ -82,7 +85,6 @@ class ConceptLifecycle(object):
 
     @property
     def is_external(self):
-        print((self._get_namespace(), self.is_native, self.is_created))
         return not (self.is_native or self.is_created)
 
     @property
@@ -123,15 +125,15 @@ class ConceptLifecycle(object):
 
     @staticmethod
     def create_from_raw(data):
-        _type_uri = data.get('type_uri')
+        _type_uri = data.get('type') or data.get('concept_type')
         if _type_uri:
             _typed, _ = Type.objects.get_or_create(uri=_type_uri)
         else:
             _typed = None
 
         manager = ConceptLifecycle.create(
-            uri = data.get('uri').strip() if data.get('uri') else data.get('id'),
-            label = data.get('word').strip() if data.get('word') else data.get('lemma'),
+            uri = data.get('uri').strip() if data.get('uri') else data.get('local_identifier'),
+            label = data.get('word').strip() if data.get('word') else data.get('name'),
             description = data.get('description').strip(),
             pos = data.get('pos').strip(),
             typed = _typed,
@@ -261,8 +263,7 @@ class ConceptLifecycle(object):
         if not pos:
             pos = 'noun'
         try:
-            data = self.conceptpower.create(self.user, self.password,
-                                            self.instance.label, pos,
+            data = self.conceptpower.create(self.instance.label, pos,
                                             self.DEFAULT_LIST,
                                             self.instance.description,
                                             concept_type,
@@ -278,11 +279,11 @@ class ConceptLifecycle(object):
 
     def _reform(self, raw):
         return ConceptData(**{
-            'label': raw.get('word') if raw.get('word') else raw.get('lemma'),
-            'uri': raw.get('uri') if raw.get('uri') else raw.get('id'),
+            'label': raw.get('name'),
+            'uri': raw.get('local_identifier'),
             'description': raw.get('description'),
-            'typed': raw.get('type_uri'),
-            'equal_to': raw.get('equal_to', []),
+            'typed': raw.get('concept_type'),
+            'equal_to': raw.get('identities', []),
             'pos': raw.get('pos'),
         })
 
@@ -309,7 +310,7 @@ class ConceptLifecycle(object):
         if not q:
             return []
         try:
-            data = self.conceptpower.search(q)
+            data = self.conceptpower.search({ 'q': q })
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
         return list(map(self._reform, data))
@@ -325,7 +326,7 @@ class ConceptLifecycle(object):
             A list of dicts with raw data from Conceptpower.
         """
         try:
-            data = self.conceptpower.search(self.instance.uri)
+            data = self.conceptpower.search({ 'q': self.instance.uri })
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
         return list(map(self._reform, data))

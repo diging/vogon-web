@@ -1,0 +1,5 @@
+{
+  "identities": null,
+  "name": "E21 Person",
+  "description": "This class comprises real persons who live or are assumed to have lived.  \nLegendary figures that may have existed, such as Ulysses and King Arthur, fall into this class \nif the documentation refers to them as historical figures. In cases where doubt exists as to \nwhether several persons are in fact identical, multiple instances can be created and linked to \nindicate their relationship. The CRM does not propose a specific form to support reasoning \nabout possible identity. \nExamples:   \n\u0083 Tut-Ankh-Amun \n\u0083 Nelson Mandela"
+}

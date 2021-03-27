@@ -8,7 +8,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from annotations.models import TextCollection, RelationSet, Text
+from annotations.models import TextCollection, RelationSet, Text, Appellation
 from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
 from repository.models import Repository
 
@@ -59,6 +59,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
         
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
+
+    def destroy(self, request, pk=None):
+        text_id = request.data['text_id']
+
+        submitted = Appellation.objects.filter(occursIn_id=text_id, submitted=True)
+        if submitted:
+            return Response(status=status.HTTP_412_PRECONDITION_FAILED)
+        
+        project = get_object_or_404(TextCollection, pk=pk)
+        project.texts.filter(pk=text_id).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_queryset(self):
         queryset = super(ProjectViewSet, self).get_queryset()

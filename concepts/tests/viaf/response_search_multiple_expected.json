@@ -1,0 +1,72 @@
+[
+  {
+    "local_identifier": "75121530",
+    "concept_type": "viaf:personal",
+    "description": "Einstein, Albert, 1879-1955",
+    "name": "Einstein, Albert, 1879-1955",
+    "identifier": "http://viaf.org/viaf/75121530"
+  },
+  {
+    "local_identifier": "61634867",
+    "concept_type": "viaf:personal",
+    "description": "Einstein, Alfred, 1880-1952",
+    "name": "Einstein, Alfred, 1880-1952",
+    "identifier": "http://viaf.org/viaf/61634867"
+  },
+  {
+    "local_identifier": "7408788",
+    "concept_type": "viaf:personal",
+    "description": "Einstein-Mari\u0107, Mileva, 1875-1948",
+    "name": "Einstein-Mari\u0107, Mileva, 1875-1948",
+    "identifier": "http://viaf.org/viaf/7408788"
+  },
+  {
+    "local_identifier": "129675534",
+    "concept_type": "viaf:corporate",
+    "description": "Einstein-Sammlung",
+    "name": "Einstein-Sammlung",
+    "identifier": "http://viaf.org/viaf/129675534"
+  },
+  {
+    "local_identifier": "34473997",
+    "concept_type": "viaf:personal",
+    "description": "Einstein, Carl, 1885-1940",
+    "name": "Einstein, Carl, 1885-1940",
+    "identifier": "http://viaf.org/viaf/34473997"
+  },
+  {
+    "local_identifier": "71807403",
+    "concept_type": "viaf:personal",
+    "description": "Einstein, Arik",
+    "name": "Einstein, Arik",
+    "identifier": "http://viaf.org/viaf/71807403"
+  },
+  {
+    "local_identifier": "52060042",
+    "concept_type": "viaf:personal",
+    "description": "Einstein, Lewis, 1877-1967",
+    "name": "Einstein, Lewis, 1877-1967",
+    "identifier": "http://viaf.org/viaf/52060042"
+  },
+  {
+    "local_identifier": "48035085",
+    "concept_type": "viaf:personal",
+    "description": "Einstein, Charles",
+    "name": "Einstein, Charles",
+    "identifier": "http://viaf.org/viaf/48035085"
+  },
+  {
+    "local_identifier": "118902208",
+    "concept_type": "viaf:personal",
+    "description": "Einstein, Albert Lawrence",
+    "name": "Einstein, Albert Lawrence",
+    "identifier": "http://viaf.org/viaf/118902208"
+  },
+  {
+    "local_identifier": "67420636",
+    "concept_type": "viaf:personal",
+    "description": "Einstein, Hans Albert, 1904-1973",
+    "name": "Einstein, Hans Albert, 1904-1973",
+    "identifier": "http://viaf.org/viaf/67420636"
+  }
+]
