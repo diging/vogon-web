@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count
 from django_filters.rest_framework import DjangoFilterBackend
+from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -156,7 +157,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['GET'], url_name='export_affiliations')
     def export_affiliations(self, request, pk=None):
         project = get_object_or_404(TextCollection, pk=pk)
-        template = RelationTemplate.objects.get(name="Affiliation")
+        template = RelationTemplate.objects.get(pk=settings.AFFILIATION_TEMPLATE_ID)
 
         relationsets = RelationSet.objects.filter(
             project=project,
@@ -165,7 +166,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         )
 
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+        response['Content-Disposition'] = 'attachment; filename="affiliations.csv"'
         
         fieldnames = ['project', 'created', 'text', 'affiliation', 'author']
         writer = csv.writer(response)
