@@ -121,7 +121,12 @@ class AnnotationViewSet(viewsets.ViewSet):
         relationsets = [x for x in relationsets if x.ready()]
         data['pending_relationsets'] = relationsets
         serializer = Text2Serializer(data, context={'request': request})
-        return Response(serializer.data)
+
+        # We are overriding `content` variable because of an unknown behavior
+        # with Django serializer - `content` flips between string and byte-string
+        response = serializer.data
+        response['content'] = content
+        return Response(response)
 
     @action(detail=True, methods=['get'], url_name='network')
     def network(self, request, pk=None):
