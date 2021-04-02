@@ -165,7 +165,7 @@ class VogonTokenVerifyView(TokenVerifyView):
 	def post(self, request, *args, **kwargs):
 		super().post(request, *args, **kwargs)
 		user = authentication.JWTAuthentication().authenticate(request)[0]
-		notifications = user.notifications
+		notifications = user.notifications.active()
 		return Response({ 
 			'notifications': NotificationSerializer(notifications, many=True).data
 		}, status=status.HTTP_200_OK)
@@ -176,4 +176,15 @@ class NotificationViewset(viewsets.ViewSet):
 		notification = Notification.objects.filter(pk=pk, recipient=request.user)
 		notification.mark_all_as_read()
 		return Response({})
-    
+
+	@action(detail=True, methods=['post'], url_name='markasdeleted')
+	def mark_as_deleted(self, request, pk=None):
+		notification = Notification.objects.filter(pk=pk, recipient=request.user)
+		notification.mark_all_as_deleted()
+		return Response({})
+
+	@action(detail=False, methods=['post'], url_name='markallasdeleted')
+	def mark_all_as_deleted(self, request):
+		notifications = Notification.objects.filter(recipient=request.user, deleted=False)
+		notifications.mark_all_as_deleted()
+		return Response({})
