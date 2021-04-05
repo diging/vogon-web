@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from annotations.models import TextCollection, RelationSet, Text, Appellation
+from accounts.models import VogonUser
 from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
 from repository.models import Repository
 
@@ -29,6 +30,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
+        request.data['createdBy'] = request.user.pk
         request.data['ownedBy'] = request.user.pk
         serializer = ProjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -66,6 +68,40 @@ class ProjectViewSet(viewsets.ModelViewSet):
         
         serializer = ProjectSerializer(project)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['POST'], url_name='changeownership')
+    def change_ownership(self, request, pk=None):
+        project = get_object_or_404(TextCollection, pk=pk)
+        
+        # Reject request if current user is not the project owner
+        if project.ownedBy.id != request.user.id:
+            return Response(
+                { "message": "User unauthorized to change ownership" },
+                403
+            )
+        
+        target_user_id = request.data.get('target_user_id')
+        if not target_user_id:
+            return Response(
+                { "message": "Specify the user id to whom you would like to change the ownership" },
+                400
+            )
+        
+        try:
+            # Change owner to `target_user`, make current user as participant
+            target_user = VogonUser.objects.get(pk=target_user_id)
+            project.ownedBy = target_user
+            project.participants.add(request.user)
+            project.participants.remove(target_user)
+            project.save(force_update=True)
+            return Response(
+                { "message": f"Successfully changed project ownership to user_id='{target_user.username}'" }
+            )
+        except VogonUser.DoesNotExist:
+            return Response(
+                { "message": f"Could not find user with id {target_user_id}!" },
+                404
+            )
 
     def destroy(self, request, pk=None):
         text_id = request.data['text_id']

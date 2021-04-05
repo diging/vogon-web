@@ -215,6 +215,7 @@ class TemporalBoundsSerializer(serializers.ModelSerializer):
 
 class TextCollectionSerializer(serializers.ModelSerializer):    
     ownedBy = VogonUserSerializer()
+    createdBy = VogonUserSerializer()
     num_texts = serializers.IntegerField()
     num_relations = serializers.IntegerField()
     
@@ -225,6 +226,7 @@ class TextCollectionSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     ownedBy = VogonUserSerializer()
+    createdBy = VogonUserSerializer()
     participants = VogonUserSerializer(many=True)
     class Meta:
         model = TextCollection

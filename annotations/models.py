@@ -290,6 +290,7 @@ class TextCollection(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
 
+    createdBy = models.ForeignKey(VogonUser, on_delete=models.CASCADE, related_name='projects_created')
     ownedBy = models.ForeignKey(VogonUser, related_name='collections', on_delete=models.CASCADE)
     texts = models.ManyToManyField('Text', related_name='partOf',
                                    blank=True, null=True)
