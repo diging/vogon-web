@@ -13,6 +13,7 @@ from rest_framework.decorators import permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from annotations.models import (VogonUser, Text, Appellation, RelationSet,
 								Relation)
@@ -44,9 +45,8 @@ class UserViewSet(viewsets.ModelViewSet):
 		if self.page is not None:
 			serializer = UserSerializer(self.page, many=True)
 			return self.get_paginated_response(serializer.data)
-		else:
-			users = serializer(queryset, many=True).data
-			
+		
+		users = serializer(queryset, many=True).data	
 		return Response(users)
 
 	def retrieve(self, request, pk=None):
@@ -152,7 +152,14 @@ class UserViewSet(viewsets.ModelViewSet):
 	@permission_classes([AllowAny])
 	def create(self, request):
 		try:
-			return super().create(request)
+			response = super().create(request)
+			user = VogonUser.objects.get(id=response.data["id"])
+			refresh = RefreshToken.for_user(user)
+
+			return Response({
+				"access": str(refresh.access_token),
+				"refresh": str(refresh)
+			})
 		except Exception as e: 
 			response = []
 			for arg in (e.args[0]):
@@ -220,5 +227,3 @@ class UserViewSet(viewsets.ModelViewSet):
 				'count': weekly_annotations.get(week.datetime, 0)
 			})
 		return result
-
-

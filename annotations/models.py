@@ -40,30 +40,21 @@ Users and groups
 Detailed descriptions
 ---------------------
 """
-
+import ast
+import networkx as nx
 from django.db import models
-
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-
-from concepts.models import Concept
-from django.conf import settings
-import ast
-
-
-from annotations.utils import help_text
-
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin, Permission
 )
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
+from annotations.utils import help_text
 from concepts.models import Concept, Type
-
-import ast
-import networkx as nx
 
 
 class VogonUserManager(BaseUserManager):
@@ -94,6 +85,10 @@ class VogonUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
+    def get_by_natural_key(self, username):
+        return self.get(**{
+            f'{self.model.USERNAME_FIELD}__iexact': username
+        })
 
 class VogonUserDefaultProject(models.Model):
     for_user = models.OneToOneField('VogonUser', related_name='default_project', on_delete=models.CASCADE)
@@ -453,8 +448,6 @@ class Text(models.Model):
     def __unicode__(self):
         return self.title
 
-# TODO: remove this model, as it is no longer used (in favor of the repository
-#  module).
 class Repository(models.Model):
     """
     Represents an online repository from which :class:`.Text`\s can be
@@ -492,9 +485,6 @@ class Repository(models.Model):
         return str(self.name)
 
 
-
-# TODO: remove this model, as it is no longer used (in favor of the repository
-#  module).
 class Authorization(models.Model):
     """
     Represents an authorization token for an external service.
@@ -657,7 +647,7 @@ class DateAppellation(Annotation):
         """
         if self.day > 0:
             return 'day'
-        elif self.month > 0:
+        if self.month > 0:
             return 'month'
         return 'year'
 
