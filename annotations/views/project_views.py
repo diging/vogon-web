@@ -103,6 +103,25 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 404
             )
 
+    @action(detail=False, methods=['get'], url_name='userprojectlist')
+    def list_user_projects(self, request):
+        project_id = request.query_params.get('project_id', None)
+        query = request.query_params.get('q', None)
+
+        if project_id:
+            project = TextCollection.objects.get(pk=project_id)
+        else:
+            project = request.user.get_default_project()
+        owned_projects = request.user.collections.filter(~Q(id=project.id))
+        contributing_projects = request.user.contributes_to.all()
+        
+        user_projects = owned_projects | contributing_projects
+        if query:
+            user_projects = user_projects.filter(name__icontains=query)
+
+        serializer = ProjectSerializer(user_projects, many=True)
+        return Response(serializer.data)
+    
     def destroy(self, request, pk=None):
         text_id = request.data['text_id']
 
