@@ -115,7 +115,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         owned_projects = request.user.collections.filter(~Q(id=project.id))
         contributing_projects = request.user.contributes_to.all()
         
-        user_projects = owned_projects | contributing_projects
+        user_projects = (owned_projects | contributing_projects).distinct()
         if query:
             user_projects = user_projects.filter(name__icontains=query)
 
