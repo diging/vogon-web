@@ -228,6 +228,11 @@ class ProjectSerializer(serializers.ModelSerializer):
     ownedBy = VogonUserSerializer()
     createdBy = VogonUserSerializer()
     participants = VogonUserSerializer(many=True)
+
+    def create(self, validated_data):
+        project = TextCollection.objects.get(pk=validated_data['id'])
+        project.save()
+
     class Meta:
         model = TextCollection
         fields = '__all__'

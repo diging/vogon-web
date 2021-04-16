@@ -10,7 +10,11 @@ from rest_framework.response import Response
 
 from annotations.models import TextCollection, RelationSet, Text, Appellation
 from accounts.models import VogonUser
-from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
+from annotations.serializers import (
+    TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer, 
+    VogonUserSerializer, VogonUserDefaultProject
+)
+from annotations.filters import ProjectFilter
 from repository.models import Repository
 
 
@@ -20,23 +24,23 @@ class ProjectViewSet(viewsets.ModelViewSet):
     """
     queryset = TextCollection.objects.all()
     serializer_class = TextCollectionSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ('ownedBy__username',)
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = ProjectFilter
 
     def retrieve(self, request, pk=None):
         queryset = self.get_queryset()
         project = get_object_or_404(queryset, pk=pk)
-        serializer = ProjectTextSerializer(project)
-        return Response(serializer.data)
+        response = ProjectTextSerializer(project).data
+        response['is_default'] = self._is_default_project(request, project)
+        return Response(response)
 
     def create(self, request):
-        request.data['createdBy'] = request.user.pk
-        request.data['ownedBy'] = request.user.pk
-        serializer = ProjectSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        request.data['createdBy'] = request.user
+        request.data['ownedBy'] = request.user
+        project = TextCollection(**request.data)
+        project.save()
+        response = ProjectSerializer(project).data
+        return Response(response, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['POST'], url_name='addtext')
     def add_text(self, request, pk=None):
@@ -134,6 +138,19 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=['post'], url_name='setasdefault')
+    def set_as_default(self, request, pk=None):
+        project = get_object_or_404(TextCollection, pk=pk)
+        if project.ownedBy != request.user:
+            return Response({
+                "message": "User not authorized to set project as default"
+            }, 403)
+
+        request.user.set_default_project(project)
+        return Response({
+            "message": f"Successfully set as your default project - '{project.name}'"
+        })
+    
     def get_queryset(self):
         queryset = super(ProjectViewSet, self).get_queryset()
         queryset = queryset.annotate(
@@ -147,3 +164,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
             'count':len(self.filter_queryset(self.get_queryset())),
             'results': data
         })
+
+    def _is_default_project(self, request, project):
+        return VogonUserDefaultProject.objects.filter(
+            for_user=request.user,
+            project=project
+        ).exists()
