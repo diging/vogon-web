@@ -201,20 +201,8 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     def get_default_project(self):
         """
         Retrieves default project for the user.
-
-        - If not default project is set, query the first project
-          created by the user, set it as default, return it
-        - If there is no project created by user, return None
         """
         project = TextCollection.objects.filter(is_default_for__for_user=self).first()
-        if project is None:
-            project = TextCollection.objects.filter(ownedBy=self).order_by('created').first()
-            if not project:
-                return None
-            print("Setting first project as default", project)
-            VogonUserDefaultProject.objects.create(for_user=self, project=project)
-        
-        print("Getting default project", project)
         return project
 
     def create_default_project(self):
