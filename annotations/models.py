@@ -47,11 +47,11 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from django.conf import settings
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser, PermissionsMixin, Permission
 )
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
 
 from annotations.utils import help_text
 from concepts.models import Concept, Type
@@ -911,6 +911,7 @@ class RelationSet(models.Model):
                 appellation_ids.append(relation.source_object_id)
             if relation.object_content_type == appellation_type:
                 appellation_ids.append(relation.object_object_id)
+            appellation_ids.append(relation.predicate.id)
 
         return Appellation.objects.filter(pk__in=appellation_ids)
 
