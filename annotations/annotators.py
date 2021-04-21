@@ -108,7 +108,7 @@ class Annotator(object):
         if not self.text.repository:
             return
         manager = self.text.repository.manager(self.context['user'])
-        self.resource = manager.content(id=int(self.text.repository_source_id))
+        self.resource = manager.content(content_id=int(self.text.repository_source_id))
         return self.resource
 
     def render(self, context={}):

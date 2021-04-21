@@ -58,7 +58,7 @@ def citesphere_token(request):
 	if request.method == "GET":
 		code = request.GET.get("code", "")
 		r = requests.post(
-			f"{settings.CITESPHERE_ENDPOINT}/api/v1/oauth/token",
+			f"{settings.CITESPHERE_ENDPOINT}/api/oauth/token",
 			params={
 				"client_id": settings.CITESPHERE_CLIENT_ID,
 				"client_secret": settings.CITESPHERE_CLIENT_SECRET,
@@ -72,7 +72,8 @@ def citesphere_token(request):
 		except CitesphereToken.DoesNotExist:
 			token = CitesphereToken()
 			token.user = request.user
-		token.token = r.json()["access_token"]
+		token.access_token = r.json()["access_token"]
+		token.refresh_token = r.json()["refresh_token"]
 		token.save()
 		return Response(status=status.HTTP_201_CREATED)
 

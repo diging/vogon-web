@@ -38,7 +38,9 @@ router.register(r'relation', views.rest_views.RelationViewSet)
 router.register(r'relationset', views.annotation_views.RelationSetViewSet)
 router.register(r'relationtemplate', views.relationtemplate_views.RelationTemplateViewSet, base_name='relationtemplate')
 router.register(r'text', views.rest_views.TextViewSet)
-router.register(r'repository', views.repository_views.RepositoryViewSet)
+router.register(r'repository/amphora', views.amphora_views.AmphoraRepoViewSet, base_name='repository-amphora')
+router.register(r'repository/citesphere', views.citesphere_views.CitesphereRepoViewSet, base_name='repository-citesphere')
+router.register(r'repository', views.repository_views.RepositoryViewSet, base_name='repository')
 router.register(r'temporalbounds', views.rest_views.TemporalBoundsViewSet)
 router.register(r'user', views.rest_views.UserViewSet)
 router.register(r'concept', conceptViews.ConceptViewSet)
@@ -48,13 +50,21 @@ router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet, base_name='project')
 router.register(r'users', views.user_views.UserViewSet, basename='users')
 
-repository_router = routers.NestedSimpleRouter(router, r'repository', lookup='repository')
-repository_router.register(r'collections', views.repository_views.RepositoryCollectionViewSet, base_name='repository-collections')
-repository_router.register(r'texts', views.repository_views.RepositoryTextView, base_name='repository-texts')
+# Amphora Routers
+amphora_repo_router = routers.NestedSimpleRouter(router, r'repository/amphora', lookup='repository')
+amphora_repo_router.register(r'collections', views.amphora_views.AmphoraCollectionViewSet, base_name='repository-amphora-collections')
+amphora_repo_router.register(r'texts', views.amphora_views.AmphoraTextViewSet, base_name='repository-amphora-texts')
 
-repository_content_router = routers.NestedSimpleRouter(repository_router, r'texts', lookup='texts')
-repository_content_router.register(r'content', views.repository_views.RepositoryTextContentViewSet, base_name='repository-text-content')
+amphora_repo_content_router = routers.NestedSimpleRouter(amphora_repo_router, r'texts', lookup='texts')
+amphora_repo_content_router.register(r'content', views.amphora_views.AmphoraTextContentViewSet, base_name='repository-amphora-text-content')
 
+# Citesphere Routers
+citesphere_repo_router = routers.NestedSimpleRouter(router, r'repository/citesphere', lookup='repository')
+citesphere_repo_router.register(r'groups', views.citesphere_views.CitesphereGroupsViewSet, base_name='repository-citesphere-groups')
+
+citesphere_repo_group_router = routers.NestedSimpleRouter(citesphere_repo_router, r'groups', lookup='groups')
+citesphere_repo_group_router.register(r'collections', views.citesphere_views.CitesphereCollectionsViewSet, base_name='repository-citesphere-collctions')
+citesphere_repo_group_router.register(r'items', views.citesphere_views.CitesphereItemsViewSet, base_name='repository-citesphere-items')
 
 #Error Handlers
 handler403 = 'annotations.exceptions.custom_403_handler'
@@ -69,8 +79,10 @@ urlpatterns = [
     path('api/v2/forgot-password/', account_views.ForgotPasswordView.as_view(), name="forgot_password"),
     path('api/v2/reset-password/', account_views.ResetPasswordView.as_view(), name="reset_password"),
     re_path(r'^api/v2/', include((router.urls, "vogon_rest"))),
-    re_path(r'^api/v2/', include((repository_router.urls, "vogon_rest_repo"))),
-    re_path(r'^api/v2/', include((repository_content_router.urls, "vogon_rest_repo_content"))),
+    re_path(r'^api/v2/', include((amphora_repo_router.urls, "vogon_rest_repo"))),
+    re_path(r'^api/v2/', include((amphora_repo_content_router.urls, "vogon_rest_repo_content"))),
+    re_path(r'^api/v2/', include((citesphere_repo_router.urls, "vogon_rest_citesphere"))),
+    re_path(r'^api/v2/', include((citesphere_repo_group_router.urls, "vogon_rest_citesphere_groups"))),
 
     path('admin/', admin.site.urls),
 
