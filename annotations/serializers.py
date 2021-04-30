@@ -16,6 +16,10 @@ class UserSerializer(serializers.ModelSerializer):
                   'full_name', 'link', 'is_admin', 'imagefile',
                   'annotation_count', 'relation_count', 'text_count')
 
+class VogonUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VogonUser
+        fields = ['id', 'username', 'full_name', 'email']
 
 class RemoteCollectionSerializer(serializers.Serializer):
     source = serializers.IntegerField()
@@ -209,13 +213,9 @@ class TemporalBoundsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class TextCollectionSerializer(serializers.ModelSerializer):
-    class VogonUserSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = VogonUser
-            fields = ['id', 'username']
-    
+class TextCollectionSerializer(serializers.ModelSerializer):    
     ownedBy = VogonUserSerializer()
+    createdBy = VogonUserSerializer()
     num_texts = serializers.IntegerField()
     num_relations = serializers.IntegerField()
     
@@ -225,6 +225,14 @@ class TextCollectionSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(serializers.ModelSerializer):
+    ownedBy = VogonUserSerializer()
+    createdBy = VogonUserSerializer()
+    participants = VogonUserSerializer(many=True)
+
+    def create(self, validated_data):
+        project = TextCollection.objects.get(pk=validated_data['id'])
+        project.save()
+
     class Meta:
         model = TextCollection
         fields = '__all__'
@@ -236,6 +244,7 @@ class ProjectTextSerializer(TextCollectionSerializer):
             model = Text
             fields = ['id', 'title', 'added', 'repository_id', 'repository_source_id']
     texts = TextSerializer(many=True, read_only=True)
+    participants = VogonUserSerializer(many=True)
 
 class TemplateFieldsSerializer(serializers.Serializer):
     part_field = serializers.CharField(max_length=200, required=False)
@@ -314,3 +323,22 @@ class Text2Serializer(serializers.Serializer):
     relationsets = RelationSetSerializer(many=True)
     concept_types = TypeSerializer(many=True)
     pending_relationsets = RelationSetSerializer(many=True)
+
+class GenericNotificationRelatedField(serializers.RelatedField):
+    def to_representation(self, value):
+        if isinstance(value, VogonUser):
+            serializer = VogonUserSerializer(value)
+        if isinstance(value, TextCollection):
+            serializer = ProjectSerializer(value)
+
+        return serializer.data
+
+class NotificationSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    recipient = VogonUserSerializer(VogonUser, read_only=True)
+    unread = serializers.BooleanField(read_only=True)
+    actor = GenericNotificationRelatedField(read_only=True)
+    verb = serializers.CharField(required=True)
+    timestamp = serializers.CharField(required=True)
+    action_object = GenericNotificationRelatedField(read_only=True)
+    target = GenericNotificationRelatedField(read_only=True)

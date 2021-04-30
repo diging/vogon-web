@@ -135,6 +135,11 @@ class AppellationAdmin(admin.ModelAdmin):
     list_display = ('id', 'createdBy', 'occursIn', 'created', 'interpretation',
                     'asPredicate', 'submitted')
 
+class VogonUserDefaultProjectAdmin(admin.ModelAdmin):
+    class Meta:
+        model = VogonUserDefaultProject
+    
+    list_display = ('for_user', 'project')
 
 admin.site.register(VogonUser, VogonUserAdmin)
 admin.site.register(Appellation, AppellationAdmin)
@@ -146,3 +151,4 @@ admin.site.register(RelationTemplate)
 admin.site.register(RelationTemplatePart)
 admin.site.register(DateAppellation)
 admin.site.register(QuadrigaAccession)
+admin.site.register(VogonUserDefaultProject, VogonUserDefaultProjectAdmin)

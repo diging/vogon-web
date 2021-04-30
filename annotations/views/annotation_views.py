@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, Appellation
+from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository
 from annotations.annotators import annotator_factory
 from annotations.serializers import (RelationSetSerializer,
     ProjectSerializer, UserSerializer, Text2Serializer)
@@ -26,9 +26,8 @@ class RelationSetViewSet(viewsets.ModelViewSet):
         if self.page is not None:
             serializer = self.get_serializer(self.page, many=True)
             return self.get_paginated_response(serializer.data, meta=self.request.query_params.get('meta', False))
-        else:
-            relations = serializer(queryset, many=True).data
-            
+        
+        relations = serializer(queryset, many=True).data    
         return Response(relations)
 
     def get_paginated_response(self, data, meta):
@@ -93,34 +92,41 @@ class AnnotationViewSet(viewsets.ViewSet):
         content = data['content'].decode("utf-8")
         data['content'] = content
         project = data['project']
+
+        if project.ownedBy != request.user and request.user not in project.participants.all():
+            return Response({
+                "error": True,
+                "message": "You are not allowed to annotate in this project!"
+            }, 403)
         
         data['project'] = project
         appellations = Appellation.objects.filter(
             occursIn=text.id,
-            createdBy=request.user,
             project=project
         )
         data['appellations'] = appellations
         data['relations'] = Relation.objects.filter(
             occursIn=text.id,
-            createdBy=request.user
         )
         data['relationsets'] = RelationSet.objects.filter(
             occursIn=text.id, 
             project=project, 
-            createdBy=request.user
         )
         data['concept_types'] = Type.objects.all()
         relationsets = RelationSet.objects.filter(
             occursIn=text.id,
             project=project,
-            createdBy=request.user,
             submitted=False,
         )
         relationsets = [x for x in relationsets if x.ready()]
         data['pending_relationsets'] = relationsets
         serializer = Text2Serializer(data, context={'request': request})
-        return Response(serializer.data)
+
+        # We are overriding `content` variable because of an unknown behavior
+        # with Django serializer - `content` flips between string and byte-string
+        response = serializer.data
+        response['content'] = content
+        return Response(response)
 
     @action(detail=True, methods=['get'], url_name='network')
     def network(self, request, pk=None):

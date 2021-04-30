@@ -41,6 +41,7 @@ INSTALLED_APPS = (
 	"django.contrib.messages",
 	"django.contrib.staticfiles",
 	"django.contrib.sites",
+	"notifications",
 	"concepts",
 	"giles",
 	"rest_framework",
@@ -263,6 +264,8 @@ CONCEPT_TYPES = {
 }
 
 SUBMIT_WAIT_TIME = {"days": 3, "hours": 0, "minutes": 0}
+
+DJANGO_NOTIFICATIONS_CONFIG = { 'SOFT_DELETE': True}
 
 CORS_ALLOW_CREDENTIALS = True
 

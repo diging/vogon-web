@@ -25,8 +25,7 @@ from concepts import views as conceptViews
 from accounts import views as account_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
-    TokenRefreshView,
-    TokenVerifyView
+    TokenRefreshView
 )
 
 
@@ -49,6 +48,7 @@ router.register(r'textcollection', views.rest_views.TextCollectionViewSet)
 router.register(r'dateappellation', views.rest_views.DateAppellationViewSet)
 router.register(r'project', views.project_views.ProjectViewSet, base_name='project')
 router.register(r'users', views.user_views.UserViewSet, basename='users')
+router.register(r'notifications', account_views.NotificationViewset, basename='notifications')
 
 # Amphora Routers
 amphora_repo_router = routers.NestedSimpleRouter(router, r'repository/amphora', lookup='repository')
@@ -73,7 +73,7 @@ urlpatterns = [
     # REST Views
     path('api/v2/token/',  account_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/v2/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('api/v2/token/verify/', account_views.VogonTokenVerifyView.as_view(), name='token_verify'),
     path('api/v2/github-token/', account_views.github_token, name="github_token"),
     path('api/v2/citesphere-token/', account_views.citesphere_token, name='citesphere_token'),
     path('api/v2/forgot-password/', account_views.ForgotPasswordView.as_view(), name="forgot_password"),

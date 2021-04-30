@@ -10,11 +10,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt import authentication
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenVerifyView
 
 from annotations.models import VogonUser
 from accounts.models import ResetToken, GithubToken, CitesphereToken
 from accounts.serializers import UserSerializer, TokenObtainPairSerializer, ResetPasswordSerializer
+from annotations.serializers import NotificationSerializer
+from notifications.models import Notification
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -157,3 +160,31 @@ class ResetPasswordView(APIView):
 
 class TokenObtainPairView(TokenObtainPairView):
 	serializer_class = TokenObtainPairSerializer
+
+class VogonTokenVerifyView(TokenVerifyView):
+	def post(self, request, *args, **kwargs):
+		super().post(request, *args, **kwargs)
+		user = authentication.JWTAuthentication().authenticate(request)[0]
+		notifications = user.notifications.active()
+		return Response({ 
+			'notifications': NotificationSerializer(notifications, many=True).data
+		}, status=status.HTTP_200_OK)
+
+class NotificationViewset(viewsets.ViewSet):
+	@action(detail=True, methods=['post'], url_name='markasread')
+	def mark_as_read(self, request, pk=None):
+		notification = Notification.objects.filter(pk=pk, recipient=request.user)
+		notification.mark_all_as_read()
+		return Response({})
+
+	@action(detail=True, methods=['post'], url_name='markasdeleted')
+	def mark_as_deleted(self, request, pk=None):
+		notification = Notification.objects.filter(pk=pk, recipient=request.user)
+		notification.mark_all_as_deleted()
+		return Response({})
+
+	@action(detail=False, methods=['post'], url_name='markallasdeleted')
+	def mark_all_as_deleted(self, request):
+		notifications = Notification.objects.filter(recipient=request.user, deleted=False)
+		notifications.mark_all_as_deleted()
+		return Response({})

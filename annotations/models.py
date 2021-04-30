@@ -199,14 +199,37 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
         return settings.BASE_URI_NAMESPACE + reverse('user_details', args=[self.id])
 
     def get_default_project(self):
+        """
+        Retrieves default project for the user.
+        """
         project = TextCollection.objects.filter(is_default_for__for_user=self).first()
-        if project is None:
-            project = TextCollection.objects.create(
-                name="%s's default project" % self.username,
-                ownedBy=self)
-            VogonUserDefaultProject.objects.create(for_user=self, project=project)
         return project
 
+    def create_default_project(self):
+        """
+        Create a default project for the user, if one does not exists already
+        """
+        default_exists = TextCollection.objects.filter(is_default_for__for_user=self).exists()
+        if not default_exists:
+            project = TextCollection.objects.create(
+                name=f"{self.username}'s default project",
+                ownedBy=self
+            )
+            return project
+
+    def set_default_project(self, project):
+        """
+        Set a new default project for the user.
+        """
+        try:
+            current_default = VogonUserDefaultProject.objects.get(for_user=self)
+            current_default.project = project
+            current_default.save()
+        except VogonUserDefaultProject.DoesNotExist:
+            VogonUserDefaultProject.objects.create(
+                for_user=self,
+                project=project
+            )
 
 class GroupManager(models.Manager):
     """
@@ -290,6 +313,7 @@ class TextCollection(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
 
+    createdBy = models.ForeignKey(VogonUser, on_delete=models.CASCADE, related_name='projects_created')
     ownedBy = models.ForeignKey(VogonUser, related_name='collections', on_delete=models.CASCADE)
     texts = models.ManyToManyField('Text', related_name='partOf',
                                    blank=True, null=True)
