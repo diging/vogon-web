@@ -263,6 +263,9 @@ CONCEPT_TYPES = {
 	"viaf:geographic": GEOGRAPHIC_CONCEPT_TYPE,  # E53 Place
 }
 
+# Template ID for Export affiliation feature
+AFFILIATION_TEMPLATE_ID = os.environ.get("AFFILIATION_TEMPLATE_ID", 1)
+
 SUBMIT_WAIT_TIME = {"days": 3, "hours": 0, "minutes": 0}
 
 DJANGO_NOTIFICATIONS_CONFIG = { 'SOFT_DELETE': True}

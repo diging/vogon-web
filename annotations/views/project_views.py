@@ -1,14 +1,17 @@
 """
 Provides project (:class:`.TextCollection`) -related views.
 """
+import csv
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count
 from django_filters.rest_framework import DjangoFilterBackend
+from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from annotations.models import TextCollection, RelationSet, Text, Appellation
+from annotations.models import TextCollection, RelationSet, Text, Appellation, RelationTemplate
 from accounts.models import VogonUser
 from annotations.serializers import (
     TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer, 
@@ -151,6 +154,34 @@ class ProjectViewSet(viewsets.ModelViewSet):
             "message": f"Successfully set as your default project - '{project.name}'"
         })
     
+    @action(detail=True, methods=['GET'], url_name='export_affiliations')
+    def export_affiliations(self, request, pk=None):
+        project = get_object_or_404(TextCollection, pk=pk)
+        template = RelationTemplate.objects.get(pk=settings.AFFILIATION_TEMPLATE_ID)
+
+        relationsets = RelationSet.objects.filter(
+            project=project,
+            template=template,
+            createdBy=request.user,
+        )
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="affiliations.csv"'
+        
+        fieldnames = ['project', 'created', 'text', 'affiliation', 'author']
+        writer = csv.writer(response)
+        writer.writerow(fieldnames)
+
+        for relationset in relationsets:
+            relations = relationset.constituents.all().order_by('id')[:2]
+            writer.writerow([
+                project.name, relationset.created, relationset.occursIn.title,
+                relations[0].object_content_object.stringRep,
+                relations[1].source_content_object.stringRep
+            ])
+        
+        return response
+
     def get_queryset(self):
         queryset = super(ProjectViewSet, self).get_queryset()
         queryset = queryset.annotate(
