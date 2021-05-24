@@ -28,3 +28,4 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(copy_owner_to_created_by),
     ]
+    atomic = False
