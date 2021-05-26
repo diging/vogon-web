@@ -71,3 +71,6 @@ node_modules
 .env
 .vscode
 .DS_Store
+# ignore default logfile
+‘.’ 
+fixtures/initial_data.json

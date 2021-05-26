@@ -142,7 +142,7 @@ class AnnotationViewSet(viewsets.ViewSet):
         relationsets = RelationSet.objects.filter(
             occursIn_id=pk,
             createdBy=user,
-            project=project
+            project=project.id
         )
         appellations = Appellation.objects.filter(
             asPredicate=False,
