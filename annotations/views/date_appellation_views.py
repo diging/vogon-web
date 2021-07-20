@@ -41,3 +41,34 @@ class DateAppellationViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
             headers=headers
         )
+    
+    def partial_update(self, request, *args, **kwargs):
+        instance_object = self.get_object()
+        data = request.data.copy()
+        position = data.pop('position', None)
+        if 'month' in data and data['month'] is None:
+            data.pop('month')
+        if 'day' in data and data['day'] is None:
+            data.pop('day')
+            
+        serializer = DateAppellationSerializer(instance_object, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        if position:
+            if type(position) is not DocumentPosition:
+                position_serializer = DocumentPositionSerializer(instance_object.position, data=position, partial=True)
+                position_serializer.is_valid(raise_exception=True)
+                position = position_serializer.save()
+
+            instance.position = position
+            instance.save()
+
+        instance.refresh_from_db()
+        reserializer = DateAppellationSerializer(instance, context={'request': request})
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            reserializer.data, 
+            status=status.HTTP_200_OK,
+            headers=headers
+        )
+        
