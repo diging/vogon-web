@@ -104,6 +104,11 @@ class AnnotationViewSet(viewsets.ViewSet):
             occursIn=text.id,
             project=project
         )
+        dateappellations = DateAppellation.objects.filter(
+            occursIn=text.id,
+            project=project
+        )
+        data['dateappellations'] = dateappellations
         data['appellations'] = appellations
         data['relations'] = Relation.objects.filter(
             occursIn=text.id,

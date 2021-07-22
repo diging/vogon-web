@@ -51,8 +51,16 @@ class AmphoraRepoViewSet(viewsets.ViewSet):
             'project': ProjectSerializer(project).data,
         })
 
+import logging
+logger = logging.getLogger('')
+
+    
 class AmphoraCollectionViewSet(viewsets.ViewSet):
     def list(self, request, repository_pk=None):
+        logger.error("here")
+        logger.error(repository_pk)
+
+        
         repository = get_object_or_404(
             Repository,
             pk=repository_pk,
@@ -79,7 +87,7 @@ class AmphoraCollectionViewSet(viewsets.ViewSet):
             return Response({
                 "message": "Project not found!"
             }, 404)
-
+       
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
         manager = repository.manager(request.user)
         collection = manager.collection(collection_id=pk)
