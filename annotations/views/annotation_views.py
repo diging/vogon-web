@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository
+from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, DateAppellation
 from annotations.annotators import annotator_factory
 from annotations.serializers import (RelationSetSerializer,
     ProjectSerializer, UserSerializer, Text2Serializer)
@@ -108,6 +108,7 @@ class AnnotationViewSet(viewsets.ViewSet):
             occursIn=text.id,
             project=project
         )
+        print("date appellationsssssssssssssss")
         data['dateappellations'] = dateappellations
         data['appellations'] = appellations
         data['relations'] = Relation.objects.filter(
