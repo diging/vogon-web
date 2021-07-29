@@ -25,7 +25,7 @@ class DateAppellationViewSet(viewsets.ModelViewSet):
         
         text_id = serializer.data.get('occursIn')
         if position:
-            if type(position) is not DocumentPosition:
+            if not isinstance(position, DocumentPosition):
                 position_serializer = DocumentPositionSerializer(data=position)
                 position_serializer.is_valid(raise_exception=True)
                 position = position_serializer.save()
@@ -55,7 +55,7 @@ class DateAppellationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
         if position:
-            if type(position) is not DocumentPosition:
+            if not isinstance(position, DocumentPosition):
                 position_serializer = DocumentPositionSerializer(instance_object.position, data=position, partial=True)
                 position_serializer.is_valid(raise_exception=True)
                 position = position_serializer.save()
