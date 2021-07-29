@@ -47,9 +47,9 @@ class DateAppellationViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         position = data.pop('position', None)
         if 'month' in data and data['month'] is None:
-            data.pop('month')
+            data['month'] = 0
         if 'day' in data and data['day'] is None:
-            data.pop('day')
+            data['day'] = 0
             
         serializer = DateAppellationSerializer(instance_object, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
