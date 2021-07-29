@@ -108,7 +108,6 @@ class AnnotationViewSet(viewsets.ViewSet):
             occursIn=text.id,
             project=project
         )
-        print("date appellationsssssssssssssss")
         data['dateappellations'] = dateappellations
         data['appellations'] = appellations
         data['relations'] = Relation.objects.filter(

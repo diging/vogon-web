@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 DEBUG = os.environ.get('DEBUG', 'False')
 # DEBUG = True
 
-ALLOWED_HOSTS = ["amphora.asu.edu", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["amphora.asu.edu", "localhost"]
 
 # Application definition
 
@@ -104,9 +104,6 @@ LOGGING = {
 	'version': 1,
 	'disable_existing_loggers': False,
 	'handlers': {
-		'console': {
-			'class': "logging.StreamHandler"
-		},
 		'file': {
 			'level': 'DEBUG',
 			'class': 'logging.FileHandler',
@@ -120,7 +117,7 @@ LOGGING = {
 			'propagate': True,
 		},
 		'': {
-			'handlers': ['console'],
+			'handlers': ['file'],
 			'level': 'DEBUG',
 			'propagate': True,
 		},

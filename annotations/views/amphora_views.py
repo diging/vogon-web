@@ -50,17 +50,9 @@ class AmphoraRepoViewSet(viewsets.ViewSet):
             'collections': collections,
             'project': ProjectSerializer(project).data,
         })
-
-import logging
-logger = logging.getLogger('')
-
     
 class AmphoraCollectionViewSet(viewsets.ViewSet):
     def list(self, request, repository_pk=None):
-        logger.error("here")
-        logger.error(repository_pk)
-
-        
         repository = get_object_or_404(
             Repository,
             pk=repository_pk,
