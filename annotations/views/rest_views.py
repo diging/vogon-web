@@ -194,7 +194,8 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             instance = Appellation.objects.get(pk=pk)
         position = data.pop('position', None)
         interpretation = data.get('interpretation')
-
+        if 'dateString' in data:
+            interpretation = "http://www.digitalhps.org/concepts/WID-15160579-N-01-date" 
         # A concept URI may have been passed directly, in which case we need to
         #  get (or create) the local Concept instance.
         if type(interpretation) in [str, str] and interpretation.startswith('http'):

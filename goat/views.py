@@ -25,9 +25,12 @@ def search(*args, **kwargs):
 
     # The client can coerce a new search even if we have results for an
     #  identical query.
+    import logging
+    print("entered herrrrrrrrrrrrr", q)
     force = params.pop('force', None) == 'force'
     cache_key = get_concept_cache_key(q, kwargs.get("pos"))
-
+    # logging.log(msg="cache keynnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
+    print("cache keeeeeeeeeeeeeeeeeeeeeeeeeee",cache_key)
     if not force and cache.get(cache_key):
         return cache.get(cache_key)
 
