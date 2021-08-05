@@ -160,7 +160,7 @@ class AppellationSerializer(serializers.ModelSerializer):
         fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
                   'interpretation', 'interpretation_type', 'occursIn',
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label', 'position', 'project')
+                  'interpretation_type_label', 'position', 'project', 'dateStringRep', 'type')
 
 class AppellationPOSTSerializer(serializers.ModelSerializer):
     position = DocumentPositionSerializer(required=False)
@@ -172,7 +172,7 @@ class AppellationPOSTSerializer(serializers.ModelSerializer):
         fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
                   'interpretation', 'interpretation_type', 'occursIn',
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label', 'position', 'project')
+                  'interpretation_type_label', 'position', 'project', 'dateStringRep', 'type')
 
 
 class RelationTemplateSerializer(serializers.ModelSerializer):
@@ -307,6 +307,8 @@ class Appellation2Serializer(serializers.Serializer):
     submitted = serializers.BooleanField(required=True)
     relationsFrom = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     relationsTo = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    dateStringRep = serializers.CharField(required=False)
+    type = serializers.CharField(required=False)
 
 
 class Text2Serializer(serializers.Serializer):

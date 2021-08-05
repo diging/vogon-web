@@ -15,19 +15,10 @@ def orchestrate_search(user_id, authority_ids, params):
     """
     # We keep track of the parameters so that we don't end up running the same
     #  search several times in a row.
-    print("params",params)
-    print("user_id", user_id)
-    print("authority_ids", authority_ids)
     params_serialized = urllib.parse.urlencode(params)
     user = VogonUser.objects.get(pk=user_id)
-    print("user",user)
     authorities = Authority.objects.filter(pk__in=authority_ids)
-    print("authorities", authorities)
-    print(authority_ids)
-    print(authorities)
     result = [search(user.id, auth.id, params) for auth in authorities]
-    print("final resulttttttttttttttttttttttt")
-    print(result)
     return result
 
 
@@ -53,11 +44,8 @@ def search(user_id, authority_id, params):
 
     user = VogonUser.objects.get(pk=user_id)
     authority = Authority.objects.get(pk=authority_id)
-    print("paramssssssssssssssssssssssssssssssss", params)
-    print("authorityyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", authority.__dict__)
     concepts = []
     results = authority.search(params)
-    print("insearch results", results)
     for result in results:
         identities = result.get('identities', None)
         if result['concept_type']:

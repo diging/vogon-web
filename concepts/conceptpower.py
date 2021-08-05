@@ -100,10 +100,8 @@ class ConceptPower:
         data : dict
             When the concept has been successfully added, data is returned.
         """
-        print("entered insode create in concept power")
         auth = HTTPBasicAuth(self.username, self.password)
         url = f'{self.endpoint}/concept/add'
-        print("urllllllllllllllllllllllllllllll", url)
         data = {
             "word": label,
             "pos": pos,

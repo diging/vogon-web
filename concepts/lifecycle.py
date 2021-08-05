@@ -248,7 +248,6 @@ class ConceptLifecycle(object):
         equal_uris = []
         if self.is_external:
             equal_uris.append(self.instance.uri)
-        print("in hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
         # It is possible that the managed Concept does not have a type, and
         #  sometimes we just don't care.
         concept_type = getattr(self.instance.typed, 'uri', self.DEFAULT_TYPE)
@@ -268,7 +267,6 @@ class ConceptLifecycle(object):
                                             self.instance.description,
                                             concept_type,
                                             equal_uris=equal_uris)
-            print("inthis merged data", data)
         except Exception as E:
             raise ConceptUpstreamException("There was an error adding the"
                                            " concept to Conceptpower:"
