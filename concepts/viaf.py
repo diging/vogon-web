@@ -13,7 +13,7 @@ class Viaf:
         response = requests.get(url=url, params=params)
         concepts = json.loads(response.content)['result']
         results = []
-        
+
         if concepts:
             for concept in concepts:
                 concept_type = concept['nametype']

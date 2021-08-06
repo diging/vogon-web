@@ -27,7 +27,7 @@ def search(*args, **kwargs):
     #  identical query.
     force = params.pop('force', None) == 'force'
     cache_key = get_concept_cache_key(q, kwargs.get("pos"))
-    
+
     if not force and cache.get(cache_key):
         return cache.get(cache_key)
 

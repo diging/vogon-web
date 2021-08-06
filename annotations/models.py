@@ -773,7 +773,7 @@ class Appellation(Annotation, Interpreted):
     """
     dateStringRep = models.CharField(max_length=30, null=True, blank=True)
     """
-    Field to store the date when there Appellation is attached to a date string.
+    Field to store the date when  Appellation is attached to a date string.
     """
     CONCEPT = 'concept'
     DATE = 'date'

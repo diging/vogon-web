@@ -18,7 +18,7 @@ def orchestrate_search(user_id, authority_ids, params):
     params_serialized = urllib.parse.urlencode(params)
     user = VogonUser.objects.get(pk=user_id)
     authorities = Authority.objects.filter(pk__in=authority_ids)
-    
+
     result = [search(user.id, auth.id, params) for auth in authorities]
     return result
 
