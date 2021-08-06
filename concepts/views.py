@@ -119,6 +119,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return Response({'results': []})
 
         concepts = search_concepts(q=q, user_id=request.user.id, pos=pos, limit=50, force=force)
+        
         def _relabel(datum):
             _fields = {
                 'name': 'label',

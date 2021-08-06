@@ -248,6 +248,7 @@ class ConceptLifecycle(object):
         equal_uris = []
         if self.is_external:
             equal_uris.append(self.instance.uri)
+            
         # It is possible that the managed Concept does not have a type, and
         #  sometimes we just don't care.
         concept_type = getattr(self.instance.typed, 'uri', self.DEFAULT_TYPE)

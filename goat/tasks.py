@@ -18,6 +18,7 @@ def orchestrate_search(user_id, authority_ids, params):
     params_serialized = urllib.parse.urlencode(params)
     user = VogonUser.objects.get(pk=user_id)
     authorities = Authority.objects.filter(pk__in=authority_ids)
+    
     result = [search(user.id, auth.id, params) for auth in authorities]
     return result
 
@@ -46,6 +47,7 @@ def search(user_id, authority_id, params):
     authority = Authority.objects.get(pk=authority_id)
     concepts = []
     results = authority.search(params)
+    
     for result in results:
         identities = result.get('identities', None)
         if result['concept_type']:
