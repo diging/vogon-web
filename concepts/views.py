@@ -69,7 +69,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
         Filter by part of speech (`pos`).
         """
         queryset = super(ConceptViewSet, self).get_queryset(*args, **kwargs)
-        
+        print("before", queryset)
         # Limit results to those with ``pos``.
         pos = self.request.query_params.get('pos', None)
         if pos:
@@ -108,6 +108,7 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return queryset[:max_results]
         if concept_state:
             queryset = queryset.filter(concept_state=concept_state)
+        print("queryset", queryset)
         return queryset
 
     @action(detail=False)
