@@ -119,7 +119,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
             return Response({'results': []})
 
         concepts = search_concepts(q=q, user_id=request.user.id, pos=pos, limit=50, force=force)
-
+        local_concepts = list(Concept.objects.filter(label=q))
+        local_concepts_data = self.get_serializer(local_concepts, many=True).data
+        
         def _relabel(datum):
             _fields = {
                 'name': 'label',
@@ -127,12 +129,13 @@ class ConceptViewSet(viewsets.ModelViewSet):
                 'identifier': 'uri'
             }
             return {_fields.get(k, k): v for k, v in list(datum.items())}
-
-        return Response({
-            'results': list(filter(
+        new_results = list(filter(
                 lambda concept: concept['authority'] is not None,
                 map(_relabel, concepts)
             ))
+        new_results.extend(local_concepts_data)
+        return Response({
+            'results': new_results
         })
 
     @action(detail=True, methods=['GET'])
