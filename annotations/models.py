@@ -777,11 +777,11 @@ class Appellation(Annotation, Interpreted):
     """
     CONCEPT = 'concept'
     DATE = 'date'
-    ACHOICES = (
+    APPELLATIONCHOICES = (
         (CONCEPT, 'concept'),
         (DATE, 'date'),
     )
-    type = models.CharField(max_length=8, choices=ACHOICES,
+    type = models.CharField(max_length=8, choices=APPELLATIONCHOICES,
                                         default=CONCEPT, null=True, blank=True)
 
 
