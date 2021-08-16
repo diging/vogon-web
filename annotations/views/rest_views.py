@@ -189,7 +189,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
       
     @action(detail=False, methods=["POST"])  
     def update_concept(self, request, pk=None):
-        print(request.data)
         old_concept = request.data.get('old_concept', None)
         new_concept = request.data.get('new_concept', None)
         old_concept = get_object_or_404(Concept, id=old_concept)
