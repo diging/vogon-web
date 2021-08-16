@@ -25,10 +25,10 @@ class UserViewSet(viewsets.ModelViewSet):
     API endpoint that allows users to be viewed or edited.
     """
 
-    User = get_user_model()
-    queryset = VogonUser.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = (AllowAny,)
+	User = get_user_model()
+	queryset = VogonUser.objects.all()
+	serializer_class = UserSerializer
+	permission_classes = (AllowAny,)
 
 @api_view(["GET"])
 def github_token(request):
