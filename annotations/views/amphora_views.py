@@ -115,7 +115,7 @@ class AmphoraTextViewSet(viewsets.ViewSet):
         aggregate_content = result.get('aggregate_content')
 
         submitted = False
-        for index, child in enumerate(master_text.children):
+        for child in master_text.children:
             if Appellation.objects.filter(occursIn_id=child, submitted=True):
                 submitted = True
                 break
