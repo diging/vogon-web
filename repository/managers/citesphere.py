@@ -31,6 +31,11 @@ class CitesphereAuthority:
             f'{self.endpoint}/api/v1/groups/{group_id}/items',
             params=params
         )
+        
+    def group_item(self, group_id, item_id):
+        return self._get_response(
+            f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}'
+        )
 
     def group_collections(self, group_id, limit=None, offset=None):
         return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/collections')
@@ -49,7 +54,9 @@ class CitesphereAuthority:
     
     def _get_auth_header(self):
         try:
+            print("entered inside auth token", self.user)
             self.auth_token = CitesphereToken.objects.get(user=self.user)
+            print(self.auth_token)
             return {'Authorization': f'Bearer {self.auth_token.access_token}'}
         except CitesphereToken.DoesNotExist:
             return {}

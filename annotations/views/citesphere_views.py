@@ -11,7 +11,9 @@ class CitesphereRepoViewSet(viewsets.ViewSet):
     queryset = Repository.objects.all()
 
     def retrieve(self, request, pk):
+        print("entered here")
         queryset = Repository.objects.filter(repo_type=Repository.CITESPHERE)
+        print(RepositorySerializer(queryset, many=True).data)
         repository = get_object_or_404(queryset, pk=pk)
 
         manager = repository.manager(request.user)
@@ -107,3 +109,13 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         page = request.query_params.get('page', 1)
         items = manager.group_items(groups_pk, page)
         return Response(items)
+    
+    def retrieve(self, request, repository_pk, groups_pk, pk):
+        repository = get_object_or_404(
+            Repository,
+            pk=repository_pk,
+            repo_type=Repository.CITESPHERE
+        )
+        manager = repository.manager(request.user)
+        item_data = manager.group_item(groups_pk, pk)
+        return Response(data=item, status=status.HTTP_200_OK)
