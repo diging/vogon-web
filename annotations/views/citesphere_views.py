@@ -1,11 +1,10 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
 from repository.models import Repository
-
 
 class CitesphereRepoViewSet(viewsets.ViewSet):
     queryset = Repository.objects.all()
@@ -118,4 +117,10 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         )
         manager = repository.manager(request.user)
         item_data = manager.group_item(groups_pk, pk)
-        return Response(data=item, status=status.HTTP_200_OK)
+        try:
+            if item_data[0] == "error":
+                return Response(status=item_data[1])
+        except Exception as e:
+            pass
+        return Response(data=item_data, status=status.HTTP_200_OK)
+    

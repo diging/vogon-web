@@ -54,9 +54,7 @@ class CitesphereAuthority:
     
     def _get_auth_header(self):
         try:
-            print("entered inside auth token", self.user)
             self.auth_token = CitesphereToken.objects.get(user=self.user)
-            print(self.auth_token)
             return {'Authorization': f'Bearer {self.auth_token.access_token}'}
         except CitesphereToken.DoesNotExist:
             return {}
@@ -74,8 +72,10 @@ class CitesphereAuthority:
                     self._get_access_token() # Set new token
                 except requests.RequestException as e:
                     raise e
-            else:
+            elif response.status_code == status.HTTP_200_OK:
                 return json.loads(response.content)
+            elif response.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR]:
+                return "error", response.status_code
 
         raise requests.exceptions.RetryError("Could not renew token")
 
@@ -100,7 +100,6 @@ class CitesphereAuthority:
             self.auth_token.save()
             self.headers = self._get_auth_header()
         else:
-            print(response.content)
             raise requests.RequestException("Error renewing access_token")
 
     def _parse_group_info(self, group):

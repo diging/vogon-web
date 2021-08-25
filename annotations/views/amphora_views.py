@@ -95,7 +95,6 @@ class AmphoraTextViewSet(viewsets.ViewSet):
         )
         if not found:
             return Response({ "message": f"Project not found" }, 404)
-
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
         manager = repository.manager(request.user)
         result = manager.resource(resource_id=int(pk))
