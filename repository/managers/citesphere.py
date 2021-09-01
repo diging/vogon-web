@@ -19,6 +19,7 @@ class CitesphereAuthority:
 
     def groups(self):
         groups = self._get_response(f'{self.endpoint}/api/v1/groups')
+        print("entered inside groups", groups)
         return list(map(self._parse_group_info, groups))
 
     def group_info(self, group_id):
@@ -35,6 +36,18 @@ class CitesphereAuthority:
     def group_item(self, group_id, item_id):
         return self._get_response(
             f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}'
+        )
+        
+    def item_content(self, group_id, item_id, filesId):
+        # auth/group/4407360/items/77X3TGWD/giles/FILEToHx6wG0ZgAB
+        print("end point", self.endpoint)
+        return self._get_response(
+            f'{self.endpoint}/auth/group/{group_id}/items/{item_id}/giles/{filesId}'
+        )
+        
+    def item_content1(self, group_id, item_id, filesId):
+        return self._get_response(
+            f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}/giles/{filesId}'
         )
 
     def group_collections(self, group_id, limit=None, offset=None):
@@ -66,7 +79,9 @@ class CitesphereAuthority:
         """
         retries = 5
         for _ in range(retries):
+            print(endpoint, self.headers, params)
             response = requests.get(url=endpoint, headers=self.headers, params=params)
+            print("response", response.status_code)
             if response.status_code == status.HTTP_401_UNAUTHORIZED:
                 try:
                     self._get_access_token() # Set new token
