@@ -39,10 +39,9 @@ class CitesphereAuthority:
         )
         
     def item_content(self, group_id, item_id, filesId):
-        # auth/group/4407360/items/77X3TGWD/giles/FILEToHx6wG0ZgAB
-        print("end point", self.endpoint)
+        end_point = 'https://diging.asu.edu/geco-giles-staging/api/v2/resources/files'
         return self._get_response(
-            f'{self.endpoint}/auth/group/{group_id}/items/{item_id}/giles/{filesId}'
+            f'{end_point}/{filesId}/content'
         )
         
     def item_content1(self, group_id, item_id, filesId):
@@ -81,14 +80,17 @@ class CitesphereAuthority:
         for _ in range(retries):
             print(endpoint, self.headers, params)
             response = requests.get(url=endpoint, headers=self.headers, params=params)
-            print("response", response.status_code)
             if response.status_code == status.HTTP_401_UNAUTHORIZED:
                 try:
                     self._get_access_token() # Set new token
                 except requests.RequestException as e:
                     raise e
             elif response.status_code == status.HTTP_200_OK:
-                return json.loads(response.content)
+                try:
+                    data = json.loads(response.content)
+                except Exception as e:
+                    data = response.content
+                return data
             elif response.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR]:
                 return "error", response.status_code
 
@@ -109,6 +111,7 @@ class CitesphereAuthority:
                 "grant_type": "refresh_token"
             }
         )
+        print("entered inside", json.loads(response.content))
         if response.status_code == 200:
             content = json.loads(response.content)
             self.auth_token.access_token = content["access_token"]

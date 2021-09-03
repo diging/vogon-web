@@ -2,7 +2,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
-
+from annotations import annotators
+from annotations.models import Text, TextCollection, RelationSet, Appellation
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
 from repository.models import Repository
 
@@ -111,6 +112,12 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         return Response(items)
     
     def retrieve(self, request, repository_pk, groups_pk, pk):
+        # found, project_details, part_of_project = self._get_project_details(
+        #     request,
+        #     pk
+        # )
+        # if not found:
+        #     return Response({ "message": f"Project not found" }, 404)
         repository = get_object_or_404(
             Repository,
             pk=repository_pk,
@@ -123,13 +130,50 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 return Response(status=item_data[1])
         except Exception as e:
             pass
-        return Response(data=item_data, status=status.HTTP_200_OK)
+        try:
+            # result = item_data.gilesUploads.uploadedFIle
+            print(item_data['gilesUploads'])
+        except Exception as e:
+            print("exception", Exception)
+            return Response(data=item_data)
+        try:
+            result = item_data.get('gilesUploads')['uploadedFIle']
+            master_text = Text.objects.get(uri=result.get('url'))
+        except Text.DoesNotExist:
+            master_text = Text.objects.create(
+                uri=result.get('url'),
+                title=result.get('filename'),
+                public=result.get('public'),
+                content_type=[result.get('content_type')],
+                repository_id=repository_pk,
+                addedBy=request.user
+            )
+        # aggregate_content = result.get('aggregate_content')
+
+        submitted = False
+        for child in range(len(master_text.children)):
+            if Appellation.objects.filter(occursIn_id=master_text.children[child], submitted=True):
+                submitted = True
+                break
+        context = {
+            'result': result,
+            'master_text': TextSerializer(master_text).data if master_text else None,
+            # 'part_of_project': part_of_project,
+            'submitted': submitted,
+            # 'project_details': project_details,
+            'repository': RepositorySerializer(repository).data,
+        }
+        if master_text:
+            relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
+            context['relations'] = RelationSetSerializer(relations, many=True, context={'request': request}).data
+        return Response(context)
+        # return Response(data=item_data)
     
     @action(detail=True, methods=['get'], url_name='file')
     def get_file(self, request, repository_pk, groups_pk, pk):
-        print("request data", request.data)
-        file_id = request.query_params.get('file_id')
-        print("file id", file_id)
+        file_id = request.query_params.get('file_id', None)
+        if not file_id:
+            return Response(data="file not provided", status=status.HTTP_400_BAD_REQUEST)
         repository = get_object_or_404(
             Repository,
             pk=repository_pk,
@@ -137,13 +181,10 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         )
         manager = repository.manager(request.user)
         file_content = manager.item_content(groups_pk, pk, file_id)
-        print("file content hereeeeeeeeeee", file_content)
         try:
             if file_content[0] == "error":
                 return Response(status=file_content[1])
         except Exception as e:
             pass
         return Response(data=file_content, status=status.HTTP_200_OK)
-
-
     
