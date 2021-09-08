@@ -6,6 +6,7 @@ from annotations import annotators
 from annotations.models import Text, TextCollection, RelationSet, Appellation
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
 from repository.models import Repository
+from django.db.models import Q
 
 class CitesphereRepoViewSet(viewsets.ViewSet):
     queryset = Repository.objects.all()
@@ -131,19 +132,20 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         except Exception as e:
             pass
         try:
-            # result = item_data.gilesUploads.uploadedFIle
-            print(item_data['gilesUploads'])
+            item_data['item']['gilesUploads']
+            print(item_data['item']['gilesUploads'])
         except Exception as e:
             print("exception", Exception)
             return Response(data=item_data)
         try:
-            result = item_data.get('gilesUploads')['uploadedFIle']
+            result = item_data['item']['gilesUploads'][0].get('uploadedFile')
+            result['content_types'] = [result['content-type']]
             master_text = Text.objects.get(uri=result.get('url'))
         except Text.DoesNotExist:
             master_text = Text.objects.create(
                 uri=result.get('url'),
                 title=result.get('filename'),
-                public=result.get('public'),
+                # public=result.get('public'),
                 content_type=[result.get('content_type')],
                 repository_id=repository_pk,
                 addedBy=request.user
@@ -156,6 +158,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 submitted = True
                 break
         context = {
+            'item_data': item_data,
             'result': result,
             'master_text': TextSerializer(master_text).data if master_text else None,
             # 'part_of_project': part_of_project,
