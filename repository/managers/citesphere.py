@@ -19,7 +19,7 @@ class CitesphereAuthority:
 
     def groups(self):
         groups = self._get_response(f'{self.endpoint}/api/v1/groups')
-        print("entered inside groups", groups)
+        # print("entered inside groups", groups)
         return list(map(self._parse_group_info, groups))
 
     def group_info(self, group_id):
@@ -111,7 +111,7 @@ class CitesphereAuthority:
                 "grant_type": "refresh_token"
             }
         )
-        print("entered inside", json.loads(response.content))
+        # print("entered inside", json.loads(response.content))
         if response.status_code == 200:
             content = json.loads(response.content)
             self.auth_token.access_token = content["access_token"]

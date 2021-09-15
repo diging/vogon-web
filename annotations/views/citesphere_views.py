@@ -137,19 +137,25 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         except Exception as e:
             print("exception", Exception)
             return Response(data=item_data)
-        try:
-            result = item_data['item']['gilesUploads'][0].get('uploadedFile')
-            result['content_types'] = [result['content-type']]
-            master_text = Text.objects.get(uri=result.get('url'))
-        except Text.DoesNotExist:
-            master_text = Text.objects.create(
-                uri=result.get('url'),
-                title=result.get('filename'),
-                # public=result.get('public'),
-                content_type=[result.get('content_type')],
-                repository_id=repository_pk,
-                addedBy=request.user
-            )
+        for data in item_data['item']['gilesUploads']:
+            
+            try:
+                result = data.get('uploadedFile')
+                
+                get_extracted_text_for_citesphere(item_data['item']['gilesUploads'])
+                gilesUploads = item_data['item']['gilesUploads']
+                
+                result['content_types'] = [result['content-type']]
+                master_text = Text.objects.get(uri=result.get('url'))
+            except Text.DoesNotExist:
+                master_text = Text.objects.create(
+                    uri=result.get('url'),
+                    title=result.get('filename'),
+                    # public=result.get('public'),
+                    content_type=[result.get('content_type')],
+                    repository_id=repository_pk,
+                    addedBy=request.user
+                )
         # aggregate_content = result.get('aggregate_content')
 
         submitted = False
