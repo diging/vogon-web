@@ -137,14 +137,11 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         except Exception as e:
             print("exception", Exception)
             return Response(data=item_data)
+        master_text_objects = []
+        final_result = []
         for data in item_data['item']['gilesUploads']:
-            
             try:
                 result = data.get('uploadedFile')
-                
-                get_extracted_text_for_citesphere(item_data['item']['gilesUploads'])
-                gilesUploads = item_data['item']['gilesUploads']
-                
                 result['content_types'] = [result['content-type']]
                 master_text = Text.objects.get(uri=result.get('url'))
             except Text.DoesNotExist:
@@ -156,27 +153,20 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                     repository_id=repository_pk,
                     addedBy=request.user
                 )
+                
+                master_text_objects.append(master_text)
+                final_result.append(result)
         # aggregate_content = result.get('aggregate_content')
-
-        submitted = False
-        for child in range(len(master_text.children)):
-            if Appellation.objects.filter(occursIn_id=master_text.children[child], submitted=True):
-                submitted = True
-                break
         context = {
             'item_data': item_data,
-            'result': result,
-            'master_text': TextSerializer(master_text).data if master_text else None,
+            'master_text': TextSerializer(master_text_objects, many=True).data if master_text else None,
             # 'part_of_project': part_of_project,
             'submitted': submitted,
             # 'project_details': project_details,
+            'result': result,
             'repository': RepositorySerializer(repository).data,
         }
-        if master_text:
-            relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
-            context['relations'] = RelationSetSerializer(relations, many=True, context={'request': request}).data
         return Response(context)
-        # return Response(data=item_data)
     
     @action(detail=True, methods=['get'], url_name='file')
     def get_file(self, request, repository_pk, groups_pk, pk):
