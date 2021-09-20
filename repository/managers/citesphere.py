@@ -78,7 +78,7 @@ class CitesphereAuthority:
         """
         retries = 5
         for _ in range(retries):
-            print(endpoint, self.headers, params)
+            # print(endpoint, self.headers, params)
             response = requests.get(url=endpoint, headers=self.headers, params=params)
             if response.status_code == status.HTTP_401_UNAUTHORIZED:
                 try:

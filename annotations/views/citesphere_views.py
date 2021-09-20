@@ -12,15 +12,15 @@ class CitesphereRepoViewSet(viewsets.ViewSet):
     queryset = Repository.objects.all()
 
     def retrieve(self, request, pk):
-        print("entered here")
+        # print("entered here")
         queryset = Repository.objects.filter(repo_type=Repository.CITESPHERE)
         repository = get_object_or_404(queryset, pk=pk)
 
         manager = repository.manager(request.user)
-        print("manager",manager)
+        # print("manager",manager)
         groups = manager.groups()
-        print("after groups", groups)
-        print("groups value", groups)
+        # print("after groups", groups)
+        # print("groups value", groups)
         return Response({
             **RepositorySerializer(repository).data,
             'groups': groups
@@ -131,41 +131,55 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 return Response(status=item_data[1])
         except Exception as e:
             pass
-        try:
-            item_data['item']['gilesUploads']
-            print(item_data['item']['gilesUploads'])
-        except Exception as e:
-            print("exception", Exception)
-            return Response(data=item_data)
+        # try:
+        #     item_data['item']['gilesUploads']
+        #     print(item_data['item']['gilesUploads'])
+        # except Exception as e:
+        #     print("exception", Exception)
+        #     return Response(data=item_data)
         master_text_objects = []
         final_result = []
+        # print(item_data['item']['gilesUploads'])
         for data in item_data['item']['gilesUploads']:
             try:
-                result = data.get('uploadedFile')
+                import pdb; pdb.set_trace()
+                result = data
                 result['content_types'] = [result['content-type']]
                 master_text = Text.objects.get(uri=result.get('url'))
-            except Text.DoesNotExist:
-                master_text = Text.objects.create(
-                    uri=result.get('url'),
-                    title=result.get('filename'),
-                    # public=result.get('public'),
-                    content_type=[result.get('content_type')],
-                    repository_id=repository_pk,
-                    addedBy=request.user
-                )
-                
                 master_text_objects.append(master_text)
                 final_result.append(result)
+            except Text.DoesNotExist:
+                # print("exception")
+                print("text object does not exist")
+                try:
+                    master_text = Text.objects.create(
+                        uri=result.get('url'),
+                        title=result.get('filename'),
+                        # public=result.get('public'),
+                        content_type=[result.get('content_type')],
+                        repository_id=repository_pk,
+                        addedBy=request.user
+                    )
+                     # print("master_text", master_text)
+                    master_text_objects.append(master_text)
+                    final_result.append(result)
+                except Exception as e:
+                    print("entered inside exception")
+                    pass
         # aggregate_content = result.get('aggregate_content')
+        submitted = False
         context = {
             'item_data': item_data,
-            'master_text': TextSerializer(master_text_objects, many=True).data if master_text else None,
+            'master_text_object': TextSerializer(master_text_objects, many=True).data if master_text else None,
             # 'part_of_project': part_of_project,
             'submitted': submitted,
             # 'project_details': project_details,
-            'result': result,
+            'result': final_result,
             'repository': RepositorySerializer(repository).data,
         }
+        # print(context['result'])
+        # print("final_resulttttttttt", final_result)
+        # print('master text objects', master_text_objects)
         return Response(context)
     
     @action(detail=True, methods=['get'], url_name='file')
