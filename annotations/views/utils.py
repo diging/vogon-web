@@ -1,4 +1,13 @@
 from annotations.serializers import TextCollection
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from annotations import annotators
+from annotations.models import Text, TextCollection, RelationSet, Appellation
+from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
+from repository.models import Repository
+from django.db.models import Q
 
 def get_project_details(request):
     project_id = request.query_params.get('project_id', None)
@@ -486,3 +495,99 @@ def _process_additional_files(data):
     #         }
     #     ]
     #     '''
+@action(detail=True, methods=['post'], url_name='transfertext')
+def transfer_to_project(self, request, pk=None, repository_pk=None):
+    repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
+    manager = repository.manager(request.user)
+    result = manager.resource(resource_id=int(pk))
+    text = get_object_or_404(Text, uri=result.get('uri'))
+    
+    try:
+        # Retrieve current and target project
+        current_project = self._get_project(request, 'project_id')
+        target_project = self._get_project(request, 'target_project_id')
+
+        # Transfer text
+        self._transfer_text(
+            text, current_project, target_project, request.user)
+        
+        return Response({
+            "message": "Successfully transferred text, appellations, and relations"
+        })
+    except APIException as e:
+        return Response({
+            "message": e.detail["message"]
+        }, e.detail["code"])
+    
+def _get_project(self, request, field):
+    project_id = request.data.get(field, None)
+    if not project_id:
+        raise APIException({
+            "message": f"Could not find `{field}` in request body",
+            "code": 400
+        })
+    try:
+        return TextCollection.objects.get(pk=project_id)
+    except TextCollection.DoesNotExist:
+        raise APIException({
+            "message": f"Project with id=`{project_id}` not found!", 
+            "code": 404
+        })
+
+def _transfer_text(self, text, current_project, target_project, user):
+    # Check eligibility
+    is_owner = user.pk == current_project.ownedBy.pk
+    is_target_contributor = target_project.participants.filter(pk=user.pk).exists()
+    is_target_owner = target_project.ownedBy.pk == user.pk
+    if not is_owner:
+        raise APIException({
+            "message": f"User is not the owner of current project '{current_project.name}'",
+            "code": 403
+        })
+    if not (is_target_contributor or is_target_owner):
+        raise APIException({
+            "message": f"User is not owner/contributor of target project '{target_project.name}'",
+            "code": 403
+        })
+
+    # Check if text is already part of `target_project`
+    if target_project.texts.filter(pk=text.pk).exists():
+        raise APIException({
+            "message": f"Text `{text.title}` is already part of project `{target_project.name}`!",
+            "code": 403
+        })
+
+        # Retrieve all related objects for `current_project`
+    appellations = Appellation.objects.filter(
+        occursIn__in=text.children,
+        project=current_project
+    )
+    relationsets = RelationSet.objects.filter(
+        occursIn__in=text.children,
+        project=current_project
+    )
+
+    with transaction.atomic():
+        appellations.update(project=target_project)
+        relationsets.update(project=target_project)
+        for child in text.children:
+            child_text = Text.objects.get(pk=child)
+            current_project.texts.remove(child_text)
+            target_project.texts.add(child_text)
+            
+        current_project.save(force_update=True)
+        target_project.save(force_update=True)
+    
+def _get_project_details(self, request, pk):
+    project = get_project_details(request)
+    if not project:
+        return False, None, None
+
+    project_details = ProjectSerializer(project).data
+    part_of_project = None
+    try:
+        project.texts.get(repository_source_id=pk)
+        part_of_project = project_details
+    except Text.DoesNotExist:
+        pass
+    return True, project_details, part_of_project
