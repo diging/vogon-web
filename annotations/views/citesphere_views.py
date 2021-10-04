@@ -139,41 +139,42 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         #     return Response(data=item_data)
         master_text_objects = []
         final_result = []
-        # print(item_data['item']['gilesUploads'])
-        for data in item_data['item']['gilesUploads']:
-            result_data = data
-            result = result_data.get('uploadedFile')
+       
+        data = item_data['item']['gilesUploads']
+        result_data = data
+        print(result_data)
+        result = result_data.get('uploadedFile')
+        try:
+            # import pdb; pdb.set_trace()
+            # result['content_types'] = [result['content-type']]
+            master_text = Text.objects.get(uri=result.get('url'))
+            master_text_objects.append(master_text)
+            final_result.append(result_data)
+        except Text.DoesNotExist:
+            # print("exception")
+            print("text object does not exist")
             try:
-                # import pdb; pdb.set_trace()
-                # result['content_types'] = [result['content-type']]
-                master_text = Text.objects.get(uri=result.get('url'))
+                master_text = Text.objects.create(
+                    uri=result.get('url'),
+                    title=result.get('filename'),
+                    # public=result.get('public'),
+                    content_type=[result.get('content_type')],
+                    repository_id=repository_pk,
+                    addedBy=request.user
+                )
+                    # print("master_text", master_text)
                 master_text_objects.append(master_text)
                 final_result.append(result_data)
-            except Text.DoesNotExist:
-                # print("exception")
-                print("text object does not exist")
-                try:
-                    master_text = Text.objects.create(
-                        uri=result.get('url'),
-                        title=result.get('filename'),
-                        # public=result.get('public'),
-                        content_type=[result.get('content_type')],
-                        repository_id=repository_pk,
-                        addedBy=request.user
-                    )
-                     # print("master_text", master_text)
-                    master_text_objects.append(master_text)
-                    final_result.append(result_data)
-                except Exception as e:
-                    print("entered inside exception", e)
-                    pass
+            except Exception as e:
+                print("entered inside exception", e)
+                pass
         # aggregate_content = result.get('aggregate_content')
         # print(master_text_objects)
         # print(final_result)
         submitted = False
         context = {
             'item_data': item_data,
-            'master_text_object': TextSerializer(master_text_objects, many=True).data if master_text_objects else None,
+            'master_text_object': TextSerializer(master_text_objects).data if master_text_objects else None,
             # 'part_of_project': part_of_project,
             'submitted': submitted,
             # 'project_details': project_details,
