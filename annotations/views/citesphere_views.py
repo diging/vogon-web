@@ -6,6 +6,7 @@ from annotations import annotators
 from annotations.models import Text, TextCollection, RelationSet, Appellation
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
 from repository.models import Repository
+from annotations.views import utils
 from django.db.models import Q
 
 class CitesphereRepoViewSet(viewsets.ViewSet):
@@ -113,12 +114,12 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         return Response(items)
     
     def retrieve(self, request, repository_pk, groups_pk, pk):
-        # found, project_details, part_of_project = self._get_project_details(
-        #     request,
-        #     pk
-        # )
-        # if not found:
-        #     return Response({ "message": f"Project not found" }, 404)
+        found, project_details, part_of_project = utils._get_project_details(
+            request,
+            repository_pk
+        )
+        if not found:
+            return Response({ "message": f"Project not found" }, 404)
         repository = get_object_or_404(
             Repository,
             pk=repository_pk,
@@ -137,34 +138,31 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         # except Exception as e:
         #     print("exception", Exception)
         #     return Response(data=item_data)
-        master_text_objects = []
-        final_result = []
-       
         data = item_data['item']['gilesUploads']
-        result_data = data
-        print(result_data)
-        result = result_data.get('uploadedFile')
+        result = data[2]
+        # print("result",result)
+        # handle list length > 0
+        # print(result_data)
+        # result = result_data.'uploadedFile')
+        master_text = None
+        result_data = result['uploadedFile']
         try:
             # import pdb; pdb.set_trace()
             # result['content_types'] = [result['content-type']]
-            master_text = Text.objects.get(uri=result.get('url'))
-            master_text_objects.append(master_text)
-            final_result.append(result_data)
+            master_text = Text.objects.get(uri=result_data.get('url'))
         except Text.DoesNotExist:
             # print("exception")
             print("text object does not exist")
             try:
                 master_text = Text.objects.create(
-                    uri=result.get('url'),
-                    title=result.get('filename'),
+                    uri=result_data.get('url'),
+                    title=result_data.get('filename'),
                     # public=result.get('public'),
-                    content_type=[result.get('content_type')],
+                    content_type=[result_data.get('content_type')],
                     repository_id=repository_pk,
                     addedBy=request.user
                 )
                     # print("master_text", master_text)
-                master_text_objects.append(master_text)
-                final_result.append(result_data)
             except Exception as e:
                 print("entered inside exception", e)
                 pass
@@ -174,11 +172,11 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         submitted = False
         context = {
             'item_data': item_data,
-            'master_text_object': TextSerializer(master_text_objects).data if master_text_objects else None,
-            # 'part_of_project': part_of_project,
+            'master_text': TextSerializer(master_text).data if master_text else None,
+            'part_of_project': part_of_project,
             'submitted': submitted,
-            # 'project_details': project_details,
-            'result': final_result,
+            'project_details': project_details,
+            'result': result,
             'repository': RepositorySerializer(repository).data,
         }
         # print(context['result'])

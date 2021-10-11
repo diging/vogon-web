@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from annotations import annotators
 from annotations.models import Text, TextCollection, RelationSet, Appellation
-from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
+from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer, ProjectSerializer
 from repository.models import Repository
 from django.db.models import Q
 
@@ -578,7 +578,7 @@ def _transfer_text(self, text, current_project, target_project, user):
         current_project.save(force_update=True)
         target_project.save(force_update=True)
     
-def _get_project_details(self, request, pk):
+def _get_project_details(request, pk):
     project = get_project_details(request)
     if not project:
         return False, None, None
