@@ -132,43 +132,25 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 return Response(status=item_data[1])
         except Exception as e:
             pass
-        # try:
-        #     item_data['item']['gilesUploads']
-        #     print(item_data['item']['gilesUploads'])
-        # except Exception as e:
-        #     print("exception", Exception)
-        #     return Response(data=item_data)
         data = item_data['item']['gilesUploads']
         result = data[2]
-        # print("result",result)
-        # handle list length > 0
-        # print(result_data)
-        # result = result_data.'uploadedFile')
         master_text = None
         result_data = result['uploadedFile']
         try:
-            # import pdb; pdb.set_trace()
-            # result['content_types'] = [result['content-type']]
             master_text = Text.objects.get(uri=result_data.get('url'))
         except Text.DoesNotExist:
-            # print("exception")
             print("text object does not exist")
             try:
                 master_text = Text.objects.create(
                     uri=result_data.get('url'),
                     title=result_data.get('filename'),
-                    # public=result.get('public'),
                     content_type=[result_data.get('content_type')],
                     repository_id=repository_pk,
                     addedBy=request.user
                 )
-                    # print("master_text", master_text)
             except Exception as e:
                 print("entered inside exception", e)
                 pass
-        # aggregate_content = result.get('aggregate_content')
-        # print(master_text_objects)
-        # print(final_result)
         submitted = False
         context = {
             'item_data': item_data,
@@ -179,9 +161,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
             'result': result,
             'repository': RepositorySerializer(repository).data,
         }
-        # print(context['result'])
-        # print("final_resulttttttttt", final_result)
-        # print('master text objects', master_text_objects)
         return Response(context)
     
     @action(detail=True, methods=['get'], url_name='file')
