@@ -166,6 +166,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
     @action(detail=True, methods=['get'], url_name='file')
     def get_file(self, request, repository_pk, groups_pk, pk):
         file_id = request.query_params.get('file_id', None)
+        print("file entered")
         if not file_id:
             return Response(data="file not provided", status=status.HTTP_400_BAD_REQUEST)
         repository = get_object_or_404(

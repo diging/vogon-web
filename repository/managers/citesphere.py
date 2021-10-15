@@ -39,10 +39,12 @@ class CitesphereAuthority:
         )
         
     def item_content(self, group_id, item_id, filesId):
+        data = "ababbb hela jndn nxccccccccc jdnnnnnnn dnccccdn djnnnn mdsnd"
         end_point = 'https://diging.asu.edu/geco-giles-staging/api/v2/resources/files'
-        return self._get_response(
-            f'{end_point}/{filesId}/content'
-        )
+        # return self._get_response(
+        #     f'{end_point}/{filesId}/content'
+        # )
+        return data
         
     def item_content1(self, group_id, item_id, filesId):
         return self._get_response(
