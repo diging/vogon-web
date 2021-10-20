@@ -38,7 +38,7 @@ class CitesphereAuthority:
             f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}'
         )
         
-    def item_content(self, group_id, item_id, filesId):
+    def content(self, content_id, group_id=None, item_id=None):
         data = "ababbb hela jndn nxccccccccc jdnnnnnnn dnccccdn djnnnn mdsnd"
         end_point = 'https://diging.asu.edu/geco-giles-staging/api/v2/resources/files'
         # return self._get_response(
@@ -82,6 +82,7 @@ class CitesphereAuthority:
         for _ in range(retries):
             # print(endpoint, self.headers, params)
             response = requests.get(url=endpoint, headers=self.headers, params=params)
+            print(response.content)
             if response.status_code == status.HTTP_401_UNAUTHORIZED:
                 try:
                     self._get_access_token() # Set new token
