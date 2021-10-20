@@ -126,6 +126,7 @@ class Annotator(object):
         -------
         :class:`django.http.response.HttpResponse`
         """
+        print("context bbbbbbbbbbbbbbbbbb", self.get_context())
         context.update(self.get_context())
         #return render(self.context.get('request'), self.template, context)
         return context
@@ -182,6 +183,7 @@ class PlainTextAnnotator(Annotator):
     content_types = ('text/plain',)
 
     def get_content(self, resource):
+        print(resource)
         target = resource.get('location')
         request = self.context['request']
         user = VogonUser.objects.get(id=self.context['user'].id)
@@ -265,7 +267,10 @@ def annotator_factory(request, text):
         Will be an instance of an :class:`.Annotator` subclass.
     """
     for annotator in ANNOTATORS:
+        print(annotator.content_types)
         if text.content_type in annotator.content_types:
+            # print("entered hererrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", text)
+            # print(annotator)
             return annotator(request, text)
     return
 

@@ -87,8 +87,11 @@ class AnnotationViewSet(viewsets.ViewSet):
         View to get all data related to annotate text
         """
         text = get_object_or_404(Text, pk=pk)
+        # print("entered here", text.__dict__)
         annotator = annotator_factory(request, text)
+        # print("annotator", annotator)
         data = annotator.render()
+        print("entered hereaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", data)
         content = data['content'].decode("utf-8")
         data['content'] = content
         project = data['project']
