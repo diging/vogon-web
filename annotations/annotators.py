@@ -184,7 +184,11 @@ class PlainTextAnnotator(Annotator):
 
     def get_content(self, resource):
         print(resource)
-        target = resource.get('location')
+        resource1 = {}
+        resource1['text'] = resource
+        resource1['location'] = "http://0?"
+        # resource['location'] = 0
+        target = resource1.get('location')
         request = self.context['request']
         user = VogonUser.objects.get(id=self.context['user'].id)
         manager = self.text.repository.manager(user)
