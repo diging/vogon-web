@@ -19,24 +19,25 @@ class AmphoraRepository:
             return {}
 
     def resources(self, limit=None, offset=None):
+        print("entered resources")
         response = requests.get(
             url=f'{self.endpoint}/resource/',
             headers=self.headers,
             params={'limit': limit, 'offset': offset}
         )
-        # print(json.loads(response.content))
+        print(json.loads(response.content))
         return json.loads(response.content)
         
     def resource(self, resource_id):
-        # print(f'{self.endpoint}/resource/{resource_id}/')
-        # print(self.headers)
+        print(f'{self.endpoint}/resource/{resource_id}/')
+        print(self.headers)
         response = requests.get(
             url=f'{self.endpoint}/resource/{resource_id}/',
             headers=self.headers
         )
-        
+        print("repponse data", response)
         result = json.loads(response.content)
-        # print("result", response.content)
+        print("result", response.content)
         content = [
             {
                 'name': x.get('content_resource').get('name', ''),

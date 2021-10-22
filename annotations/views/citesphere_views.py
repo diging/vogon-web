@@ -228,39 +228,39 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         
 
 
-        #     master_resource, _ = Text.objects.get_or_create(
-        #         uri=master['uri'],
-        #         defaults={
-        #             'title': master.get('title'),
-        #             'created': master.get('created'),
-        #             'repository': repository,
-        #             'repository_source_id': part_of_id,
-        #             'addedBy': request.user,
-        #         }
-        #     )
-        #     resource_text_defaults.update({'part_of': master_resource})
+            master_resource, _ = Text.objects.get_or_create(
+                uri=master['uri'],
+                defaults={
+                    'title': master.get('title'),
+                    'created': master.get('created'),
+                    'repository': repository,
+                    'repository_source_id': part_of_id,
+                    'addedBy': request.user,
+                }
+            )
+            resource_text_defaults.update({'part_of': master_resource})
 
-        # resource_text, _ = Text.objects.get_or_create(
-        #     uri=resource['uri'],
-        #     defaults=resource_text_defaults
-        # )
+        resource_text, _ = Text.objects.get_or_create(
+            uri=resource['uri'],
+            defaults=resource_text_defaults
+        )
 
         project_id = self.request.query_params.get('project_id', None)
 
-        # defaults = {
-        #     'title': resource.get('title'),
-        #     'created': resource.get('created'),
-        #     'repository': repository,
-        #     'repository_source_id': pk,
-        #     'addedBy': request.user,
-        #     'content_type': content_type,
-        #     'part_of': resource_text,
-        #     'originalResource': getattr(resource.get('url'), 'value', None),
-        # }
-        # text, _ = Text.objects.get_or_create(
-        #     uri=content['uri'],
-        #     defaults=defaults
-        # )
+        defaults = {
+            'title': resource.get('title'),
+            'created': resource.get('created'),
+            'repository': repository,
+            'repository_source_id': pk,
+            'addedBy': request.user,
+            'content_type': content_type,
+            'part_of': resource_text,
+            'originalResource': getattr(resource.get('url'), 'value', None),
+        }
+        text, _ = Text.objects.get_or_create(
+            uri=content['uri'],
+            defaults=defaults
+        )
         return Response({
             'success': True,
             'text_id': master_text.id,
