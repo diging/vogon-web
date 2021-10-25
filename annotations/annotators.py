@@ -184,21 +184,18 @@ class PlainTextAnnotator(Annotator):
 
     def get_content(self, resource):
         print(resource)
-        resource1 = {}
-        resource1['text'] = resource
-        resource1['location'] = "http://0?"
-        # resource['location'] = 0
-        target = resource1.get('location')
-        request = self.context['request']
-        user = VogonUser.objects.get(id=self.context['user'].id)
-        manager = self.text.repository.manager(user)
-        endpoint = self.text.repository.url
-        if urlparse(target).netloc == urlparse(endpoint).netloc:
-            return manager.get_raw(target)
-        response = requests.get(target)
-        if response.status_code == requests.codes.OK:
-            return response.content
-        return
+        return "fffffffffffffffffff data hulaaaaaaaaaaaaaaa"
+        # target = resource.get('location')
+        # request = self.context['request']
+        # user = VogonUser.objects.get(id=self.context['user'].id)
+        # manager = self.text.repository.manager(user)
+        # endpoint = self.text.repository.url
+        # if urlparse(target).netloc == urlparse(endpoint).netloc:
+        #     return manager.get_raw(target)
+        # response = requests.get(target)
+        # if response.status_code == requests.codes.OK:
+        #     return response.content
+        # return
 
     def get_context(self):
         context = super(PlainTextAnnotator, self).get_context()
