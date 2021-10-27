@@ -186,8 +186,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         master_text = None
         for key, value in result.items():
             if key in ["uploadedFile", "extractedText"]:
-                # if key == "extractedText":
-                #     # print("inside extracted text jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj", value)
                 if value["id"] == file_id:
                     result_data = value
                     break
@@ -197,7 +195,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 
             elif key == "pages":
                 for k in value:
-                    # print("kkkkkkkkkkkkkkkkkkkkkkkkkkkk", k)
                     if k in ["image","text", "ocr"]:
                         for k1,v1 in k.items():
                             if v1['id'] == file_id:
@@ -212,7 +209,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))
         except Text.DoesNotExist:
-            # print("text object does not exist")
             try:
                 master_text = Text.objects.create(
                     uri=result_data.get('url'),
@@ -222,45 +218,8 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                     addedBy=request.user
                 )
             except Exception as e:
-                # print("entered inside exception", e)
                 pass
-
-        
-
-
-            master_resource, _ = Text.objects.get_or_create(
-                uri=master['uri'],
-                defaults={
-                    'title': master.get('title'),
-                    'created': master.get('created'),
-                    'repository': repository,
-                    'repository_source_id': part_of_id,
-                    'addedBy': request.user,
-                }
-            )
-            resource_text_defaults.update({'part_of': master_resource})
-
-        resource_text, _ = Text.objects.get_or_create(
-            uri=resource['uri'],
-            defaults=resource_text_defaults
-        )
-
         project_id = self.request.query_params.get('project_id', None)
-
-        defaults = {
-            'title': resource.get('title'),
-            'created': resource.get('created'),
-            'repository': repository,
-            'repository_source_id': pk,
-            'addedBy': request.user,
-            'content_type': content_type,
-            'part_of': resource_text,
-            'originalResource': getattr(resource.get('url'), 'value', None),
-        }
-        text, _ = Text.objects.get_or_create(
-            uri=content['uri'],
-            defaults=defaults
-        )
         return Response({
             'success': True,
             'text_id': master_text.id,
@@ -270,7 +229,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
     @action(detail=True, methods=['get'], url_name='file')
     def get_file(self, request, repository_pk, groups_pk, pk):
         file_id = request.query_params.get('file_id', None)
-        # print("file entered")
         if not file_id:
             return Response(data="file not provided", status=status.HTTP_400_BAD_REQUEST)
         repository = get_object_or_404(
@@ -285,55 +243,5 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 return Response(status=file_content[1])
         except Exception as e:
             pass
-        # part_of_id = self.request.query_params.get('part_of', None)
-        # if part_of_id:
-        #     try:
-        #         master = manager.resource(resource_id=int(part_of_id))
-        #     except IOError:
-        #         return Response({
-        #             'success': False,
-        #             'error': 'There was a problem communicating with the remote repository that contains'
-        #                 'this content. Please go back, and try again'
-        #         }, 500)
-
-        #     master_resource, _ = Text.objects.get_or_create(
-        #         uri=master['uri'],
-        #         defaults={
-        #             'title': master.get('title'),
-        #             'created': master.get('created'),
-        #             'repository': repository,
-        #             'repository_source_id': part_of_id,
-        #             'addedBy': request.user,
-        #         }
-        #     )
-        #     resource_text_defaults.update({'part_of': master_resource})
-
-        # resource_text, _ = Text.objects.get_or_create(
-        #     uri=resource['uri'],
-        #     defaults=resource_text_defaults
-        # )
-
-        # project_id = self.request.query_params.get('project_id', None)
-
-        # defaults = {
-        #     'title': resource.get('title'),
-        #     'created': resource.get('created'),
-        #     'repository': repository,
-        #     'repository_source_id': pk,
-        #     'addedBy': request.user,
-        #     'content_type': content_type,
-        #     'part_of': resource_text,
-        #     'originalResource': getattr(resource.get('url'), 'value', None),
-        # }
-        # text, _ = Text.objects.get_or_create(
-        #     uri=content['uri'],
-        #     defaults=defaults
-        # )
-        # return Response({
-        #     'success': True,
-        #     'text_id': text.id,
-        #     'project_id': project_id
-        # })
-
         return Response(data=file_content, status=status.HTTP_200_OK)
     

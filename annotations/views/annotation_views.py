@@ -87,14 +87,38 @@ class AnnotationViewSet(viewsets.ViewSet):
         View to get all data related to annotate text
         """
         text = get_object_or_404(Text, pk=pk)
+        data = {}
+        if text.repository.name == "Citesphere":
+            repository = text.repository
+            manager = repository.manager(request.user)
+            file_content = manager.item_content(groups_pk, pk, file_id)
+            try:
+                if file_content[0] == "error":
+                    return Response(status=file_content[1])
+            except Exception as e:
+                pass
+            return Response(data=file_content, status=status.HTTP_200_OK)
+            content = "aaaaaaa hello world dinoa worl python django python"
+            data['content'] = content
+            project_id = request.query_params.get('project_id', None)
+            if project_id:
+                project = TextCollection.objects.get(pk=project_id)
+            else:
+                project = request.user.get_default_project()
+            data['text'] = text
+            data['title'] = "title"
+            print("entered hereeeeeeeeeee", project)
+            data['baselocation'] = "http://sl"
+                
+        else:
         # print("entered here", text.__dict__)
-        annotator = annotator_factory(request, text)
-        # print("annotator", annotator)
-        data = annotator.render()
-        print("entered hereaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", data)
-        content = data['content'].decode("utf-8")
-        data['content'] = content
-        project = data['project']
+            annotator = annotator_factory(request, text)
+            # print("annotator", annotator)
+            data = annotator.render()
+            print("entered hereaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", data)
+            content = data['content'].decode("utf-8")
+            data['content'] = content
+            project = data['project']
 
         if project.ownedBy != request.user and request.user not in project.participants.all():
             return Response({
@@ -123,6 +147,7 @@ class AnnotationViewSet(viewsets.ViewSet):
         )
         relationsets = [x for x in relationsets if x.ready()]
         data['pending_relationsets'] = relationsets
+        print("dataaaaaaaaaaaaa", data)
         serializer = Text2Serializer(data, context={'request': request})
 
         # We are overriding `content` variable because of an unknown behavior
