@@ -86,19 +86,22 @@ class AnnotationViewSet(viewsets.ViewSet):
         """
         View to get all data related to annotate text
         """
+        repo_id = request.query_params.get('repo_id', None)
+        group_id = request.query_params.get('group_id', None)
+        file_id = request.query_params.get('file_id', None)
         text = get_object_or_404(Text, pk=pk)
         data = {}
         if text.repository.name == "Citesphere":
             repository = text.repository
             manager = repository.manager(request.user)
-            file_content = manager.item_content(groups_pk, pk, file_id)
+            file_content = manager.item_content(group_id, repo_id, file_id)
             try:
                 if file_content[0] == "error":
                     return Response(status=file_content[1])
             except Exception as e:
                 pass
-            return Response(data=file_content, status=status.HTTP_200_OK)
-            content = "aaaaaaa hello world dinoa worl python django python"
+            content = file_content
+            # content = "aaaaaaa hello world dinoa worl python django python"
             data['content'] = content
             project_id = request.query_params.get('project_id', None)
             if project_id:
