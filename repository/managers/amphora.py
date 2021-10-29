@@ -5,7 +5,7 @@ from accounts.models import GithubToken
 
 class AmphoraRepository:
     def __init__(self, user, endpoint):
-        self.endpoint = "https://129.219.40.16/amphora"
+        self.endpoint = "http://129.219.40.16/amphora"
         self.user = user
         self.headers = {
             **self._get_auth_header()
@@ -55,7 +55,8 @@ class AmphoraRepository:
         response = requests.get(
             url=f'{self.endpoint}/collection/',
             headers=self.headers,
-            params={'limit': limit, 'offset': offset, 'q': q, 'user': user}
+            params={'limit': limit, 'offset': offset, 'q': q, 'user': user},
+            verify=False
         )
         print("responsessssssssssssssssssss")
         print(response)

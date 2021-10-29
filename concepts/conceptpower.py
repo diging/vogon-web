@@ -12,13 +12,16 @@ class ConceptPower:
         self.password = settings.CONCEPTPOWER_PASSWORD
     
     def search(self, params):
+        self.endpoint = "https://chps.asu.edu/conceptpower/"
         url = f'{self.endpoint}/ConceptSearch'
+        print("entered hereeeeeeee", params.get('q', ''))
         params = {
             'word': params.get('q', ''),
             'pos': params.get('pos', 'noun'),
             'number_of_records_per_page': params.get('limit', 100)
         }
         response = requests.get(url=url, params=params)
+        print("response content", response.content)
         root = etree.fromstring(response.content)
         results = []
         for child in root.findall(f'{{{self.namespace}}}conceptEntry'):
