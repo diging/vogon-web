@@ -13,16 +13,11 @@ class CitesphereRepoViewSet(viewsets.ViewSet):
     queryset = Repository.objects.all()
 
     def retrieve(self, request, pk):
-        # print("entered here")
         queryset = Repository.objects.filter(repo_type=Repository.CITESPHERE)
         repository = get_object_or_404(queryset, pk=pk)
 
         manager = repository.manager(request.user)
-        # print("manager",manager)
         groups = manager.groups()
-        # print("after groups", groups)
-        # print("groups value", groups)
-        # print("entered here in repository", repository)
         return Response({
             **RepositorySerializer(repository).data,
             'groups': groups
@@ -137,14 +132,9 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         result = data[2]
         master_text = None
         result_data = result['uploadedFile']
-        # Text.objects.filter(uri=result_data.get('url')).delete()
-        # print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-        # print(result_data.get('content-type'))
-        # print(result_data[])
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))
         except Text.DoesNotExist:
-            # print("text object does not exist")
             try:
                 master_text = Text.objects.create(
                     uri=result_data.get('url'),
@@ -154,7 +144,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                     addedBy=request.user
                 )
             except Exception as e:
-                # print("entered inside exception", e)
                 pass
         submitted = False
         context = {
@@ -174,8 +163,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         manager = repository.manager(request.user)
         item_data = manager.group_item(groups_pk, pk)
         file_id = request.query_params.get('file_url', None)
-        # Text.objects.filter(uri="https://diging.asu.edu/geco-giles-staging/rest/files/FILEu25fMNsyYvq2/content").delete()
-
         try:
             if item_data[0] == "error":
                 return Response(status=item_data[1])

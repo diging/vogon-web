@@ -94,7 +94,6 @@ class AnnotationViewSet(viewsets.ViewSet):
         if text.repository.name == "Citesphere":
             repository = text.repository
             manager = repository.manager(request.user)
-            # print("manager", manager)
             file_content = manager.content(group_id, repo_id, file_id)
             try:
                 if file_content[0] == "error":
@@ -102,7 +101,6 @@ class AnnotationViewSet(viewsets.ViewSet):
             except Exception as e:
                 pass
             content = file_content
-            # content = "aaaaaaa hello world dinoa worl python django python"
             data['content'] = content
             project_id = request.query_params.get('project_id', None)
             if project_id:
@@ -111,15 +109,11 @@ class AnnotationViewSet(viewsets.ViewSet):
                 project = request.user.get_default_project()
             data['text'] = text
             data['title'] = "title"
-            # print("entered hereeeeeeeeeee", project)
             data['baselocation'] = "http://sl"
                 
         else:
-        # print("entered here", text.__dict__)
             annotator = annotator_factory(request, text)
-            # print("annotator", annotator)
             data = annotator.render()
-            # print("entered hereaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", data)
             content = data['content'].decode("utf-8")
             data['content'] = content
             project = data['project']
@@ -151,7 +145,6 @@ class AnnotationViewSet(viewsets.ViewSet):
         )
         relationsets = [x for x in relationsets if x.ready()]
         data['pending_relationsets'] = relationsets
-        # print("dataaaaaaaaaaaaa", data)
         serializer = Text2Serializer(data, context={'request': request})
 
         # We are overriding `content` variable because of an unknown behavior

@@ -314,7 +314,7 @@ class Text2Serializer(serializers.Serializer):
     textid = serializers.IntegerField(read_only=True)
     title = serializers.CharField()
     content = serializers.CharField()
-    baselocation = serializers.CharField()
+    baselocation = serializers.CharField(required=False)
     userid = serializers.IntegerField(read_only=True)
     repository_id =  serializers.IntegerField(read_only=True)
     project = ProjectSerializer()
