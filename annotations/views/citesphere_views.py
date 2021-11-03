@@ -170,7 +170,9 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
             pass
         data = item_data['item']['gilesUploads']
         result = data[2]
+        # print("data valueeeeeeeeeeeeeeeeeee", data)
         master_text = None
+        result_data = None
         for key, value in result.items():
             if key in ["uploadedFile", "extractedText"]:
                 if value["id"] == file_id:
@@ -181,17 +183,25 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                     break
                 
             elif key == "pages":
+                print("bbbbbbbbbbbbbbbbbbbb", value)
                 for k in value:
-                    if k in ["image","text", "ocr"]:
-                        for k1,v1 in k.items():
+                    print("entered yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", k)
+                        # print("entered yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", k)
+                    for k1,v1 in k.items():
+                        print("llllllllllllllllllllllllllllll", k1,v1)
+                        if k1 in ["image","text", "ocr"]:
+                        # print("itemssssssssssssssssss")
                             if v1['id'] == file_id:
-                                result_data = value
-                                break
-                    elif k == "additionalFiles":
-                        for k2 in value:
-                            if k2["id"] == file_id:
-                                result_data = k2  
-                                break                              
+                                print("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
+                                print("result dataaaaaaaaaaaaaaaaaaaaa", v1)
+                                result_data = v1                    
+                        elif k1 == "additionalFiles":
+                            for k2 in value:
+                                if k2["id"] == file_id:
+                                    result_data = k2  
+        print("result data111111111111111111111111111111111111111", result_data) 
+        # if not result_data:
+        #     return Response(status=status.HTTP_404_BAD_REQUEST)                          
 
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))
