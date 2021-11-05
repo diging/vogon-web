@@ -7,6 +7,7 @@ from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
+from django.db import transaction
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 
@@ -18,6 +19,7 @@ from annotations.serializers import (
 )
 from annotations.views.utils import get_project_details
 from repository.models import Repository
+from annotations.views.utils import _get_project, _transfer_text
 
 
 class AmphoraRepoViewSet(viewsets.ViewSet):
@@ -132,29 +134,29 @@ class AmphoraTextViewSet(viewsets.ViewSet):
             context['relations'] = RelationSetSerializer(relations, many=True, context={'request': request}).data
         return Response(context)
 
-    # @action(detail=True, methods=['post'], url_name='transfertext')
-    # def transfer_to_project(self, request, pk=None, repository_pk=None):
-    #     repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
-    #     manager = repository.manager(request.user)
-    #     result = manager.resource(resource_id=int(pk))
-    #     text = get_object_or_404(Text, uri=result.get('uri'))
+    @action(detail=True, methods=['post'], url_name='transfertext')
+    def transfer_to_project(self, request, pk=None, repository_pk=None):
+        repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
+        manager = repository.manager(request.user)
+        result = manager.resource(resource_id=int(pk))
+        text = get_object_or_404(Text, uri=result.get('uri'))
         
-    #     try:
-    #         # Retrieve current and target project
-    #         current_project = self._get_project(request, 'project_id')
-    #         target_project = self._get_project(request, 'target_project_id')
+        try:
+            # Retrieve current and target project
+            current_project = _get_project(request, 'project_id')
+            target_project = _get_project(request, 'target_project_id')
 
-    #         # Transfer text
-    #         self._transfer_text(
-    #             text, current_project, target_project, request.user)
+            # Transfer text
+            self._transfer_text(
+                text, current_project, target_project, request.user)
             
-    #         return Response({
-    #             "message": "Successfully transferred text, appellations, and relations"
-    #         })
-    #     except APIException as e:
-    #         return Response({
-    #             "message": e.detail["message"]
-    #         }, e.detail["code"])
+            return Response({
+                "message": "Successfully transferred text, appellations, and relations"
+            })
+        except APIException as e:
+            return Response({
+                "message": e.detail["message"]
+            }, e.detail["code"])
     
     # def _get_project(self, request, field):
     #     project_id = request.data.get(field, None)

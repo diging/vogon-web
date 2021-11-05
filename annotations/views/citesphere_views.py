@@ -2,12 +2,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from annotations import annotators
 from annotations.models import Text, TextCollection, RelationSet, Appellation
 from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
 from repository.models import Repository
 from annotations.views import utils
 from django.db.models import Q
+from annotations.views.utils import _get_project, _transfer_text
 
 class CitesphereRepoViewSet(viewsets.ViewSet):
     queryset = Repository.objects.all()
@@ -110,6 +112,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         return Response(items)
     
     def retrieve(self, request, repository_pk, groups_pk, pk):
+        part_of_id = self.request.query_params.get('part_of', None)            
         found, project_details, part_of_project = utils._get_project_details(
             request,
             repository_pk
@@ -141,10 +144,12 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                     title=result_data.get('filename'),
                     content_type=[result_data.get('content-type')],
                     repository_id=repository_pk,
-                    addedBy=request.user
+                    addedBy=request.user,
                 )
             except Exception as e:
                 pass
+        if part_of_id:
+            master_text.repository_source_id = part_of_id
         submitted = False
         context = {
             'item_data': item_data,
@@ -170,39 +175,28 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
             pass
         data = item_data['item']['gilesUploads']
         result = data[2]
-        # print("data valueeeeeeeeeeeeeeeeeee", data)
         master_text = None
         result_data = None
         for key, value in result.items():
             if key in ["uploadedFile", "extractedText"]:
                 if value["id"] == file_id:
                     result_data = value
-                    break
                 elif value['id'] == file_id:
                     result_data = value  
-                    break
                 
             elif key == "pages":
-                print("bbbbbbbbbbbbbbbbbbbb", value)
                 for k in value:
-                    print("entered yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", k)
-                        # print("entered yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy", k)
                     for k1,v1 in k.items():
-                        print("llllllllllllllllllllllllllllll", k1,v1)
                         if k1 in ["image","text", "ocr"]:
-                        # print("itemssssssssssssssssss")
                             if v1['id'] == file_id:
-                                print("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm")
-                                print("result dataaaaaaaaaaaaaaaaaaaaa", v1)
-                                result_data = v1                    
+                                result_data = v1
                         elif k1 == "additionalFiles":
                             for k2 in value:
-                                if k2["id"] == file_id:
-                                    result_data = k2  
-        print("result data111111111111111111111111111111111111111", result_data) 
-        # if not result_data:
-        #     return Response(status=status.HTTP_404_BAD_REQUEST)                          
-
+                                for k1,v1 in k2.items():
+                                    if k1 in ["image","text", "ocr"]:
+                                        print("inddddddddddddddddddddddddddddd", k1, v1)
+                                        if v1["id"] == file_id:
+                                            result_data =  v1                        
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))
         except Text.DoesNotExist:
@@ -241,4 +235,26 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         except Exception as e:
             pass
         return Response(data=file_content, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'], url_name='transfertext')
+    def transfer_to_project(self, request, repository_pk, groups_pk, pk):
+        repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.CITESPHERE)
+        text = get_object_or_404(Text, pk=request.data.get('text_id', None))
+        
+        try:
+            # Retrieve current and target project
+            current_project = _get_project(request, 'project_id')
+            target_project = _get_project(request, 'target_project_id')
+
+            # Transfer text
+            _transfer_text(
+                text, current_project, target_project, request.user)
+            
+            return Response({
+                "message": "Successfully transferred text, appellations, and relations"
+            })
+        except APIException as e:
+            return Response({
+                "message": e.detail["message"]
+            }, e.detail["code"])
     

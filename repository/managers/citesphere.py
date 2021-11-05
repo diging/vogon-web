@@ -39,8 +39,7 @@ class CitesphereAuthority:
         )
         
     def content(self, content_id, group_id=None, item_id=None):
-        # data = "ababbb hela jndn nxccccccccc jdnnnnnnn dnccccdn djnnnn mdsnd"
-        with open('data.json','r') as file:
+        with open('/home/sudheera/dev/django/vogon-web/repository/managers/data','r') as file:
             data = file.read()
             print(data)
         end_point = 'https://diging.asu.edu/geco-giles-staging/api/v2/resources/files'
