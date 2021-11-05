@@ -126,7 +126,6 @@ class Annotator(object):
         -------
         :class:`django.http.response.HttpResponse`
         """
-        print("context bbbbbbbbbbbbbbbbbb", self.get_context())
         context.update(self.get_context())
         #return render(self.context.get('request'), self.template, context)
         return context
@@ -183,19 +182,17 @@ class PlainTextAnnotator(Annotator):
     content_types = ('text/plain',)
 
     def get_content(self, resource):
-        print(resource)
-        return "fffffffffffffffffff data hulaaaaaaaaaaaaaaa"
-        # target = resource.get('location')
-        # request = self.context['request']
-        # user = VogonUser.objects.get(id=self.context['user'].id)
-        # manager = self.text.repository.manager(user)
-        # endpoint = self.text.repository.url
-        # if urlparse(target).netloc == urlparse(endpoint).netloc:
-        #     return manager.get_raw(target)
-        # response = requests.get(target)
-        # if response.status_code == requests.codes.OK:
-        #     return response.content
-        # return
+        target = resource.get('location')
+        request = self.context['request']
+        user = VogonUser.objects.get(id=self.context['user'].id)
+        manager = self.text.repository.manager(user)
+        endpoint = self.text.repository.url
+        if urlparse(target).netloc == urlparse(endpoint).netloc:
+            return manager.get_raw(target)
+        response = requests.get(target)
+        if response.status_code == requests.codes.OK:
+            return response.content
+        return
 
     def get_context(self):
         context = super(PlainTextAnnotator, self).get_context()
@@ -268,10 +265,7 @@ def annotator_factory(request, text):
         Will be an instance of an :class:`.Annotator` subclass.
     """
     for annotator in ANNOTATORS:
-        print(annotator.content_types)
         if text.content_type in annotator.content_types:
-            # print("entered hererrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", text)
-            # print(annotator)
             return annotator(request, text)
     return
 

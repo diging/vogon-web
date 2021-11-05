@@ -60,8 +60,6 @@ def github_token(request):
 def citesphere_token(request):
 	if request.method == "GET":
 		code = request.GET.get("code", "")
-		print(settings.CITESPHERE_CLIENT_ID)
-		print(settings.CITESPHERE_CLIENT_SECRET)
 		r = requests.post(
 			f"{settings.CITESPHERE_ENDPOINT}/api/oauth/token",
 			params={
@@ -78,7 +76,6 @@ def citesphere_token(request):
 		except CitesphereToken.DoesNotExist:
 			token = CitesphereToken()
 			token.user = request.user
-		print("request object", r.json())
 		token.access_token = r.json()["access_token"]
 		token.refresh_token = r.json()["refresh_token"]
 		token.save()

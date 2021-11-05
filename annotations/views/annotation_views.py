@@ -108,9 +108,6 @@ class AnnotationViewSet(viewsets.ViewSet):
             else:
                 project = request.user.get_default_project()
             data['text'] = text
-            data['title'] = "title"
-            data['baselocation'] = "http://sl"
-                
         else:
             annotator = annotator_factory(request, text)
             data = annotator.render()

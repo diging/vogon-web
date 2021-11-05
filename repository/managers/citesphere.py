@@ -19,7 +19,6 @@ class CitesphereAuthority:
 
     def groups(self):
         groups = self._get_response(f'{self.endpoint}/api/v1/groups')
-        # print("entered inside groups", groups)
         return list(map(self._parse_group_info, groups))
 
     def group_info(self, group_id):
@@ -41,7 +40,6 @@ class CitesphereAuthority:
     def content(self, content_id, group_id=None, item_id=None):
         with open('/home/sudheera/dev/django/vogon-web/repository/managers/data','r') as file:
             data = file.read()
-            print(data)
         end_point = 'https://diging.asu.edu/geco-giles-staging/api/v2/resources/files'
         # return self._get_response(
         #     f'{end_point}/{filesId}/content'
@@ -82,9 +80,7 @@ class CitesphereAuthority:
         """
         retries = 5
         for _ in range(retries):
-            # print(endpoint, self.headers, params)
             response = requests.get(url=endpoint, headers=self.headers, params=params)
-            print(response.content)
             if response.status_code == status.HTTP_401_UNAUTHORIZED:
                 try:
                     self._get_access_token() # Set new token
@@ -116,7 +112,6 @@ class CitesphereAuthority:
                 "grant_type": "refresh_token"
             }
         )
-        # print("entered inside", json.loads(response.content))
         if response.status_code == 200:
             content = json.loads(response.content)
             self.auth_token.access_token = content["access_token"]

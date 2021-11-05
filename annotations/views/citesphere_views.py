@@ -194,7 +194,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                             for k2 in value:
                                 for k1,v1 in k2.items():
                                     if k1 in ["image","text", "ocr"]:
-                                        print("inddddddddddddddddddddddddddddd", k1, v1)
                                         if v1["id"] == file_id:
                                             result_data =  v1                        
         try:
