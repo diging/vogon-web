@@ -5,6 +5,7 @@ from accounts.models import GithubToken
 
 class AmphoraRepository:
     def __init__(self, user, endpoint):
+        self.endpoint = endpoint
         self.user = user
         self.headers = {
             **self._get_auth_header()
