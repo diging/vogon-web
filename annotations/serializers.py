@@ -312,7 +312,7 @@ class Appellation2Serializer(serializers.Serializer):
 class Text2Serializer(serializers.Serializer):
     text = TextAllSerializer()
     textid = serializers.IntegerField(read_only=True)
-    title = serializers.CharField()
+    title = serializers.CharField(required=False)
     content = serializers.CharField()
     baselocation = serializers.CharField(required=False)
     userid = serializers.IntegerField(read_only=True)
