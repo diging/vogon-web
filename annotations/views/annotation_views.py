@@ -111,7 +111,6 @@ class AnnotationViewSet(viewsets.ViewSet):
         else:
             annotator = annotator_factory(request, text)
             data = annotator.render()
-            print("data enterted hereeeeeeee", data)
             content = data['content'].decode("utf-8")
             data['content'] = content
             project = data['project']
