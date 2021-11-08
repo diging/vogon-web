@@ -190,7 +190,6 @@ class PlainTextAnnotator(Annotator):
         if urlparse(target).netloc == urlparse(endpoint).netloc:
             return manager.get_raw(target)
         response = requests.get(target)
-        print("give reponse contentttttttttttt", response.content)
         if response.status_code == requests.codes.OK:
             return response.content
         return
