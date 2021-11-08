@@ -92,5 +92,3 @@ def _get_project_details(request, pk):
     if texts:
         part_of_project = project_details
         return True, project_details, part_of_project
-    else:
-        pass

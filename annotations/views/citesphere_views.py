@@ -207,8 +207,10 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                     repository_id=repository_pk,
                     addedBy=request.user
                 )
-            except Exception as e:
-                pass
+            except APIException as e:
+                return Response({
+                    "message": e.detail["message"]
+                }, e.detail["code"])
         project_id = self.request.query_params.get('project_id', None)
         return Response({
             'success': True,
@@ -232,8 +234,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
             if file_content[0] == "error":
                 return Response(status=file_content[1])
         except Exception as e:
-            pass
-        return Response(data=file_content, status=status.HTTP_200_OK)
+            return Response(data=file_content, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'], url_name='transfertext')
     def transfer_to_project(self, request, repository_pk, groups_pk, pk):
