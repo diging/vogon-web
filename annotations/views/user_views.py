@@ -38,7 +38,6 @@ class UserViewSet(viewsets.ModelViewSet):
 	"""
 	queryset = VogonUser.objects.exclude(id=-1).order_by('username')
 	serializer_class = VogonUserSerializer
-	# permission_classes = (AllowAny, )
 
 	def list(self, *args, **kwargs):
 		queryset = self.get_queryset()
@@ -152,7 +151,7 @@ class UserViewSet(viewsets.ModelViewSet):
 		})
 
 	@authentication_classes([])
-	@permission_classes([])
+	@permission_classes([AllowAny])
 	def create(self, request):
 		try:
 			response = super().create(request)
