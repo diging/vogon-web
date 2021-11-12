@@ -155,7 +155,6 @@ class UserViewSet(viewsets.ModelViewSet):
     @permission_classes([])
     def create(self, request):
         try:
-            print("response dataaaaaaaaaaa")
             response = super().create(request)
             user = VogonUser.objects.get(id=response.data["id"])
             refresh = RefreshToken.for_user(user)
@@ -238,11 +237,10 @@ class UserViewSet(viewsets.ModelViewSet):
 @permission_classes([])
 def create(request):
     try:
-        print("response dataaaaaaaaaaa")
-        response = VogonUser.objects.create(**request)
-        user = VogonUser.objects.get(id=response.data["id"])
+        print("entered here")
+        user = VogonUser.objects.create(**request.data)
+        user.save()
         refresh = RefreshToken.for_user(user)
-
         return Response({
             "access": str(refresh.access_token),
             "refresh": str(refresh)
