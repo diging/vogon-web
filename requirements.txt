@@ -6,7 +6,7 @@ attrs==19.3.0
 billiard==3.6.1.0
 black==19.10b0
 bleach==1.4.2
-celery==4.3.0
+celery==5.2.2
 certifi==2018.1.18
 chardet==3.0.4
 Click==7.0
