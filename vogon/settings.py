@@ -221,7 +221,10 @@ QUADRIGA_ENDPOINT = os.environ.get("QUADRIGA_ENDPOINT", "")
 QUADRIGA_CLIENTID = os.environ.get("QUADRIGA_CLIENTID", "vogonweb")
 QUADRIGA_PROJECT = os.environ.get("QUADRIGA_PROJECT", "vogonweb")
 
-BASE_URI_NAMESPACE = u"http://www.vogonweb.net"
+
+CELERY_TIMEZONE = 'UTC'
+CELERY_WORKER_PREFETCH_MULTIPLIER=0
+
 
 GOOGLE_ANALYTICS_ID = os.environ.get("GOOGLE_ANALYTICS_ID", None)
 
