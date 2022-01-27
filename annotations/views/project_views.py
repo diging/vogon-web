@@ -41,9 +41,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def create(self, request):
         request.data['createdBy'] = request.user
         request.data['ownedBy'] = request.user
-        # participants = request.data.get('participants',None)
         project = TextCollection(**request.data)
-        # project.participants.set(participants)
         project.save()
         response = ProjectSerializer(project).data
         return Response(response, status=status.HTTP_201_CREATED)
