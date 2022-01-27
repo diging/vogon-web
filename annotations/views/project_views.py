@@ -41,9 +41,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def create(self, request):
         request.data['createdBy'] = request.user
         request.data['ownedBy'] = request.user
-        participants = request.data.pop('participants')
+        # participants = request.data.get('participants',None)
         project = TextCollection(**request.data)
-        project.participants.set(participants)
+        # project.participants.set(participants)
         project.save()
         response = ProjectSerializer(project).data
         return Response(response, status=status.HTTP_201_CREATED)
@@ -134,10 +134,12 @@ class ProjectViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
     def list_all_projects(self, request):
-        print("entered here")
+        response_data = {}
         projects = TextCollection.objects.all()
         serializer = ProjectSerializer(projects, many=True)
-        return Response(serializer.data)
+        response_data["results"] = serializer.data
+        response_data["count"] = len(serializer.data)
+        return Response(response_data)
     
     def destroy(self, request, pk=None):
         text_id = request.data['text_id']
