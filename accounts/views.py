@@ -132,6 +132,8 @@ class ResetPasswordView(APIView):
                         user.set_password(password1)
                         user.save()
                         reset_token.delete()
+                        user.is_password_reset_required = False
+                        user.save()
                         return Response({
                             "success": True,
                             "message": "Successfully reset the password!"
