@@ -14,7 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = VogonUser
         fields = ('username', 'email', 'id', 'affiliation', 'location',
                   'full_name', 'link', 'is_admin', 'imagefile',
-                  'annotation_count', 'relation_count', 'text_count')
+                  'annotation_count', 'relation_count', 'text_count',
+                  'is_reset_password_required')
 
 class VogonUserSerializer(serializers.ModelSerializer):
     class Meta:
