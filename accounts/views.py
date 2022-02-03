@@ -116,7 +116,8 @@ class ResetPasswordView(APIView):
             password1 = serializer.data.get('password1')
             password2 = serializer.data.get('password2')
             token = serializer.data.get('token')
-
+            print("entered here")
+            import pdb; pdb.set_trace();
             if password1 == password2:
                 user = get_object_or_404(VogonUser, username=username)
                 
