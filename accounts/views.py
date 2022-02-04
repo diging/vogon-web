@@ -21,65 +21,81 @@ from notifications.models import Notification
 
 
 class UserViewSet(viewsets.ModelViewSet):
-	"""
-	API endpoint that allows users to be viewed or edited.
-	"""
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
 
-	User = get_user_model()
-	queryset = VogonUser.objects.all()
-	serializer_class = UserSerializer
-	permission_classes = (AllowAny,)
+    User = get_user_model()
+    queryset = VogonUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (AllowAny,)
 
 
 @api_view(["GET"])
 def github_token(request):
-	"""
-	List all code snippets, or create a new snippet.
-	"""
-	if request.method == "GET":
-		code = request.GET.get("code", "")
-		r = requests.post(
-			"https://github.com/login/oauth/access_token",
-			params={
-				"client_id": settings.GITHUB_CLIENT_ID,
-				"client_secret": settings.GITHUB_SECRET_ID,
-				"code": code,
-			},
-			headers={"Accept": "application/json"},
-		)
-		try:
-			token = GithubToken.objects.get(user=request.user)
-		except GithubToken.DoesNotExist:
-			token = GithubToken()
-			token.user = request.user
-		token.token = r.json()["access_token"]
-		token.save()
-		return Response(status=status.HTTP_201_CREATED)
+    """
+    List all code snippets, or create a new snippet.
+    """
+    if request.method == "GET":
+        code = request.GET.get("code", "")
+        r = requests.post(
+            "https://github.com/login/oauth/access_token",
+            params={
+                "client_id": settings.GITHUB_CLIENT_ID,
+                "client_secret": settings.GITHUB_SECRET_ID,
+                "code": code,
+            },
+            headers={"Accept": "application/json"},
+        )
+        try:
+            token = GithubToken.objects.get(user=request.user)
+        except GithubToken.DoesNotExist:
+            token = GithubToken()
+            token.user = request.user
+        token.token = r.json()["access_token"]
+        token.save()
+        return Response(status=status.HTTP_201_CREATED)
 
 @api_view(["GET"])
 def citesphere_token(request):
-	if request.method == "GET":
-		code = request.GET.get("code", "")
-		r = requests.post(
-			f"{settings.CITESPHERE_ENDPOINT}/api/oauth/token",
-			params={
-				"client_id": settings.CITESPHERE_CLIENT_ID,
-				"client_secret": settings.CITESPHERE_CLIENT_SECRET,
-				"code": code,
-				"grant_type": "authorization_code"
-			},
-			headers={"Accept": "application/json"},
-		)
-		try:
-			token = CitesphereToken.objects.get(user=request.user)
-		except CitesphereToken.DoesNotExist:
-			token = CitesphereToken()
-			token.user = request.user
-		token.access_token = r.json()["access_token"]
-		token.refresh_token = r.json()["refresh_token"]
-		token.save()
-		return Response(status=status.HTTP_201_CREATED)
+    if request.method == "GET":
+        code = request.GET.get("code", "")
+        r = requests.post(
+            f"{settings.CITESPHERE_ENDPOINT}/api/oauth/token",
+            params={
+                "client_id": settings.CITESPHERE_CLIENT_ID,
+                "client_secret": settings.CITESPHERE_CLIENT_SECRET,
+                "code": code,
+                "grant_type": "authorization_code"
+            },
+            headers={"Accept": "application/json"},
+        )
+        try:
+            token = CitesphereToken.objects.get(user=request.user)
+        except CitesphereToken.DoesNotExist:
+            token = CitesphereToken()
+            token.user = request.user
+        token.access_token = r.json()["access_token"]
+        token.refresh_token = r.json()["refresh_token"]
+        token.save()
+        return Response(status=status.HTTP_201_CREATED)
 
+@api_view(['POST'])
+def check_reset_token(request):
+    username = request.data.get('username', None)
+    if username:
+        try:
+            user = VogonUser.objects.get(username=username)
+        except VogonUser.DoesNotExist:
+            return Response({ "success": False, "message": "User not found" }, status=404)
+    token = request.data.get('token')
+    if token:
+        try:
+            token = ResetToken.objects.get(user=user, token=token)
+        except ResetToken.DoesNotExist:
+            return Response({ "success": False, "message": "Reset token not found" }, status=404)
+    return Response({"success": True, "message": "Token exists for the user"})
+    
 class ForgotPasswordView(APIView):
     def post(self, request):
         username = request.data.get('username', None)
@@ -110,7 +126,6 @@ class ForgotPasswordView(APIView):
 class ResetPasswordView(APIView):
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
-
         if serializer.is_valid():
             username = serializer.data.get('username')
             password1 = serializer.data.get('password1')
@@ -128,7 +143,7 @@ class ResetPasswordView(APIView):
                     decoded = jwt.decode(reset_token.token, settings.SECRET_KEY, algorithms='HS256')
 
                     # Ensure token is created by the same user
-                    if decoded['username'] == user.username:
+                    if decoded['user_id'] == user.id:
                         user.set_password(password1)
                         user.save()
                         reset_token.delete()
@@ -159,32 +174,32 @@ class ResetPasswordView(APIView):
 
 
 class TokenObtainPairView(TokenObtainPairView):
-	serializer_class = TokenObtainPairSerializer
+    serializer_class = TokenObtainPairSerializer
 
 class VogonTokenVerifyView(TokenVerifyView):
-	def post(self, request, *args, **kwargs):
-		super().post(request, *args, **kwargs)
-		user = authentication.JWTAuthentication().authenticate(request)[0]
-		notifications = user.notifications.active()
-		return Response({ 
-			'notifications': NotificationSerializer(notifications, many=True).data
-		}, status=status.HTTP_200_OK)
+    def post(self, request, *args, **kwargs):
+        super().post(request, *args, **kwargs)
+        user = authentication.JWTAuthentication().authenticate(request)[0]
+        notifications = user.notifications.active()
+        return Response({ 
+            'notifications': NotificationSerializer(notifications, many=True).data
+        }, status=status.HTTP_200_OK)
 
 class NotificationViewset(viewsets.ViewSet):
-	@action(detail=True, methods=['post'], url_name='markasread')
-	def mark_as_read(self, request, pk=None):
-		notification = Notification.objects.filter(pk=pk, recipient=request.user)
-		notification.mark_all_as_read()
-		return Response({})
+    @action(detail=True, methods=['post'], url_name='markasread')
+    def mark_as_read(self, request, pk=None):
+        notification = Notification.objects.filter(pk=pk, recipient=request.user)
+        notification.mark_all_as_read()
+        return Response({})
 
-	@action(detail=True, methods=['post'], url_name='markasdeleted')
-	def mark_as_deleted(self, request, pk=None):
-		notification = Notification.objects.filter(pk=pk, recipient=request.user)
-		notification.mark_all_as_deleted()
-		return Response({})
+    @action(detail=True, methods=['post'], url_name='markasdeleted')
+    def mark_as_deleted(self, request, pk=None):
+        notification = Notification.objects.filter(pk=pk, recipient=request.user)
+        notification.mark_all_as_deleted()
+        return Response({})
 
-	@action(detail=False, methods=['post'], url_name='markallasdeleted')
-	def mark_all_as_deleted(self, request):
-		notifications = Notification.objects.filter(recipient=request.user, deleted=False)
-		notifications.mark_all_as_deleted()
-		return Response({})
+    @action(detail=False, methods=['post'], url_name='markallasdeleted')
+    def mark_all_as_deleted(self, request):
+        notifications = Notification.objects.filter(recipient=request.user, deleted=False)
+        notifications.mark_all_as_deleted()
+        return Response({})
