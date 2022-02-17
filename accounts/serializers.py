@@ -23,6 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = get_user_model()
 		fields = ('id','email', 'password', 'full_name', 'username', 'affiliation')
+		ref_name = "user accounts"
 
 
 class TokenObtainPairSerializer(TokenObtainPairSerializer):

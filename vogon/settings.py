@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 DEBUG = os.environ.get('DEBUG', 'False')
 # DEBUG = True
 
-ALLOWED_HOSTS = ["amphora.asu.edu", "localhost"]
+ALLOWED_HOSTS = ["amphora.asu.edu", "localhost", "127.0.0.1", "129.219.40.16"]
 
 # Application definition
 
@@ -50,6 +50,9 @@ INSTALLED_APPS = (
 	"annotations",
 	"accounts",
 	"goat",
+	# 'django.contrib.staticfiles',  # required for serving swagger ui's css/js files
+    'drf_yasg',
+
 )
 
 MIDDLEWARE = (
@@ -283,7 +286,9 @@ CORS_ORIGIN_WHITELIST = [
 	"http://127.0.0.1:8005",
 	"http://127.0.0.1:8060",
 	"http://localhost:8060",
-	"https://amphora.asu.edu"
+	"https://amphora.asu.edu",
+	"https://129.219.40.16"
+	
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -291,7 +296,8 @@ CSRF_TRUSTED_ORIGINS = [
 	"http://localhost:8000",
 	"http://localhost:8060",
 	"http://localhost:8005",
-	"https://amphora.asu.edu"
+	"https://amphora.asu.edu",
+	"https://129.219.40.16"
 ]
 
 SIMPLE_JWT = {
