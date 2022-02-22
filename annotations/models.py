@@ -822,6 +822,8 @@ class RelationSet(models.Model):
 
     representation = models.TextField(null=True, blank=True)
     terminal_nodes = models.ManyToManyField(Concept)
+    default_mapping_uri = models.TextField(null=True, blank=True)
+    user_deafult_mapping = models.TextField(null=True, blank=True)
 
     @property
     def date_appellations_with_predicate(self):
