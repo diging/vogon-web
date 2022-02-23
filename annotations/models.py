@@ -1014,9 +1014,7 @@ class RelationTemplate(models.Model):
     _terminal_nodes = models.TextField(blank=True, null=True)
     
     default_mappings = models.TextField(null=True, blank=True)
-    
-    static_uri = models.TextField(null=True, blank=True)
-    
+        
     use_in_mass_assignment = models.BooleanField(default=False)
 
     def __str__(self):
