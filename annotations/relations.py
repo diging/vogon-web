@@ -254,6 +254,8 @@ def create_template(template_data, part_data):
             template_data.pop('terminal_nodes', None)
             k = RelationTemplate.objects.filter(pk=template_data['id']).update(**template_data)
             template = RelationTemplate.objects.get(pk=template_data['id'])
+            print("updated object", template.default_mappings)
+
 
         else:
             template = RelationTemplate.objects.create(**template_data)

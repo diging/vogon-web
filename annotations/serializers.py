@@ -267,7 +267,7 @@ class TemplatePartSerializer(serializers.ModelSerializer):
 class TemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RelationTemplate
-        fields = ('id', 'name', 'created', 'description', 'expression', 'terminal_nodes', 'template_parts')
+        fields = ('id', 'name', 'created', 'description', 'expression', 'terminal_nodes', 'template_parts', 'default_mappings')
         depth = 2
 
 class TextAllSerializer(serializers.ModelSerializer):

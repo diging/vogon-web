@@ -88,6 +88,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
         return self.create_or_update(request)
     
     def update(self, request, pk=None):
+        print("request", request.data)
         queryset = RelationTemplate.objects.all()
         template = get_object_or_404(queryset, pk=pk)
         if template:
@@ -127,6 +128,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
             'expression': data.get('expression', ''),
             'terminal_nodes': data.get('terminal_nodes', ''),
             'createdBy': request.user,
+            'default_mappings': data.get('default_mappings', ''),
         }
         if data.get('id', None):
             template_data['id'] = data['id']
