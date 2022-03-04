@@ -1,9 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
+from rest_framework.response import Response
+from rest_framework.decorators import action, api_view
 import csv
 from django.shortcuts import render
 from django.db.models import Q
 from annotations.models import Text, Appellation, CsvDownloadList
+from annotations.serializers import CsvDownloadListSerializer
 from concepts.models import Concept
 import time
 from django.core.files import File
@@ -60,12 +63,10 @@ def available_csvs(request):
 	display list of generated csv that are available for a user to download
 	'''
 
-	template = "annotations/csv_download.html"
-	context = {}
 	csv_list = CsvDownloadList.objects.filter(user=request.user).order_by('-created')
 	print(csv_list)
-	context['csvs'] = csv_list
-	return render(request, template, context)
+	serializer = CsvDownloadListSerializer(csv_list, many=True)
+	return Response(data=serializer.data)
 
 @action(detail=True, methods=['post'], url_name='markasread')
 def handle_csv_download(request, download_id):

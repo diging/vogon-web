@@ -343,3 +343,8 @@ class NotificationSerializer(serializers.Serializer):
     timestamp = serializers.CharField(required=True)
     action_object = GenericNotificationRelatedField(read_only=True)
     target = GenericNotificationRelatedField(read_only=True)
+    
+class CsvDownloadListSerializer(serializers.Serializer):
+    class Meta:
+        model = CsvDownloadList
+        fields = '__all__'
