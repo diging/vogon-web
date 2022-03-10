@@ -344,7 +344,7 @@ class NotificationSerializer(serializers.Serializer):
     action_object = GenericNotificationRelatedField(read_only=True)
     target = GenericNotificationRelatedField(read_only=True)
     
-class CsvDownloadListSerializer(serializers.Serializer):
+class CsvDownloadListSerializer(serializers.ModelSerializer):
     class Meta:
         model = CsvDownloadList
         fields = '__all__'
