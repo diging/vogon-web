@@ -15,25 +15,19 @@ import os
 @api_view(('POST',))
 def export_appellation(request):
     # get text from selected checkboxes
-    print("request dataaaaaaaaaaaa", request.data)
     texts = request.data.get('texts')
     newpath = r'vogon/downloads' 
     if not os.path.exists(newpath):
         os.makedirs(newpath)
-    print("newpathhhhhhh", newpath)
     # create temp file in order to save file to db
     temp = 'vogon/downloads/' + str(request.user.id) + '_' + str(int(time.time())) + '.csv' #convert to int first as a shortcut to rounf to whole number
     with open(temp,'w+') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(["String Representation", "Start Position", "End Position", "Concept", "text"])
-        print("textsssss", texts)
 
         for text in texts:
             text_title = Text.objects.get(pk=text).title
-            print(Appellation.objects.all())
             appellations = Appellation.objects.filter(occursIn_id=text)
-            print("appellations", appellations)
-            print("all appellations", Appellation.objects.all().values('occursIn_id'))
             for appellation in appellations:
                 concept = Concept.objects.get(pk=appellation.interpretation_id)
                 try:
@@ -54,13 +48,9 @@ def available_csvs(request):
     '''
     display list of generated csv that are available for a user to download
     '''
-    import json
     csv_list = CsvDownloadList.objects.filter(user=request.user.id).order_by('-created')
-    # print("csv list files", csv_list)
     serializer = CsvDownloadListSerializer(csv_list, many=True)
-    payload = json.loads(json.dumps(serializer.data))
-    # print("csv files", serializer.data)
-    return Response(data=payload)
+    return Response(data=serializer.data)
 
 @api_view(('GET',))
 def handle_csv_download(request, download_id):
