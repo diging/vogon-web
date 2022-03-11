@@ -65,7 +65,6 @@ def available_csvs(request):
 @api_view(('GET',))
 def handle_csv_download(request, download_id):
     csv = CsvDownloadList.objects.get(pk=download_id)
-    response = Response(data = csv.file_field, content_type='text/csv')
+    response = HttpResponse(csv.file_field, content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="export.csv'
-    # print("response", response)
     return response

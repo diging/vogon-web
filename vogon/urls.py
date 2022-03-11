@@ -97,3 +97,4 @@ urlpatterns = [
     re_path(r'^api/v2/download/$', download_appellation_views.available_csvs, name='available_csvs'),
     re_path(r'^api/v2/download/previous/(?P<download_id>[0-9]+)/$', views.download_appellation_views.handle_csv_download, name='download_previous'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
