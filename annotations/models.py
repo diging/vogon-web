@@ -572,7 +572,7 @@ class Interpreted(models.Model):
     .. todo:: Should this subclass :class:`Annotation`\? Does it matter?
     """
 
-    interpretation = models.ForeignKey(Concept, on_delete=models.CASCADE)
+    interpretation = models.ForeignKey(Concept, on_delete=models.CASCADE, null=True, blank=True)
     """The :class:`.Concept` to which the :class:`.Annotation` refers."""
 
     @property
@@ -771,6 +771,18 @@ class Appellation(Annotation, Interpreted):
        We now fully implement the quadruple data model, so this is no longer
        relevant.
     """
+    dateStringRep = models.CharField(max_length=30, null=True, blank=True)
+    """
+    Field to store the date when  Appellation is attached to a date string.
+    """
+    CONCEPT = 'concept'
+    DATE = 'date'
+    APPELLATIONCHOICES = (
+        (CONCEPT, 'concept'),
+        (DATE, 'date'),
+    )
+    type = models.CharField(max_length=8, choices=APPELLATIONCHOICES,
+                                        default=CONCEPT, null=True, blank=True)
 
 
 class RelationSet(models.Model):

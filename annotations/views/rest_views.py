@@ -103,7 +103,6 @@ class DateAppellationViewSet(AnnotationFilterMixin, viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly, )
 
     def create(self, request, *args, **kwargs):
-        print((request.data))
         data = request.data.copy()
         position = data.pop('position', None)
         if 'month' in data and data['month'] is None:
@@ -194,7 +193,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             instance = Appellation.objects.get(pk=pk)
         position = data.pop('position', None)
         interpretation = data.get('interpretation')
-
+        
         # A concept URI may have been passed directly, in which case we need to
         #  get (or create) the local Concept instance.
         if type(interpretation) in [str, str] and interpretation.startswith('http'):

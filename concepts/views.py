@@ -221,4 +221,4 @@ class ConceptTypeViewSet(viewsets.ModelViewSet):
             context={'request': request}
         ).data
         return Response(result)
-
+    
