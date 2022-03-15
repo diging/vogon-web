@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.decorators import action, api_view
 import csv
 from django.shortcuts import render
@@ -41,7 +42,7 @@ def export_appellation(request):
     # remove temp file
     os.remove(temp)
     # redirect available_csvs
-    return Response(data="ok")
+    return Response(status=status.HTTP_200_OK)
 
 @api_view(('GET',))
 def available_csvs(request):
