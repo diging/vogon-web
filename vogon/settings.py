@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 DEBUG = os.environ.get('DEBUG', 'False')
 # DEBUG = True
 
-ALLOWED_HOSTS = ["amphora.asu.edu", "localhost","127.0.0.1"]
+ALLOWED_HOSTS = ["amphora.asu.edu", "localhost"]
 
 # Application definition
 
