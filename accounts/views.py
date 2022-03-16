@@ -191,16 +191,16 @@ class NotificationViewset(viewsets.ViewSet):
 	def mark_as_read(self, request, pk=None):
 		notification = Notification.objects.filter(pk=pk, recipient=request.user)
 		notification.mark_all_as_read()
-		return Response({})
+		return Response({}, status=status.HTTP_200_OK)
 
 	@action(detail=True, methods=['post'], url_name='markasdeleted')
 	def mark_as_deleted(self, request, pk=None):
 		notification = Notification.objects.filter(pk=pk, recipient=request.user)
 		notification.mark_all_as_deleted()
-		return Response({})
+		return Response({}, status=status.HTTP_200_OK)
 
 	@action(detail=False, methods=['post'], url_name='markallasdeleted')
 	def mark_all_as_deleted(self, request):
 		notifications = Notification.objects.filter(recipient=request.user, deleted=False)
 		notifications.mark_all_as_deleted()
-		return Response({})
+		return Response({}, status=status.HTTP_200_OK)
