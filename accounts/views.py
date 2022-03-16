@@ -87,14 +87,14 @@ def check_reset_token(request):
 		try:
 			user = VogonUser.objects.get(username=username)
 		except VogonUser.DoesNotExist:
-			return Response({ "success": False, "message": "User not found" }, status=404)
+			return Response({ "success": False, "message": "User not found" }, status=status.HTTP_404_NOT_FOUND)
 	token = request.data.get('token')
 	if token:
 		try:
 			token = ResetToken.objects.get(user=user, token=token)
 		except ResetToken.DoesNotExist:
-			return Response({ "success": False, "message": "Reset token not found" }, status=404)
-	return Response({"success": True, "message": "Token exists for the user"})
+			return Response({ "success": False, "message": "Reset token not found" }, status=status.HTTP_404_NOT_FOUND)
+	return Response({"success": True, "message": "Token exists for the user"}, status=status.HTTP_200_OK)
 
 class ForgotPasswordView(APIView):
     def post(self, request):
