@@ -231,10 +231,7 @@ class UserViewSet(viewsets.ModelViewSet):
 			})
 		return result
 	
-
 @api_view(["POST"])
-@authentication_classes([])
-@permission_classes([])
 def create(request):
 	try:
 		user = VogonUser.objects.create(**request.data)
@@ -243,7 +240,7 @@ def create(request):
 		return Response({
 			"access": str(refresh.access_token),
 			"refresh": str(refresh)
-		})
+		}, status=status.HTTP_201_CREATED)
 	except Exception as e: 
 		response = []
 		for arg in (e.args[0]):
