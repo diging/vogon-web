@@ -137,7 +137,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer = ProjectSerializer(projects, many=True)
         response_data["results"] = serializer.data
         response_data["count"] = len(serializer.data)
-        return Response(response_data)
+        return Response(response_data, status=status.HTTP_200_OK)
     
     def destroy(self, request, pk=None):
         text_id = request.data['text_id']
