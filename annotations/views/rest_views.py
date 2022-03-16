@@ -581,5 +581,5 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
 def concept_search(request):
     q = request.get('search', None)
-    pos = self.request.query_params.get('pos', None)
+    pos = request.query_params.get('pos', None)
     return search_concepts(q=q, user_id=request.user.id, pos=pos)
