@@ -67,7 +67,6 @@ def citesphere_token(request):
 				"client_secret": settings.CITESPHERE_CLIENT_SECRET,
 				"code": code,
 				"grant_type": "authorization_code",
-			
 			},
 			headers={"Accept": "application/json"},
 		)

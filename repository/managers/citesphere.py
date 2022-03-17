@@ -38,9 +38,9 @@ class CitesphereAuthority:
         )
         
     def content(self, content_id, group_id=None, item_id=None):
-        with open('/home/sudheera/dev/django/vogon-web/repository/managers/data','r') as file:
+        with open('data','r') as file:
             data = file.read()
-        end_point = 'https://diging.asu.edu/geco-giles-staging/api/v2/resources/files'
+        end_point = settings.GILES_FILE_ENDPOINT
         # return self._get_response(
         #     f'{end_point}/{filesId}/content'
         # )
