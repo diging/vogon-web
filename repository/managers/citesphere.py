@@ -32,24 +32,24 @@ class CitesphereAuthority:
             params=params
         )
         
-    def group_item(self, group_id, item_id):
-        return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}'
-        )
+    # def group_item(self, group_id, item_id):
+    #     return self._get_response(
+    #         f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}'
+    #     )
         
-    def content(self, content_id, group_id=None, item_id=None):
-        with open('data','r') as file:
-            data = file.read()
-        end_point = settings.GILES_FILE_ENDPOINT
-        # return self._get_response(
-        #     f'{end_point}/{filesId}/content'
-        # )
-        return data
+    # def content(self, content_id, group_id=None, item_id=None):
+    #     end_point = settings.GILES_FILE_ENDPOINT
+    #     with open('/managers/data','r') as file:
+    #         data = file.read()
+    #     # return self._get_response(
+    #     #     f'{end_point}/{filesId}/content'
+    #     # )
+    #     return data
         
-    def item_content1(self, group_id, item_id, filesId):
-        return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}/giles/{filesId}'
-        )
+    # def item_content1(self, group_id, item_id, filesId):
+    #     return self._get_response(
+    #         f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}/giles/{filesId}'
+    #     )
 
     def group_collections(self, group_id, limit=None, offset=None):
         return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/collections')
