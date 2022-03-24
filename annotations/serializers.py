@@ -321,6 +321,7 @@ class Text2Serializer(serializers.Serializer):
     repository_id =  serializers.IntegerField(read_only=True)
     project = ProjectSerializer()
     appellations = Appellation2Serializer(many=True)
+    dateappellations = DateAppellationSerializer(many=True)
     relations = RelationSerializer(many=True)
     relationsets = RelationSetSerializer(many=True)
     concept_types = TypeSerializer(many=True)
