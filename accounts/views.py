@@ -88,7 +88,12 @@ def check_reset_token(request):
 			user = VogonUser.objects.get(username=username)
 		except VogonUser.DoesNotExist:
 			return Response({ "success": False, "message": "User not found" }, status=status.HTTP_404_NOT_FOUND)
-	token = request.data.get('token')
+	token = jwt.encode({ 
+                'exp': arrow.utcnow().shift(days=1).timestamp,
+                'username': user.username,
+            }, settings.SECRET_KEY, algorithm='HS256').decode('UTF-8')
+	reset_token = ResetToken(user=user, token=token)
+	reset_token.save()
 	if token:
 		try:
 			token = ResetToken.objects.get(user=user, token=token)
