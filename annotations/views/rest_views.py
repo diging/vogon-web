@@ -186,6 +186,17 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         return Response({
             "message": "Successfully deleted appellation"
         })
+      
+    @action(detail=False, methods=["POST"])  
+    def update_concept(self, request, pk=None):
+        old_concept = request.data.get('old_concept', None)
+        new_concept = request.data.get('new_concept', None)
+        old_concept = get_object_or_404(Concept, id=old_concept)
+        concept = self._get_or_create_local_concept(new_concept['uri'])
+        appellations = Appellation.objects.filter(interpretation=old_concept).update(interpretation=concept.id)
+        old_concept.delete()
+        return Response(data={"concept": concept.id}, status=status.HTTP_200_OK)
+
 
     def createOrUpdate(self, request, pk=None):
         data = request.data.copy()
