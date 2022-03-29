@@ -83,23 +83,21 @@ def citesphere_token(request):
 @api_view(['POST'])
 def check_reset_token(request):
 	username = request.data.get('username', None)
+	token = request.data.get('token', None)
 	if username:
 		try:
 			user = VogonUser.objects.get(username=username)
 		except VogonUser.DoesNotExist:
 			return Response({ "success": False, "message": "User not found" }, status=status.HTTP_404_NOT_FOUND)
-	token = jwt.encode({ 
-                'exp': arrow.utcnow().shift(days=1).timestamp,
-                'username': user.username,
-            }, settings.SECRET_KEY, algorithm='HS256').decode('UTF-8')
-	reset_token = ResetToken(user=user, token=token)
-	reset_token.save()
-	if token:
+	if user.is_token_reset_required:
+		reset_token = ResetToken(user=user, token=token)
+		reset_token.save()
+		return Response(status=status.HTTP_200_OK)
+	else:
 		try:
 			token = ResetToken.objects.get(user=user, token=token)
 		except ResetToken.DoesNotExist:
 			return Response({ "success": False, "message": "Reset token not found" }, status=status.HTTP_404_NOT_FOUND)
-	return Response({"success": True, "message": "Token exists for the user"}, status=status.HTTP_200_OK)
 
 class ForgotPasswordView(APIView):
     def post(self, request):
@@ -149,8 +147,9 @@ class ResetPasswordView(APIView):
                     decoded = jwt.decode(reset_token.token, settings.SECRET_KEY, algorithms='HS256')
 
                     # Ensure token is created by the same user
-                    if decoded['username'] == user.username:
+                    if decoded['user_id'] == user.id:
                         user.set_password(password1)
+                        user.is_token_reset_required = False
                         user.save()
                         reset_token.delete()
                         return Response({
