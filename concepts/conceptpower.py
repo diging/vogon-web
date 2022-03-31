@@ -1,3 +1,4 @@
+from cgitb import html
 import requests
 import json
 from requests.auth import HTTPBasicAuth
@@ -12,14 +13,17 @@ class ConceptPower:
         self.password = settings.CONCEPTPOWER_PASSWORD
     
     def search(self, params):
-        url = f'{self.endpoint}/ConceptSearch'
+        url = f'{self.endpoint}/conceptsearch'
         params = {
             'word': params.get('q', ''),
             'pos': params.get('pos', 'noun'),
             'number_of_records_per_page': params.get('limit', 100)
         }
         response = requests.get(url=url, params=params)
-        root = etree.fromstring(response.content)
+        print("url valueeeeeeeeeeeee", url)
+        print("response value", response.content)
+        root = etree.html.fromstring(response.content)
+        print("root value", root)
         results = []
         for child in root.findall(f'{{{self.namespace}}}conceptEntry'):
             data = self._parse_concept(child)
