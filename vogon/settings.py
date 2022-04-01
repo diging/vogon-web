@@ -221,7 +221,10 @@ QUADRIGA_ENDPOINT = os.environ.get("QUADRIGA_ENDPOINT", "")
 QUADRIGA_CLIENTID = os.environ.get("QUADRIGA_CLIENTID", "vogonweb")
 QUADRIGA_PROJECT = os.environ.get("QUADRIGA_PROJECT", "vogonweb")
 
-BASE_URI_NAMESPACE = u"http://www.vogonweb.net"
+
+CELERY_TIMEZONE = 'UTC'
+CELERY_WORKER_PREFETCH_MULTIPLIER=0
+
 
 GOOGLE_ANALYTICS_ID = os.environ.get("GOOGLE_ANALYTICS_ID", None)
 
@@ -280,7 +283,8 @@ CORS_ORIGIN_WHITELIST = [
 	"http://127.0.0.1:8005",
 	"http://127.0.0.1:8060",
 	"http://localhost:8060",
-	"https://amphora.asu.edu"
+	"https://amphora.asu.edu",
+	"http://amphora.asu.edu"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -288,7 +292,8 @@ CSRF_TRUSTED_ORIGINS = [
 	"http://localhost:8000",
 	"http://localhost:8060",
 	"http://localhost:8005",
-	"https://amphora.asu.edu"
+	"https://amphora.asu.edu",
+	"http://amphora.asu.edu"
 ]
 
 SIMPLE_JWT = {

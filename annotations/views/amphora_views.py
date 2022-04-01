@@ -52,7 +52,7 @@ class AmphoraRepoViewSet(viewsets.ViewSet):
             'collections': collections,
             'project': ProjectSerializer(project).data,
         })
-
+    
 class AmphoraCollectionViewSet(viewsets.ViewSet):
     def list(self, request, repository_pk=None):
         repository = get_object_or_404(
@@ -81,7 +81,7 @@ class AmphoraCollectionViewSet(viewsets.ViewSet):
             return Response({
                 "message": "Project not found!"
             }, 404)
-
+       
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
         manager = repository.manager(request.user)
         collection = manager.collection(collection_id=pk)
@@ -116,8 +116,8 @@ class AmphoraTextViewSet(viewsets.ViewSet):
         aggregate_content = result.get('aggregate_content')
 
         submitted = False
-        for child in range(len(master_text.children)):
-            if Appellation.objects.filter(occursIn_id=master_text.children[child], submitted=True):
+        for child in master_text.children:
+            if Appellation.objects.filter(occursIn_id=child, submitted=True):
                 submitted = True
                 break
 
