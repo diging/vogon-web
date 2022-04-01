@@ -42,7 +42,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
         request.data['ownedBy'] = request.user
         participants = request.data.pop('participants')
         project = TextCollection(**request.data)
-        project.participants.set(participants)
         project.save()
         project.participants.set(participants)
         project.save()
