@@ -22,7 +22,7 @@ class ConceptPower:
         response = requests.get(url=url, params=params)
         print("url valueeeeeeeeeeeee", url)
         print("response value", response.content)
-        root = etree.html.fromstring(response.content)
+        root = etree.fromstring(response.content)
         print("root value", root)
         results = []
         for child in root.findall(f'{{{self.namespace}}}conceptEntry'):
