@@ -14,12 +14,13 @@ class ConceptPower:
     
     def search(self, params):
         url = f'{self.endpoint}/ConceptSearch'
-        auth = HTTPBasicAuth(self.username, self.password)
+        print("params value", params)
         params = {
             'word': params.get('q', ''),
             'pos': params.get('pos', 'noun'),
             'number_of_records_per_page': params.get('limit', 100)
         }
+        
         print("params ::::::", params)
         response = requests.get(url=url, params=params)
         print("url valueeeeeeeeeeeee", url)
