@@ -27,15 +27,17 @@ class CitesphereAuthority:
 
     def group_items(self, group_id, page=1):
         params = { "page": page }
-        return self._get_response(
+        response = self._get_response(
             f'{self.endpoint}/api/v1/groups/{group_id}/items',
             params=params
         )
+        return response
         
     def group_item(self, group_id, item_id):
-        return self._get_response(
+        response = self._get_response(
             f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}'
         )
+        return response
         
     def content(self, content_id, group_id=None, item_id=None):
         end_point = settings.GILES_FILE_ENDPOINT
@@ -47,9 +49,8 @@ class CitesphereAuthority:
         return data
         
     def item_content1(self, group_id, item_id, filesId):
-        return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}/giles/{filesId}'
-        )
+        endpoint = "https://diging.asu.edu/geco-giles-staging/api/v2/resources/files/{}/content".format(filesId)
+        return self._get_response(endpoint)
 
     def group_collections(self, group_id, limit=None, offset=None):
         return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/collections')

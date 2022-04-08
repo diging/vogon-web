@@ -94,7 +94,7 @@ class AnnotationViewSet(viewsets.ViewSet):
         if text.repository.name == "Citesphere":
             repository = text.repository
             manager = repository.manager(request.user)
-            file_content = manager.content(group_id, repo_id, file_id)
+            file_content = manager.item_content1(group_id, repo_id, file_id)
             try:
                 if file_content[0] == "error":
                     return Response(status=file_content[1])
