@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
 
 
-from annotations.models import DocumentPosition, Relation, Appellation, RelationTemplatePart, VogonUser, Text, RelationSet, TextCollection, Repository, DateAppellation
+from annotations.models import DocumentPosition, Relation, Appellation, RelationTemplate, RelationTemplatePart, VogonUser, Text, RelationSet, TextCollection, Repository, DateAppellation
 from annotations.annotators import annotator_factory
 from annotations.serializers import (RelationSetSerializer,
     ProjectSerializer, UserSerializer, Text2Serializer)
@@ -167,14 +167,14 @@ class AnnotationViewSet(viewsets.ViewSet):
         return Response(graph)
     
     
-@api_view(['POST'])
+@api_view(['GET'])
 def  submit_relations(request):
-    user = VogonUser.objects.create_user(
-            "test", "test@example.com", "test", "Test User"
+    user = VogonUser.objects.get(
+            username="sudheerad9"
         )
     # token = RefreshToken.for_user(user)
     # api_authentication()
-    text = Text.objects.create(
+    text = Text.objects.get(
             uri='test://uri',
             document_type='PT',
             tokenizedContent='xyz',
@@ -184,21 +184,22 @@ def  submit_relations(request):
         )
 
         # Create project object
-    project = TextCollection.objects.create(
+    project = TextCollection.objects.filter(
         name='Test project',
         description='Test description',
-        ownedBy=user
-    )
+        ownedBy=user,
+        createdBy=user
+    )[0]
     text.partOf.set([project])
 
     # Create concept objects
-    concept_type = Type.objects.create(
+    concept_type = Type.objects.get(
         uri='test://uri',
         label='C1',
         authority='Conceptpower',
         description='test description'
     )
-    concept = Concept.objects.create(
+    concept = Concept.objects.get(
         uri='test://uri/concept',
         label='Concept',
         authority='Conceptpower',
@@ -242,7 +243,7 @@ def  submit_relations(request):
     )
 
     # Create template
-    template = RelationTemplateViewSet.objects.create(
+    template = RelationTemplate.objects.create(
         createdBy=user,
         name='Simple relation',
         description='A simple relation',
@@ -273,4 +274,5 @@ def  submit_relations(request):
     relation_sets =  RelationSet.objects.get(template=template)
     relations = Relation.objects.filter(part_of__in=relation_sets)
     appellations = Appellation.objects.filter(Relations=relations)
+    return Response(status="ok")
     
