@@ -2,16 +2,18 @@ import itertools as it
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 
-from annotations.models import Relation, Appellation, VogonUser, Text, RelationSet, TextCollection, Repository, DateAppellation
+
+from annotations.models import DocumentPosition, Relation, Appellation, RelationTemplatePart, VogonUser, Text, RelationSet, TextCollection, Repository, DateAppellation
 from annotations.annotators import annotator_factory
 from annotations.serializers import (RelationSetSerializer,
     ProjectSerializer, UserSerializer, Text2Serializer)
 from annotations.filters import RelationSetFilter
 from annotations.tasks import submit_relationsets_to_quadriga
 from annotations.network import network_data
-from concepts.models import Type
+from annotations.views.relationtemplate_views import RelationTemplateViewSet
+from concepts.models import Concept, Type
 
 
 class RelationSetViewSet(viewsets.ModelViewSet):
@@ -163,3 +165,112 @@ class AnnotationViewSet(viewsets.ViewSet):
         )
 
         return Response(graph)
+    
+    
+@api_view(['POST'])
+def  submit_relations(request):
+    user = VogonUser.objects.create_user(
+            "test", "test@example.com", "test", "Test User"
+        )
+    # token = RefreshToken.for_user(user)
+    # api_authentication()
+    text = Text.objects.create(
+            uri='test://uri',
+            document_type='PT',
+            tokenizedContent='xyz',
+            title='test.txt',
+            addedBy=user,
+            content_type='text/plain'
+        )
+
+        # Create project object
+    project = TextCollection.objects.create(
+        name='Test project',
+        description='Test description',
+        ownedBy=user
+    )
+    text.partOf.set([project])
+
+    # Create concept objects
+    concept_type = Type.objects.create(
+        uri='test://uri',
+        label='C1',
+        authority='Conceptpower',
+        description='test description'
+    )
+    concept = Concept.objects.create(
+        uri='test://uri/concept',
+        label='Concept',
+        authority='Conceptpower',
+        description='test description',
+        pos='noun',
+        typed=concept_type
+    )
+
+    # Create document positions
+    position_1 = DocumentPosition.objects.create(
+        position_type='CO',
+        occursIn=text,
+        position_value='100,105'
+    )
+    position_2 = DocumentPosition.objects.create(
+        position_type='CO',
+        occursIn=text,
+        position_value='320,326'
+    )
+
+    # Create appellation
+    appellation_1 = Appellation.objects.create(
+        occursIn=text,
+        stringRep='appellation',
+        startPos=100,
+        endPos=105,
+        createdBy=user,
+        interpretation=concept,
+        project=project,
+        position=position_1
+    )
+    appellation_2 = Appellation.objects.create(
+        occursIn=text,
+        stringRep='xyz',
+        startPos=320,
+        endPos=326,
+        createdBy=user,
+        interpretation=concept,
+        project=project,
+        position=position_2
+    )
+
+    # Create template
+    template = RelationTemplateViewSet.objects.create(
+        createdBy=user,
+        name='Simple relation',
+        description='A simple relation',
+        expression='{0s} has a relation {1o}',
+        _terminal_nodes='0s,1o'
+    )
+    template_part_1 = RelationTemplatePart.objects.create(
+        part_of=template,
+        internal_id=1,
+        source_node_type='CO',
+        source_label='Evidence for source relation',
+        source_concept=concept,
+        predicate_node_type='IS',
+        object_node_type='TP',
+        object_label='relation object',
+    )
+    template_part_2 = RelationTemplatePart.objects.create(
+        part_of=template,
+        internal_id=0,
+        source_node_type='TP',
+        source_label='Person',
+        predicate_node_type='HA',
+        object_node_type='RE',
+        object_relationtemplate=template_part_1,
+        object_relationtemplate_internal_id=1
+    )
+    # template = request.data.get(template')
+    relation_sets =  RelationSet.objects.get(template=template)
+    relations = Relation.objects.filter(part_of__in=relation_sets)
+    appellations = Appellation.objects.filter(Relations=relations)
+    

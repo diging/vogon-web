@@ -78,6 +78,7 @@ urlpatterns = [
     path('api/v2/citesphere-token/', account_views.citesphere_token, name='citesphere_token'),
     path('api/v2/forgot-password/', account_views.ForgotPasswordView.as_view(), name="forgot_password"),
     path('api/v2/reset-password/', account_views.ResetPasswordView.as_view(), name="reset_password"),
+    path('api/v2/submit-relations/', views.annotation_views.submit_relations.as_view(), name='submit_relations'),
     re_path(r'^api/v2/', include((router.urls, "vogon_rest"))),
     re_path(r'^api/v2/', include((amphora_repo_router.urls, "vogon_rest_repo"))),
     re_path(r'^api/v2/', include((amphora_repo_content_router.urls, "vogon_rest_repo_content"))),
