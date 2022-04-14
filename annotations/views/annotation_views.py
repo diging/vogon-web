@@ -241,6 +241,12 @@ def  submit_relations(request):
         project=project,
         position=position_2
     )
+    
+    relationset = RelationSet.objects.create(
+                project=project,
+                createdBy=user,
+                occursIn=text
+            )
 
     # Create template
     template = RelationTemplate.objects.create(
@@ -274,5 +280,158 @@ def  submit_relations(request):
     relation_sets =  RelationSet.objects.get(template=template)
     relations = Relation.objects.filter(part_of__in=relation_sets)
     appellations = Appellation.objects.filter(Relations=relations)
+    self.url = self.view.reverse_action(
+            'createrelation',
+            kwargs={ 'pk': self.template.id }
+        )
+        payload = {
+            "occursIn": self.text.id,
+            "project": self.project.id,
+            "fields": [
+                {
+                    "type": "CO",
+                    "part_id": self.template_part_1.id,
+                    "part_field": "source",
+                    "position": {
+                        "occursIn_id": self.text.id,
+                        "position_type": "CO",
+                        "position_value": "150,165"
+                    },
+                    "data": {
+                        "tokenIds": None,
+                        "stringRep": "some repr in text"
+                    }
+                },
+                {
+                    "type": "TP",
+                    "part_id": self.template_part_1.id,
+                    "part_field": "object",
+                    "appellation": {
+                        "id": self.appellation_1.id,
+                        "position": {
+                            "id": self.position_1.id,
+                            "position_type": "CO",
+                            "position_value": "100,105",
+                            "occursIn": self.text.id,
+                            "startOffset": 100,
+                            "endOffset": 105
+                        },
+                        "tokenIds": "",
+                        "stringRep": "appellation",
+                        "occursIn": {
+                            "id": self.text.id
+                        },
+                        "interpretation": {
+                            "id": self.concept.id
+                        },
+                        "createdBy": {
+                            "id": self.user.id
+                        },
+                        "visible": True,
+                        "startPos": 100,
+                        "endPos": 105
+                    }
+                },
+                {
+                    "type": "TP",
+                    "part_id": self.template_part_2.id,
+                    "part_field": "source",
+                    "appellation": {
+                        "id": self.appellation_2.id,
+                        "position": {
+                            "id": self.position_2.id,
+                            "position_type": "CO",
+                            "position_value": "320,326",
+                            "occursIn": self.text.id,
+                            "startOffset": 320,
+                            "endOffset": 326
+                        },
+                        "tokenIds": "",
+                        "stringRep": "appellation",
+                        "occursIn": {
+                            "id": self.text.id
+                        },
+                        "interpretation": {
+                            "id": self.concept.id
+                        },
+                        "createdBy": {
+                            "id": self.user.id
+                        },
+                        "visible": True,
+                        "startPos": 320,
+                        "endPos": 326
+                    }
+                }
+            ]
+        }
+        
+        response = self.client.post(self.url, payload)
+        result = json.loads(response.content)
+        relationset_id = result['relationset_id']
+        relationset = RelationSet.objects.get(pk=relationset_id)
+        
+        self.assertEqual(relationset.template.id, self.template.id)
+        self.assertEqual(relationset.project.id, self.project.id)
+        self.assertEqual(relationset.occursIn.id, self.text.id)
+
+        relations = Relation.objects.all()
+        self.assertEqual(relations.count(), 2)
+
+        relation_1, relation_2 = relations[0], relations[1]
+        self.assertEqual(relation_1.part_of.id, relationset.id)
+        self.assertEqual(relation_2.part_of.id, relationset.id)
+
+
+class RelationTemplateCreateUpdateTemplateTest(VogonAPITestCase):
+    url = reverse("vogon_rest:relationtemplate-list")
+
+    def setUp(self):
+        super().setUp()
+        self.test_concept_type_1 = Type.objects.create(
+            uri='test://uri_1',
+            label='C1',
+            authority='Conceptpower',
+            description='test description'
+        )
+        self.test_concept_type_2 = Type.objects.create(
+            uri='test://uri_2',
+            label='C1',
+            authority='Conceptpower',
+            description='test description'
+        )
+        self.test_concept_1 = Concept.objects.create(
+            uri='test://uri/concept_1',
+            label='Concept 1',
+            authority='Conceptpower',
+            description='test description 1',
+            pos='noun',
+        )
+        self.template_part_1 = {
+            "internal_id": 0,
+            "source_node_type": "TP",
+            "source_label": "F1",
+            "source_description": "F1 description",
+            "source_prompt_text": False,
+            "source_type": self.test_concept_type_1.id,
+            "source_concept": None,
+            "source_relationtemplate_internal_id": -1,
+            "predicate_node_type": "CO",
+            "predicate_label": "F2",
+            "predicate_description": "F2 descr",
+            "predicate_prompt_text": True,
+            "predicate_type": None,
+            "predicate_concept": {
+                "alt_id": self.test_concept_1.id,
+                "uri": "test://uri/concept_1"
+            },
+            "object_node_type": "TP",
+            "object_label": "F3",
+            "object_description": "F3 desc",
+            "object_prompt_text": False,
+            "object_type": self.test_concept_type_2.id,
+            "object_concept": None,
+            "object_relationtemplate_internal_id": -1
+        }
+
     return Response(status="ok")
     
