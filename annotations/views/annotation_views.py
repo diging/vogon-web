@@ -1,3 +1,4 @@
+from http import client
 import itertools as it
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
@@ -165,7 +166,30 @@ class AnnotationViewSet(viewsets.ViewSet):
         )
 
         return Response(graph)
-    
+
+
+def create_relation_function_check():
+    for pred in ['source', 'predicate', 'object']:    # Collect field data
+            node_type = getattr(template_part, '%s_node_type' % pred)
+            method = field_handlers.get(node_type, field_handlers['__other__'])
+            datum = provided.get((template_part.id, pred))
+
+            dkey = 'predicate' if pred == 'predicate' else '%s_content_object' % pred
+
+            if datum:
+                relation_data[dkey] = method(datum)
+            elif node_type == RelationTemplatePart.RELATION:
+                relation_data[dkey] = create_relation(getattr(template_part, '%s_relationtemplate' % pred), data, relationset, cache=cache, appellation_cache=appellation_cache, project_id=project_id)
+            else:
+                payload = {
+                    'type': node_type,
+                    'concept_id': getattr(getattr(template_part, '%s_concept' % pred), 'id', None),
+                    'part_field': pred
+                }
+                relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
+
+        relation = Relation.objects.create(**relation_data)
+        return relation
     
 @api_view(['GET'])
 def  submit_relations(request):
@@ -277,23 +301,24 @@ def  submit_relations(request):
         object_relationtemplate_internal_id=1
     )
     # template = request.data.get(template')
-    relation_sets =  RelationSet.objects.get(template=template)
-    relations = Relation.objects.filter(part_of__in=relation_sets)
-    appellations = Appellation.objects.filter(Relations=relations)
-    self.url = self.view.reverse_action(
+    
+    view = RelationTemplateViewSet()
+    view.request = None
+    view.basename = "vogon_rest:relationtemplate"
+    url = view.reverse_action(
             'createrelation',
-            kwargs={ 'pk': self.template.id }
+            kwargs={ 'pk': template.id }
         )
-        payload = {
-            "occursIn": self.text.id,
-            "project": self.project.id,
+    payload = {
+            "occursIn": text.id,
+            "project": project.id,
             "fields": [
                 {
                     "type": "CO",
-                    "part_id": self.template_part_1.id,
+                    "part_id": template_part_1.id,
                     "part_field": "source",
                     "position": {
-                        "occursIn_id": self.text.id,
+                        "occursIn_id": text.id,
                         "position_type": "CO",
                         "position_value": "150,165"
                     },
@@ -304,28 +329,28 @@ def  submit_relations(request):
                 },
                 {
                     "type": "TP",
-                    "part_id": self.template_part_1.id,
+                    "part_id": template_part_1.id,
                     "part_field": "object",
                     "appellation": {
-                        "id": self.appellation_1.id,
+                        "id": appellation_1.id,
                         "position": {
-                            "id": self.position_1.id,
+                            "id": position_1.id,
                             "position_type": "CO",
                             "position_value": "100,105",
-                            "occursIn": self.text.id,
+                            "occursIn": text.id,
                             "startOffset": 100,
                             "endOffset": 105
                         },
                         "tokenIds": "",
                         "stringRep": "appellation",
                         "occursIn": {
-                            "id": self.text.id
+                            "id": text.id
                         },
                         "interpretation": {
-                            "id": self.concept.id
+                            "id": concept.id
                         },
                         "createdBy": {
-                            "id": self.user.id
+                            "id": user.id
                         },
                         "visible": True,
                         "startPos": 100,
@@ -334,28 +359,28 @@ def  submit_relations(request):
                 },
                 {
                     "type": "TP",
-                    "part_id": self.template_part_2.id,
+                    "part_id": template_part_2.id,
                     "part_field": "source",
                     "appellation": {
-                        "id": self.appellation_2.id,
+                        "id": appellation_2.id,
                         "position": {
-                            "id": self.position_2.id,
+                            "id": position_2.id,
                             "position_type": "CO",
                             "position_value": "320,326",
-                            "occursIn": self.text.id,
+                            "occursIn": text.id,
                             "startOffset": 320,
                             "endOffset": 326
                         },
                         "tokenIds": "",
                         "stringRep": "appellation",
                         "occursIn": {
-                            "id": self.text.id
+                            "id": text.id
                         },
                         "interpretation": {
-                            "id": self.concept.id
+                            "id": concept.id
                         },
                         "createdBy": {
-                            "id": self.user.id
+                            "id": user.id
                         },
                         "visible": True,
                         "startPos": 320,
@@ -365,73 +390,8 @@ def  submit_relations(request):
             ]
         }
         
-        response = self.client.post(self.url, payload)
-        result = json.loads(response.content)
-        relationset_id = result['relationset_id']
-        relationset = RelationSet.objects.get(pk=relationset_id)
-        
-        self.assertEqual(relationset.template.id, self.template.id)
-        self.assertEqual(relationset.project.id, self.project.id)
-        self.assertEqual(relationset.occursIn.id, self.text.id)
-
-        relations = Relation.objects.all()
-        self.assertEqual(relations.count(), 2)
-
-        relation_1, relation_2 = relations[0], relations[1]
-        self.assertEqual(relation_1.part_of.id, relationset.id)
-        self.assertEqual(relation_2.part_of.id, relationset.id)
-
-
-class RelationTemplateCreateUpdateTemplateTest(VogonAPITestCase):
-    url = reverse("vogon_rest:relationtemplate-list")
-
-    def setUp(self):
-        super().setUp()
-        self.test_concept_type_1 = Type.objects.create(
-            uri='test://uri_1',
-            label='C1',
-            authority='Conceptpower',
-            description='test description'
-        )
-        self.test_concept_type_2 = Type.objects.create(
-            uri='test://uri_2',
-            label='C1',
-            authority='Conceptpower',
-            description='test description'
-        )
-        self.test_concept_1 = Concept.objects.create(
-            uri='test://uri/concept_1',
-            label='Concept 1',
-            authority='Conceptpower',
-            description='test description 1',
-            pos='noun',
-        )
-        self.template_part_1 = {
-            "internal_id": 0,
-            "source_node_type": "TP",
-            "source_label": "F1",
-            "source_description": "F1 description",
-            "source_prompt_text": False,
-            "source_type": self.test_concept_type_1.id,
-            "source_concept": None,
-            "source_relationtemplate_internal_id": -1,
-            "predicate_node_type": "CO",
-            "predicate_label": "F2",
-            "predicate_description": "F2 descr",
-            "predicate_prompt_text": True,
-            "predicate_type": None,
-            "predicate_concept": {
-                "alt_id": self.test_concept_1.id,
-                "uri": "test://uri/concept_1"
-            },
-            "object_node_type": "TP",
-            "object_label": "F3",
-            "object_description": "F3 desc",
-            "object_prompt_text": False,
-            "object_type": self.test_concept_type_2.id,
-            "object_concept": None,
-            "object_relationtemplate_internal_id": -1
-        }
-
-    return Response(status="ok")
-    
+    response = client.post(url, payload)
+    relation_sets =  RelationSet.objects.get(template=template)
+    relations = Relation.objects.filter(part_of__in=relation_sets)
+    appellations = Appellation.objects.filter(Relations=relations)
+    return Response(data="ok")
