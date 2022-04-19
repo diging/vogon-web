@@ -189,6 +189,20 @@ def create_relation_function_check():
                 relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
 
         relation = Relation.objects.create(**relation_data)
+    for part in data.get('parts', []):
+        for field in ['source', 'predicate', 'object']:
+            node_type = part[f'{field}_node_type']
+            if node_type == 'CO':
+                concept = self.add_concept(part[f'{field}_concept'])
+                part[f'{field}_concept'] = concept
+            elif node_type == 'TP':
+                concept_type_id = part[f'{field}_type']
+                if concept_type_id:
+                    concept_type = Type.objects.get(pk=concept_type_id)
+                    part[f'{field}_type'] = concept_type
+            if field != 'predicate':
+                internal_id = part[f'{field}_relationtemplate_internal_id']
+                part[f'{field}_relationtemplate_internal_id'] = int(internal_id)
         return relation
     
 @api_view(['GET'])
