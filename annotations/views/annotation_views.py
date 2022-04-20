@@ -1,4 +1,4 @@
-from http import client
+import urllib3.request
 import itertools as it
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
@@ -168,42 +168,42 @@ class AnnotationViewSet(viewsets.ViewSet):
         return Response(graph)
 
 
-def create_relation_function_check():
-    for pred in ['source', 'predicate', 'object']:    # Collect field data
-            node_type = getattr(template_part, '%s_node_type' % pred)
-            method = field_handlers.get(node_type, field_handlers['__other__'])
-            datum = provided.get((template_part.id, pred))
+# def create_relation_function_check():
+#     for pred in ['source', 'predicate', 'object']:    # Collect field data
+#             node_type = getattr(template_part, '%s_node_type' % pred)
+#             method = field_handlers.get(node_type, field_handlers['__other__'])
+#             datum = provided.get((template_part.id, pred))
 
-            dkey = 'predicate' if pred == 'predicate' else '%s_content_object' % pred
+#             dkey = 'predicate' if pred == 'predicate' else '%s_content_object' % pred
 
-            if datum:
-                relation_data[dkey] = method(datum)
-            elif node_type == RelationTemplatePart.RELATION:
-                relation_data[dkey] = create_relation(getattr(template_part, '%s_relationtemplate' % pred), data, relationset, cache=cache, appellation_cache=appellation_cache, project_id=project_id)
-            else:
-                payload = {
-                    'type': node_type,
-                    'concept_id': getattr(getattr(template_part, '%s_concept' % pred), 'id', None),
-                    'part_field': pred
-                }
-                relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
+#             if datum:
+#                 relation_data[dkey] = method(datum)
+#             elif node_type == RelationTemplatePart.RELATION:
+#                 relation_data[dkey] = create_relation(getattr(template_part, '%s_relationtemplate' % pred), data, relationset, cache=cache, appellation_cache=appellation_cache, project_id=project_id)
+#             else:
+#                 payload = {
+#                     'type': node_type,
+#                     'concept_id': getattr(getattr(template_part, '%s_concept' % pred), 'id', None),
+#                     'part_field': pred
+#                 }
+#                 relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
 
-        relation = Relation.objects.create(**relation_data)
-    for part in data.get('parts', []):
-        for field in ['source', 'predicate', 'object']:
-            node_type = part[f'{field}_node_type']
-            if node_type == 'CO':
-                concept = self.add_concept(part[f'{field}_concept'])
-                part[f'{field}_concept'] = concept
-            elif node_type == 'TP':
-                concept_type_id = part[f'{field}_type']
-                if concept_type_id:
-                    concept_type = Type.objects.get(pk=concept_type_id)
-                    part[f'{field}_type'] = concept_type
-            if field != 'predicate':
-                internal_id = part[f'{field}_relationtemplate_internal_id']
-                part[f'{field}_relationtemplate_internal_id'] = int(internal_id)
-        return relation
+#         relation = Relation.objects.create(**relation_data)
+#     for part in data.get('parts', []):
+#         for field in ['source', 'predicate', 'object']:
+#             node_type = part[f'{field}_node_type']
+#             if node_type == 'CO':
+#                 concept = self.add_concept(part[f'{field}_concept'])
+#                 part[f'{field}_concept'] = concept
+#             elif node_type == 'TP':
+#                 concept_type_id = part[f'{field}_type']
+#                 if concept_type_id:
+#                     concept_type = Type.objects.get(pk=concept_type_id)
+#                     part[f'{field}_type'] = concept_type
+#             if field != 'predicate':
+#                 internal_id = part[f'{field}_relationtemplate_internal_id']
+#                 part[f'{field}_relationtemplate_internal_id'] = int(internal_id)
+#         return relation
     
 @api_view(['GET'])
 def  submit_relations(request):
@@ -323,6 +323,15 @@ def  submit_relations(request):
             'createrelation',
             kwargs={ 'pk': template.id }
         )
+    print("text id", text.id)
+    print("project id", project.id)
+    print("template_part_1", template_part_1.id)
+    print("apellation id", appellation_1.id)
+    print("positions id", position_1.id)
+    print("concept id", concept.id)
+    print("template_part_1", template_part_2.id)
+    print("apellation id", appellation_2.id)
+    print("positions id", position_2.id)
     payload = {
             "occursIn": text.id,
             "project": project.id,
@@ -404,7 +413,7 @@ def  submit_relations(request):
             ]
         }
         
-    response = client.post(url, payload)
+    # response = urllib3.request.http.client.post(url, payload)
     relation_sets =  RelationSet.objects.get(template=template)
     relations = Relation.objects.filter(part_of__in=relation_sets)
     appellations = Appellation.objects.filter(Relations=relations)
