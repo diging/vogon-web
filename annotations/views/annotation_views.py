@@ -412,8 +412,9 @@ def  submit_relations(request):
                 }
             ]
         }
-        
-    # response = urllib3.request.http.client.post(url, payload)
+    from django.test.client import Client
+    
+    response = Client.post(url, payload)
     relation_sets =  RelationSet.objects.get(template=template)
     relations = Relation.objects.filter(part_of__in=relation_sets)
     appellations = Appellation.objects.filter(Relations=relations)

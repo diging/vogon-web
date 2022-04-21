@@ -459,7 +459,7 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
 
     missing = set(required.keys()) - set(provided.keys())
     if len(missing) > 0:
-        raise InvalidData('Missing fields: %s' % '; '.join(list(remaining)))
+        raise InvalidData('Missing fields: %s' % '; '.join(list(missing)))
 
     def create_relation(template_part, data, relationset, cache={}, appellation_cache={}, project_id=None):
         if cache != None:
