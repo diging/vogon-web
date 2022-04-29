@@ -183,4 +183,9 @@ def  submit_relations(request):
     appellations_1 = Appellation.objects.filter(relationsAs=relations)
     appellations_2 = Appellation.objects.filter(relationsFrom=relations)
     appellations_3 = Appellation.objects.filter(relationsTo=relations)
+    nodes = {}
+    for data in nodes:
+        nodes.append(appellations_1)
+        nodes.append(appellations_1)
+        nodes.append(appellations_1)
     return Response(data="ok")
