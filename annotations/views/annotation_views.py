@@ -169,12 +169,18 @@ class AnnotationViewSet(viewsets.ViewSet):
     
 @api_view(['GET'])
 def  submit_relations(request):
-    import json
-    from django.core.serializers.json import DjangoJSONEncoder
-
     relation_sets =  RelationSet.objects.filter(template=1)
     relations = Relation.objects.filter(part_of__in=relation_sets)
-    serialized_q = json.dumps(list(relations), cls=DjangoJSONEncoder)
-    print("relations", relations.values())
-    appellations = Appellation.objects.filter(Relations=relations)
+    print("relations", relations)
+    appellations_1 = Appellation.objects.filter(relationsAs=relations[0])
+    appellations_2 = Appellation.objects.filter(relationsFrom=relations[0])
+    appellations_3 = Appellation.objects.filter(relationsTo=relations[0])
+    print("nodes in as", appellations_1)
+    print("nodes in from", appellations_2)
+    print("nodes in to",appellations_3)
+    template_parts = RelationTemplatePart.objects.filter(part_of=1)
+    print("template_parts", template_parts)
+    appellations_1 = Appellation.objects.filter(relationsAs=relations)
+    appellations_2 = Appellation.objects.filter(relationsFrom=relations)
+    appellations_3 = Appellation.objects.filter(relationsTo=relations)
     return Response(data="ok")
