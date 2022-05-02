@@ -172,20 +172,38 @@ def  submit_relations(request):
     relation_sets =  RelationSet.objects.filter(template=1)
     relations = Relation.objects.filter(part_of__in=relation_sets)
     print("relations", relations)
+    print()
     appellations_1 = Appellation.objects.filter(relationsAs=relations[0])
-    appellations_2 = Appellation.objects.filter(relationsFrom=relations[0])
-    appellations_3 = Appellation.objects.filter(relationsTo=relations[0])
+    appellations_2 = Appellation.objects.filter(relationsFrom=relations[1])
+    appellations_3 = Appellation.objects.filter(relationsTo=relations[2])
     print("nodes in as", appellations_1)
     print("nodes in from", appellations_2)
     print("nodes in to",appellations_3)
     template_parts = RelationTemplatePart.objects.filter(part_of=1)
     print("template_parts", template_parts)
-    appellations_1 = Appellation.objects.filter(relationsAs=relations)
-    appellations_2 = Appellation.objects.filter(relationsFrom=relations)
-    appellations_3 = Appellation.objects.filter(relationsTo=relations)
+    # appellations_1 = Appellation.objects.filter(relationsAs=relations)
+    # appellations_2 = Appellation.objects.filter(relationsFrom=relations)
+    # appellations_3 = Appellation.objects.filter(relationsTo=relations)
     nodes = {}
     for data in nodes:
         nodes.append(appellations_1)
         nodes.append(appellations_1)
         nodes.append(appellations_1)
     return Response(data="ok")
+
+
+def submit_relationsets(relationsets, text, user,
+                        userid=settings.QUADRIGA_USERID,
+                        password=settings.QUADRIGA_PASSWORD,
+                        endpoint=settings.QUADRIGA_ENDPOINT, **kwargs):
+    payload, params = submit_relations(relationsets, text, user, toString=True, **kwargs)
+    auth = HTTPBasicAuth(userid, password)
+    headers = {'Accept': 'application/xml'}
+    r = requests.post(endpoint, data=payload, auth=auth, headers=headers)
+
+    if r.status_code == requests.codes.ok:
+        response_data = parse_response(r.text)
+        response_data.update(params)
+        return True, response_data
+
+    return False, r.text
