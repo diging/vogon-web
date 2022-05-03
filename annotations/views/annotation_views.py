@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view
-
+from django.contrib.contenttypes.models import ContentType
 
 from annotations.models import DocumentPosition, Relation, Appellation, RelationTemplate, RelationTemplatePart, VogonUser, Text, RelationSet, TextCollection, Repository, DateAppellation
 from annotations.annotators import annotator_factory
@@ -167,43 +167,94 @@ class AnnotationViewSet(viewsets.ViewSet):
 
         return Response(graph)
     
+# def construct_graph():
+    
+    
 @api_view(['GET'])
 def  submit_relations(request):
     relation_sets =  RelationSet.objects.filter(template=1)
     relations = Relation.objects.filter(part_of__in=relation_sets)
     print("relations", relations)
+    print("relations sets", relation_sets)
     print()
-    appellations_1 = Appellation.objects.filter(relationsAs=relations[0])
-    appellations_2 = Appellation.objects.filter(relationsFrom=relations[1])
-    appellations_3 = Appellation.objects.filter(relationsTo=relations[2])
-    print("nodes in as", appellations_1)
-    print("nodes in from", appellations_2)
-    print("nodes in to",appellations_3)
-    template_parts = RelationTemplatePart.objects.filter(part_of=1)
-    print("template_parts", template_parts)
-    # appellations_1 = Appellation.objects.filter(relationsAs=relations)
-    # appellations_2 = Appellation.objects.filter(relationsFrom=relations)
-    # appellations_3 = Appellation.objects.filter(relationsTo=relations)
-    nodes = {}
-    for data in nodes:
-        nodes.append(appellations_1)
-        nodes.append(appellations_1)
-        nodes.append(appellations_1)
+    # appellations_1 = Appellation.objects.filter(relationsAs=relations[0])
+    # appellations_2 = Appellation.objects.filter(relationsFrom=relations[0])
+    # appellations_3 = Appellation.objects.filter(relationsTo=relations[0])
+    # appellations_11 = Appellation.objects.filter(relationsAs=relations[1])
+    # appellations_22 = Appellation.objects.filter(relationsFrom=relations[1])
+    # appellations_33 = Appellation.objects.filter(relationsTo=relations[1])
+    # appellations_211 = Appellation.objects.filter(relationsAs=relations[2])
+    # appellations_222 = Appellation.objects.filter(relationsFrom=relations[2])
+    # appellations_233 = Appellation.objects.filter(relationsTo=relations[2])
+    # print("nodes in as second", appellations_11)
+    # print("nodes in from second", appellations_22)
+    # print("nodes in to second",appellations_33)
+    # print("nodes in as third", appellations_211)
+    # print("nodes in from third", appellations_222)
+    # print("nodes in to third",appellations_233)
+    # print("nodes in as first", appellations_1)
+    # print("nodes in from first", appellations_2)
+    # print("nodes in to first",appellations_3)
+    # template_parts = RelationTemplatePart.objects.filter(part_of=1)
+    # print("template_parts", template_parts)
+    appellation_type = ContentType.objects.get_for_model(Appellation)
+    appellation_ids = []
+    source_appellation_ids = []
+    object_appellation_ids = []
+    predicate_appellation_ids = []
+    relation_appelation_mapping = {}
+    edges_mapping = []
+    i = 0
+    nodes_mapping = {}
+    for relation in relations:
+        # print(relation.__dict__)
+        if relation.source_content_type == appellation_type:
+            source_appellation_ids.append(relation.source_object_id)
+            print("source_appellation_ids ids", relation.source_object_id)
+            print("relation.object_content_type", relation.object_content_type)
+        if relation.object_content_type == appellation_type:
+            object_appellation_ids.append(relation.object_object_id)
+            print("object_appellation_ids ids", relation.object_object_id)
+        predicate_appellation_ids.append(relation.predicate.id)
+        print("predicate_appellation_ids ids", relation.source_content_object)
+        relation_appelation_mapping[relation.id] = [relation.source_content_object, relation.object_content_object, relation.predicate]
+        edges_mapping.append({"source" : relation.id, "relation": "source", "target": "relation.source_content_object"})
+        edges_mapping.append({"source" : relation.id, "relation": "object", "target": "relation.object_content_object"})
+        edges_mapping.append({"source" : relation.id, "relation": "predicate", "target": "relation.predicate"})
+    print(relation_appelation_mapping)   
+    
+    print("edges mapping", edges_mapping)  
+    # nodes = {}
+    # for data in nodes:
+    #     nodes.append(appellations_1)
+    #     nodes.append(appellations_1)
+    #     nodes.append(appellations_1)
+        
+    appellation_type = ContentType.objects.get_for_model(Appellation)
+
+    # appellation_ids = []
+    # for relation in self.constituents.all():
+    #     if relation.source_content_type == appellation_type:
+    #         appellation_ids.append(relation.source_object_id)
+    #     if relation.object_content_type == appellation_type:
+    #         appellation_ids.append(relation.object_object_id)
+    #     appellation_ids.append(relation.predicate.id)
+
     return Response(data="ok")
 
 
-def submit_relationsets(relationsets, text, user,
-                        userid=settings.QUADRIGA_USERID,
-                        password=settings.QUADRIGA_PASSWORD,
-                        endpoint=settings.QUADRIGA_ENDPOINT, **kwargs):
-    payload, params = submit_relations(relationsets, text, user, toString=True, **kwargs)
-    auth = HTTPBasicAuth(userid, password)
-    headers = {'Accept': 'application/xml'}
-    r = requests.post(endpoint, data=payload, auth=auth, headers=headers)
+# def submit_relationsets(relationsets, text, user,
+#                         userid=settings.QUADRIGA_USERID,
+#                         password=settings.QUADRIGA_PASSWORD,
+#                         endpoint=settings.QUADRIGA_ENDPOINT, **kwargs):
+#     payload, params = submit_relations(relationsets, text, user, toString=True, **kwargs)
+#     auth = HTTPBasicAuth(userid, password)
+#     headers = {'Accept': 'application/xml'}
+#     r = requests.post(endpoint, data=payload, auth=auth, headers=headers)
 
-    if r.status_code == requests.codes.ok:
-        response_data = parse_response(r.text)
-        response_data.update(params)
-        return True, response_data
+#     if r.status_code == requests.codes.ok:
+#         response_data = parse_response(r.text)
+#         response_data.update(params)
+#         return True, response_data
 
-    return False, r.text
+#     return False, r.text

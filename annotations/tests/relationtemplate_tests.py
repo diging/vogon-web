@@ -308,16 +308,16 @@ class RelationTemplateCreateRelationTest(VogonAPITestCase):
         relationset_id = result['relationset_id']
         relationset = RelationSet.objects.get(pk=relationset_id)
         
-        # self.assertEqual(relationset.template.id, self.template.id)
-        # self.assertEqual(relationset.project.id, self.project.id)
-        # self.assertEqual(relationset.occursIn.id, self.text.id)
+        self.assertEqual(relationset.template.id, self.template.id)
+        self.assertEqual(relationset.project.id, self.project.id)
+        self.assertEqual(relationset.occursIn.id, self.text.id)
 
-        # relations = Relation.objects.all()
-        # self.assertEqual(relations.count(), 2)
+        relations = Relation.objects.all()
+        self.assertEqual(relations.count(), 2)
 
-        # relation_1, relation_2 = relations[0], relations[1]
-        # self.assertEqual(relation_1.part_of.id, relationset.id)
-        # self.assertEqual(relation_2.part_of.id, relationset.id)
+        relation_1, relation_2 = relations[0], relations[1]
+        self.assertEqual(relation_1.part_of.id, relationset.id)
+        self.assertEqual(relation_2.part_of.id, relationset.id)
 
 
 class RelationTemplateCreateUpdateTemplateTest(VogonAPITestCase):
