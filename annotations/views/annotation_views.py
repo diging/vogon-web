@@ -167,94 +167,131 @@ class AnnotationViewSet(viewsets.ViewSet):
 
         return Response(graph)
     
-# def construct_graph():
-    
-    
-@api_view(['GET'])
+@api_view(['POST'])
 def  submit_relations(request):
-    relation_sets =  RelationSet.objects.filter(template=1)
+    meta_data = request.data
+    template = request.data.pop('template', None)
+    context = meta_data["context"]
+    context["creator"] = request.user.username
+    meta_data['context'] = context
+    relation_sets =  RelationSet.objects.filter(template=template)
     relations = Relation.objects.filter(part_of__in=relation_sets)
-    print("relations", relations)
-    print("relations sets", relation_sets)
-    print()
-    # appellations_1 = Appellation.objects.filter(relationsAs=relations[0])
-    # appellations_2 = Appellation.objects.filter(relationsFrom=relations[0])
-    # appellations_3 = Appellation.objects.filter(relationsTo=relations[0])
-    # appellations_11 = Appellation.objects.filter(relationsAs=relations[1])
-    # appellations_22 = Appellation.objects.filter(relationsFrom=relations[1])
-    # appellations_33 = Appellation.objects.filter(relationsTo=relations[1])
-    # appellations_211 = Appellation.objects.filter(relationsAs=relations[2])
-    # appellations_222 = Appellation.objects.filter(relationsFrom=relations[2])
-    # appellations_233 = Appellation.objects.filter(relationsTo=relations[2])
-    # print("nodes in as second", appellations_11)
-    # print("nodes in from second", appellations_22)
-    # print("nodes in to second",appellations_33)
-    # print("nodes in as third", appellations_211)
-    # print("nodes in from third", appellations_222)
-    # print("nodes in to third",appellations_233)
-    # print("nodes in as first", appellations_1)
-    # print("nodes in from first", appellations_2)
-    # print("nodes in to first",appellations_3)
-    # template_parts = RelationTemplatePart.objects.filter(part_of=1)
-    # print("template_parts", template_parts)
-    appellation_type = ContentType.objects.get_for_model(Appellation)
-    appellation_ids = []
-    source_appellation_ids = []
-    object_appellation_ids = []
-    predicate_appellation_ids = []
     relation_appelation_mapping = {}
+    object_id_mapping = {}
     edges_mapping = []
-    i = 0
+    i = -1
     nodes_mapping = {}
+    node_data = {
+			     "label": "",
+			     "metadata": {
+			          "type": "",
+    			      "interpretation": "",
+    			      "termParts": [
+    			           {
+    			             "position": "",
+    			             "expression": "",
+    			             "normalization": "",
+    			             "formattedPointer": "",
+    			             "format": ""
+    			           }
+    			      ]
+			     },
+			     "context":meta_data['context']	
+			}
+    node_data_copy = node_data
+    node_data_relation = {
+			     "label": "",
+			     "metadata": {
+			          "type": "",
+			     },
+			     "context":meta_data['context']	
+			}
+    appellation_type = "appellation"
     for relation in relations:
-        # print(relation.__dict__)
-        if relation.source_content_type == appellation_type:
-            source_appellation_ids.append(relation.source_object_id)
-            print("source_appellation_ids ids", relation.source_object_id)
-            print("relation.object_content_type", relation.object_content_type)
-        if relation.object_content_type == appellation_type:
-            object_appellation_ids.append(relation.object_object_id)
-            print("object_appellation_ids ids", relation.object_object_id)
-        predicate_appellation_ids.append(relation.predicate.id)
-        print("predicate_appellation_ids ids", relation.source_content_object)
-        relation_appelation_mapping[relation.id] = [relation.source_content_object, relation.object_content_object, relation.predicate]
-        edges_mapping.append({"source" : relation.id, "relation": "source", "target": "relation.source_content_object"})
-        edges_mapping.append({"source" : relation.id, "relation": "object", "target": "relation.object_content_object"})
-        edges_mapping.append({"source" : relation.id, "relation": "predicate", "target": "relation.predicate"})
-    print(relation_appelation_mapping)   
-    
-    print("edges mapping", edges_mapping)  
-    # nodes = {}
-    # for data in nodes:
-    #     nodes.append(appellations_1)
-    #     nodes.append(appellations_1)
-    #     nodes.append(appellations_1)
-        
-    appellation_type = ContentType.objects.get_for_model(Appellation)
+        if relation.source_content_type:
+            if relation.source_content_object in object_id_mapping:
+                x = object_id_mapping[relation.source_content_object]
+            else:
+                i+=1
+                object_id_mapping[relation.source_content_object] = i
+                x = i
+            print("hereeeeeeeeeee",(relation.source_content_object.stringRep))
+            if relation.source_content_type.model == appellation_type:
+                node_data = node_data_copy
+                node_data["label"] = relation.source_content_object.stringRep
+                node_data["metadata"]["type"] = "appellation_event"
+                node_data["metadata"]["interpretation"] = relation.source_content_object.interpretation.uri
+                if relation.source_content_object.position:
+                    position = relation.source_content_object.position.position_value
+                else:
+                    position = ""
+                node_data["metadata"]["termParts"][0]["position"] = position
+                print("hereeeeeeeeeee",(relation.source_content_object.stringRep))
 
-    # appellation_ids = []
-    # for relation in self.constituents.all():
-    #     if relation.source_content_type == appellation_type:
-    #         appellation_ids.append(relation.source_object_id)
-    #     if relation.object_content_type == appellation_type:
-    #         appellation_ids.append(relation.object_object_id)
-    #     appellation_ids.append(relation.predicate.id)
+                node_data["metadata"]["termParts"][0]["expression"] = relation.source_content_object.stringRep
+                nodes_mapping[str(x)] = node_data
+            else:
+                node_data_relation["label"] = ""
+                node_data_relation["metadata"]["type"] = "relation_event"
+                nodes_mapping[str(x)] = node_data_relation
+                
+        if relation.object_content_type:
+            if relation.object_content_object in object_id_mapping:
+                y = object_id_mapping[relation.object_content_object]
+            else:
+                i+=1
+                object_id_mapping[relation.object_content_object] = i
+                y = i
+            if relation.object_content_type.model == appellation_type:
+                node_data = node_data_copy
+                node_data["label"] = relation.object_content_object.stringRep
+                node_data["metadata"]["type"] = "appellation_event"
+                node_data["metadata"]["interpretation"] = relation.object_content_object.interpretation.uri
+                if relation.object_content_object.position:
+                    position = relation.object_content_object.position.position_value
+                else:
+                    position = ""
+                node_data["metadata"]["termParts"][0]["position"] = relation.object_content_object.position.position_value
+                node_data["metadata"]["termParts"][0]["expression"] = relation.object_content_object.stringRep
+                nodes_mapping[str(y)] = node_data
+            else:
+                node_data_relation["label"] = ""
+                node_data_relation["metadata"]["type"] = "relation_event"
+                nodes_mapping[str(y)] = node_data_relation
 
-    return Response(data="ok")
-
-
-# def submit_relationsets(relationsets, text, user,
-#                         userid=settings.QUADRIGA_USERID,
-#                         password=settings.QUADRIGA_PASSWORD,
-#                         endpoint=settings.QUADRIGA_ENDPOINT, **kwargs):
-#     payload, params = submit_relations(relationsets, text, user, toString=True, **kwargs)
-#     auth = HTTPBasicAuth(userid, password)
-#     headers = {'Accept': 'application/xml'}
-#     r = requests.post(endpoint, data=payload, auth=auth, headers=headers)
-
-#     if r.status_code == requests.codes.ok:
-#         response_data = parse_response(r.text)
-#         response_data.update(params)
-#         return True, response_data
-
-#     return False, r.text
+        if relation.predicate:
+            node_data = node_data_copy
+            node_data["metadata"]["type"] = "appellation_event"
+            node_data["label"] = relation.predicate.stringRep
+            node_data["metadata"]["interpretation"] = relation.predicate.interpretation.uri
+            position = relation.predicate.position
+            if position:
+                node_data["metadata"]["termParts"][0]["position"] = position.get('position_value')
+            node_data["metadata"]["termParts"][0]["expression"] = relation.predicate.stringRep
+            if relation.predicate in object_id_mapping:
+                z = object_id_mapping[relation.predicate]
+            else:
+                i+=1
+                object_id_mapping[relation.predicate] = i
+                z = i
+            nodes_mapping[str(z)] = node_data
+        if relation in object_id_mapping:
+            k = object_id_mapping[relation]
+        else:
+            i+=1
+            object_id_mapping[relation] = i
+            k = i
+        node_data_relation["label"] = ""
+        node_data_relation["metadata"]["type"] = "relation_event"
+        nodes_mapping[str(k)] = node_data_relation
+        relation_appelation_mapping[relation.id] = [relation.source_content_object.id, relation.object_content_object.id, relation.predicate.id]
+        edges_mapping.append({"source" : k, "relation": "source", "target": x})
+        edges_mapping.append({"source" :  k, "relation": "object", "target": y})
+        edges_mapping.append({"source" : k, "relation": "predicate", "target": z})
+        print(relation_appelation_mapping)   
+    result = {}
+    result["graph"] = {}
+    result["graph"]["metadata"] = meta_data
+    result["graph"]["nodes"] = nodes_mapping
+    result["graph"]["edges"] = edges_mapping
+    return Response(data=result)
