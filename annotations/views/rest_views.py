@@ -174,8 +174,8 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
     def destroy(self, request, pk=None):
         appellation = get_object_or_404(Appellation, pk=pk)
-        data = Appellation2Serializer(appellation, many=False)
-        
+        serializer_context = {'request': request}
+        data = Appellation2Serializer(appellation, context=serializer_context, many=False)
         if len(data["relationsFrom"].value) or len(data["relationsTo"].value):
             # Can't delete the appellation
             return Response({
@@ -187,7 +187,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             "message": "Successfully deleted appellation"
         })
       
-    @action(detail=False, methods=["POST"])  
+    @action(detail=False, methods=["POST"])
     def update_concept(self, request, pk=None):
         old_concept = request.data.get('old_concept', None)
         new_concept = request.data.get('new_concept', None)
@@ -271,7 +271,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
         instance.refresh_from_db()
         reserializer = AppellationSerializer(instance, context={'request': request})
-
         headers = self.get_success_headers(serializer.data)
         return Response(reserializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)

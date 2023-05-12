@@ -15,7 +15,7 @@ class Repository(models.Model):
     ]
     repo_type = models.CharField(
         max_length=100,
-        choices=REPO_CHOICES, 
+        choices=REPO_CHOICES,
         default=AMPHORA
     )
 

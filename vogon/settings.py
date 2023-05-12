@@ -26,10 +26,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False')
-# DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True')
+#DEBUG = True
 
-ALLOWED_HOSTS = ["amphora.asu.edu", "localhost"]
+ALLOWED_HOSTS = ["amphora.asu.edu", "localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -104,15 +104,19 @@ LOGGING = {
 	'version': 1,
 	'disable_existing_loggers': False,
 	'handlers': {
+		'console': {
+			'level': 'INFO',
+            'class': 'logging.StreamHandler',
+		},
 		'file': {
 			'level': 'DEBUG',
 			'class': 'logging.FileHandler',
-			'filename': os.environ.get("LOG_FILE_PATH", "/"),
+			'filename': os.environ.get("LOG_FILE_PATH", "../vogon.log"),
 		},
 	},
 	'loggers': {
 		'django': {
-			'handlers': ['file'],
+			'handlers': ['file', 'console'],
 			'level': 'DEBUG',
 			'propagate': True,
 		},
@@ -133,7 +137,6 @@ DATABASES = {"default": dj_database_url.config()}
 DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql_psycopg2"
 
 
-
 # print DATABASES
 
 AUTHENTICATION_BACKENDS = (
@@ -144,7 +147,7 @@ AUTHENTICATION_BACKENDS = (
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 ANONYMOUS_USER_ID = -1
-BASE_URL = os.environ.get("BASE_URL", "/")
+BASE_URL = os.environ.get('BASE_URL', "/")
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -242,10 +245,10 @@ MAX_GILES_UPLOADS = 20
 GOAT = os.environ.get("GOAT", "http://127.0.0.1:8000")
 GOAT_APP_TOKEN = os.environ.get("GOAT_APP_TOKEN")
 
-# LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'home'
 # LOGOUT_REDIRECT_URL = 'home'
 
-LOGLEVEL = os.environ.get("LOGLEVEL", "DEBUG")
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO")
 
 SESSION_COOKIE_NAME = "vogon"
 
