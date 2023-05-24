@@ -142,6 +142,7 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     """If this field is ``False``, the user will not be able to log in."""
 
     is_admin = models.BooleanField(default=False)
+    is_token_reset_required = models.BooleanField(default=False)
 
     objects = VogonUserManager()
 
