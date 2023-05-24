@@ -154,25 +154,27 @@ class AppellationSerializer(serializers.ModelSerializer):
     occursIn = TextSerializer(required=False)
     interpretation = ConceptSerializer(required=False)
     createdBy = UserSerializer()
+    type = serializers.CharField(required=False)
 
     class Meta:
         model = Appellation
         fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
                   'interpretation', 'interpretation_type', 'occursIn',
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label', 'position', 'project')
+                  'interpretation_type_label', 'position', 'project', 'type')
 
 class AppellationPOSTSerializer(serializers.ModelSerializer):
     position = DocumentPositionSerializer(required=False)
     tokenIds = serializers.CharField(required=False)
     stringRep = serializers.CharField(required=False)
+    type = serializers.CharField(required=False)
 
     class Meta:
         model = Appellation
         fields = ('asPredicate', 'created', 'createdBy', 'endPos', 'id',
                   'interpretation', 'interpretation_type', 'occursIn',
                   'startPos', 'stringRep', 'tokenIds', 'interpretation_label',
-                  'interpretation_type_label', 'position', 'project')
+                  'interpretation_type_label', 'position', 'project', 'type')
 
 
 class RelationTemplateSerializer(serializers.ModelSerializer):
@@ -307,6 +309,7 @@ class Appellation2Serializer(serializers.Serializer):
     submitted = serializers.BooleanField(required=True)
     relationsFrom = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     relationsTo = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    type = serializers.CharField(required=False)
 
 
 class Text2Serializer(serializers.Serializer):

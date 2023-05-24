@@ -730,6 +730,8 @@ class Appellation(Annotation, Interpreted):
        See :attr:`.position`\.
     """
 
+    type = models.CharField(max_length=10, null=True, blank=True)
+    """The type, date or concept, of the :class:`.Annotation`"""
 
     endPos = models.IntegerField(blank=True, null=True)
     """

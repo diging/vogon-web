@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.urls import include, path, re_path
 from django.contrib import admin
-# from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -23,6 +22,7 @@ from rest_framework_nested import routers
 from annotations import views
 from concepts import views as conceptViews
 from accounts import views as account_views
+from annotations.views import user_views as annotation_views
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView
@@ -79,6 +79,7 @@ urlpatterns = [
     path('api/v2/forgot-password/', account_views.ForgotPasswordView.as_view(), name="forgot_password"),
     path('api/v2/reset-password/', account_views.ResetPasswordView.as_view(), name="reset_password"),
     path('api/v2/check-reset-token/', account_views.check_reset_token, name="check_reset_token"),
+    path('api/v2/create-user/', annotation_views.create, name='create_user'),
     re_path(r'^api/v2/', include((router.urls, "vogon_rest"))),
     re_path(r'^api/v2/', include((amphora_repo_router.urls, "vogon_rest_repo"))),
     re_path(r'^api/v2/', include((amphora_repo_content_router.urls, "vogon_rest_repo_content"))),

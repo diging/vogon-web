@@ -20,7 +20,7 @@ from django.shortcuts import get_object_or_404, render
 from rest_framework import viewsets, serializers, status
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-
+from rest_framework.permissions import IsAdminUser
 from annotations.models import *
 from annotations import relations
 from annotations.serializers import TemplatePartSerializer, TypeSerializer, TemplateSerializer
@@ -34,6 +34,7 @@ logger.setLevel('ERROR')
 class RelationTemplateViewSet(viewsets.ModelViewSet):
     queryset = RelationTemplate.objects.all()
     serializer_class = TemplatePartSerializer
+    permission_classes = (IsAdminUser,)
 
     def list(self, request):
         data = self.get_queryset()

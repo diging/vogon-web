@@ -114,8 +114,8 @@ class AnnotationViewSet(viewsets.ViewSet):
             occursIn=text.id,
         )
         data['relationsets'] = RelationSet.objects.filter(
-            occursIn=text.id, 
-            project=project, 
+            occursIn=text.id,
+            project=project,
         )
         data['concept_types'] = Type.objects.all()
         relationsets = RelationSet.objects.filter(

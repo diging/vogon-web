@@ -30,7 +30,6 @@ class AmphoraRepoViewSet(viewsets.ViewSet):
             return Response({
                 "message": "Project not found!"
             }, 404)
-
         limit = request.query_params.get('limit', None)
         offset = request.query_params.get('offset', None)
         q = request.query_params.get('q', None)
@@ -44,7 +43,6 @@ class AmphoraRepoViewSet(viewsets.ViewSet):
             q=q,
             user=user
         )
-
         return Response({
             **RepositorySerializer(repository).data,
             'collections': collections,
@@ -93,13 +91,12 @@ class AmphoraTextViewSet(viewsets.ViewSet):
             request,
             pk
         )
+
         if not found:
             return Response({ "message": f"Project not found" }, 404)
-
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)
         manager = repository.manager(request.user)
         result = manager.resource(resource_id=int(pk))
-        
         try:
             master_text = Text.objects.get(uri=result.get('uri'))
         except Text.DoesNotExist:
@@ -132,6 +129,7 @@ class AmphoraTextViewSet(viewsets.ViewSet):
             relations = RelationSet.objects.filter(Q(occursIn=master_text) | Q(occursIn_id__in=master_text.children)).order_by('-created')[:10]
             context['relations'] = RelationSetSerializer(relations, many=True, context={'request': request}).data
         return Response(context)
+    
 
     @action(detail=True, methods=['post'], url_name='transfertext')
     def transfer_to_project(self, request, pk=None, repository_pk=None):
@@ -156,7 +154,7 @@ class AmphoraTextViewSet(viewsets.ViewSet):
             return Response({
                 "message": e.detail["message"]
             }, e.detail["code"])
-    
+
     def _get_project(self, request, field):
         project_id = request.data.get(field, None)
         if not project_id:
@@ -215,7 +213,7 @@ class AmphoraTextViewSet(viewsets.ViewSet):
                 
             current_project.save(force_update=True)
             target_project.save(force_update=True)
-    
+
     def _get_project_details(self, request, pk):
         project = get_project_details(request)
         if not project:
