@@ -10,6 +10,7 @@ from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
 
 from annotations.models import TextCollection, RelationSet, Text, Appellation, RelationTemplate
 from accounts.models import VogonUser
@@ -131,6 +132,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         serializer = ProjectSerializer(user_projects, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
+    def list_all_projects(self, request):
+        response_data = {}
+        projects = TextCollection.objects.all()
+        serializer = ProjectSerializer(projects, many=True)
+        response_data["results"] = serializer.data
+        response_data["count"] = len(serializer.data)
+        return Response(response_data, status=status.HTTP_200_OK)
     
     def destroy(self, request, pk=None):
         text_id = request.data['text_id']
