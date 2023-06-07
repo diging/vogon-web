@@ -193,6 +193,8 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
         new_concept = request.data.get('new_concept', None)
         old_concept = get_object_or_404(Concept, id=old_concept)
         concept = self._get_or_create_local_concept(new_concept['uri'])
+        if old_concept.id == concept.id:
+            return Response({"message": "The selected new concept is the same as the old concept"}, 400)
         appellations = Appellation.objects.filter(interpretation=old_concept).update(interpretation=concept.id)
         old_concept.delete()
         return Response(data={"concept": concept.id}, status=status.HTTP_200_OK)
