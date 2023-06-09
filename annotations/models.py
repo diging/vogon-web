@@ -142,6 +142,7 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     """If this field is ``False``, the user will not be able to log in."""
 
     is_admin = models.BooleanField(default=False)
+    is_token_reset_required = models.BooleanField(default=False)
 
     objects = VogonUserManager()
 
@@ -729,6 +730,8 @@ class Appellation(Annotation, Interpreted):
        See :attr:`.position`\.
     """
 
+    type = models.CharField(max_length=10, null=True, blank=True)
+    """The type, date or concept, of the :class:`.Annotation`"""
 
     endPos = models.IntegerField(blank=True, null=True)
     """

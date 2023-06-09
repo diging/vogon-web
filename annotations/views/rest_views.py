@@ -174,8 +174,8 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
     def destroy(self, request, pk=None):
         appellation = get_object_or_404(Appellation, pk=pk)
-        data = Appellation2Serializer(appellation, many=False)
-        
+        serializer_context = {'request': request}
+        data = Appellation2Serializer(appellation, context=serializer_context, many=False)
         if len(data["relationsFrom"].value) or len(data["relationsTo"].value):
             # Can't delete the appellation
             return Response({
@@ -187,12 +187,14 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
             "message": "Successfully deleted appellation"
         })
       
-    @action(detail=False, methods=["POST"])  
+    @action(detail=False, methods=["POST"])
     def update_concept(self, request, pk=None):
         old_concept = request.data.get('old_concept', None)
         new_concept = request.data.get('new_concept', None)
         old_concept = get_object_or_404(Concept, id=old_concept)
         concept = self._get_or_create_local_concept(new_concept['uri'])
+        if old_concept.id == concept.id:
+            return Response({"message": "The selected new concept is the same as the old concept"}, 400)
         appellations = Appellation.objects.filter(interpretation=old_concept).update(interpretation=concept.id)
         old_concept.delete()
         return Response(data={"concept": concept.id}, status=status.HTTP_200_OK)
@@ -271,7 +273,6 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
 
         instance.refresh_from_db()
         reserializer = AppellationSerializer(instance, context={'request': request})
-
         headers = self.get_success_headers(serializer.data)
         return Response(reserializer.data, status=status.HTTP_201_CREATED,
                         headers=headers)
@@ -592,5 +593,5 @@ class ConceptViewSet(viewsets.ModelViewSet):
 
 def concept_search(request):
     q = request.get('search', None)
-    pos = self.request.query_params.get('pos', None)
+    pos = request.query_params.get('pos', None)
     return search_concepts(q=q, user_id=request.user.id, pos=pos)

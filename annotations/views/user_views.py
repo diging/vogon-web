@@ -14,6 +14,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import action, api_view
+from accounts.views import VogonUser
 
 from annotations.models import (VogonUser, Text, Appellation, RelationSet,
 								Relation)
@@ -227,3 +229,19 @@ class UserViewSet(viewsets.ModelViewSet):
 				'count': weekly_annotations.get(week.datetime, 0)
 			})
 		return result
+	
+@api_view(["POST"])
+def create(request):
+	try:
+		user = VogonUser.objects.create(**request.data)
+		user.save()
+		refresh = RefreshToken.for_user(user)
+		return Response({
+			"access": str(refresh.access_token),
+			"refresh": str(refresh)
+		}, status=status.HTTP_201_CREATED)
+	except Exception as e: 
+		response = []
+		for arg in (e.args[0]):
+			response.append(e.args[0][arg])
+		return Response(response, status=status.HTTP_412_PRECONDITION_FAILED)
