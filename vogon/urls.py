@@ -73,12 +73,12 @@ citesphere_repo_group_router.register(r'items', views.citesphere_views.Citespher
 handler403 = 'annotations.exceptions.custom_403_handler'
 schema_view = get_schema_view(
    openapi.Info(
-      title="Snippets API",
+      title="Vogon Web API",
       default_version='v1',
-      description="Test description",
+      description="Vogon's Backend API collection",
       terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@snippets.local"),
-      license=openapi.License(name="BSD License"),
+      contact=openapi.Contact(email="diging@asu.edu"),
+      license=openapi.License(name="Mozilla Public License 2.0"),
    ),
    public=True,
    permission_classes=[permissions.AllowAny],
