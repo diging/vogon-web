@@ -27,6 +27,9 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView
 )
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 
 router = routers.DefaultRouter(trailing_slash=False)
@@ -68,8 +71,24 @@ citesphere_repo_group_router.register(r'items', views.citesphere_views.Citespher
 
 #Error Handlers
 handler403 = 'annotations.exceptions.custom_403_handler'
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Vogon Web API",
+      default_version='v1',
+      description="Vogon's Backend API collection",
+      terms_of_service="https://www.google.com/policies/terms/",
+      contact=openapi.Contact(email="diging@asu.edu"),
+      license=openapi.License(name="Mozilla Public License 2.0"),
+   ),
+   public=True,
+   permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^api/api.json/$', schema_view.without_ui(cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     # REST Views
     path('api/v2/token/',  account_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

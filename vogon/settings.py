@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 DEBUG = os.environ.get('DEBUG', 'True')
 #DEBUG = True
 
-ALLOWED_HOSTS = ["amphora.asu.edu", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["amphora.asu.edu", "localhost", "127.0.0.1", "129.219.40.16"]
 
 # Application definition
 
@@ -50,6 +50,9 @@ INSTALLED_APPS = (
 	"annotations",
 	"accounts",
 	"goat",
+	# 'django.contrib.staticfiles',  # required for serving swagger ui's css/js files
+	"drf_yasg",
+
 )
 
 MIDDLEWARE = (
