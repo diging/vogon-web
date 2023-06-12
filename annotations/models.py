@@ -55,6 +55,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from annotations.utils import help_text
 from concepts.models import Concept, Type
+from django.utils import timezone
 
 
 class VogonUserManager(BaseUserManager):
@@ -1164,3 +1165,9 @@ class DocumentPosition(models.Model):
     If :attr:`.position_type` is :attr:`.WHOLE_DOCUMENT`\, then this can be
     blank.
     """
+
+
+class CsvDownloadList(models.Model):
+    user = models.ForeignKey(VogonUser, on_delete=models.DO_NOTHING)
+    file_field = models.FileField(null=True, upload_to='csv_export/')
+    created = models.DateTimeField(default=timezone.now) 

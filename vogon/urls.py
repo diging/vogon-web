@@ -112,4 +112,7 @@ urlpatterns = [
     re_path(r'^quadruples/relation/(?P<relation_id>[0-9]+).xml$', views.quadruple_views.relation_xml, name='relation_xml'),
     re_path(r'^quadruples/relationset/(?P<relationset_id>[0-9]+).xml$', views.quadruple_views.relationset_xml, name='relationset_xml'),
     re_path(r'^quadruples/text/(?P<text_id>[0-9]+)/(?P<user_id>[0-9]+).xml$', views.quadruple_views.text_xml, name='text_xml'),
+    re_path(r'^api/v2/export/$', views.download_appellation_views.export_appellation, name='export_appellations'),
+    re_path(r'^api/v2/download/$', views.download_appellation_views.available_csvs, name='available_csvs'),
+    re_path(r'^api/v2/download/previous/(?P<download_id>[0-9]+)/$', views.download_appellation_views.handle_csv_download, name='download_previous'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
