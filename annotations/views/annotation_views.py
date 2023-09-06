@@ -81,7 +81,6 @@ class RelationSetViewSet(viewsets.ModelViewSet):
 
 class AnnotationViewSet(viewsets.ViewSet):
     queryset = Text.objects.all()
-
     def retrieve(self, request, pk=None):
         """
         View to get all data related to annotate text

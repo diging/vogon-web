@@ -26,6 +26,7 @@ from annotations import relations
 from annotations.serializers import TemplatePartSerializer, TypeSerializer, TemplateSerializer
 from concepts.models import Concept, Type
 from goat.views import retrieve as retrieve_concept
+from .utils import get_params
 
 
 logger = logging.getLogger(__name__)
@@ -50,17 +51,20 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_name='createrelation')
     def create_relation(self, request, pk=None):
-        template = get_object_or_404(RelationTemplate, pk=pk)
-        data = request.data
-        text = get_object_or_404(Text, pk=data['occursIn'])
-        
-        project_id = data.get('project', None)
-        if project_id is None:
-            project_id = VogonUserDefaultProject.objects.get(
-                for_user=request.user).project.id
+        params = get_params(request, pk)
         
         relationset = relations.create_relationset(
-            template, data, request.user, text, project_id
+            template=params[0], raw_data=params[1], creator=params[2], text=params[3], project_id=params[4]
+        )
+        return JsonResponse({ 'relationset_id': relationset.id })
+    
+    @action(detail=True, methods=['put'], url_name='update_relation')
+    def update_relation(self, request, pk=None):
+        relationset_id = request.data['relation_id']
+        params = get_params(request, pk)
+        
+        relationset = relations.update_relationset(
+            template=params[0], raw_data=params[1], creator=params[2], text=params[3], project_id=params[4], relationset_id=relationset_id
         )
         return JsonResponse({ 'relationset_id': relationset.id })
 
