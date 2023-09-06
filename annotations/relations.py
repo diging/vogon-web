@@ -2,6 +2,7 @@
 Business logic for building and using :class:`.RelationTemplate`\s.
 """
 
+from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -524,3 +525,87 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
                              relations, project_id=project_id)
         relationset.save()
     return relationset
+
+def update_relationset(template, raw_data, creator, text, project_id=None, relationset_id=None):
+    """
+    Create a new :class:`annotations.models.RelationSet` instance from a
+    :class:`annotations.models.RelationTemplate` and user data.
+    """
+    _as_key = lambda datum: (datum['part_id'], datum['part_field'])
+    required = {_as_key(datum): datum for datum in get_fields(template)}
+    provided = {_as_key(datum): datum for datum in raw_data['fields']}
+    template_parts = template.template_parts.all()
+
+    missing = set(required.keys()) - set(provided.keys())
+    if len(missing) > 0:
+        raise InvalidData('Missing fields: %s' % '; '.join(list(remaining)))
+    def update_relation(template_part, data, relationset, cache={}, appellation_cache={}, project_id=None):
+        if cache != None:
+            key = template_part.id 
+            if key in cache:
+                return cache[key]
+
+        field_handlers = {
+            RelationTemplatePart.TYPE: lambda datum: Appellation.objects.get(pk=datum['appellation']['id']),
+            RelationTemplatePart.DATE: lambda datum: DateAppellation.objects.get(pk=datum['appellation']['id']),
+            '__other__': lambda datum: create_appellation(datum, required[_as_key(datum)], cache=appellation_cache, project_id=project_id, creator=creator, text=text)
+        }
+
+        relation_data = {
+            'part_of': relationset,
+            'createdBy': creator,
+            'occursIn': text,
+        }
+
+        for pred in ['source', 'predicate', 'object']:    # Collect field data
+            node_type = getattr(template_part, '%s_node_type' % pred)
+            method = field_handlers.get(node_type, field_handlers['__other__'])
+            datum = provided.get((template_part.id, pred))
+
+            dkey = 'predicate' if pred == 'predicate' else '%s_content_object' % pred
+            if datum:
+                relation_data[dkey] = method(datum)
+            elif node_type == RelationTemplatePart.RELATION:
+                relation_data[dkey] = update_relation(getattr(template_part, '%s_relationtemplate' % pred), data, relationset, cache=cache, appellation_cache=appellation_cache, project_id=project_id)
+            else:
+                payload = {
+                    'type': node_type,
+                    'concept_id': getattr(getattr(template_part, '%s_concept' % pred), 'id', None),
+                    'part_field': pred
+                }
+                relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
+
+        relation_id_q = relationset.constituents.all().values('id')
+        relation = get_object_or_404(Relation, pk=relation_id_q[0]['id'])
+        relation.source_content_object = relation_data['source_content_object']
+        relation.predicate = relation_data['predicate']
+        relation.object_content_object = relation_data['object_content_object']
+        relation.save()
+        
+        if cache != None:
+            cache[template_part.id] = relation
+        return relation
+
+    appellation_cache = {}
+    relation_cache = {}
+    relations = {}
+    relationset = get_object_or_404(RelationSet, pk=relationset_id)
+    with transaction.atomic():
+        relationset.createdBy = creator
+        relationset.occursIn = text
+        relationset.template = template
+        relationset.project.id = project_id
+
+        for template_part in template_parts:
+            relation = update_relation(template_part, provided, relationset, cache=relation_cache, appellation_cache=appellation_cache, project_id=project_id)
+            relations[template_part.internal_id] = relation
+
+        relationset.expression = generate_expression(template, relations)
+        relationset.terminal_nodes.add(*get_terminal_nodes(template, relations))
+
+        # Updates the RelationSet in place.
+        handle_temporal_data(template, raw_data, creator, text, relationset,
+                             relations, project_id=project_id)
+        relationset.save()
+    return relationset
+
