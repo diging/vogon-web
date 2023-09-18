@@ -7,6 +7,7 @@ from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
+from django.db import transaction
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 
@@ -18,6 +19,7 @@ from annotations.serializers import (
 )
 from annotations.views.utils import get_project_details
 from repository.models import Repository
+from annotations.views.utils import _get_project, _transfer_text, _get_project_details
 
 
 class AmphoraRepoViewSet(viewsets.ViewSet):
@@ -140,11 +142,11 @@ class AmphoraTextViewSet(viewsets.ViewSet):
         
         try:
             # Retrieve current and target project
-            current_project = self._get_project(request, 'project_id')
-            target_project = self._get_project(request, 'target_project_id')
+            current_project = _get_project(request, 'project_id')
+            target_project = _get_project(request, 'target_project_id')
 
             # Transfer text
-            self._transfer_text(
+            _transfer_text(
                 text, current_project, target_project, request.user)
             
             return Response({
@@ -227,7 +229,7 @@ class AmphoraTextViewSet(viewsets.ViewSet):
         except Text.DoesNotExist:
             pass
         return True, project_details, part_of_project
-
+    
 class AmphoraTextContentViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None, repository_pk=None, texts_pk=None):
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)

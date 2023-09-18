@@ -24,12 +24,10 @@ class UserViewSet(viewsets.ModelViewSet):
 	"""
 	API endpoint that allows users to be viewed or edited.
 	"""
-
 	User = get_user_model()
 	queryset = VogonUser.objects.all()
 	serializer_class = UserSerializer
 	permission_classes = (AllowAny,)
-
 
 @api_view(["GET"])
 def github_token(request):
@@ -66,7 +64,7 @@ def citesphere_token(request):
 				"client_id": settings.CITESPHERE_CLIENT_ID,
 				"client_secret": settings.CITESPHERE_CLIENT_SECRET,
 				"code": code,
-				"grant_type": "authorization_code"
+				"grant_type": "authorization_code",
 			},
 			headers={"Accept": "application/json"},
 		)

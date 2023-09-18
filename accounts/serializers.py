@@ -2,7 +2,7 @@ from rest_framework import serializers
 from annotations.models import VogonUser
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import GithubToken
+from .models import GithubToken, CitesphereToken
 
 class UserSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(write_only=True)
@@ -35,6 +35,11 @@ class TokenObtainPairSerializer(TokenObtainPairSerializer):
 			token['github_token'] = True
 		except GithubToken.DoesNotExist:
 			token['github_token'] = False
+		try:
+			CitesphereToken.objects.get(user=user)
+			token['citesphere_token'] = True
+		except CitesphereToken.DoesNotExist:
+			token['citesphere_token'] = False
 		return token
 
 class ResetPasswordSerializer(serializers.Serializer):

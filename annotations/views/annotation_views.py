@@ -85,12 +85,34 @@ class AnnotationViewSet(viewsets.ViewSet):
         """
         View to get all data related to annotate text
         """
+        repo_id = request.query_params.get('repo_id', None)
+        group_id = request.query_params.get('group_id', None)
+        file_id = request.query_params.get('file_id', None)
         text = get_object_or_404(Text, pk=pk)
-        annotator = annotator_factory(request, text)
-        data = annotator.render()
-        content = data['content'].decode("utf-8")
-        data['content'] = content
-        project = data['project']
+        data = {}
+        if text.repository.name == "Citesphere":
+            repository = text.repository
+            manager = repository.manager(request.user)
+            file_content = manager.item_content1(group_id, repo_id, file_id)
+            try:
+                if file_content[0] == "error":
+                    return Response(status=file_content[1])
+            except Exception as e:
+                pass
+            content = file_content
+            data['content'] = content
+            project_id = request.query_params.get('project_id', None)
+            if project_id:
+                project = TextCollection.objects.get(pk=project_id)
+            else:
+                project = request.user.get_default_project()
+            data['text'] = text
+        else:
+            annotator = annotator_factory(request, text)
+            data = annotator.render()
+            content = data['content'].decode("utf-8")
+            data['content'] = content
+            project = data['project']
 
         if project.ownedBy != request.user and request.user not in project.participants.all():
             return Response({

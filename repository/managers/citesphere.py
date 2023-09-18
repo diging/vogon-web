@@ -18,7 +18,7 @@ class CitesphereAuthority:
         return self._get_response(f'{self.endpoint}/api/v1/user')
 
     def groups(self):
-        groups = self._get_response(f'{self.endpoint}/api/v1/groups')
+        groups = self._get_response(f'{self.endpoint}/groups')
         return list(map(self._parse_group_info, groups))
 
     def group_info(self, group_id):
@@ -27,10 +27,30 @@ class CitesphereAuthority:
 
     def group_items(self, group_id, page=1):
         params = { "page": page }
-        return self._get_response(
+        response = self._get_response(
             f'{self.endpoint}/api/v1/groups/{group_id}/items',
             params=params
         )
+        return response
+        
+    def group_item(self, group_id, item_id):
+        response = self._get_response(
+            f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}'
+        )
+        return response
+        
+    def content(self, content_id, group_id=None, item_id=None):
+        end_point = settings.GILES_FILE_ENDPOINT
+        with open('repository/managers/data','r') as file:
+            data = file.read()
+        # return self._get_response(
+        #     f'{end_point}/{filesId}/content'
+        # )
+        return data
+        
+    def item_content1(self, group_id, item_id, filesId):
+        endpoint = "https://diging.asu.edu/geco-giles-staging/api/v2/resources/files/{}/content".format(filesId)
+        return self._get_response(endpoint)
 
     def group_collections(self, group_id, limit=None, offset=None):
         return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/collections')
@@ -67,8 +87,14 @@ class CitesphereAuthority:
                     self._get_access_token() # Set new token
                 except requests.RequestException as e:
                     raise e
-            else:
-                return json.loads(response.content)
+            elif response.status_code == status.HTTP_200_OK:
+                try:
+                    data = json.loads(response.content)
+                except Exception as e:
+                    data = response.content
+                return data
+            elif response.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR]:
+                return "error", response.status_code
 
         raise requests.exceptions.RetryError("Could not renew token")
 
@@ -93,7 +119,6 @@ class CitesphereAuthority:
             self.auth_token.save()
             self.headers = self._get_auth_header()
         else:
-            print(response.content)
             raise requests.RequestException("Error renewing access_token")
 
     def _parse_group_info(self, group):
