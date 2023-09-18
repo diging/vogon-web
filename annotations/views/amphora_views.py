@@ -156,7 +156,7 @@ class AmphoraTextViewSet(viewsets.ViewSet):
             return Response({
                 "message": e.detail["message"]
             }, e.detail["code"])
-
+        
     def _get_project(self, request, field):
         project_id = request.data.get(field, None)
         if not project_id:
@@ -229,7 +229,7 @@ class AmphoraTextViewSet(viewsets.ViewSet):
         except Text.DoesNotExist:
             pass
         return True, project_details, part_of_project
-    
+        
 class AmphoraTextContentViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None, repository_pk=None, texts_pk=None):
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.AMPHORA)

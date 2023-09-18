@@ -19,8 +19,7 @@ class CitesphereRepoViewSet(viewsets.ViewSet):
         repository = get_object_or_404(queryset, pk=pk)
 
         manager = repository.manager(request.user)
-        #groups = manager.groups()
-        collections = manager.collections
+        groups = manager.groups()
         return Response({
             **RepositorySerializer(repository).data,
             #'groups': groups
