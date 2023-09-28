@@ -32,6 +32,7 @@ class AmphoraRepoViewSet(viewsets.ViewSet):
             return Response({
                 "message": "Project not found!"
             }, 404)
+        
         limit = request.query_params.get('limit', None)
         offset = request.query_params.get('offset', None)
         q = request.query_params.get('q', None)
@@ -50,7 +51,7 @@ class AmphoraRepoViewSet(viewsets.ViewSet):
             'collections': collections,
             'project': ProjectSerializer(project).data,
         })
-    
+        
 class AmphoraCollectionViewSet(viewsets.ViewSet):
     def list(self, request, repository_pk=None):
         repository = get_object_or_404(

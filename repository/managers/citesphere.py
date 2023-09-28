@@ -6,36 +6,35 @@ from rest_framework import status
 from accounts.models import CitesphereToken
 
 class CitesphereAuthority:
-    def __init__(self, user, endpoint):
-        self.endpoint = endpoint
+    def __init__(self, user):
         self.user = user
         self.headers = self._get_auth_header()
 
     def test_endpoint(self):
-        return self._get_response(f'{self.endpoint}/api/v1/test')
+        return self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/test')
 
     def user_info(self):
-        return self._get_response(f'{self.endpoint}/api/v1/user')
+        return self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/user')
 
     def groups(self):
-        groups = self._get_response(f'{self.endpoint}/groups')
+        groups = self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups')
         return list(map(self._parse_group_info, groups))
 
     def group_info(self, group_id):
-        group = self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}')
+        group = self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}')
         return self._parse_group_info(group)
 
     def group_items(self, group_id, page=1):
         params = { "page": page }
         response = self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/items',
+            f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/items',
             params=params
         )
         return response
         
     def group_item(self, group_id, item_id):
         response = self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/items/{item_id}'
+            f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/items/{item_id}'
         )
         return response
         
@@ -53,18 +52,18 @@ class CitesphereAuthority:
         return self._get_response(endpoint)
 
     def group_collections(self, group_id, limit=None, offset=None):
-        return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/collections')
+        return self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/collections')
 
     def collection_items(self, group_id, col_id, page=1):
         params = { "page": page }
         return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/collections/{col_id}/items',
+            f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/collections/{col_id}/items',
             params=params
         )
 
     def collection_collections(self, group_id, col_id):
         return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/collections/{col_id}/collections'
+            f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/collections/{col_id}/collections'
         )
     
     def _get_auth_header(self):
@@ -105,7 +104,7 @@ class CitesphereAuthority:
         """
         refresh_token = self.auth_token.refresh_token
         response = requests.post(
-            url=f'{self.endpoint}/api/oauth/token',
+            url=f'{settings.CITESPHERE_ENDPOINT}/api/oauth/token',
             params={
                 "client_id": settings.CITESPHERE_CLIENT_ID,
                 "client_secret": settings.CITESPHERE_CLIENT_SECRET,
@@ -125,8 +124,8 @@ class CitesphereAuthority:
         return {
             "id": group['id'],
             "name": group['name'],
-            "uri": f"{self.endpoint}/auth/group/{group['id']}",
-            "url": f"{self.endpoint}/api/v1/groups/{group['id']}/items",
+            "uri": f"{settings.CITESPHERE_ENDPOINT}/api/v1/auth/group/{group['id']}",
+            "url": f"{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group['id']}/items",
             "description": group['description'],
             "public": False if group['type'] == "Private" else True,
             "size": group['numItems']

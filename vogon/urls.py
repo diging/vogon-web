@@ -90,7 +90,7 @@ urlpatterns = [
     re_path(r'^api/api.json/$', schema_view.without_ui(cache_timeout=0), name='schema-swagger-ui'),
     re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     # REST Views
-    path('api/v2/token/',  account_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/v2/token/', account_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v2/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v2/token/verify/', account_views.VogonTokenVerifyView.as_view(), name='token_verify'),
     path('api/v2/github-token/', account_views.github_token, name="github_token"),
@@ -98,7 +98,7 @@ urlpatterns = [
     path('api/v2/forgot-password/', account_views.ForgotPasswordView.as_view(), name="forgot_password"),
     path('api/v2/reset-password/', account_views.ResetPasswordView.as_view(), name="reset_password"),
     path('api/v2/check-reset-token/', account_views.check_reset_token, name="check_reset_token"),
-    path('api/v2/create-user/', annotation_views.create, name='create_user'),
+    path('api/v2/create-user/', annotation_views.create_user, name='create_user'),
     re_path(r'^api/v2/', include((router.urls, "vogon_rest"))),
     re_path(r'^api/v2/', include((amphora_repo_router.urls, "vogon_rest_repo"))),
     re_path(r'^api/v2/', include((amphora_repo_content_router.urls, "vogon_rest_repo_content"))),

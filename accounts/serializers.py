@@ -5,7 +5,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import GithubToken, CitesphereToken
 
 class UserSerializer(serializers.ModelSerializer):
-	password = serializers.CharField(write_only=True)
 	def create(self, validated_data):
 		for k,v in validated_data.items():
 			print(k,v)
@@ -15,14 +14,13 @@ class UserSerializer(serializers.ModelSerializer):
 			full_name=validated_data['full_name'],
 			affiliation=validated_data['affiliation'],
 		)
-		user.set_password(validated_data['password'])
 		user.save()
 
 		return user
 
 	class Meta:
 		model = get_user_model()
-		fields = ('id','email', 'password', 'full_name', 'username', 'affiliation')
+		fields = ('id','email', 'full_name', 'username', 'affiliation')
 		ref_name = "user accounts"
 
 

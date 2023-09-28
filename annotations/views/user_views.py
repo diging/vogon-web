@@ -1,7 +1,7 @@
 """
 Provides user-oriented views, including dashboard, registration, etc.
 """
-import arrow
+import arrow, json
 from itertools import groupby
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import serializers
@@ -17,7 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action, api_view
 from accounts.views import VogonUser
 
-from annotations.models import (VogonUser, Text, Appellation, RelationSet,
+from annotations.models import (VogonUser, VogonUserManager, Text, Appellation, RelationSet,
 								Relation)
 from annotations.serializers import (
 	ProjectSerializer, TextSerializer, RelationSetSerializer,
@@ -47,8 +47,8 @@ class UserViewSet(viewsets.ModelViewSet):
 		if self.page is not None:
 			serializer = UserSerializer(self.page, many=True)
 			return self.get_paginated_response(serializer.data)
-		
-		users = serializer(queryset, many=True).data	
+
+		users = serializer(queryset, many=True).data
 		return Response(users)
 
 	def retrieve(self, request, pk=None):
@@ -85,7 +85,7 @@ class UserViewSet(viewsets.ModelViewSet):
 	def dashboard(self, request):
 		"""
 		User's dashboard page
-		
+
 			* Recently annotated texts
 			* Recently added texts
 			* Recent projects
@@ -106,7 +106,7 @@ class UserViewSet(viewsets.ModelViewSet):
 		_recently_annotated = request.user.appellation_set \
 				.order_by('occursIn_id', '-created') \
 				.values_list('occursIn_id')[:20]
-			
+
 		_annotated_texts = Text.objects.filter(pk__in=_recently_annotated)
 		_key = lambda t: t.id
 		_recent_grouper = groupby(
@@ -123,7 +123,7 @@ class UserViewSet(viewsets.ModelViewSet):
 		recent_texts = TextSerializer(_recent_texts, many=True).data
 
 		_added_texts = Text.objects.filter(
-				addedBy_id=request.user.id, 
+				addedBy_id=request.user.id,
 				part_of__isnull=True
 			) \
 			.order_by('-added')[:5]
@@ -139,7 +139,7 @@ class UserViewSet(viewsets.ModelViewSet):
 				.order_by('-created')[:10]
 
 		relations = RelationSetSerializer(_relations, many=True, context={'request': request}).data
-		return Response({ 
+		return Response({
 			'user': UserSerializer(request.user).data,
 			'projects': projects,
 			'projects_contributed': projects_contributed,
@@ -162,7 +162,7 @@ class UserViewSet(viewsets.ModelViewSet):
 				"access": str(refresh.access_token),
 				"refresh": str(refresh)
 			})
-		except Exception as e: 
+		except Exception as e:
 			response = []
 			for arg in (e.args[0]):
 				response.append(e.args[0][arg])
@@ -221,7 +221,7 @@ class UserViewSet(viewsets.ModelViewSet):
 			annotations = list(group)
 			count = sum([x['count'] for x in annotations])
 			weekly_annotations[week] = count
-		
+
 		result = []
 		for week in arrow.Arrow.range('week', start, end):
 			result.append({
@@ -229,19 +229,26 @@ class UserViewSet(viewsets.ModelViewSet):
 				'count': weekly_annotations.get(week.datetime, 0)
 			})
 		return result
-	
+
 @api_view(["POST"])
-def create(request):
+@authentication_classes([])
+@permission_classes([AllowAny])
+def create_user(request):
 	try:
-		user = VogonUser.objects.create(**request.data)
+		username = request.data['username']
+		email = request.data['email']
+		full_name = request.data['full_name']
+		affiliation = request.data['affiliation']
+		
+		user = VogonUser.objects.create_user(username, email, full_name, affiliation)
 		user.save()
 		refresh = RefreshToken.for_user(user)
 		return Response({
 			"access": str(refresh.access_token),
 			"refresh": str(refresh)
 		}, status=status.HTTP_201_CREATED)
-	except Exception as e: 
+	except Exception as e:
 		response = []
 		for arg in (e.args[0]):
-			response.append(e.args[0][arg])
+			response.append(arg)
 		return Response(response, status=status.HTTP_412_PRECONDITION_FAILED)

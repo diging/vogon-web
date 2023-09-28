@@ -59,7 +59,7 @@ from django.utils import timezone
 
 
 class VogonUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None, link=None):
+    def create_user(self, username, email, full_name=None, affiliation=None, location=None, link=None):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -71,16 +71,13 @@ class VogonUserManager(BaseUserManager):
             location=location,
             link=link
         )
-
-        user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, email, password):
+    def create_superuser(self, username, email):
         user = self.create_user(
             username,
             email,
-            password=password,
         )
         user.is_admin = True
         user.save(using=self._db)

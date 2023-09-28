@@ -22,8 +22,7 @@ class CitesphereRepoViewSet(viewsets.ViewSet):
         groups = manager.groups()
         return Response({
             **RepositorySerializer(repository).data,
-            #'groups': groups
-            'collections': collections
+            'groups': groups
         })
 
 
@@ -48,6 +47,18 @@ class CitesphereGroupsViewSet(viewsets.ViewSet):
         collections = manager.group_collections(pk)
         items = manager.group_items(pk)
 
+        error = ""
+        if isinstance(items, tuple):
+            if items[1] == 404:
+                error = "items"
+        if isinstance(collections, tuple):
+            if collections[1] == 404:
+                error = "collections"
+        if not manager:
+            error = "manager"
+        if error != "":
+            return Response({ "message": f"Citesphere {error} not found" }, 404)
+        
         # Append `children` field
         for collection in collections["collections"]:
             if collection["numberOfCollections"] > 0:
