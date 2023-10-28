@@ -22,7 +22,7 @@ def get_project_details(request):
     # Return user's default project
     return request.user.get_default_project()
 
-def get_params(request, pk):
+def get_relationset_params(request, pk):
     template = get_object_or_404(RelationTemplate, pk=pk)
     data = request.data
     text = get_object_or_404(Text, pk=data['occursIn'])
@@ -100,7 +100,5 @@ def _get_project_details(request, pk):
 
     project_details = ProjectSerializer(project).data
     part_of_project = None
-    texts = Text.objects.filter(pk__in=project_details['texts'])
-    if texts:
-        part_of_project = project_details
-        return True, project_details, part_of_project
+    part_of_project = project_details
+    return True, project_details, part_of_project

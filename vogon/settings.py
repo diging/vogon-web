@@ -26,10 +26,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True')
-#DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False')
 
-ALLOWED_HOSTS = ["amphora.asu.edu", "localhost", "127.0.0.1", "129.219.40.16"]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
 
 # Application definition
 
@@ -138,15 +137,6 @@ WSGI_APPLICATION = "vogon.wsgi.application"
 
 DATABASES = {"default": dj_database_url.config()}
 DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql_psycopg2"
-
-
-# print DATABASES
-
-AUTHENTICATION_BACKENDS = (
-	"django.contrib.auth.backends.ModelBackend",  # default
-	# 'social.backends.github.GithubOAuth2',
-	#'allauth.account.auth_backends.AuthenticationBackend',
-)
 
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 ANONYMOUS_USER_ID = -1

@@ -124,7 +124,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         return Response(items)
     
     def retrieve(self, request, repository_pk, groups_pk, pk):
-        part_of_id = self.request.query_params.get('part_of', None)            
+        part_of_id = self.request.query_params.get('part_of', None)   
         found, project_details, part_of_project = utils._get_project_details(
             request,
             repository_pk
@@ -144,7 +144,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         except Exception as e:
             pass
         data = item_data['item']['gilesUploads']
-        result = data[2]
+        result = data[0]
         master_text = None
         result_data = result['uploadedFile']
         try:
@@ -162,6 +162,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 pass
         if part_of_id:
             master_text.repository_source_id = part_of_id
+        master_text.repository_source_id = repository_pk
         submitted = False
         context = {
             'item_data': item_data,
@@ -186,7 +187,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         except Exception as e:
             pass
         data = item_data['item']['gilesUploads']
-        result = data[2]
+        result = data[0]
         master_text = None
         result_data = None
         for key, value in result.items():
@@ -207,7 +208,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                                 for k1,v1 in k2.items():
                                     if k1 in ["image","text", "ocr"]:
                                         if v1["id"] == file_id:
-                                            result_data =  v1                        
+                                            result_data =  v1
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))
         except Text.DoesNotExist:
@@ -227,7 +228,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         return Response({
             'success': True,
             'text_id': master_text.id,
-            'project_id': project_id
+            'project_id': project_id,
         })
     
     @action(detail=True, methods=['get'], url_name='file')

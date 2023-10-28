@@ -408,6 +408,10 @@ class Text(models.Model):
 
     repository = models.ForeignKey("repository.Repository", blank=True, null=True, related_name='texts', on_delete=models.CASCADE)
     repository_source_id = models.IntegerField(default=-1, blank=True, null=True)
+    """
+    The unique id of the content file to retrieve from Giles
+    """
+    file_id = models.CharField(max_length=50, blank=True, null=True)
     content_type = models.CharField(max_length=255)
     """MIME type"""
 

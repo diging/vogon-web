@@ -39,9 +39,3 @@ class TokenObtainPairSerializer(TokenObtainPairSerializer):
 		except CitesphereToken.DoesNotExist:
 			token['citesphere_token'] = False
 		return token
-
-class ResetPasswordSerializer(serializers.Serializer):
-	username = serializers.CharField(required=True)
-	password1 = serializers.CharField(required=True)
-	password2 = serializers.CharField(required=True)
-	token = serializers.CharField(required=True)

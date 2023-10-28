@@ -89,11 +89,12 @@ class AnnotationViewSet(viewsets.ViewSet):
         group_id = request.query_params.get('group_id', None)
         file_id = request.query_params.get('file_id', None)
         text = get_object_or_404(Text, pk=pk)
+        text.file_id = file_id
         data = {}
         if text.repository.name == "Citesphere":
             repository = text.repository
             manager = repository.manager(request.user)
-            file_content = manager.item_content1(group_id, repo_id, file_id)
+            file_content = manager.content(file_id)
             try:
                 if file_content[0] == "error":
                     return Response(status=file_content[1])
@@ -160,6 +161,7 @@ class AnnotationViewSet(viewsets.ViewSet):
         Provides network data for the graph tab in the text annotation view.
         """
         text = get_object_or_404(Text, pk=pk)
+        text.file_id = request.query_params.get('file_id', None)
         annotator = annotator_factory(request, text)
         data = annotator.render()
         project = data['project']

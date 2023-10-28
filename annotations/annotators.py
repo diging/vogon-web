@@ -60,6 +60,7 @@ from annotations.models import TextCollection, VogonUserDefaultProject
 from urllib.parse import urlparse
 import chardet
 from .models import VogonUser
+from django.conf import settings
 
 
 class Annotator(object):
@@ -108,7 +109,7 @@ class Annotator(object):
         if not self.text.repository:
             return
         manager = self.text.repository.manager(self.context['user'])
-        self.resource = manager.content(content_id=int(self.text.repository_source_id))
+        self.resource = manager.content(file_id=self.text.file_id)
         return self.resource
 
     def render(self, context={}):
@@ -154,7 +155,6 @@ class Annotator(object):
         return render(self.context.get('request'), self.display_template, context)
 
     def get_context(self):
-        
         resource = self.get_resource()
         request = self.context.get('request')
         content = self.get_content(resource)
@@ -165,7 +165,7 @@ class Annotator(object):
             'textid': self.text.id,
             'title': 'Annotate Text',
             'content': content.decode(detect['encoding']).encode('utf-8'), # We are using chardet to guess the encoding becuase giles is returning everyting with a utf-8 header even if it is not utf-8
-            'baselocation' : basepath(request),
+            'baselocation': basepath(request),
             'userid': 2,
             'title': self.text.title,
             'repository_id': self.text.repository.id,
@@ -182,8 +182,7 @@ class PlainTextAnnotator(Annotator):
     content_types = ('text/plain',)
 
     def get_content(self, resource):
-        target = resource.get('location')
-        request = self.context['request']
+        target = settings.CITESPHERE_ENDPOINT
         user = VogonUser.objects.get(id=self.context['user'].id)
         manager = self.text.repository.manager(user)
         endpoint = self.text.repository.url
@@ -196,12 +195,12 @@ class PlainTextAnnotator(Annotator):
 
     def get_context(self):
         context = super(PlainTextAnnotator, self).get_context()
-        context.update({
-            'next': self.resource.get('next'),
-            'next_content': self.resource.get('next_content'),
-            'previous': self.resource.get('previous'),
-            'previous_content': self.resource.get('previous_content'),
-        })
+        # context.update({
+        #     'next': self.resource.get('next'),
+        #     'next_content': self.resource.get('next_content'),
+        #     'previous': self.resource.get('previous'),
+        #     'previous_content': self.resource.get('previous_content'),
+        # })
         return context
 
 

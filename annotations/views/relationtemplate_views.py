@@ -26,7 +26,7 @@ from annotations import relations
 from annotations.serializers import TemplatePartSerializer, TypeSerializer, TemplateSerializer
 from concepts.models import Concept, Type
 from goat.views import retrieve as retrieve_concept
-from .utils import get_params
+from .utils import get_relationset_params
 
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_name='createrelation')
     def create_relation(self, request, pk=None):
-        params = get_params(request, pk)
+        params = get_relationset_params(request, pk)
         
         relationset = relations.create_relationset(
             template=params[0], raw_data=params[1], creator=params[2], text=params[3], project_id=params[4]
@@ -61,7 +61,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['put'], url_name='update_relation')
     def update_relation(self, request, pk=None):
         relationset_id = request.data['relation_id']
-        params = get_params(request, pk)
+        params = get_relationset_params(request, pk)
         
         relationset = relations.update_relationset(
             template=params[0], raw_data=params[1], creator=params[2], text=params[3], project_id=params[4], relationset_id=relationset_id

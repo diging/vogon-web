@@ -38,18 +38,8 @@ class CitesphereAuthority:
         )
         return response
         
-    def content(self, content_id, group_id=None, item_id=None):
-        end_point = settings.GILES_FILE_ENDPOINT
-        with open('repository/managers/data','r') as file:
-            data = file.read()
-        # return self._get_response(
-        #     f'{end_point}/{filesId}/content'
-        # )
-        return data
-        
-    def item_content1(self, group_id, item_id, filesId):
-        endpoint = "https://diging.asu.edu/geco-giles-staging/api/v2/resources/files/{}/content".format(filesId)
-        return self._get_response(endpoint)
+    def content(self, file_id):
+        return self._get_response(f'{settings.GILES_FILE_ENDPOINT}/{file_id}/content')
 
     def group_collections(self, group_id, limit=None, offset=None):
         return self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/collections')
@@ -130,3 +120,10 @@ class CitesphereAuthority:
             "public": False if group['type'] == "Private" else True,
             "size": group['numItems']
         }
+    
+    def get_raw(self, target, **params):
+        return requests.get(
+            url=target,
+            headers=self.headers,
+            params=params
+        ).content

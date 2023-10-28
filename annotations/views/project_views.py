@@ -58,14 +58,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project = get_object_or_404(TextCollection, pk=pk)
         
         if project.ownedBy.id != request.user.id:
-            return Response(
-                { "error": "User not authorized to add text" },
-                403
-            )
+            return Response({ "error": "User not authorized to add text" }, 403)
 
         manager = repository.manager(request.user)
         resource = manager.resource(resource_id=int(text_id))
-
         defaults = {
             'title': resource.get('title'),
             'created': resource.get('created'),
