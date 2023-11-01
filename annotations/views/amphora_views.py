@@ -173,50 +173,6 @@ class AmphoraTextViewSet(viewsets.ViewSet):
                 "code": 404
             })
 
-    def _transfer_text(self, text, current_project, target_project, user):
-        # Check eligibility
-        is_owner = user.pk == current_project.ownedBy.pk
-        is_target_contributor = target_project.participants.filter(pk=user.pk).exists()
-        is_target_owner = target_project.ownedBy.pk == user.pk
-        if not is_owner:
-            raise APIException({
-                "message": f"User is not the owner of current project '{current_project.name}'",
-                "code": 403
-            })
-        if not (is_target_contributor or is_target_owner):
-            raise APIException({
-                "message": f"User is not owner/contributor of target project '{target_project.name}'",
-                "code": 403
-            })
-
-        # Check if text is already part of `target_project`
-        if target_project.texts.filter(pk=text.pk).exists():
-            raise APIException({
-                "message": f"Text `{text.title}` is already part of project `{target_project.name}`!",
-                "code": 403
-            })
-
-        # Retrieve all related objects for `current_project`
-        appellations = Appellation.objects.filter(
-            occursIn__in=text.children,
-            project=current_project
-        )
-        relationsets = RelationSet.objects.filter(
-            occursIn__in=text.children,
-            project=current_project
-        )
-
-        with transaction.atomic():
-            appellations.update(project=target_project)
-            relationsets.update(project=target_project)
-            for child in text.children:
-                child_text = Text.objects.get(pk=child)
-                current_project.texts.remove(child_text)
-                target_project.texts.add(child_text)
-                
-            current_project.save(force_update=True)
-            target_project.save(force_update=True)
-
     def _get_project_details(self, request, pk):
         project = get_project_details(request)
         if not project:

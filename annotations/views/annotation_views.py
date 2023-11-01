@@ -85,8 +85,6 @@ class AnnotationViewSet(viewsets.ViewSet):
         """
         View to get all data related to annotate text
         """
-        repo_id = request.query_params.get('repo_id', None)
-        group_id = request.query_params.get('group_id', None)
         file_id = request.query_params.get('file_id', None)
         text = get_object_or_404(Text, pk=pk)
         text.file_id = file_id
@@ -98,7 +96,7 @@ class AnnotationViewSet(viewsets.ViewSet):
             try:
                 if file_content[0] == "error":
                     return Response(status=file_content[1])
-            except Exception as e:
+            except Exception:
                 pass
             content = file_content
             data['content'] = content

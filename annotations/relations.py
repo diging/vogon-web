@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
 from annotations.models import *
-from annotations.utils import update_relation
+from annotations.utils import *
 from concepts.models import Concept
 
 import networkx as nx
@@ -459,7 +459,7 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
 
     missing_fields = set(required.keys()) - set(provided.keys())
     if len(missing_fields) > 0:
-        raise InvalidData('Missing fields: %s' % '; '.join(list(remaining)))
+        raise InvalidData('Missing fields: %s' % '; '.join(list(missing_fields)))
 
     def create_relation(template_part, data, relationset, cache={}, appellation_cache={}, project_id=None):
         if cache != None:
@@ -539,7 +539,7 @@ def update_relationset(template, raw_data, creator, text, project_id=None, relat
 
     missing_fields = set(required.keys()) - set(provided.keys())
     if len(missing_fields) > 0:
-        raise InvalidData('Missing fields: %s' % '; '.join(list(remaining)))
+        raise InvalidData('Missing fields: %s' % '; '.join(list(missing_fields)))
 
     appellation_cache = {}
     relation_cache = {}
@@ -552,7 +552,7 @@ def update_relationset(template, raw_data, creator, text, project_id=None, relat
         relationset.project.id = project_id
 
         for template_part in template_parts:
-            relation = update_relation(template_part, provided, relationset, cache=relation_cache, appellation_cache=appellation_cache, project_id=project_id, creator=creator, text=text, required=required, provided=provided, _as_key=_as_key)
+            relation = update_relation(template_part, provided, relationset, cache=relation_cache, appellation_cache=appellation_cache, project_id=project_id, creator=creator, text=text, required=required, _as_key=_as_key)
             relations[template_part.internal_id] = relation
 
         relationset.expression = generate_expression(template, relations)

@@ -93,7 +93,7 @@ def _transfer_text(text, current_project, target_project, user):
         current_project.save(force_update=True)
         target_project.save(force_update=True)
     
-def _get_project_details(request, pk):
+def _get_project_details(request):
     project = get_project_details(request)
     if not project:
         return False, None, None
@@ -102,3 +102,22 @@ def _get_project_details(request, pk):
     part_of_project = None
     part_of_project = project_details
     return True, project_details, part_of_project
+
+def get_giles_file_data(result, file_id):
+    for key, value in result.items():
+        if key in ["uploadedFile", "extractedText"]:
+            if value["id"] == file_id or value['id'] == file_id:
+                return value
+  
+        elif key == "pages":
+            for k in value:
+                for k1,v1 in k.items():
+                    if k1 in ["image","text", "ocr"]:
+                        if v1['id'] == file_id:
+                            return v1
+                    elif k1 == "additionalFiles":
+                        for k2 in value:
+                            for k1,v1 in k2.items():
+                                if k1 in ["image","text", "ocr"]:
+                                    if v1["id"] == file_id:
+                                        return v1

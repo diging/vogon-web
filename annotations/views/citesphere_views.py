@@ -9,7 +9,7 @@ from annotations.serializers import RepositorySerializer, TextSerializer, Relati
 from repository.models import Repository
 from annotations.views import utils
 from django.db.models import Q
-from annotations.views.utils import _get_project, _transfer_text
+from annotations.views.utils import _get_project, _transfer_text, get_giles_file_data
 
 class CitesphereRepoViewSet(viewsets.ViewSet):
     queryset = Repository.objects.all()
@@ -43,21 +43,20 @@ class CitesphereGroupsViewSet(viewsets.ViewSet):
             pk=repository_pk,
             repo_type=Repository.CITESPHERE
         )
+        error = []
         manager = repository.manager(request.user)
-        collections = manager.group_collections(pk)
-        items = manager.group_items(pk)
-
-        error = ""
+        if manager:
+            collections = manager.group_collections(pk)
+            items = manager.group_items(pk)
+        else:
+            error = ["Manager", 404]
+        
         if isinstance(items, tuple):
-            if items[1] == 404:
-                error = "items"
+            error = ["Items", items[1]]
         if isinstance(collections, tuple):
-            if collections[1] == 404:
-                error = "collections"
-        if not manager:
-            error = "manager"
-        if error != "":
-            return Response({ "message": f"Citesphere {error} not found" }, 404)
+            error = ["Collections", collections[1]]
+        if error:
+            return Response({ "message": f"Citesphere {error[1]} error: {error[0]}" }, error[1])
         
         # Append `children` field
         for collection in collections["collections"]:
@@ -130,7 +129,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
             repository_pk
         )
         if not found:
-            return Response({ "message": f"Project not found" }, 404)
+            return Response({ "message": "Project not found" }, 404)
         repository = get_object_or_404(
             Repository,
             pk=repository_pk,
@@ -141,7 +140,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         try:
             if item_data[0] == "error":
                 return Response(status=item_data[1])
-        except Exception as e:
+        except Exception:
             pass
         data = item_data['item']['gilesUploads']
         result = data[0]
@@ -158,7 +157,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                     repository_id=repository_pk,
                     addedBy=request.user,
                 )
-            except Exception as e:
+            except Exception:
                 pass
         if part_of_id:
             master_text.repository_source_id = part_of_id
@@ -189,26 +188,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         data = item_data['item']['gilesUploads']
         result = data[0]
         master_text = None
-        result_data = None
-        for key, value in result.items():
-            if key in ["uploadedFile", "extractedText"]:
-                if value["id"] == file_id:
-                    result_data = value
-                elif value['id'] == file_id:
-                    result_data = value  
-                
-            elif key == "pages":
-                for k in value:
-                    for k1,v1 in k.items():
-                        if k1 in ["image","text", "ocr"]:
-                            if v1['id'] == file_id:
-                                result_data = v1
-                        elif k1 == "additionalFiles":
-                            for k2 in value:
-                                for k1,v1 in k2.items():
-                                    if k1 in ["image","text", "ocr"]:
-                                        if v1["id"] == file_id:
-                                            result_data =  v1
+        result_data = get_giles_file_data(result, file_id)
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))
         except Text.DoesNotExist:
@@ -242,16 +222,15 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
             repo_type=Repository.CITESPHERE
         )
         manager = repository.manager(request.user)
-        file_content = manager.item_content(groups_pk, pk, file_id)
+        file_content = manager.content(groups_pk, pk, file_id)
         try:
             if file_content[0] == "error":
                 return Response(status=file_content[1])
-        except Exception as e:
+        except Exception:
             return Response(data=file_content, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'], url_name='transfertext')
     def transfer_to_project(self, request, repository_pk, groups_pk, pk):
-        repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.CITESPHERE)
         text = get_object_or_404(Text, pk=request.data.get('text_id', None))
         
         try:
@@ -260,8 +239,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
             target_project = _get_project(request, 'target_project_id')
 
             # Transfer text
-            _transfer_text(
-                text, current_project, target_project, request.user)
+            _transfer_text(text, current_project, target_project, request.user)
             
             return Response({
                 "message": "Successfully transferred text, appellations, and relations"
