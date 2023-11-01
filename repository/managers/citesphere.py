@@ -6,45 +6,54 @@ from rest_framework import status
 from accounts.models import CitesphereToken
 
 class CitesphereAuthority:
-    def __init__(self, user, endpoint):
-        self.endpoint = endpoint
+    def __init__(self, user):
         self.user = user
         self.headers = self._get_auth_header()
 
     def test_endpoint(self):
-        return self._get_response(f'{self.endpoint}/api/v1/test')
+        return self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/test')
 
     def user_info(self):
-        return self._get_response(f'{self.endpoint}/api/v1/user')
+        return self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/user')
 
     def groups(self):
-        groups = self._get_response(f'{self.endpoint}/api/v1/groups')
+        groups = self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups')
         return list(map(self._parse_group_info, groups))
 
     def group_info(self, group_id):
-        group = self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}')
+        group = self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}')
         return self._parse_group_info(group)
 
     def group_items(self, group_id, page=1):
         params = { "page": page }
-        return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/items',
+        response = self._get_response(
+            f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/items',
             params=params
         )
+        return response
+        
+    def group_item(self, group_id, item_id):
+        response = self._get_response(
+            f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/items/{item_id}'
+        )
+        return response
+        
+    def content(self, file_id):
+        return self._get_response(f'{settings.GILES_FILE_ENDPOINT}/{file_id}/content')
 
     def group_collections(self, group_id, limit=None, offset=None):
-        return self._get_response(f'{self.endpoint}/api/v1/groups/{group_id}/collections')
+        return self._get_response(f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/collections')
 
     def collection_items(self, group_id, col_id, page=1):
         params = { "page": page }
         return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/collections/{col_id}/items',
+            f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/collections/{col_id}/items',
             params=params
         )
 
     def collection_collections(self, group_id, col_id):
         return self._get_response(
-            f'{self.endpoint}/api/v1/groups/{group_id}/collections/{col_id}/collections'
+            f'{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group_id}/collections/{col_id}/collections'
         )
     
     def _get_auth_header(self):
@@ -67,8 +76,14 @@ class CitesphereAuthority:
                     self._get_access_token() # Set new token
                 except requests.RequestException as e:
                     raise e
-            else:
-                return json.loads(response.content)
+            elif response.status_code == status.HTTP_200_OK:
+                try:
+                    data = json.loads(response.content)
+                except Exception as e:
+                    data = response.content
+                return data
+            elif response.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN, status.HTTP_500_INTERNAL_SERVER_ERROR]:
+                return "error", response.status_code
 
         raise requests.exceptions.RetryError("Could not renew token")
 
@@ -79,7 +94,7 @@ class CitesphereAuthority:
         """
         refresh_token = self.auth_token.refresh_token
         response = requests.post(
-            url=f'{self.endpoint}/api/oauth/token',
+            url=f'{settings.CITESPHERE_ENDPOINT}/api/oauth/token',
             params={
                 "client_id": settings.CITESPHERE_CLIENT_ID,
                 "client_secret": settings.CITESPHERE_CLIENT_SECRET,
@@ -93,16 +108,22 @@ class CitesphereAuthority:
             self.auth_token.save()
             self.headers = self._get_auth_header()
         else:
-            print(response.content)
             raise requests.RequestException("Error renewing access_token")
 
     def _parse_group_info(self, group):
         return {
             "id": group['id'],
             "name": group['name'],
-            "uri": f"{self.endpoint}/auth/group/{group['id']}",
-            "url": f"{self.endpoint}/api/v1/groups/{group['id']}/items",
+            "uri": f"{settings.CITESPHERE_ENDPOINT}/api/v1/auth/group/{group['id']}",
+            "url": f"{settings.CITESPHERE_ENDPOINT}/api/v1/groups/{group['id']}/items",
             "description": group['description'],
             "public": False if group['type'] == "Private" else True,
             "size": group['numItems']
         }
+    
+    def get_raw(self, target, **params):
+        return requests.get(
+            url=target,
+            headers=self.headers,
+            params=params
+        ).content

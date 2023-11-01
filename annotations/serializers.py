@@ -1,3 +1,5 @@
+import tokenize
+from django.http import HttpResponse
 from rest_framework import serializers
 from annotations.models import VogonUser
 from .models import *
@@ -284,7 +286,6 @@ class TextAllSerializer(serializers.ModelSerializer):
 class Concept2Serializer(serializers.Serializer):
     
     id = serializers.IntegerField()
-    #url = serializers.CharField()
     uri = serializers.CharField()
     label = serializers.CharField()
     authority = serializers.CharField()
@@ -293,10 +294,6 @@ class Concept2Serializer(serializers.Serializer):
     pos = serializers.CharField()
     resolved = serializers.BooleanField()
     typed_label = serializers.CharField()
-    # class Meta:
-    #     model = Concept
-    #     fields = ('id', 'url', 'uri', 'label', 'authority', 'typed',
-    #               'description', 'pos', 'resolved', 'typed_label')
 
 
 class Appellation2Serializer(serializers.Serializer):
@@ -317,9 +314,9 @@ class Appellation2Serializer(serializers.Serializer):
 class Text2Serializer(serializers.Serializer):
     text = TextAllSerializer()
     textid = serializers.IntegerField(read_only=True)
-    title = serializers.CharField()
+    title = serializers.CharField(required=False)
     content = serializers.CharField()
-    baselocation = serializers.CharField()
+    baselocation = serializers.CharField(required=False)
     userid = serializers.IntegerField(read_only=True)
     repository_id =  serializers.IntegerField(read_only=True)
     project = ProjectSerializer()

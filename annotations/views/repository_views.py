@@ -12,7 +12,7 @@ from repository.models import Repository
 class RepositoryViewSet(viewsets.ModelViewSet):
     queryset = Repository.objects.all()
     serializer_class = RepositorySerializer
-
+    
     def list(self, request):
         project = get_project_details(request)
         if not project:

@@ -59,7 +59,7 @@ from django.utils import timezone
 
 
 class VogonUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, full_name=None, affiliation=None, location=None, link=None):
+    def create_user(self, username, email, full_name=None, affiliation=None, location=None, link=None):
         if not email:
             raise ValueError('Users must have an email address')
 
@@ -71,16 +71,13 @@ class VogonUserManager(BaseUserManager):
             location=location,
             link=link
         )
-
-        user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, email, password):
+    def create_superuser(self, username, email):
         user = self.create_user(
             username,
             email,
-            password=password,
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -411,6 +408,10 @@ class Text(models.Model):
 
     repository = models.ForeignKey("repository.Repository", blank=True, null=True, related_name='texts', on_delete=models.CASCADE)
     repository_source_id = models.IntegerField(default=-1, blank=True, null=True)
+    """
+    The unique id of the content file to retrieve from Giles
+    """
+    file_id = models.CharField(max_length=50, blank=True)
     content_type = models.CharField(max_length=255)
     """MIME type"""
 

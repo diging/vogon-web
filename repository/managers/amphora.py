@@ -49,7 +49,7 @@ class AmphoraRepository:
         response = requests.get(
             url=f'{self.endpoint}/collection/',
             headers=self.headers,
-            params={'limit': limit, 'offset': offset, 'q': q, 'user': user}
+            params={'limit': limit, 'offset': offset, 'q': q, 'user': user},
         )
         return json.loads(response.content)
 

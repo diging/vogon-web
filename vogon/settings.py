@@ -26,10 +26,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get("SECRET_KEY", "secretsecret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True')
-#DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False')
 
-ALLOWED_HOSTS = ["amphora.asu.edu", "localhost", "127.0.0.1", "129.219.40.16"]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
 
 # Application definition
 
@@ -139,15 +138,6 @@ WSGI_APPLICATION = "vogon.wsgi.application"
 DATABASES = {"default": dj_database_url.config()}
 DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql_psycopg2"
 
-
-# print DATABASES
-
-AUTHENTICATION_BACKENDS = (
-	"django.contrib.auth.backends.ModelBackend",  # default
-	# 'social.backends.github.GithubOAuth2',
-	#'allauth.account.auth_backends.AuthenticationBackend',
-)
-
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 ANONYMOUS_USER_ID = -1
 BASE_URL = os.environ.get('BASE_URL', "/")
@@ -163,7 +153,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -329,6 +319,7 @@ GITHUB_SECRET_ID = os.environ.get("GITHUB_SECRET_ID", "")
 CITESPHERE_ENDPOINT = os.environ.get("CITESPHERE_ENDPOINT", "")
 CITESPHERE_CLIENT_ID = os.environ.get("CITESPHERE_CLIENT_ID", "")
 CITESPHERE_CLIENT_SECRET = os.environ.get("CITESPHERE_CLIENT_SECRET", "")
+GILES_FILE_ENDPOINT = os.environ.get("GILES_FILE_CONTENT", "")
 
 # Testing variables
 TEST_CITESPHERE_ACCESS = "t1"

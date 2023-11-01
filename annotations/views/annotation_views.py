@@ -85,12 +85,33 @@ class AnnotationViewSet(viewsets.ViewSet):
         """
         View to get all data related to annotate text
         """
+        file_id = request.query_params.get('file_id', None)
         text = get_object_or_404(Text, pk=pk)
-        annotator = annotator_factory(request, text)
-        data = annotator.render()
-        content = data['content'].decode("utf-8")
-        data['content'] = content
-        project = data['project']
+        text.file_id = file_id
+        data = {}
+        if text.repository.name == "Citesphere":
+            repository = text.repository
+            manager = repository.manager(request.user)
+            file_content = manager.content(file_id)
+            try:
+                if file_content[0] == "error":
+                    return Response(status=file_content[1])
+            except Exception:
+                pass
+            content = file_content
+            data['content'] = content
+            project_id = request.query_params.get('project_id', None)
+            if project_id:
+                project = TextCollection.objects.get(pk=project_id)
+            else:
+                project = request.user.get_default_project()
+            data['text'] = text
+        else:
+            annotator = annotator_factory(request, text)
+            data = annotator.render()
+            content = data['content'].decode("utf-8")
+            data['content'] = content
+            project = data['project']
 
         if project.ownedBy != request.user and request.user not in project.participants.all():
             return Response({
@@ -138,6 +159,7 @@ class AnnotationViewSet(viewsets.ViewSet):
         Provides network data for the graph tab in the text annotation view.
         """
         text = get_object_or_404(Text, pk=pk)
+        text.file_id = request.query_params.get('file_id', None)
         annotator = annotator_factory(request, text)
         data = annotator.render()
         project = data['project']
