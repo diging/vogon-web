@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from itertools import chain, combinations, groupby
 import re
-from annotations.models import Appellation, DateAppellation, Relation, RelationTemplatePart 
+from annotations.models import *
 from annotations.relations import create_appellation
 from django.shortcuts import get_object_or_404
 
