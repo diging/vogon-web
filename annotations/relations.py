@@ -461,49 +461,6 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
     if len(missing_fields) > 0:
         raise InvalidData('Missing fields: %s' % '; '.join(list(missing_fields)))
 
-    def create_relation(template_part, data, relationset, cache={}, appellation_cache={}, project_id=None):
-        if cache != None:
-            key = template_part.id 
-            if key in cache:
-                return cache[key]
-
-        field_handlers = {
-            RelationTemplatePart.TYPE: lambda datum: Appellation.objects.get(pk=datum['appellation']['id']),
-            RelationTemplatePart.DATE: lambda datum: DateAppellation.objects.get(pk=datum['appellation']['id']),
-            '__other__': lambda datum: create_appellation(datum, required[_as_key(datum)], cache=appellation_cache, project_id=project_id, creator=creator, text=text)
-        }
-
-        relation_data = {
-            'part_of': relationset,
-            'createdBy': creator,
-            'occursIn': text,
-        }
-
-        for pred in ['source', 'predicate', 'object']:    # Collect field data
-            node_type = getattr(template_part, '%s_node_type' % pred)
-            method = field_handlers.get(node_type, field_handlers['__other__'])
-            datum = provided.get((template_part.id, pred))
-
-            dkey = 'predicate' if pred == 'predicate' else '%s_content_object' % pred
-
-            if datum:
-                relation_data[dkey] = method(datum)
-            elif node_type == RelationTemplatePart.RELATION:
-                relation_data[dkey] = create_relation(getattr(template_part, '%s_relationtemplate' % pred), data, relationset, cache=cache, appellation_cache=appellation_cache, project_id=project_id)
-            else:
-                payload = {
-                    'type': node_type,
-                    'concept_id': getattr(getattr(template_part, '%s_concept' % pred), 'id', None),
-                    'part_field': pred
-                }
-                relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
-
-        relation = Relation.objects.create(**relation_data)
-
-        if cache != None:
-            cache[template_part.id] = relation
-        return relation
-
     appellation_cache = {}
     relation_cache = {}
     relations = {}

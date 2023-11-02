@@ -124,10 +124,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
     
     def retrieve(self, request, repository_pk, groups_pk, pk):
         part_of_id = self.request.query_params.get('part_of', None)   
-        found, project_details, part_of_project = utils._get_project_details(
-            request,
-            repository_pk
-        )
+        found, project_details, part_of_project = utils._get_project_details(request)
         if not found:
             return Response({ "message": "Project not found" }, 404)
         repository = get_object_or_404(
