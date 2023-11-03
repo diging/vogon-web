@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from itertools import chain, combinations, groupby
 import re
+import inspect
 from annotations.models import *
 from annotations.relations import create_appellation
 from django.shortcuts import get_object_or_404
@@ -101,6 +102,32 @@ def create_relation(template_part, provided, relationset, cache={}, appellation_
         if cache != None:
             cache[template_part.id] = relation
         return relation
+
+def set_relation(template_part, provided, relationset, relation_data, field_handlers, cache={}, appellation_cache={}, project_id=None, creator=None, text=None):
+    for pred in ['source', 'predicate', 'object']:    # Collect field data
+        node_type = getattr(template_part, '%s_node_type' % pred)
+        method = field_handlers.get(node_type, field_handlers['__other__'])
+        datum = provided.get((template_part.id, pred))
+
+        dkey = 'predicate' if pred == 'predicate' else '%s_content_object' % pred
+        if datum:
+            relation_data[dkey] = method(datum)
+        elif node_type == RelationTemplatePart.RELATION:
+            relation_data[dkey] = getattr('%s_relation' % inspect.currentframe().f_code.co_name)(
+                getattr(template_part, '%s_relationtemplate' % pred), 
+                provided, 
+                relationset, 
+                cache=cache, 
+                appellation_cache=appellation_cache, 
+                project_id=project_id
+            )
+        else:
+            payload = {
+                'type': node_type,
+                'concept_id': getattr(getattr(template_part, '%s_concept' % pred), 'id', None),
+                'part_field': pred
+            }
+            relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
 
 def get_cache(template_part, cache={}):
     if cache != None:
