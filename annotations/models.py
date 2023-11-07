@@ -53,7 +53,7 @@ from django.contrib.auth.models import (
 )
 from django.utils.translation import ugettext_lazy as _
 
-from annotations.utils import help_text
+from annotations.model_utils import help_text
 from concepts.models import Concept, Type
 from django.utils import timezone
 

@@ -5,9 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from annotations import annotators
 from annotations.models import Text, TextCollection, RelationSet, Appellation, RelationTemplate, VogonUserDefaultProject
-from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer, ProjectSerializer
-from repository.models import Repository
-from django.db.models import Q
+from annotations.serializers import ProjectSerializer
 from rest_framework.exceptions import APIException
 from django.db import transaction
 
@@ -25,7 +23,7 @@ def get_project_details(request):
 def get_relationset_params(request, pk):
     template = get_object_or_404(RelationTemplate, pk=pk)
     data = request.data
-    text = get_object_or_404(Text, pk=data['occursIn'])
+    text = get_object_or_404(Text, pk=data['fields'][0]['appellation']['occursIn']['id'])
     
     project_id = data.get('project', None)
     if project_id is None:

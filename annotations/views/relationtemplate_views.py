@@ -78,7 +78,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
                 Q(description__icontains=search)
             )
         if not all_templates:
-            queryset = queryset.filter(createdBy=self.request.user.id)
+            queryset = queryset.filter(createdBy=self.request.user.id) 
         data = [
             {
                 'id': item.id,

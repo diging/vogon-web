@@ -1,5 +1,6 @@
 from itertools import groupby, combinations
 from collections import Counter
+from .models import Appellation
 
 def network_data(relationsets, text_id=None, appellation_queryset=None):
     """
