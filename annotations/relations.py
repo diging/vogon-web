@@ -21,6 +21,8 @@ PRED_MAP = {    # Used in expression and terminal node templates.
     'o': 'object_content_object'
 }
 
+PRED_SUFFIX = '%s_relationtemplate'
+
 
 class InvalidTemplate(RuntimeError):
     pass
@@ -137,7 +139,7 @@ def build_dependency_graph_from_template(template):
         for pred in ['source', 'object']:
             node_type = getattr(template_part, '%s_node_type' % pred)
             if node_type == RelationTemplatePart.RELATION:
-                dependencies.add_edge(template_part.internal_id, getattr(template_part, '%s_relationtemplate' % pred).internal_id)
+                dependencies.add_edge(template_part.internal_id, getattr(template_part, PRED_SUFFIX % pred).internal_id)
     return dependencies
 
 
@@ -279,7 +281,7 @@ def create_template(template_data, part_data):
             for pred in ['source', 'object']:
                 internal = getattr(part, '%s_relationtemplate_internal_id' % pred)
                 if internal > -1:
-                    setattr(part, '%s_relationtemplate' % pred, parts[internal])
+                    setattr(part, PRED_SUFFIX % pred, parts[internal])
                     part.save()
         
         # Check if any part needs to be deleted
@@ -565,7 +567,7 @@ def _set_relation_data(template_part, provided, relationset, relation_data, fiel
             relation_data[dkey] = method(datum)
         elif node_type == RelationTemplatePart.RELATION:
             relation_data[dkey] = getattr(method_name)(
-                getattr(template_part, '%s_relationtemplate' % pred), 
+                getattr(template_part, PRED_SUFFIX % pred), 
                 provided, 
                 relationset, 
                 cache=cache, 
