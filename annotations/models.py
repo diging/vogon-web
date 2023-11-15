@@ -53,7 +53,6 @@ from django.contrib.auth.models import (
 )
 from django.utils.translation import ugettext_lazy as _
 
-from annotations.model_utils import help_text
 from concepts.models import Concept, Type
 from django.utils import timezone
 
@@ -116,10 +115,10 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     full_name = models.CharField(max_length=255, blank=True, null=True)
 
     conceptpower_uri = models.URLField(max_length=500, blank=True, null=True,
-                                       help_text=help_text("""Advanced: if you
+                                       help_text="""Advanced: if you
                                        have an entry for yourself in the
                                        Conceptpower authority service, please
-                                       enter it here."""))
+                                       enter it here.""")
     """
     Ideally, each :class:`.VogonUser` will have a corresponding record in
     Conceptpower that we can submit to Quadriga along with annotations. This is
@@ -134,9 +133,9 @@ class VogonUser(AbstractBaseUser, PermissionsMixin):
     bucket.
     """
 
-    is_active = models.BooleanField(default=True, help_text=help_text("""Un-set
+    is_active = models.BooleanField(default=True, help_text="""Un-set
                                     this field to deactivate a user. This is
-                                    extremely preferable to deletion."""))
+                                    extremely preferable to deletion.""")
     """If this field is ``False``, the user will not be able to log in."""
 
     is_admin = models.BooleanField(default=False)
@@ -322,10 +321,10 @@ class TextCollection(models.Model):
                                           blank=True)
 
     quadriga_id = models.CharField(max_length=255, blank=True, null=True,
-                                   help_text=help_text("""Use this field to
+                                   help_text="""Use this field to
                                    specify the ID of an existing project in
                                    Quadriga with which this project should be
-                                   associated."""))
+                                   associated.""")
     """
     This ID will be used when submitting :class:`.RelationSet`\s to Quadriga.
     If not set, the default value (see ``QUADRIGA_PROJECT`` in settings) will
@@ -381,13 +380,13 @@ class Text(models.Model):
     Text should already be tagged, with <word> elements delimiting tokens.
     """
 
-    title = models.CharField(max_length=1000, help_text=help_text("""The
-                             original title of the document."""))
+    title = models.CharField(max_length=1000, help_text="""The
+                             original title of the document.""")
     """The original title of the document."""
 
-    created = models.DateField(blank=True, null=True, help_text=help_text("""The
+    created = models.DateField(blank=True, null=True, help_text="""The
                                publication or creation date of the original
-                               document."""))
+                               document.""")
     """The publication or creation date of the original document."""
 
     added = models.DateTimeField(auto_now_add=True)

@@ -487,7 +487,7 @@ def create_relationset(template, raw_data, creator, text, project_id=None):
 
 def update_relationset(template, raw_data, creator, text, project_id=None, relationset_id=None):
     """
-    Create a new :class:`annotations.models.RelationSet` instance from a
+    Update a :class:`annotations.models.RelationSet` instance from a
     :class:`annotations.models.RelationTemplate` and user data.
     """
     _as_key = lambda datum: (datum['part_id'], datum['part_field'])
@@ -523,9 +523,13 @@ def update_relationset(template, raw_data, creator, text, project_id=None, relat
     return relationset
 
 def _create_relation(template_part, provided, relationset, cache={}, appellation_cache={}, project_id=None, creator=None, text=None, required=None, _as_key=None):
-    relation_cache = _get_cache(template_part, cache)
-    if relation_cache != None:
-        return relation_cache
+    """
+    Create a new :class:`annotations.models.Relation` instance from a
+    :class:`annotations.models.RelationTemplatePart` and user data.
+    """
+    cached_relation = _get_cached_relation(template_part.id, cache)
+    if cached_relation != None:
+        return cached_relation
 
     field_handlers = _get_field_handlers(appellation_cache, project_id, creator, text, required, _as_key)
     relation_data = _get_relation_data(relationset, creator, text)
@@ -537,16 +541,19 @@ def _create_relation(template_part, provided, relationset, cache={}, appellation
     return relation
 
 def _update_relation(template_part, provided, relationset, cache={}, appellation_cache={}, project_id=None, creator=None, text=None, required=None, _as_key=None):
-    relation_cache = _get_cache(template_part, cache)
-    if relation_cache != None:
-        return relation_cache
+    """
+    Update a :class:`annotations.models.Relation` instance from a
+    :class:`annotations.models.RelationTemplatePart` and user data.
+    """
+    cached_relation = _get_cached_relation(template_part.id, cache)
+    if cached_relation != None:
+        return cached_relation
 
     field_handlers = _get_field_handlers(appellation_cache, project_id, creator, text, required, _as_key)
     relation_data = _get_relation_data(relationset, creator, text)
     _set_relation_data(template_part, provided, relationset, relation_data, field_handlers, inspect.currentframe().f_code.co_name, cache, appellation_cache, project_id, creator, text)
 
-    relation_id_q = relationset.constituents.all().values('id')
-    relation = get_object_or_404(Relation, pk=relation_id_q[0]['id'])
+    relation = relationset.constituents.first()
     relation.source_content_object = relation_data['source_content_object']
     relation.predicate = relation_data['predicate']
     relation.object_content_object = relation_data['object_content_object']
@@ -582,12 +589,8 @@ def _set_relation_data(template_part, provided, relationset, relation_data, fiel
             }
             relation_data[dkey] = create_appellation({}, payload, project_id=project_id, creator=creator, text=text)
 
-def _get_cache(template_part, cache={}):
-    if cache != None:
-        key = template_part.id 
-        if key in cache:
-            return cache[key]
-    return None
+def _get_cached_relation(template_part_id, cache={}):
+    return cache[template_part_id] if cache and template_part_id in cache else None
 
 def _get_field_handlers(appellation_cache={}, project_id=None, creator=None, text=None, required=None, _as_key=None):
     field_handlers = {
