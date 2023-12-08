@@ -1,21 +1,14 @@
 from django.contrib import admin
-from django.contrib.admin import helpers
-from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponseRedirect
-from django.shortcuts import render_to_response, render
-from django.template.context_processors import csrf
-from django.views.decorators.csrf import csrf_protect
+from django.shortcuts import render
 from django.db.models import Q
-from .models import *
+from .models import Type, Concept
 from . import authorities
 import django.forms as forms
 
 
 from django.utils.safestring import mark_safe
-from django.utils.html import conditional_escape, format_html, html_safe
-from django.utils.encoding import (
-    force_str, force_text, python_2_unicode_compatible,
-)
+from django.utils.html import format_html, html_safe
+from django.utils.encoding import force_text, python_2_unicode_compatible
 
 
 def resolve(modeladmin, request, queryset):
@@ -156,7 +149,7 @@ class ModelChoiceFieldWithDescriptions(forms.ModelChoiceField):
         # choices can be any iterable, but we call list() on it because
         # it will be consumed more than once.
         if callable(value):
-            value = CallableChoiceIterator(value)
+            value = forms.fields.CallableChoiceIterator(value)
         else:
             value = list(value)
         idx, label, description = list(zip(*value))
@@ -313,14 +306,7 @@ def merge_concepts(modeladmin, request, queryset):
 
         # If the user confirms the merge action, then we should proceed with
         #  merging the unresolved concepts into the resolved (master) concept.
-        if action_form.is_valid() and action_form.cleaned_data['confirmed']:
-            try:
-                perform_merge(unresolved_concepts, resolved_concepts.first())
-            except Exception as E:
-                error_message = 'Encountered unhandled exception: %s' % str(E)
-                modeladmin.message_user(request, error_message)
-
-            modeladmin.message_user(request, "Concepts merged successfully")
+        if _execute_merge_actions(action_form, unresolved_concepts, resolved_concepts.first()):
             return
 
         else:
@@ -349,16 +335,7 @@ def merge_concepts(modeladmin, request, queryset):
 
         # If the user has selected a master concept, then we need to execute the
         #  merge action.
-        if merge_form.is_valid() and merge_form.cleaned_data['master_concept']:
-            master_concept = merge_form.cleaned_data['master_concept']
-            unresolved_concepts = queryset.exclude(pk=master_concept.id)
-            try:
-                perform_merge(unresolved_concepts, master_concept)
-            except Exception as E:
-                error_message = 'Encountered unhandled exception: %s' % str(E)
-                modeladmin.message_user(request, error_message)
-
-            modeladmin.message_user(request, "Concepts merged successfully")
+        if _execute_merge_actions(merge_form):
             return
 
         # We must prompt the user to select a master concept.
@@ -374,6 +351,23 @@ def merge_concepts(modeladmin, request, queryset):
             # merge_form.fields['master_concept'].
             return render(request, 'admin/merge_concepts.html', context)
 
+    def _execute_merge_actions(form, unresolved_concepts=None, resolved_concept=None):
+        if eval('form.is_valid()') and eval("form.cleaned_data['master_concept']"):
+            if unresolved_concepts is None and resolved_concepts is None:
+                master_concept = eval("form.cleaned_data['master_concept']")
+                unresolved_concepts = queryset.exclude(pk=master_concept.id)
+            try:
+                if resolved_concepts is None:
+                    perform_merge(unresolved_concepts, master_concept)
+                else:
+                    perform_merge(unresolved_concepts, resolved_concept)
+            except Exception as E:
+                error_message = 'Encountered unhandled exception: %s' % str(E)
+                modeladmin.message_user(request, error_message)
+
+            modeladmin.message_user(request, "Concepts merged successfully")
+            return True
+        return False
 
 class ConceptAdmin(admin.ModelAdmin):
     model = Concept

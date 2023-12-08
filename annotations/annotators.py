@@ -112,7 +112,7 @@ class Annotator(object):
         self.resource = manager.content(file_id=self.text.file_id)
         return self.resource
 
-    def render(self, context={}):
+    def render(self, context=None):
         """
         Render this annotator's template to a response.
 
@@ -127,11 +127,12 @@ class Annotator(object):
         -------
         :class:`django.http.response.HttpResponse`
         """
+        if context is None:
+            context = {}
         context.update(self.get_context())
-        #return render(self.context.get('request'), self.template, context)
         return context
 
-    def render_display(self, context={}):
+    def render_display(self, context=None):
         """
         Render this annotator's display template to a response.
 
@@ -149,6 +150,8 @@ class Annotator(object):
         -------
         :class:`django.http.response.HttpResponse`
         """
+        if context is None:
+            context = {}
         if not hasattr(self, 'display_template'):
             raise Http404('No display renderer for this format.')
         context.update(self.get_context())

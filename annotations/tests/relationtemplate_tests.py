@@ -11,6 +11,9 @@ from annotations.models import (
 from annotations.views.relationtemplate_views import RelationTemplateViewSet
 from concepts.models import Concept, Type
 
+URI_CONCEPT = 'test://uri/concept'
+URI = 'test://uri'
+
 class RelationTemplateListTest(VogonAPITestCase):
     url = reverse("vogon_rest:relationtemplate-list")
 
@@ -21,7 +24,7 @@ class RelationTemplateListTest(VogonAPITestCase):
 
     def test_multiple_templates(self):
         self.concept = Concept.objects.create(
-            uri='test://uri/concept',
+            uri=URI_CONCEPT,
             label='Concept',
             authority='Conceptpower',
             description='test description',
@@ -72,7 +75,7 @@ class RelationTemplateRetrieveTest(VogonAPITestCase):
 
     def test_template_retrieve(self):
         test_concept = Concept.objects.create(
-            uri='test://uri/concept',
+            uri=URI_CONCEPT,
             label='Concept',
             authority='Conceptpower',
             description='test description',
@@ -122,7 +125,7 @@ class RelationTemplateCreateRelationTest(VogonAPITestCase):
         
         # Create text object
         self.text = Text.objects.create(
-            uri='test://uri',
+            uri=URI,
             document_type='PT',
             tokenizedContent='xyz',
             title='test.txt',
@@ -140,13 +143,13 @@ class RelationTemplateCreateRelationTest(VogonAPITestCase):
 
         # Create concept objects
         self.concept_type = Type.objects.create(
-            uri='test://uri',
+            uri=URI,
             label='C1',
             authority='Conceptpower',
             description='test description'
         )
         self.concept = Concept.objects.create(
-            uri='test://uri/concept',
+            uri=URI_CONCEPT,
             label='Concept',
             authority='Conceptpower',
             description='test description',
@@ -529,7 +532,7 @@ class RelationTemplateDeleteTest(VogonAPITestCase):
         super().setUp()
         self.test_text = Text.objects.create(
             title="Test text",
-            uri='test://uri',
+            uri=URI,
             addedBy=self.user,
         )
         self.test_template = RelationTemplate.objects.create(

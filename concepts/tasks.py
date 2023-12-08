@@ -6,11 +6,8 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(settings.LOGLEVEL)
 
-import requests
-
 from concepts.models import Concept
-from concepts.lifecycle import *
-
+from concepts.lifecycle import ConceptLifecycle, ConceptLifecycleException
 
 def resolve_concept(instance_id):
     """

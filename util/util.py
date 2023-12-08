@@ -1,3 +1,5 @@
+import requests
+
 def unescape(s):
     return s.replace('&amp;', '&')\
         .replace('&lt;', '<')\
@@ -382,8 +384,10 @@ for i, datum in enumerate(doc_positions):
             position_type = datum['fields']['position_type']
         ).id
         print('\r', i, doc_position_map[datum['pk']], end=' ')
-    except:
+    except Exception as E:
         doc_positions_failed.append(datum)
+        raise E
+    
 
 dateappellations_failed = []
 date_appellation_map = {}
@@ -409,9 +413,9 @@ for i, datum in enumerate(dateappellations):
             day = datum['fields']['day'],
         ).id
         print('\r', i, date_appellation_map[datum['pk']], end=' ')
-    except:
+    except Exception as E:
         dateappellations_failed.append(datum)
-
+        raise E
 
 appellations_failed = []
 appellation_map = {}
@@ -436,9 +440,10 @@ for i, datum in enumerate(appellation_data):
             submittedWith_id = submittedWith,
         ).id
         print('\r', i, appellation_map[datum['pk']], end=' ')
-    except:
+    except Exception as E:
         appellations_failed.append(datum)
-
+        raise E
+    
 
 submittedWith = datum['fields']['submittedWith']
 if submittedWith is not None:
@@ -487,8 +492,9 @@ for i, datum in enumerate(relationset_data):
             pending = datum['fields']['pending'],
         ).id
         print('\r', i, relationset_map[datum['pk']], end=' ')
-    except:
+    except Exception as E:
         relationsets_failed.append(datum)
+        raise E
 
 
 def proc_relation(datum):
@@ -570,8 +576,9 @@ for i, datum in enumerate(relation_data[1:]):
     try:
         relation_map[datum['pk']] = proc_relation(datum)
         print('\r', i, relation_map[datum['pk']], end=' ')
-    except:
+    except Exception as E:
         relations_failed.append(datum)
+        raise E
 
 
 for datum in relation_data:

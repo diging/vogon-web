@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from goat.models import *
+from goat.models import IdentitySystem, Authority, Concept, Identity 
 from annotations.serializers import UserSerializer
 from annotations.models import VogonUser
 

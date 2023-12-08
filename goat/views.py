@@ -1,11 +1,11 @@
 from functools import reduce
 from itertools import groupby
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 
 from goat import tasks
-from goat.serializers import *
-from goat.models import *
+from goat.serializers import ConceptSerializer
+from goat.models import Authority, Concept
 
 def get_concept_cache_key(query, pos):
     if not pos:
@@ -68,9 +68,10 @@ def identical(identifier, system_id=None):
     try:    # The QuerySet is lazy, so we do the serialization in here.
         concepts = Concept.objects.filter(identities__in=identities.values_list('id', flat=True)).distinct('id')
         serialized = ConceptSerializer(concepts, many=True).data
-    except:    # This is kind of a drag, but SQLite doesn't support DISTINCT ON.
+    except Exception as E:    # This is kind of a drag, but SQLite doesn't support DISTINCT ON.
         concepts = Concept.objects.filter(identities__in=identities.values_list('id', flat=True))
         concepts = [[c for c in concept][0] for i, concept in groupby(sorted(concepts, key=lambda o: o.id), key=lambda o: o.id)]
         serialized = ConceptSerializer(concepts, many=True).data
+        raise E
 
     return serialized

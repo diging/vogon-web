@@ -1,8 +1,9 @@
 import tokenize
 from django.http import HttpResponse
 from rest_framework import serializers
+from annotations.tasks import retrieve
 from annotations.models import VogonUser
-from .models import *
+from .models import Appellation, CsvDownloadList, DateAppellation, DocumentPosition, Relation, RelationSet, Repository, RelationTemplate, TemporalBounds, Text, TextCollection
 from repository.models import Repository as RepositoryModel
 from concepts.models import Concept, Type
 

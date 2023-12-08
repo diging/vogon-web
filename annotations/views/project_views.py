@@ -12,12 +12,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 
-from annotations.models import TextCollection, RelationSet, Text, Appellation, RelationTemplate
+from annotations.models import TextCollection, RelationSet, Text, Appellation, VogonUserDefaultProject, RelationTemplate
 from accounts.models import VogonUser
-from annotations.serializers import (
-    TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer, 
-    VogonUserSerializer, VogonUserDefaultProject
-)
+from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
 from annotations.filters import ProjectFilter
 from repository.models import Repository
 

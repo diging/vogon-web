@@ -5,7 +5,7 @@ import urllib
 from django.conf import settings
 from annotations.models import VogonUser
 
-from goat.models import *
+from goat.models import Authority, Concept, Identity
 
 
 def orchestrate_search(user_id, authority_ids, params):
@@ -51,33 +51,7 @@ def search(user_id, authority_id, params):
     for result in results:
         identities = result.get('identities', None)
         if result['concept_type']:
-            try:
-                concept_type = Concept.objects.get(identifier=result['concept_type'])
-            except Concept.DoesNotExist:
-                try:
-                    concept_type_result = authority.manager.type(identifier=result['concept_type'])
-                except:
-                    concept_type_result = None
-
-                defaults = {
-                    'added_by': user,
-                    'authority': authority
-                }
-                if concept_type_result:
-                    defaults.update({
-                        'name': concept_type_result['name'],
-                        'local_identifier': result['concept_type'],
-                        'description': concept_type_result['description'],
-
-                    })
-                else:
-                    defaults.update({
-                        'name': result['concept_type'],
-                        'local_identifier': result['concept_type'],
-                    })
-                if defaults.get('name') is None:
-                    defaults['name'] = result['concept_type']
-                concept_type = Concept.objects.create(identifier=result['concept_type'], **defaults)
+            concept_type = _get_concept_type(result, authority, user)
         else:
             concept_type = None
 
@@ -112,3 +86,35 @@ def search(user_id, authority_id, params):
 
         concepts.append(concept)
     return concepts
+
+
+def _get_concept_type(result, authority, user):
+    try:
+        concept_type = Concept.objects.get(identifier=result['concept_type'])
+    except Concept.DoesNotExist:
+        try:
+            concept_type_result = authority.manager.type(identifier=result['concept_type'])
+        except Exception as E:
+            concept_type_result = None
+            raise E
+        
+        defaults = {
+            'added_by': user,
+            'authority': authority
+        }
+        if concept_type_result:
+            defaults.update({
+                'name': concept_type_result['name'],
+                'local_identifier': result['concept_type'],
+                'description': concept_type_result['description'],
+
+            })
+        else:
+            defaults.update({
+                'name': result['concept_type'],
+                'local_identifier': result['concept_type'],
+            })
+        if defaults.get('name') is None:
+            defaults['name'] = result['concept_type']
+        concept_type = Concept.objects.create(identifier=result['concept_type'], **defaults)
+    return concept_type

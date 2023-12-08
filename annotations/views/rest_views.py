@@ -6,29 +6,26 @@ from django.db.models import Q
 from django.conf import settings
 
 from rest_framework import status
-from rest_framework.settings import api_settings
 
-from rest_framework import viewsets, exceptions, status
-from rest_framework.authentication import SessionAuthentication
+from rest_framework import viewsets, status
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.pagination import (LimitOffsetPagination,
-                                       PageNumberPagination)
-from django.http import HttpResponseRedirect
-from requests_oauthlib import OAuth2Session
-from django.http import JsonResponse
+from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
-from annotations.serializers import *
-from annotations.models import *
+from annotations.serializers import (UserSerializer, RepositorySerializer, DateAppellationSerializer, 
+                                     DocumentPositionSerializer, AppellationSerializer, AppellationPOSTSerializer, 
+                                     Appellation2Serializer, RelationSetSerializer, TemporalBoundsSerializer,
+                                     TextSerializer, TypeSerializer, ConceptSerializer, TextCollectionSerializer,
+                                     RelationSerializer)
+from annotations.models import (VogonUser, Repository, DateAppellation, DocumentPosition, 
+                                Appellation, Text, TextCollection, RelationSet, TemporalBounds, Relation)
 from concepts.models import Concept, Type
-from concepts.lifecycle import *
+from concepts.lifecycle import ConceptLifecycle
 import uuid
-import requests
 from goat.views import retrieve as retrieve_concept
 from goat.views import search as search_concepts
-from django.core.exceptions import ObjectDoesNotExist
 import logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -307,7 +304,7 @@ class AppellationViewSet(SwappableSerializerMixin, AnnotationFilterMixin, viewse
                 return serializer_class(instance, data=data)
             return serializer_class(data=data)
         except Exception as E:
-            print((serializer.errors))
+            print((serializer_class.errors))
             raise E
 
     def _get_or_create_local_concept(self, interpretation):
@@ -515,9 +512,10 @@ class ConceptViewSet(viewsets.ModelViewSet):
         concept_type = data.get('typed', '')
         try:
             int(concept_type)
-        except:
+        except Exception as E:
             data['typed'] = Type.objects.get(uri=concept_type).id
-
+            raise E
+        
         serializer = self.get_serializer(data=data)
         try:
             serializer.is_valid(raise_exception=True)

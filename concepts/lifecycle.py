@@ -21,7 +21,11 @@ class ConceptData(object):
     Container for raw data from Conceptpower.
     """
     def __init__(self, label=None, description=None, typed=None, uri=None,
-                 pos='noun', equal_to=[]):
+                 pos='noun', equal_to=None):
+        
+        if equal_to is None:
+            equal_to = []
+
         self.label = label
         self.description = description
         self.typed = typed
@@ -165,19 +169,7 @@ class ConceptLifecycle(object):
                                             " resolved")
 
         if self.is_native:
-            data = self.get(self.instance.uri)
-            if data.typed:
-                _typed, _ = Type.objects.get_or_create(uri=data.typed)
-            else:
-                _typed = None
-
-            self.instance.label = data.label
-            self.instance.description = data.description
-            if _typed:
-                self.instance.typed = _typed
-            self.instance.pos = data.pos
-            self.instance.concept_state = Concept.RESOLVED
-            self.instance.save()
+            _set_concept_instance(self)
             return
 
         if self.is_external:
@@ -201,7 +193,6 @@ class ConceptLifecycle(object):
             self.add()
             return
         raise ConceptLifecycleException("Could not resolve concept.")
-
 
     def merge_with(self, uri):
         """
@@ -330,3 +321,19 @@ class ConceptLifecycle(object):
         except Exception as E:
             raise ConceptUpstreamException("Whoops: %s" % str(E))
         return list(map(self._reform, data))
+    
+
+def _set_concept_instance(self):
+    data = self.get(self.instance.uri)
+    if data.typed:
+        _typed, _ = Type.objects.get_or_create(uri=data.typed)
+    else:
+        _typed = None
+
+    self.instance.label = data.label
+    self.instance.description = data.description
+    if _typed:
+        self.instance.typed = _typed
+    self.instance.pos = data.pos
+    self.instance.concept_state = Concept.RESOLVED
+    self.instance.save()

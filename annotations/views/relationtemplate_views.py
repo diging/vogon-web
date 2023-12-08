@@ -1,27 +1,16 @@
 """
 Provides :class:`.RelationTemplate`\-related views.
 """
-import copy
-import json
 import logging
-import networkx as nx
-from string import Formatter
-from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse
 from django.db.models import Q
 from django.db import transaction, DatabaseError
-from django.forms import formset_factory
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, render
-from rest_framework import viewsets, serializers, status
-from rest_framework.decorators import api_view, action
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
-from annotations.models import *
+from annotations.models import RelationSet, RelationTemplate, RelationTemplatePart
 from annotations import relations
 from annotations.serializers import TemplatePartSerializer, TypeSerializer, TemplateSerializer
 from concepts.models import Concept, Type
@@ -123,7 +112,7 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
         return Response({
             'success': True
         })
-    
+
     def create_or_update(self, request):
         data = request.data
         template_data = {
@@ -137,25 +126,12 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
             template_data['id'] = data['id']
         
         # Create required concepts
-        for part in data.get('parts', []):
-            for field in ['source', 'predicate', 'object']:
-                node_type = part[f'{field}_node_type']
-                if node_type == 'CO':
-                    concept = self.add_concept(part[f'{field}_concept'])
-                    part[f'{field}_concept'] = concept
-                elif node_type == 'TP':
-                    concept_type_id = part[f'{field}_type']
-                    if concept_type_id:
-                        concept_type = Type.objects.get(pk=concept_type_id)
-                        part[f'{field}_type'] = concept_type
-                if field != 'predicate':
-                    internal_id = part[f'{field}_relationtemplate_internal_id']
-                    part[f'{field}_relationtemplate_internal_id'] = int(internal_id)
+        data_parts = _create_concepts(self, data)
 
         try:
             template = relations.create_template(
                 template_data,
-                data.get('parts', [])
+                data_parts
             )
             return Response({
                 'success': True,
@@ -166,6 +142,8 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'error': str(E)
             }, status=500)
+        
+    
 
     @action(detail=False, url_name='createform')
     def create_form(self, request):
@@ -200,4 +178,21 @@ class RelationTemplateViewSet(viewsets.ModelViewSet):
             result = Concept.objects.create(**data)
         
         return result
-        
+    
+def _create_concepts(self, data):
+    for part in data.get('parts', []):
+        for field in ['source', 'predicate', 'object']:
+            node_type = part[f'{field}_node_type']
+            if node_type == 'CO':
+                concept = self.add_concept(part[f'{field}_concept'])
+                part[f'{field}_concept'] = concept
+            elif node_type == 'TP':
+                concept_type_id = part[f'{field}_type']
+                if concept_type_id:
+                    concept_type = Type.objects.get(pk=concept_type_id)
+                    part[f'{field}_type'] = concept_type
+            if field != 'predicate':
+                internal_id = part[f'{field}_relationtemplate_internal_id']
+                part[f'{field}_relationtemplate_internal_id'] = int(internal_id)
+    return data.get('parts', [])
+    

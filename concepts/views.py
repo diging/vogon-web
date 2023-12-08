@@ -12,7 +12,7 @@ from annotations.serializers import (
     ConceptLiteSerializer
 )
 from concepts.models import Concept, Type
-from concepts.lifecycle import *
+from concepts.lifecycle import ConceptLifecycle, ConceptLifecycleException, ConceptUpstreamException
 from goat.views import search as search_concepts
 
 
@@ -49,8 +49,9 @@ class ConceptViewSet(viewsets.ModelViewSet):
         concept_type = data.get('typed', '')
         try:
             int(concept_type)
-        except:
+        except Exception as E:
             data['typed'] = Type.objects.get(uri=concept_type).id
+            raise E
 
         serializer = ConceptLiteSerializer(data=data)
         try:

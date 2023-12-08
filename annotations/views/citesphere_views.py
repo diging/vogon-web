@@ -185,6 +185,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         data = item_data['item']['gilesUploads']
         result = data[0]
         master_text = None
+        print('HERE-------------')
         result_data = get_giles_file_data(result, file_id)
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))

@@ -254,9 +254,6 @@ class VogonGroup(models.Model):
         verbose_name = _('group')
         verbose_name_plural = _('groups')
 
-    def __init__(self):
-        return self.name
-
     def natural_key(self):
         return (self.name,)
 

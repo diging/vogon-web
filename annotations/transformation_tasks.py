@@ -1,20 +1,10 @@
-from django.db import models
 from django.contrib.auth.models import User
-from concepts.models import Concept
-import ast
-import dicttoxml
 
 #---------- LOCAL SETTINGS COMMAND -------------------
 import os
 os.system("export DJANGO_SETTINGS_MODULE='vogon.local_settings'")
 
-
-
-from annotations.managers import repositoryManagers
-
-from annotations.models import *
-from django.contrib.auth.models import User
-from concepts.models import Concept
+from annotations.models import Appellation, Relation 
 
 print_obj = Appellation.objects.all()
 #print_obj = Relation.objects.all()
@@ -41,17 +31,17 @@ def indent(elem, level=0):
     if len(elem):
         if not elem.text or not elem.text.strip():
             elem.text = i + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
+        _set_elem_tail(elem, i)
         for elem in elem:
             indent(elem, level+1)
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
+        _set_elem_tail(elem, i)
     else:
         if level and (not elem.tail or not elem.tail.strip()):
             elem.tail = i
 
-
+def _set_elem_tail(elem, i):
+	if not elem.tail or not elem.tail.strip():
+		elem.tail = i
 
 import xml.etree.ElementTree as ET
 

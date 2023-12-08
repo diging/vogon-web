@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from itertools import groupby
 
 from annotations.forms import UserChangeForm, UserCreationForm
-from annotations.models import *
+from annotations.models import Appellation, DateAppellation, QuadrigaAccession, Relation, RelationSet, RelationTemplate, RelationTemplatePart, Text, TextCollection, VogonUser, VogonUserDefaultProject 
 from annotations import quadriga
 from annotations.tasks import submit_relationsets_to_quadriga
 

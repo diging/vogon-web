@@ -1,12 +1,8 @@
 from django.conf import settings
-from django.core.files import File
 
-from annotations.models import *
-from annotations.exceptions import *
-from giles.models import *
+from giles.models import GilesToken
 
-import requests, os
-from collections import defaultdict
+import requests
 
 _fix_url = lambda url: url.replace('http://', 'https://') if url is not None else None
 
@@ -76,8 +72,8 @@ def get_user_auth_token(user, **kwargs):
         status_code, data = get_auth_token(user, **kwargs)
         try:
             user.giles_token.delete()
-        except:
-            pass
+        except Exception as E:
+            raise E
         
         user.giles_token = GilesToken.objects.create(for_user=user, token=data["token"])
         user.save()

@@ -6,8 +6,7 @@ from django.db import transaction
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
-from annotations.models import *
-from annotations.utils import *
+from annotations.models import Appellation, DateAppellation, Relation, RelationSet, RelationTemplate, RelationTemplatePart 
 from concepts.models import Concept
 
 import inspect
@@ -396,12 +395,9 @@ def handle_temporal_data(template, data, creator, text, relationset, relations, 
 
     for relation_type in ['start', 'end', 'occur']:
         relation_data = data.get(relation_type)
-        if not relation_data:
-            continue
-
         # The predicate indicates the type of temporal dimension.
         predicate_uri = settings.TEMPORAL_PREDICATES.get(relation_type)
-        if not predicate_uri:
+        if not predicate_uri or not relation_data:
             continue
         predicate_concept, _ = Concept.objects.get_or_create(uri=predicate_uri,
                                                              defaults={'authority': 'Conceptpower'})
@@ -424,18 +420,7 @@ def handle_temporal_data(template, data, creator, text, relationset, relations, 
             # The object need not have a URI (concept) interpretation; we
             #  use an ISO8601 date literal instead. This non-concept
             #  appellation is represented internally as a DateAppellation.
-            object_data = {
-                'occursIn': text,
-                'createdBy': creator,
-            }
-            if project_id:
-                object_data.update({'project_id': project_id})
-            for field in ['year', 'month', 'day']:
-                value = relation_data.get(field)
-                if not value:
-                    continue
-                object_data[field] = value
-            object_appellation = DateAppellation.objects.create(**object_data)
+            object_appellation = _create_date_appellation(text, creator, project_id, relation_data)
 
         temporalRelation = Relation(**{
             'source_content_object': top_relation,
@@ -447,6 +432,19 @@ def handle_temporal_data(template, data, creator, text, relationset, relations, 
         })
         temporalRelation.save()
 
+def _create_date_appellation(text, creator, project_id, relation_data):
+    object_data = {
+        'occursIn': text,
+        'createdBy': creator,
+    }
+    if project_id:
+        object_data.update({'project_id': project_id})
+    for field in ['year', 'month', 'day']:
+        value = relation_data.get(field)
+        if not value:
+            continue
+        object_data[field] = value
+    return DateAppellation.objects.create(**object_data)
 
 def create_relationset(template, raw_data, creator, text, project_id=None):
     """

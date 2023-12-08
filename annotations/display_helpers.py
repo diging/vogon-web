@@ -36,17 +36,8 @@ def get_snippet_relation(relationset):
     appellation_ids = set()
 
     # Pull out all Appellations that have a specific textual basis.
-    for relation in relationset.constituents.values(*fields):
-        for part in ['source', 'object']:
-            if relation.get('%s_content_type_id' % part, None) == appellation_type.id:
-                appellation_ids.add(relation['%s_object_id' % part])
-
-        # Predicates too, since we're interested in evidence for the relation.
-        if relation['predicate__tokenIds']:
-            tokenIds = relation['predicate__tokenIds'].split(',')
-            annotated_words.append(tokenIds)
-            for t in tokenIds:
-                annotation_map[t] = relation['predicate__interpretation__label']
+    # Predicates too, since we're interested in evidence for the relation.
+    addAppellationIdsAndPredicates(appellation_ids, relationset, annotated_words, annotation_map, appellation_type, fields)
 
     appellation_fields = [
         'tokenIds',
@@ -55,15 +46,8 @@ def get_snippet_relation(relationset):
         'interpretation__merged_with_id',
         'interpretation__merged_with__label',
     ]
-    for appellation in Appellation.objects.filter(pk__in=appellation_ids).values(*appellation_fields):
-
-        tokenIds = appellation['tokenIds'].split(',')
-        annotated_words.append(tokenIds)
-        for t in tokenIds:
-            if appellation['interpretation__merged_with_id']:
-                annotation_map[t] = appellation['interpretation__merged_with__label']
-            else:
-                annotation_map[t] = appellation['interpretation__label']
+    
+    mapTokenInterpretations(annotated_words, appellation_fields, appellation_ids, annotation_map)
 
     # Group sequences of tokens from appellations together if they are in close
     #  proximity.
@@ -107,6 +91,26 @@ def get_snippet_relation(relationset):
         combined_snippet += ' ...%s... ' % snippet.strip()
     return SafeText(combined_snippet)
 
+def addAppellationIdsAndPredicates(relationset, appellation_ids, appellation_type, annotated_words, annotation_map, fields):
+    for relation in relationset.constituents.values(*fields):
+        for part in ['source', 'object']:
+            if relation.get('%s_content_type_id' % part, None) == appellation_type.id:
+                appellation_ids.add(relation['%s_object_id' % part])
+        if relation['predicate__tokenIds']:
+            tokenIds = relation['predicate__tokenIds'].split(',')
+            annotated_words.append(tokenIds)
+            for t in tokenIds:
+                annotation_map[t] = relation['predicate__interpretation__label']
+
+def mapTokenInterpretations(annotated_words, appellation_fields, appellation_ids, annotation_map):
+    for appellation in Appellation.objects.filter(pk__in=appellation_ids).values(*appellation_fields):
+            tokenIds = appellation['tokenIds'].split(',')
+            annotated_words.append(tokenIds)
+            for t in tokenIds:
+                if appellation['interpretation__merged_with_id']:
+                    annotation_map[t] = appellation['interpretation__merged_with__label']
+                else:
+                    annotation_map[t] = appellation['interpretation__label']
 
 def get_snippet(appellation):
     """
@@ -190,17 +194,7 @@ def get_appellation_summaries(appellations):
             # We have to do this in here, because ``appellation`` is an
             #  itertools._grouper iterable.
             if i == 0:
-                if appellation['interpretation__merged_with__typed__label']:
-                    type_label = appellation['interpretation__merged_with__typed__label']
-                elif appellation['interpretation__typed__label']:
-                    type_label = appellation['interpretation__typed__label']
-                else:
-                    type_label = ''
-                if appellation['interpretation__merged_with__label']:
-                    concept_label = appellation['interpretation__merged_with__label']
-                else:
-                    concept_label = appellation['interpretation__label']
-
+                type_label, concept_label = _get_appellation_labels(appellation)
             indiv_appellations.append({
                 "text_snippet": get_snippet(appellation),
                 "annotator_id": appellation['createdBy_id'],
@@ -224,6 +218,18 @@ def get_appellation_summaries(appellations):
 
     return appellations_data, appellation_creators
 
+def _get_appellation_labels(appellation):
+    if appellation['interpretation__merged_with__typed__label']:
+        type_label = appellation['interpretation__merged_with__typed__label']
+    elif appellation['interpretation__typed__label']:
+        type_label = appellation['interpretation__typed__label']
+    else:
+        type_label = ''
+    if appellation['interpretation__merged_with__label']:
+        concept_label = appellation['interpretation__merged_with__label']
+    else:
+        concept_label = appellation['interpretation__label']
+    return type_label, concept_label
 
 def get_relations_summaries(relationset_qs):
     """
@@ -263,7 +269,6 @@ def get_relations_summaries(relationset_qs):
                 if rel.get('%s_content_type_id' % part, None) == app_ct.id:
                     appellation_ids.add(rel['%s_object_id' % part])
 
-        interps = []    # Focal concepts go here.
         appellations = Appellation.objects.filter(pk__in=appellation_ids, asPredicate=False)
         appellation_fields = [
             'interpretation_id',
@@ -273,11 +278,7 @@ def get_relations_summaries(relationset_qs):
             'interpretation__merged_with__label',
             'interpretation__merged_with__typed__label',
         ]
-        for appellation in appellations.values(*appellation_fields):
-            if appellation['interpretation__merged_with_id']:
-                interps.append((appellation['interpretation__merged_with_id'], appellation['interpretation__merged_with__label']))
-            else:
-                interps.append((appellation['interpretation_id'], appellation['interpretation__label']))
+        interps = _store_focal_concepts(appellations, appellation_fields)
 
         # Usually there will be only two Concepts here, but for more complex
         #  relations there could be more.
@@ -307,6 +308,15 @@ def get_relations_summaries(relationset_qs):
             } for _, relationset in i_relationsets]
         })
     return relationsets
+
+def _store_focal_concepts(appellations, appellation_fields):
+    interps = []    # Focal concepts go here.
+    for appellation in appellations.values(*appellation_fields):
+        if appellation['interpretation__merged_with_id']:
+            interps.append((appellation['interpretation__merged_with_id'], appellation['interpretation__merged_with__label']))
+        else:
+            interps.append((appellation['interpretation_id'], appellation['interpretation__label']))
+    return interps
 
 # def get_recent_annotations(last=20, user=None):
 #     """

@@ -9,6 +9,8 @@ from concepts.models import Concept, Type
 from concepts.signals import concept_post_save_receiver
 from concepts.lifecycle import ConceptLifecycleException, ConceptData, ConceptLifecycle
 
+URI_GOAT = "http://www.digitalhps.org/concepts/WID-02416519-N-01-goat"
+URI_CONCEPT = "http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585"
 
 class MockResponse(object):
     def __init__(self, content, status_code=200):
@@ -52,7 +54,7 @@ class TestConceptLifeCycle(TestCase):
 
         instance = Concept.objects.create(
             label = "goat",
-            uri = "http://www.digitalhps.org/concepts/WID-02416519-N-01-goat",
+            uri = URI_GOAT,
         )
         manager = ConceptLifecycle(instance)
         self.assertTrue(manager.is_native)    # A dynamic property!
@@ -71,7 +73,7 @@ class TestConceptLifeCycle(TestCase):
 
         instance = Concept.objects.create(
             label = "goat",
-            uri = "http://www.digitalhps.org/concepts/WID-02416519-N-01-goat",
+            uri = URI_GOAT,
         )
         manager = ConceptLifecycle(instance)
         self.assertFalse(manager.is_created)
@@ -82,7 +84,7 @@ class TestConceptLifeCycle(TestCase):
         """
         instance = Concept.objects.create(
             label = "goat",
-            uri = "http://www.digitalhps.org/concepts/WID-02416519-N-01-goat",
+            uri = URI_GOAT,
         )
         manager = ConceptLifecycle(instance)
         self.assertEqual(manager.default_state, Concept.RESOLVED)
@@ -170,7 +172,7 @@ class TestConceptLifeCycle(TestCase):
         self.assertEqual(len(suggestions), 2)
         self.assertIsInstance(suggestions[0], ConceptData)
         self.assertEqual(suggestions[0].label, 'Bradshaw 1965')
-        self.assertEqual(suggestions[0].uri, 'http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585')
+        self.assertEqual(suggestions[0].uri, URI_CONCEPT)
 
     @mock.patch("requests.get")
     def test_get_matching_suggestions(self, mock_get):
@@ -212,7 +214,7 @@ class TestConceptLifeCycle(TestCase):
         self.assertEqual(len(matches), 1)
         self.assertIsInstance(matches[0], ConceptData)
         self.assertEqual(matches[0].label, 'Bradshaw 1965')
-        self.assertEqual(matches[0].uri, 'http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585')
+        self.assertEqual(matches[0].uri, URI_CONCEPT)
 
     def test_create(self):
         """
@@ -222,12 +224,12 @@ class TestConceptLifeCycle(TestCase):
 
         manager = ConceptLifecycle.create(
             label = "goat",
-            uri = "http://www.digitalhps.org/concepts/WID-02416519-N-01-goat"
+            uri = URI_GOAT
         )
         self.assertIsInstance(manager, ConceptLifecycle)
         self.assertIsInstance(manager.instance, Concept)
         self.assertEqual(manager.instance.label, "goat")
-        self.assertEqual(manager.instance.uri, "http://www.digitalhps.org/concepts/WID-02416519-N-01-goat")
+        self.assertEqual(manager.instance.uri, URI_GOAT)
 
     def test_cannot_merge_resolved_concepts(self):
         """
@@ -236,7 +238,7 @@ class TestConceptLifeCycle(TestCase):
         """
         manager = ConceptLifecycle.create(
             label = "goat",
-            uri = "http://www.digitalhps.org/concepts/WID-02416519-N-01-goat"
+            uri = URI_GOAT
         )
 
         with self.assertRaises(ConceptLifecycleException):
@@ -276,12 +278,12 @@ class TestConceptLifeCycle(TestCase):
         )
         instance = manager.instance
         
-        manager.merge_with('http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585')
+        manager.merge_with(URI_CONCEPT)
         instance.refresh_from_db()
         self.assertTrue(instance.merged_with is not None)
         self.assertIsInstance(instance.merged_with, Concept)
         self.assertEqual(instance.concept_state, Concept.MERGED)
-        self.assertEqual(instance.merged_with.uri, 'http://www.digitalhps.org/concepts/CON76832db2-7abb-4c77-b08e-239017b6a585')
+        self.assertEqual(instance.merged_with.uri, URI_CONCEPT)
 
     @mock.patch("requests.post")
     def test_add(self, mock_post):

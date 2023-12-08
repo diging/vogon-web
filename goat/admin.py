@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from goat.models import *
+from goat.models import IdentitySystem, Identity, Concept, Authority
 
 
 class IdentitySystemAdmin(admin.ModelAdmin):

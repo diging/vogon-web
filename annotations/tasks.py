@@ -14,7 +14,7 @@ from django.utils import timezone
 from itertools import groupby, chain
 from collections import defaultdict
 
-from annotations.models import *
+from annotations.models import QuadrigaAccession, RelationSet, Text, TextCollection, VogonUser
 from annotations import quadriga
 
 from django.conf import settings
@@ -78,7 +78,7 @@ def scrape(url):
     textData : dict
         Metadata and text content retrieved from ``url``.
     """
-    response = requests.get(uri, allow_redirects=True)
+    response = requests.get(url, allow_redirects=True)
 
     # TODO : consider plugging in something like DiffBot.
     soup = ""   #BeautifulSoup(response.text, "html.parser")
@@ -207,6 +207,7 @@ def submit_relationsets_to_quadriga(rset_ids, text_id, user_id, **kwargs):
     else:
         logger.debug('Quadriga submission failed with %s' % str(response))
 
+# TODO: This code is not referenced anywhere
 def accession_ready_relationsets():
     logger.debug('Looking for relations to accession to Quadriga...')
     # print 'processing %i relationsets' % len(all_rsets)

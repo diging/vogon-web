@@ -6,9 +6,6 @@ from django.conf import settings
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from itertools import chain, combinations, groupby
-from annotations.models import *
-
 def basepath(request):
     """
     Generate the base path (domain + path) for the site.
