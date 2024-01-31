@@ -3,13 +3,10 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
-from annotations import annotators
-from annotations.models import Text, TextCollection, RelationSet, Appellation
-from annotations.serializers import RepositorySerializer, TextSerializer, RelationSetSerializer
+from annotations.models import Text
+from annotations.serializers import RepositorySerializer, TextSerializer
 from repository.models import Repository
-from annotations.views import utils
-from django.db.models import Q
-from annotations.views.utils import _get_project, _transfer_text, get_giles_file_data
+from annotations.views.utils import _get_project, _transfer_text, get_giles_file_data, _get_project_details
 
 class CitesphereRepoViewSet(viewsets.ViewSet):
     queryset = Repository.objects.all()
@@ -50,7 +47,6 @@ class CitesphereGroupsViewSet(viewsets.ViewSet):
             items = manager.group_items(pk)
         else:
             error = ["Manager", 404]
-        
         if isinstance(items, tuple):
             error = ["Items", items[1]]
         if isinstance(collections, tuple):
@@ -123,8 +119,8 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         return Response(items)
     
     def retrieve(self, request, repository_pk, groups_pk, pk):
-        part_of_id = self.request.query_params.get('part_of', None)   
-        found, project_details, part_of_project = utils._get_project_details(request)
+        part_of_id = self.request.query_params.get('part_of', None)
+        found, project_details = _get_project_details(request)
         if not found:
             return Response({ "message": "Project not found" }, 404)
         repository = get_object_or_404(
@@ -163,7 +159,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         context = {
             'item_data': item_data,
             'master_text': TextSerializer(master_text).data if master_text else None,
-            'part_of_project': part_of_project,
+            'part_of_project': project_details,
             'submitted': submitted,
             'project_details': project_details,
             'result': result,
@@ -185,7 +181,6 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         data = item_data['item']['gilesUploads']
         result = data[0]
         master_text = None
-        print('HERE-------------')
         result_data = get_giles_file_data(result, file_id)
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))

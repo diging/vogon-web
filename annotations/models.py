@@ -407,7 +407,8 @@ class Text(models.Model):
     """
     The unique id of the content file to retrieve from Giles
     """
-    file_id = models.CharField(max_length=50, blank=True)
+    file_id = models.CharField(max_length=50, blank=True, null=True)
+    group_id = models.CharField(max_length=50, blank=True, null=True)
     content_type = models.CharField(max_length=255)
     """MIME type"""
 

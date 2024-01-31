@@ -70,7 +70,7 @@ class TextSerializer(serializers.ModelSerializer):
         model = Text
         fields = ('id', 'uri', 'title', 'created', 'added', 'addedBy',
                   'source', 'annotators', 'annotation_count', 'children',
-                  'repository_id', 'repository_source_id')
+                  'repository_id', 'repository_source_id', 'group_id', 'file_id')
 
     def create(self, validated_data):
         repository = Repository.objects.get(pk=validated_data['source'])

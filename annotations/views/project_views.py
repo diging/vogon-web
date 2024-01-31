@@ -2,6 +2,7 @@
 Provides project (:class:`.TextCollection`) -related views.
 """
 import csv
+import datetime
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count
@@ -17,6 +18,7 @@ from accounts.models import VogonUser
 from annotations.serializers import TextCollectionSerializer, ProjectTextSerializer, ProjectSerializer
 from annotations.filters import ProjectFilter
 from repository.models import Repository
+import dateutil.parser
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -47,9 +49,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Response(response, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['POST'], url_name='addtext')
-    def add_text(self, request, pk=None):
+    def add_text(self, request, pk=None ):
         text_id = request.data['text_id']
         repo_id = request.data['repository_id']
+        item_id = request.data['item_id']
+        group_id = request.data['group_id']
 
         repository = get_object_or_404(Repository, pk=repo_id)
         project = get_object_or_404(TextCollection, pk=pk)
@@ -58,20 +62,28 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response({ "error": "User not authorized to add text" }, 403)
 
         manager = repository.manager(request.user)
-        resource = manager.resource(resource_id=int(text_id))
-        defaults = {
-            'title': resource.get('title'),
-            'created': resource.get('created'),
-            'repository': repository,
-            'repository_source_id': text_id,
-            'addedBy': request.user,
-        }
-        text, _ = Text.objects.get_or_create(uri=resource.get('uri'),
-                                             defaults=defaults)
-        project.texts.add(text)
+        item = manager.group_item(group_id, item_id)
         
-        serializer = ProjectSerializer(project)
-        return Response(serializer.data)
+        raw_date = dateutil.parser.parse(item['item']['date'])
+        created_date = raw_date.strftime('%Y-%m-%d')
+        defaults = {
+            'title': item['item']['title'],
+            'created': created_date,
+            'repository': repository,
+            'repository_source_id': repo_id,
+            'addedBy': request.user,
+            'group_id': group_id,
+            'file_id': item_id,
+            'project_id': pk
+        }
+        text, created = Text.objects.get_or_create(uri=item['item']['gilesUploads'][0]['uploadedFile']['url'],
+                                             defaults=defaults)
+        if not created:
+            text.group_id = group_id
+            text.file_id = item_id
+            text.save()
+        project.texts.add(text)        
+        return Response({"message": "Text successfully added to project"})
 
     @action(detail=True, methods=['POST'], url_name='changeownership')
     def change_ownership(self, request, pk=None):

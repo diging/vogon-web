@@ -24,6 +24,7 @@ from annotations.serializers import (
 	UserSerializer, TextCollectionSerializer
 )
 from accounts.serializers import UserSerializer as VogonUserSerializer
+from annotations.views.citesphere_views import CitesphereGroupsViewSet
 
 
 
@@ -128,6 +129,9 @@ class UserViewSet(viewsets.ModelViewSet):
 			) \
 			.order_by('-added')[:5]
 		added_texts = TextSerializer(_added_texts, many=True).data
+
+		for text in added_texts:
+			groups = CitesphereGroupsViewSet.as_view({'get': 'list'})(request._request, repository_pk=text['repository_id']).data
 
 		appellation_qs = Appellation.objects.filter(createdBy__pk=request.user.id) \
 										.filter(asPredicate=False) \

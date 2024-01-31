@@ -94,12 +94,10 @@ def _transfer_text(text, current_project, target_project, user):
 def _get_project_details(request):
     project = get_project_details(request)
     if not project:
-        return False, None, None
+        return False, None
 
     project_details = ProjectSerializer(project).data
-    part_of_project = None
-    part_of_project = project_details
-    return True, project_details, part_of_project
+    return True, project_details
 
 def get_giles_file_data(result, file_id):
     for key, value in result.items():
