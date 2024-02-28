@@ -113,4 +113,4 @@ urlpatterns = [
     re_path(r'^api/v2/download/previous/(?P<download_id>[0-9]+)/$', views.download_appellation_views.handle_csv_download, name='download_previous'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-urlpatterns = [path('vogon-api/', include(urlpatterns))]
+urlpatterns = [path(f'{settings.URL_PREFIX}/', include(urlpatterns))]
