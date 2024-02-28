@@ -31,7 +31,6 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'annotate', views.annotation_views.AnnotationViewSet, base_name="annotate")
 router.register(r'appellation', views.rest_views.AppellationViewSet)
@@ -113,3 +112,5 @@ urlpatterns = [
     re_path(r'^api/v2/download/$', views.download_appellation_views.available_csvs, name='available_csvs'),
     re_path(r'^api/v2/download/previous/(?P<download_id>[0-9]+)/$', views.download_appellation_views.handle_csv_download, name='download_previous'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+urlpatterns = [path('vogon-api/', include(urlpatterns))]
