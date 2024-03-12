@@ -249,7 +249,7 @@ class ProjectTextSerializer(TextCollectionSerializer):
     class TextSerializer(serializers.ModelSerializer):
         class Meta:
             model = Text
-            fields = ['id', 'title', 'added', 'repository_id', 'repository_source_id']
+            fields = ('id', 'title', 'added', 'repository_id', 'repository_source_id', 'group_id', 'file_id')
     texts = TextSerializer(many=True, read_only=True)
     participants = VogonUserSerializer(many=True)
 

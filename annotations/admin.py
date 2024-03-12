@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from itertools import groupby
+from django.urls import reverse
+from django.utils.http import urlencode
+from django.utils.html import format_html
 
 from annotations.forms import UserChangeForm, UserCreationForm
 from annotations.models import Appellation, DateAppellation, QuadrigaAccession, Relation, RelationSet, RelationTemplate, RelationTemplatePart, Text, TextCollection, VogonUser, VogonUserDefaultProject 
@@ -41,7 +44,19 @@ class VogonUserAdmin(UserAdmin):
 
 
 class TextAdmin(admin.ModelAdmin):
-    list_display = ('uri', 'title', 'created', 'addedBy', 'added')
+    list_display = ('id', 'uri', 'title', 'file_id', 'group_id', 'created', 'addedBy', 'added')
+
+
+class TextCollectionAdmin(admin.ModelAdmin):
+    list_display = ('view_text_name', 'view_text_description')
+
+    def view_text_name(self, obj):
+        return obj.name
+    view_text_name.short_description = 'Name'
+
+    def view_text_description(self, obj):
+        return obj.description
+    view_text_description.short_description = 'Description'
 
 
 class RelationAdmin(admin.ModelAdmin):
@@ -144,7 +159,7 @@ class VogonUserDefaultProjectAdmin(admin.ModelAdmin):
 admin.site.register(VogonUser, VogonUserAdmin)
 admin.site.register(Appellation, AppellationAdmin)
 admin.site.register(Text, TextAdmin)
-admin.site.register(TextCollection)
+admin.site.register(TextCollection, TextCollectionAdmin)
 admin.site.register(Relation, RelationAdmin)
 admin.site.register(RelationSet, RelationSetAdmin)
 admin.site.register(RelationTemplate)

@@ -146,6 +146,8 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 master_text = Text.objects.create(
                     uri=result_data.get('url'),
                     title=result_data.get('filename'),
+                    file_id=pk,
+                    group_id=groups_pk,
                     content_type=[result_data.get('content-type')],
                     repository_id=repository_pk,
                     addedBy=request.user,
@@ -172,7 +174,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         repository = get_object_or_404(Repository, pk=repository_pk, repo_type=Repository.CITESPHERE)
         manager = repository.manager(request.user)
         item_data = manager.group_item(groups_pk, pk)
-        file_id = request.query_params.get('file_url', None)
+        file_url = request.query_params.get('file_url', None)
         try:
             if item_data[0] == "error":
                 return Response(status=item_data[1])
@@ -181,7 +183,7 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
         data = item_data['item']['gilesUploads']
         result = data[0]
         master_text = None
-        result_data = get_giles_file_data(result, file_id)
+        result_data = get_giles_file_data(result, file_url)
         try:
             master_text = Text.objects.get(uri=result_data.get('url'))
         except Text.DoesNotExist:
@@ -189,6 +191,8 @@ class CitesphereItemsViewSet(viewsets.ViewSet):
                 master_text = Text.objects.create(
                     uri=result_data.get('url'),
                     title=result_data.get('filename'),
+                    file_id=pk,
+                    group_id=groups_pk,
                     content_type=result_data.get('content-type'),
                     repository_id=repository_pk,
                     addedBy=request.user
